@@ -8,6 +8,7 @@
 	starfire, sundance, winbond840, hamachi, natsemi, myson803 and ns820
 	driver declarations. s/INTER_GIGE/INTEL_GIGE/.
 	* linux/src/include/asm-i386/cache.h: New file from linux 2.2.26.
+	* linux/dev/include/linux/malloc.h: Include <asm/cache.h>.
 	* linux/dev/drivers/net/ns820.c (netsami_drv_id): Renamed to ...
 	(ns820_drv_id): ... this. Fix all callers.
 	* linux/dev/drivers/net/intel-gige.c (skel_netdev_probe): Renamed to ...
@@ -37749,3 +37750,14 @@ diff -Naur linux/src/include/asm-i386/cache.h linux/src/include/asm-i386/cache.h
 +#define        SMP_CACHE_BYTES L1_CACHE_BYTES
 +
 +#endif
+diff -Naur linux/dev/include/linux/malloc.h linux/dev/include/linux/malloc.h
+--- linux/dev/include/linux/malloc.h	2004-10-25 10:14:02.000000000 +0200
++++ linux/dev/include/linux/malloc.h	2004-10-25 10:13:13.000000000 +0200
+@@ -2,6 +2,7 @@
+ #define _LINUX_MALLOC_H
+ 
+ #include <linux/mm.h>
++#include <asm/cache.h>
+ 
+ #ifndef MACH_INCLUDE
+ #define kmalloc		linux_kmalloc
