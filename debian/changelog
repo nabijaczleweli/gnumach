@@ -7,8 +7,8 @@ gnumach (1:20040915.dfsg.1-1) unstable; urgency=low
     - linux/src/drivers/scsi/qlogicisp_asm.c: Likewise.
   * Disable floating point emulation usage.
   * Disable qlogicisp firmware loading.
-  * Enable debug code by default (disable with NDEBUG).
-    Thanks to Neal H. Walfield <neal@cs.uml.edu>.
+  * Change "ifdef DEBUG" to "ifndef NDEBUG" for asserts and other low
+    footprint debugging stuff, so building with asserts enabled by default.
   * Fix double free and memory loss probing partition table.
     Thanks to Neal H. Walfield <neal@cs.uml.edu>.
   * Fix possible buffer overrun on linux printk.

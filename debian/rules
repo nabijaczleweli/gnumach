@@ -119,7 +119,7 @@ stamp-configure:
 	dh_testdir
 	-mkdir build
 	cd build && ../configure $(drivers) \
-		CFLAGS="$(CFLAGS) -DNDEBUG" \
+		CFLAGS="$(CFLAGS)" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure
 
