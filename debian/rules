@@ -197,11 +197,10 @@ binary-arch: install-gnumach install-gnumach-dev install-gnumach-dbg
 	dh_installchangelogs -a -k ChangeLog
 	dh_installinfo -a
 	dh_link -a
-	dh_strip -a
+	dh_strip -a -N$(pkg_dbg)
 	dh_compress -p$(pkg) boot/gnumach
 	dh_compress -p$(pkg_dbg) boot/gnumach-dbg
 	dh_compress -p$(pkg_dev)
-	dh_strip -a -N$(pkg_dbg)
 	dh_fixperms -a
 	dh_installdeb -a
 	dh_gencontrol -a
