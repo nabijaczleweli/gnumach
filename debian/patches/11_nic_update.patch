@@ -1,5 +1,10 @@
 #DPATCHLEVEL=0
 
+2004-09-21  Guillem Jover  <guillem@hadrons.org>
+
+	* i386/linux/Drivers.in (winbond-840): Renamed to ...
+	(winbond_840): ... this.
+
 2004-08-05  Arief M. Utama  <arief_mulya@yahoo.com>
 
 	* linux/dev/drivers/net/eepro100.c (pci_tbl): Add PCI ID's from
@@ -63,7 +68,7 @@
 +dnl linux_DRIVER([starfire], [CONFIG_STARFIRE], [starfire], [net])
 +
 +linux_DRIVER([sundance], [CONFIG_SUNDANCE], [sundance], [net])
-+linux_DRIVER([winbond-840], [CONFIG_WINBOND840], [winbond-840], [net])
++linux_DRIVER([winbond_840], [CONFIG_WINBOND840], [winbond-840], [net])
 +linux_DRIVER([hamachi], [CONFIG_HAMACHI], [hamachi], [net])
 +
 +dnl FIXME: Getting the following while linking:
