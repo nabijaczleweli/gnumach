@@ -28,7 +28,7 @@ Description: The GNU version of the Mach microkernel for debugging
 Package: gnumach-dev
 Section: devel
 Priority: optional
-Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
+Architecture: all
 Description: The GNU version of the Mach microkernel
  These are the header files for the Utah Mach microkernel used by the Hurd.
 

@@ -7,7 +7,9 @@ gnumach (1:20040915-1) unstable; urgency=low
   * Honour DEB_BUILD_OPTIONS.
   * Split patches into debian/patches/.
   * Allow to build natively on non GNU/Hurd systems.
-  * Enable i386, kfreebsd-i386 and knetbsd-i386 on all packages.
+  * Enable i386, kfreebsd-i386 and knetbsd-i386 on gnumach and gnumach-dbg
+    packages.
+  * Make gnumach-dev arch all.
   * Switched to debhelper.
   * Update autoconf.
     Based on a patch by Neal H. Walfield <neal@cs.uml.edu>, thanks.
