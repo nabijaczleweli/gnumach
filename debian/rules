@@ -83,7 +83,8 @@ drivers := --enable-floppy \
 	--enable-qlogicisp \
 	--enable-gdth \
 	\
-	--enable-de4x5 --enable-de425 --enable-de434 --enable-de435 --enable-de450 --enable-de500 \
+	--enable-de4x5 --enable-de425 --enable-de434 \
+	--enable-de435 --enable-de450 --enable-de500 \
 	--enable-eexpresspro100 \
 	--enable-epic100 \
 	--enable-hp100 \
@@ -93,6 +94,12 @@ drivers := --enable-floppy \
 	--enable-viarhine \
 	--enable-elcp --enable-tulip \
 	--enable-yellowfin \
+	\
+	--enable-sundance \
+	--enable-winbond-840 \
+	--enable-hamachi \
+	--enable-myson803 \
+	--enable-ns820 \
 	\
 	--enable-ac3200 \
 	--enable-ul32 \
@@ -127,6 +134,11 @@ drivers := --enable-floppy \
 	--enable-ni52 --enable-ni65 \
 	--enable-lance \
 	--enable-tlan
+
+patch::
+	# XXX: Should be removed once the autoconf patch is in upstream
+	test -f i386/linux/configure.ac || \
+	  cp i386/linux/Drivers.in i386/linux/configure.ac
 
 include debian/patch.mk
 
@@ -163,6 +175,8 @@ clean::
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
                 -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
                 -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
+	# XXX: Should be removed once the autoconf patch is in upstream
+	rm -f i386/linux/configure.ac
 
 binary: binary-indep binary-arch
 
