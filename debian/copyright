@@ -12,7 +12,7 @@ It was downloaded from CVS:
 
 The Debian packages are maintained through Subversion on:
 
-   <http://svn.debian.org/viewcvs/pkg-hurd/gnumach/>
+   <svn://svn.debian.org/pkg-hurd/gnumach/>
 
 License statement:
 
