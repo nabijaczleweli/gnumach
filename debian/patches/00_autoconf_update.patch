@@ -4,9 +4,9 @@
 
 	* aclocal.m4 (AC_PROG_CC_LOCAL, AC_PROG_CC_WORKS_LOCAL): Removed.
 	* version.m4: New file.
-	* version.c.in: Use PACKAGE_VERSION, not VERSION.
-	* Makefile.in: Likewise.
+	* Makefile.in: Use PACKAGE_VERSION, not VERSION.
 	* doc/Makefile.in: Likewise.
+	* version.c.in: Likewise. Use PACKAGE_NAME, not "GNUmach".
 	* i386/linux/Makefile.in (configure): Change its source to
 	configure.ac.
 
@@ -19,6 +19,9 @@
 	* i386/linux/configure.ac: Likewise. Use m4_sinclude, not sinclude.
 	* linux/configure.in: Likewise.
 
+	* i386/configure.in: Update AC_DEFINE to the new three argument form.
+	* i386/linux/configure.ac: Move AC_DEFINE inside AC_ARG_ENABLE.
+
 	* configure.in: Use AC_CONFIG_LINKS, not AC_LINK_FILES.
 	* linux/configure.in: Likewise.
 
@@ -28,7 +31,9 @@
 	* linux/configure.in: Likewise
 
 	* configure.in: Use AS_HELP_STRING in AC_ARG_ENABLE help strings.
+	* Drivers.macros: Likewise.
 	* i386/configure.in: Likewise.
+	* i386/linux/configure.ac: Likewise.
 
 2004-09-06  Neal H. Walfield  <neal@cs.uml.edu>
 
@@ -53,9 +58,9 @@
 	argument form.
 
 
-diff -Naur gnumach-20040229.orig/aclocal.m4 gnumach-20040229/aclocal.m4
---- gnumach-20040229.orig/aclocal.m4	2004-02-29 21:26:19.000000000 +0100
-+++ gnumach-20040229/aclocal.m4	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/aclocal.m4 gnumach-20040915/aclocal.m4
+--- gnumach-20040915.orig/aclocal.m4	1999-05-01 02:34:20.000000000 +0200
++++ gnumach-20040915/aclocal.m4	2004-09-18 20:36:32.000000000 +0200
 @@ -2,80 +2,10 @@
  dnl In the situation that cross-linking is impossible, the variable
  dnl `cross_linkable' will be substituted with "yes".
@@ -139,9 +144,9 @@ diff -Naur gnumach-20040229.orig/aclocal.m4 gnumach-20040229/aclocal.m4
  esac
 -AC_SUBST(systype)])
 +AC_SUBST([systype])])
-diff -Naur gnumach-20040229.orig/configure.in gnumach-20040229/configure.in
---- gnumach-20040229.orig/configure.in	2004-02-29 21:26:22.000000000 +0100
-+++ gnumach-20040229/configure.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/configure.in gnumach-20040915/configure.in
+--- gnumach-20040915.orig/configure.in	2002-05-23 02:06:36.000000000 +0200
++++ gnumach-20040915/configure.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Configure script for GNU Mach.
 -dnl Copyright 1997, 1998, 1999 Free Software Foundation, Inc.
@@ -187,17 +192,18 @@ diff -Naur gnumach-20040229.orig/configure.in gnumach-20040229/configure.in
  # Options
  #
 -AC_ARG_ENABLE(kdb,
-+AC_ARG_ENABLE([kdb],
 -[  --enable-kdb             enable use of in-kernel debugger],
-+AS_HELP_STRING([--enable-kdb], [enable use of in-kernel debugger]),
 -[test "x$enableval" = xno || AC_DEFINE(MACH_KDB)])
-+[test "x$enableval" = xno || AC_DEFINE([MACH_KDB], [1], [enable use of in-kernel debugger])])
- 
+-
 -AC_ARG_ENABLE(kmsg,
-+AC_ARG_ENABLE([kmsg],
 -[  --enable-kmsg            enable use of kmsg device [default=yes]],
-+AS_HELP_STRING([--enable-kmsg], [enable use of kmsg device [[default=yes]]]),
 -[test "x$enableval" = xno || AC_DEFINE(MACH_KMSG)], [AC_DEFINE(MACH_KMSG)])
++AC_ARG_ENABLE([kdb],
++AS_HELP_STRING([--enable-kdb], [enable use of in-kernel debugger]),
++[test "x$enableval" = xno || AC_DEFINE([MACH_KDB], [1], [enable use of in-kernel debugger])])
++
++AC_ARG_ENABLE([kmsg],
++AS_HELP_STRING([--enable-kmsg], [enable use of kmsg device [[default=yes]]]),
 +[test "x$enableval" = xno || AC_DEFINE([MACH_KMSG], [], [enable use of kmsg device])],
 +			    [AC_DEFINE([MACH_KMSG], [], [enable use of kmsg device])])
  
@@ -240,9 +246,9 @@ diff -Naur gnumach-20040229.orig/configure.in gnumach-20040229/configure.in
 -AC_OUTPUT(Makefile version.c doc/Makefile)
 +AC_CONFIG_FILES([Makefile version.c doc/Makefile])
 +AC_OUTPUT
-diff -Naur gnumach-20040229.orig/doc/Makefile.in gnumach-20040229/doc/Makefile.in
---- gnumach-20040229.orig/doc/Makefile.in	2004-02-29 21:27:03.000000000 +0100
-+++ gnumach-20040229/doc/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/doc/Makefile.in gnumach-20040915/doc/Makefile.in
+--- gnumach-20040915.orig/doc/Makefile.in	2002-05-23 02:06:35.000000000 +0200
++++ gnumach-20040915/doc/Makefile.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  #
 -#   Copyright (C) 2001,02 Free Software Foundation, Inc.
@@ -259,10 +265,10 @@ diff -Naur gnumach-20040229.orig/doc/Makefile.in gnumach-20040229/doc/Makefile.i
  targets := mach.info
  
  # Variables from `configure'.
-diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
---- gnumach-20040229.orig/Drivers.macros	2004-02-29 21:32:27.000000000 +0100
-+++ gnumach-20040229/Drivers.macros	2004-09-15 11:35:15.000000000 +0200
-@@ -13,15 +13,15 @@
+diff -Naur gnumach-20040915.orig/Drivers.macros gnumach-20040915/Drivers.macros
+--- gnumach-20040915.orig/Drivers.macros	1999-07-23 08:48:59.000000000 +0200
++++ gnumach-20040915/Drivers.macros	2004-09-18 20:36:32.000000000 +0200
+@@ -13,15 +13,16 @@
  dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
  dnl USE OF THIS SOFTWARE.
  
@@ -277,12 +283,13 @@ diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
  [#] Checking for alias [$1]
 -AC_ARG_ENABLE([$1],,
 -enable_[$2]="$enable_[$1]"
-+AC_ARG_ENABLE([$1],[],
-+[enable_$2="$enable_$1"]
++AC_ARG_ENABLE([$1],
++  AS_HELP_STRING([--enable-$1], [enable driver alias $1]),
++  [enable_$2="$enable_$1"]
  )])
  
  dnl AC_DRIVER_CLASS(name,option,files) defines a class of drivers.  If
-@@ -30,9 +30,9 @@
+@@ -30,9 +31,9 @@
  dnl the specified files to the output variable `device_drivers'.  This
  dnl macro must precede the use of any corresponding AC_DRIVER macros.
  
@@ -295,7 +302,7 @@ diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
  ])
  
  dnl AC_DRIVER(name,option,files [,class]) detects option --enable-name.  If
-@@ -40,16 +40,16 @@
+@@ -40,16 +41,17 @@
  dnl added to the output variable `device_drivers'.  The driver is of class
  dnl `class'; see the comments on AC_DRIVER_CLASS for more information.
  
@@ -303,7 +310,8 @@ diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
 +AC_DEFUN([AC_DRIVER], [
  [#] Checking for device driver option [$1]
 -AC_ARG_ENABLE([$1],,
-+AC_ARG_ENABLE([$1],[],[
++AC_ARG_ENABLE([$1],
++AS_HELP_STRING([--enable-$1], [enable driver $1]), [
  if test "x$enableval" != xno; then
 -AC_DEFINE([$2])
 +AC_DEFINE([$2], [], [$1])
@@ -317,9 +325,9 @@ diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
  fi
 -)])
 +])])
-diff -Naur gnumach-20040229.orig/i386/configure.in gnumach-20040229/i386/configure.in
---- gnumach-20040229.orig/i386/configure.in	2004-02-29 21:28:26.000000000 +0100
-+++ gnumach-20040229/i386/configure.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/i386/configure.in gnumach-20040915/i386/configure.in
+--- gnumach-20040915.orig/i386/configure.in	1999-05-01 02:34:11.000000000 +0200
++++ gnumach-20040915/i386/configure.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Configure script for i386
 -dnl Copyright 1999 Free Software Foundation, Inc.
@@ -343,11 +351,11 @@ diff -Naur gnumach-20040229.orig/i386/configure.in gnumach-20040229/i386/configu
  # Options
  #
 -AC_ARG_ENABLE(lpr,
-+AC_ARG_ENABLE([lpr],
 -[  --enable-lpr             enable use of lpr device],
-+AS_HELP_STRING([--enable-lpr], [enable use of lpr device]),
 -[test "x$enableval" = xno || AC_DEFINE(MACH_LPR)])
-+[test "x$enableval" = xno || AC_DEFINE([MACH_LPR])])
++AC_ARG_ENABLE([lpr],
++AS_HELP_STRING([--enable-lpr], [enable use of lpr device]),
++[test "x$enableval" = xno || AC_DEFINE([MACH_LPR], [], [enable mach lpr])])
  
  #
  # Programs
@@ -363,9 +371,9 @@ diff -Naur gnumach-20040229.orig/i386/configure.in gnumach-20040229/i386/configu
 -AC_OUTPUT(Makefile)
 +AC_CONFIG_FILES([Makefile])
 +AC_OUTPUT
-diff -Naur gnumach-20040229.orig/i386/linux/configure.ac gnumach-20040229/i386/linux/configure.ac
---- gnumach-20040229.orig/i386/linux/configure.ac	2004-02-29 21:28:07.000000000 +0100
-+++ gnumach-20040229/i386/linux/configure.ac	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/i386/linux/configure.ac gnumach-20040915/i386/linux/configure.ac
+--- gnumach-20040915.orig/i386/linux/configure.ac	2001-05-27 14:44:22.000000000 +0200
++++ gnumach-20040915/i386/linux/configure.ac	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Device driver options for i386
 -dnl Copyright 1997, 1999 Free Software Foundation, Inc.
@@ -626,11 +634,12 @@ diff -Naur gnumach-20040229.orig/i386/linux/configure.ac gnumach-20040229/i386/l
 -AC_ARG_ENABLE(flashpoint,,[
 -if test ${enableval} = no; then
 -  AC_DEFINE(CONFIG_SCSI_OMIT_FLASHPOINT)
-+AC_ARG_ENABLE([flashpoint], [], [flashpoint=$enableval], [flashpoint=no])
-+if test x"$flashpoint" = xno; then
-+  AC_DEFINE([CONFIG_SCSI_OMIT_FLASHPOINT], [], [scsi omit flashpoint])
- fi
+-fi
 -])
++AC_ARG_ENABLE([flashpoint],
++  AS_HELP_STRING([--enable-flashpoint], [enable SCSI flashpoint [[default=no]]]),
++  [test x"$enableval" = xno &&
++   AC_DEFINE([CONFIG_SCSI_OMIT_FLASHPOINT], [], [scsi omit flashpoint])])
  
  
  dnl Ethernet controllers
@@ -727,9 +736,9 @@ diff -Naur gnumach-20040229.orig/i386/linux/configure.ac gnumach-20040229/i386/l
 +
 +AC_CONFIG_FILES([Makefile])
 +AC_OUTPUT
-diff -Naur gnumach-20040229.orig/i386/linux/Makefile.in gnumach-20040229/i386/linux/Makefile.in
---- gnumach-20040229.orig/i386/linux/Makefile.in	2004-02-29 21:28:08.000000000 +0100
-+++ gnumach-20040229/i386/linux/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/i386/linux/Makefile.in gnumach-20040915/i386/linux/Makefile.in
+--- gnumach-20040915.orig/i386/linux/Makefile.in	2001-05-27 14:44:22.000000000 +0200
++++ gnumach-20040915/i386/linux/Makefile.in	2004-09-18 20:36:32.000000000 +0200
 @@ -175,8 +175,8 @@
  
  # Autoconf support
@@ -741,9 +750,9 @@ diff -Naur gnumach-20040229.orig/i386/linux/Makefile.in gnumach-20040229/i386/li
  
  device-drivers.h: $(srcdir)/Makefile.in config.status
  	./config.status
-diff -Naur gnumach-20040229.orig/linux/configure.in gnumach-20040229/linux/configure.in
---- gnumach-20040229.orig/linux/configure.in	2004-02-29 21:32:02.000000000 +0100
-+++ gnumach-20040229/linux/configure.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/linux/configure.in gnumach-20040915/linux/configure.in
+--- gnumach-20040915.orig/linux/configure.in	1999-05-22 01:22:33.000000000 +0200
++++ gnumach-20040915/linux/configure.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Configure script for linux code snarfed into GNU Mach.
 -dnl Copyright 1999 Free Software Foundation, Inc.
@@ -782,9 +791,9 @@ diff -Naur gnumach-20040229.orig/linux/configure.in gnumach-20040229/linux/confi
 +		 src/include/.dummy:dummy.in
 +		 dev/include/.dummy:dummy.in])
 +AC_OUTPUT
-diff -Naur gnumach-20040229.orig/Makefile.in gnumach-20040229/Makefile.in
---- gnumach-20040229.orig/Makefile.in	2004-02-29 21:26:20.000000000 +0100
-+++ gnumach-20040229/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/Makefile.in gnumach-20040915/Makefile.in
+--- gnumach-20040915.orig/Makefile.in	2004-01-14 23:28:25.000000000 +0100
++++ gnumach-20040915/Makefile.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,5 +1,5 @@
  # Makefile for Mach 4 kernel directory
 -# Copyright 1997, 1999 Free Software Foundation, Inc.
@@ -801,16 +810,16 @@ diff -Naur gnumach-20040229.orig/Makefile.in gnumach-20040229/Makefile.in
  
  exec_prefix=$(prefix)
  
-diff -Naur gnumach-20040229.orig/version.c.in gnumach-20040229/version.c.in
---- gnumach-20040229.orig/version.c.in	2004-02-29 21:26:22.000000000 +0100
-+++ gnumach-20040229/version.c.in	2004-09-15 11:35:15.000000000 +0200
+diff -Naur gnumach-20040915.orig/version.c.in gnumach-20040915/version.c.in
+--- gnumach-20040915.orig/version.c.in	2002-05-23 02:06:36.000000000 +0200
++++ gnumach-20040915/version.c.in	2004-09-18 20:36:32.000000000 +0200
 @@ -1,2 +1,2 @@
  /* @configure_input@ */
 -const char version[] = "GNUmach @VERSION@";
-+const char version[] = "GNUmach @PACKAGE_VERSION@";
-diff -Naur gnumach-20040229.orig/version.m4 gnumach-20040229/version.m4
---- gnumach-20040229.orig/version.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gnumach-20040229/version.m4	2004-09-15 11:35:15.000000000 +0200
++const char version[] = "@PACKAGE_NAME@ @PACKAGE_VERSION@";
+diff -Naur gnumach-20040915.orig/version.m4 gnumach-20040915/version.m4
+--- gnumach-20040915.orig/version.m4	1970-01-01 01:00:00.000000000 +0100
++++ gnumach-20040915/version.m4	2004-09-18 20:36:32.000000000 +0200
 @@ -0,0 +1,3 @@
 +m4_define([PACKAGE],[GNU Mach])
 +m4_define([VERSION],[1.3])
