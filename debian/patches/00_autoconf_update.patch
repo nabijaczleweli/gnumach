@@ -1,0 +1,246 @@
+#DPATCHLEVEL=0
+
+2004-03-01  Marco Gerards  <metgerards@student.han.nl>
+
+	* aclocal.m4: (AC_PROG_CC_LOCAL): Macro removed.
+	(AC_PROG_CC_WORKS_LOCAL): Likewise.
+	* configure.in: Update AC_INIT to contain the version, bug address
+	and program name.  Changed the version to 1.4.  Use
+	AC_CONFIG_SRCDIR to check for the source directory, instead of
+	using AC_INIT for this.  Set the required autoconf version to
+	version 2.57.  Use the AC_CONFIG_HEADER config.h.  Removed check
+	to test if the host is GNU.  Added missing parameters to all
+	AC_DEFINE's.  Use AC_PROG_CC instead of AC_PROG_CC_LOCAL.  Added
+	AC_SUBST to AC_CHECK_TOOL test.  Split up AC_CONFIG_SUBDIRS test
+	into `linux' and `i386'.  Use AC_CONFIG_FILES and AC_OUTPUT
+	instead of AC_OUTPUT alone.
+	(VERSION): Removed.
+	* i386/linux/Drivers.in: Changed AC_PREREQ to version 2.57.  Use
+	AC_PROG_CC instead of AC_PROG_CC_LOCAL.  Added AC_SUBST to
+	AC_CHECK_TOOL test.
+	* version.c.in (version): Use @PACKAGE_NAME@ instead of a literal
+	string.  Changed @VERSION@ into @PACKAGE_VERSION@ to match the
+	configure.in changes.
+
+
+Index: aclocal.m4
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/Attic/aclocal.m4,v
+retrieving revision 1.2
+diff -u -p -r1.2 aclocal.m4
+--- aclocal.m4	1 May 1999 00:34:20 -0000	1.2
++++ aclocal.m4	29 Feb 2004 13:23:44 -0000
+@@ -1,77 +1,3 @@
+-dnl These modifications are to allow for an empty cross compiler tree.
+-dnl In the situation that cross-linking is impossible, the variable
+-dnl `cross_linkable' will be substituted with "yes".
+-
+-dnl
+-AC_DEFUN(AC_PROG_CC_LOCAL,
+-[AC_BEFORE([$0], [AC_PROG_CPP])dnl
+-AC_CHECK_PROG(CC, gcc, gcc)
+-if test -z "$CC"; then
+-  AC_CHECK_PROG(CC, cc, cc, , , /usr/ucb/cc)
+-  test -z "$CC" && AC_MSG_ERROR([no acceptable cc found in \$PATH])
+-fi
+-
+-AC_PROG_CC_WORKS_LOCAL
+-AC_PROG_CC_GNU
+-
+-if test $ac_cv_prog_gcc = yes; then
+-  GCC=yes
+-dnl Check whether -g works, even if CFLAGS is set, in case the package
+-dnl plays around with CFLAGS (such as to build both debugging and
+-dnl normal versions of a library), tasteless as that idea is.
+-  ac_test_CFLAGS="${CFLAGS+set}"
+-  ac_save_CFLAGS="$CFLAGS"
+-  CFLAGS=
+-dnl  AC_PROG_CC_G
+-  if test "$ac_test_CFLAGS" = set; then
+-    CFLAGS="$ac_save_CFLAGS"
+-dnl # This doesn't work on Linux (libc-4.5.26): Because of differences between
+-dnl # the shared and the static libraries there are less symbols available
+-dnl # without -g than with -g. It is therefore better to run the configuration
+-dnl # without -g and to add -g afterwards than the contrary. So don't add
+-dnl # -g to the CFLAGS now.
+-dnl  elif test $ac_cv_prog_cc_g = yes; then
+-dnl    CFLAGS="-g -O"
+-  else
+-dnl    CFLAGS="-O"
+-    # Add "-O" to both the CC and CPP commands, to eliminate possible confusion
+-    # that results from __OPTIMIZE__ being defined for CC but not CPP.
+-changequote(, )dnl
+-    if echo "$CC " | grep ' -O[1-9 ]' > /dev/null 2>&1; then
+-changequote([, ])dnl
+-      : # already optimizing
+-    else
+-      CC="$CC -O"
+-      ac_cv_prog_CC="$CC"
+-    fi
+-  fi
+-else
+-  GCC=
+-dnl # See above.
+-dnl   test "${CFLAGS+set}" = set || CFLAGS="-g"
+-fi
+-])
+-
+-AC_DEFUN(AC_PROG_CC_WORKS_LOCAL,
+-[AC_MSG_CHECKING([whether the C compiler ($CC $CFLAGS $LDFLAGS) works])
+-AC_LANG_SAVE
+-AC_LANG_C
+-AC_TRY_COMPILER([main(){return(0);}], ac_cv_prog_cc_works, ac_cv_prog_cc_cross)
+-AC_LANG_RESTORE
+-AC_MSG_RESULT($ac_cv_prog_cc_works)
+-if test $ac_cv_prog_cc_works = no; then
+- cross_linkable=no
+- ac_cv_prog_cc_cross=yes
+- # AC_MSG_ERROR([installation or configuration problem: C compiler cannot create executables.])
+-else
+- cross_linkable=yes
+-fi
+-AC_MSG_CHECKING([whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler])
+-AC_MSG_RESULT($ac_cv_prog_cc_cross)
+-AC_SUBST(cross_linkable)
+-cross_compiling=$ac_cv_prog_cc_cross
+-])
+-
+ AC_DEFUN(hurd_SYSTYPE,
+ [AC_REQUIRE([AC_CANONICAL_HOST])dnl
+ case "$host_cpu" in
+Index: configure.in
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/configure.in,v
+retrieving revision 1.12
+diff -u -p -r1.12 configure.in
+--- configure.in	23 May 2002 00:06:36 -0000	1.12
++++ configure.in	29 Feb 2004 13:23:46 -0000
+@@ -1,5 +1,5 @@
+ dnl Configure script for GNU Mach.
+-dnl Copyright 1997, 1998, 1999 Free Software Foundation, Inc.
++dnl Copyright 1997, 1998, 1999, 2004 Free Software Foundation, Inc.
+ 
+ dnl Permission to use, copy, modify and distribute this software and its
+ dnl documentation is hereby granted, provided that both the copyright
+@@ -12,11 +12,10 @@ dnl "AS IS" CONDITION.  THE FREE SOFTWAR
+ dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
+ dnl USE OF THIS SOFTWARE.
+ 
+-AC_INIT(kern/ipc_kobject.c)
+-AC_PREREQ(2.12)
+-
+-VERSION=1.3
+-AC_SUBST(VERSION)
++AC_INIT([GNU Mach], [1.4], [bug-hurd@gnu.org], [gnumach])
++AC_CONFIG_SRCDIR([kern/ipc_kobject.c])
++AC_PREREQ(2.57)
++AC_CONFIG_HEADER(config.h)
+ 
+ #
+ # Deduce output var `systype' from configuration parms.
+@@ -28,11 +27,6 @@ i[[3456]]86) systype=i386 ;;
+ *) AC_MSG_ERROR([unsupported CPU type]) ;;
+ esac
+ 
+-case "$host_os" in
+-gnu*) ;;
+-*) AC_MSG_ERROR([sorry, this is the gnu os, not $host_os]) ;;
+-esac
+-
+ AC_SUBST(systype)
+ AC_SUBST(cross_compiling)
+ 
+@@ -44,11 +38,12 @@ AC_PREFIX_DEFAULT()
+ #
+ AC_ARG_ENABLE(kdb,
+ [  --enable-kdb             enable use of in-kernel debugger],
+-[test "x$enableval" = xno || AC_DEFINE(MACH_KDB)])
++[test "x$enableval" = xno || AC_DEFINE(MACH_KDB, 1, [enable use of in-kernel debugger])])
+ 
+ AC_ARG_ENABLE(kmsg,
+ [  --enable-kmsg            enable use of kmsg device [default=yes]],
+-[test "x$enableval" = xno || AC_DEFINE(MACH_KMSG)], [AC_DEFINE(MACH_KMSG)])
++[test "x$enableval" = xno || AC_DEFINE(MACH_KMSG, [], [enable use of kmsg device])],
++			    [AC_DEFINE(MACH_KMSG, [], [enable use of kmsg device])])
+ 
+ #
+ # Programs
+@@ -56,13 +51,10 @@ AC_ARG_ENABLE(kmsg,
+ 
+ AC_PROG_INSTALL
+ AC_PROG_AWK
+-
+-AC_CHECK_TOOL(CC, gcc)
+-# That check handles cross-compilation well, but AC_PROG_CC tests for GCC
+-# and sets default CFLAGS nicely for us, so do that too.
+-AC_PROG_CC_LOCAL
++AC_PROG_CC
+ 
+ AC_CHECK_TOOL(LD, ld)
++AC_SUBST(LDFLAGS)
+ AC_CHECK_TOOL(NM, nm)
+ 
+ AC_CHECK_TOOL(MIG, mig, mig)
+@@ -70,9 +62,13 @@ AC_CHECK_TOOL(MIG, mig, mig)
+ # Set up `machine' link in build directory for easier header file location.
+ AC_LINK_FILES(${systype}/${systype},machine)
+ 
++AC_CONFIG_SUBDIRS([linux])
++
+ # Do machine-specific configuration last so that it can override anything
+ # set above if necessary.
++if test "$systype" = i386; then
++  AC_CONFIG_SUBDIRS([i386])
++fi
+ 
+-AC_CONFIG_SUBDIRS(linux ${systype})
+-
+-AC_OUTPUT(Makefile version.c doc/Makefile)
++AC_CONFIG_FILES([Makefile version.c doc/Makefile])
++AC_OUTPUT
+Index: version.c.in
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/version.c.in,v
+retrieving revision 1.1
+diff -u -p -r1.1 version.c.in
+--- version.c.in	23 May 2002 00:06:36 -0000	1.1
++++ version.c.in	29 Feb 2004 13:23:46 -0000
+@@ -1,2 +1,2 @@
+ /* @configure_input@ */
+-const char version[] = "GNUmach @VERSION@";
++const char version[] = "@PACKAGE_NAME@ @PACKAGE_VERSION@";
+Index: i386/linux/Drivers.in
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/linux/Attic/Drivers.in,v
+retrieving revision 1.4
+diff -u -p -r1.4 Drivers.in
+--- i386/linux/Drivers.in	27 May 2001 12:44:22 -0000	1.4
++++ i386/linux/Drivers.in	29 Feb 2004 13:23:59 -0000
+@@ -1,5 +1,5 @@
+ dnl Device driver options for i386
+-dnl Copyright 1997, 1999 Free Software Foundation, Inc.
++dnl Copyright 1997, 1999, 2004 Free Software Foundation, Inc.
+ 
+ dnl Permission to use, copy, modify and distribute this software and its
+ dnl documentation is hereby granted, provided that both the copyright
+@@ -13,7 +13,7 @@ dnl LIABILITY OF ANY KIND FOR ANY DAMAGE
+ dnl USE OF THIS SOFTWARE.
+ 
+ AC_INIT(dev/include/linux/autoconf.h)
+-AC_PREREQ(2.12)
++AC_PREREQ(2.57)
+ 
+ sinclude([../../Drivers.macros])
+ sinclude([../../aclocal.m4])
+@@ -40,9 +40,10 @@ esac
+ hurd_SYSTYPE
+ 
+ AC_CHECK_TOOL(CC, gcc)
+-AC_PROG_CC_LOCAL
++AC_PROG_CC
+ 
+ AC_CHECK_TOOL(LD, ld)
++AC_SUBST(LDFLAGS)
+ 
+ 
+ dnl Aliases have to come first.

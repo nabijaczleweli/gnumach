@@ -42,13 +42,6 @@ retrieving revision 1.4
 diff -u -r1.4 Drivers.in
 --- i386/linux/Drivers.in 27 May 2001 12:44:22 -0000 1.4
 +++ i386/linux/Drivers.in 20 Aug 2004 10:32:51 -0000
-@@ -1,5 +1,5 @@
- dnl Device driver options for i386
--dnl Copyright 1997, 1999 Free Software Foundation, Inc.
-+dnl Copyright 1997, 1999, 2004 Free Software Foundation, Inc.
- 
- dnl Permission to use, copy, modify and distribute this software and its
- dnl documentation is hereby granted, provided that both the copyright
 @@ -99,7 +99,7 @@
  
  AC_DRIVER_CLASS(scsi, CONFIG_SCSI, constants.o hosts.o scsi.o scsi_ioctl.o scsi_proc.o scsicam.o sd.o sd_ioctl.o sr.o sr_ioctl.o)

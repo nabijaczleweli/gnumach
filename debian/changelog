@@ -6,6 +6,8 @@ gnumach (1:20040229-2) unstable; urgency=low
   * Update NICs from Linux.
     Thanks to Alfred M. Szmidt <ams@kemisten.nu> and
     Arief M. Utama <arief_mulya@yahoo.com>.
+  * Update autoconf.
+    Thanks to Marco Gerards <metgerards@student.han.nl>.
 
  -- Guillem Jover <guillem@debian.org>  Mon, 13 Sep 2004 19:19:30 +0200
 
