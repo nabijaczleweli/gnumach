@@ -1,8 +1,8 @@
 Source: gnumach
 Section: base
 Priority: optional
-Maintainer: GNU Hurd Maintainers <bug-hurd@gnu.org>
-Uploaders: Marcus Brinkmann <brinkmd@debian.org>
+Maintainer: Debian GNU Hurd Maintainers <debian-hurd@lists.debian.org>
+Uploaders: Marcus Brinkmann <brinkmd@debian.org>, Guillem Jover <guillem@debian.org>
 Standards-Version: 3.5.6.0
 Build-Depends: mig, sharutils, texinfo
 
@@ -31,3 +31,4 @@ Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  These are the header files for the Utah Mach microkernel used by the Hurd.
+
