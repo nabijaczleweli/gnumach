@@ -1,6 +1,6 @@
 #DPATCHLEVEL=1
 
-2004-09-15  Guillem Jover  <guillem@hadrons.org>
+2005-01-10  Guillem Jover  <guillem@hadrons.org>
 
 	* linux/dev/include/linux/skbuff.h (skb_put, skb_push): Fix errors
 	for deprecated use of labels at end of compound statements.
@@ -10,23 +10,19 @@
 diff -Naur gnumach-20040229.orig/linux/dev/include/linux/skbuff.h gnumach-20040229/linux/dev/include/linux/skbuff.h
 --- gnumach-20040229.orig/linux/dev/include/linux/skbuff.h	26 Apr 1999 05:48:00 -0000	1.1
 +++ gnumach-20040229/linux/dev/include/linux/skbuff.h	15 Sep 2004 12:52:34 -0000
-@@ -405,8 +405,8 @@
- 	if(skb->tail>skb->end)
- 	{
+@@ -407,6 +407,7 @@
  		__label__ here;
--		panic("skput:over: %p:%d", &&here,len);
+ 		panic("skput:over: %p:%d", &&here,len);
  here:
-+		panic("skput:over: %p:%d", &&here,len);
++		;
  	}
  	return tmp;
  }
-@@ -418,8 +418,8 @@
- 	if(skb->data<skb->head)
- 	{
+@@ -420,6 +421,7 @@
  		__label__ here;
--		panic("skpush:under: %p:%d", &&here,len);
+ 		panic("skpush:under: %p:%d", &&here,len);
  here:
-+		panic("skpush:under: %p:%d", &&here,len);
++		;
  	}
  	return skb->data;
  }
