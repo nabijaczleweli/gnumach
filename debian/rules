@@ -69,7 +69,7 @@ drivers := --enable-floppy \
 	--enable-winbond-840 \
 	--enable-hamachi \
 	--enable-intel-gige \
-	--enable-natsami \
+	--enable-natsemi \
 	--enable-myson803 \
 	--enable-ns820 \
 	\
