@@ -1,21 +1,12 @@
 #!/usr/bin/make -f
-############################ -*- Mode: Makefile -*- ###########################
-## rules ---
-## Author           : Marcus Brinkmann <brinkmd@debian.org>
-## Created On       : Sat,  1 Aug 1998 21:33:31 +0200
-## Created On Node  : localhost
-## Last Modified By : Marcus Brinkmann
-## Last Modified On : Sun,  8 Nov 1998 13:55:22 +0100
-## Last Machine Used: localhost
-## Update Count     : 1
-## Status           : Unknown, Use with caution!
-## HISTORY          :
-## Description      :
-##
-###############################################################################
+#
+# Based on the work by Marcus Brinkmann <brinkmd@debian.org>
+# Rewritten by Guillem Jover <guillem@debian.org>
+#
 
-package   := gnumach
-package-dev := gnumach-dev
+pkg := gnumach
+pkg_dbg := gnumach-dbg
+pkg_dev := gnumach-dev
 
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -28,36 +19,10 @@ else
 	CFLAGS += -O2
 endif
 
-PREFIX = /usr
-BINDIR = $(PREFIX)/bin
-MANDIR = $(PREFIX)/man
-INFODIR = $(PREFIX)/share/info
-DOCDIR = $(PREFIX)/share/doc/$(package)
-DOCDIR-DEV = $(PREFIX)/share/doc/$(package-dev)
-
-#  Package specific stuff.  The idea is to try to make the rules
-#  generic (gradually).
-
-FILES_TO_CLEAN	= debian/files machine
-DIRS_TO_CLEAN	= debian/tmp build build-dbg
-STAMPS_TO_CLEAN	= stamp-build stamp-configure
-
-install_file	= install -o root -g root -m 644
-install_program	= install -s -o root -g root -m 755
-install_script	= install -o root -g root -m 755
-make_directory	= install -d -o root -g root -m 755
-
-define checkdir
-	test -f debian/rules
-endef
-
-define checkroot
-	@test 0 = "`id -u`" || (echo need root priviledges; exit 1)
-endef
-
 # disabled:
-# ncr5380, ncr53c400, ncr53c406a
-# hpj2577, hpj2573, hp27248b, hp2585, atp
+#   ncr5380, ncr53c400, ncr53c406a
+#   hpj2577, hpj2573, hp27248b, hp2585, atp
+
 drivers := --enable-floppy \
 	--enable-ide \
 	\
@@ -146,135 +111,122 @@ patch::
 
 include debian/patch.mk
 
-stamp-configure: patch
-	$(checkdir)
+configure: patch stamp-configure
+stamp-configure:
+	dh_testdir
 	-mkdir build
 	cd build && ../configure $(drivers) \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure
 
-stamp-configure-dbg: patch
-	$(checkdir)
+configure-dbg: patch stamp-configure-dbg
+stamp-configure-dbg:
+	dh_testdir
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure-dbg
 
 all build: stamp-build stamp-build-dbg
-stamp-build: stamp-configure
-	$(checkdir)
+stamp-build: configure
+	dh_testdir
 	$(MAKE) -C build
 	$(MAKE) -C build/doc
 	touch stamp-build
 
-stamp-build-dbg: stamp-configure-dbg
-	$(checkdir)
+stamp-build-dbg: configure-dbg
+	dh_testdir
 	$(MAKE) -C build-dbg
 	touch stamp-build-dbg
 
 clean::
-	$(checkdir)
-	-rm -f  $(FILES_TO_CLEAN) $(STAMPS_TO_CLEAN)
-	-rm -rf $(DIRS_TO_CLEAN)
+	dh_testdir
+	-rm -f machine stamp-build stamp-configure
+	-rm -rf build build-dbg
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
                 -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
                 -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
 	# XXX: Should be removed once the autoconf patch is in upstream
 	rm -f i386/linux/configure.ac
+	
+	dh_clean
 
 binary: binary-indep binary-arch
 
 # Build architecture-independent files here.
 
 binary-indep: build
-	$(checkdir)
-	$(checkroot)
-	-rm -rf			debian/tmp
+	dh_testdir
+	dh_testroot
+	dh_clean -p$(pkg_dev) -k
+	dh_installdirs -p$(pkg_dev)
 	
-	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR-DEV)
+	$(MAKE) -C build install-headers \
+		prefix=$(CURDIR)/debian/$(pkg_dev)/usr \
+		exec_prefix=$(CURDIR)/debian/$(pkg_dev) \
+		includedir=\$${prefix}/include
 	
-	$(MAKE) -C build install-headers prefix=$(CURDIR)/debian/tmp
-	mv debian/tmp/include debian/tmp/usr/.
-	-find debian/tmp -type d | xargs chmod g-w
+	dh_installdocs -p$(pkg_dev)
+	dh_installchangelogs -p$(pkg_dev) -k ChangeLog
 	
-	$(install_file)		NEWS debian/tmp$(DOCDIR-DEV)
-	$(install_file)		ChangeLog debian/tmp$(DOCDIR-DEV)/ChangeLog
-	$(install_file)		ChangeLog.0 debian/tmp$(DOCDIR-DEV)
-	$(install_file)		ChangeLog.00 debian/tmp$(DOCDIR-DEV)
-	$(install_file)		debian/changelog debian/tmp$(DOCDIR-DEV)/changelog.Debian
-	gzip -9frq		debian/tmp$(DOCDIR-DEV)/.
-	$(install_file)		debian/copyright debian/tmp$(DOCDIR-DEV)
-	ln -s			ChangeLog.gz debian/tmp$(DOCDIR-DEV)/changelog.gz
-	
-	dpkg-gencontrol         -isp -p$(package-dev) -Pdebian/tmp
-	chown -R root.root      debian/tmp
-	dpkg --build            debian/tmp ..
+	dh_link -p$(pkg_dev)
+	dh_strip -p$(pkg_dev)
+	dh_compress -p$(pkg_dev)
+	dh_fixperms -p$(pkg_dev)
+	dh_installdeb -p$(pkg_dev)
+	dh_gencontrol -p$(pkg_dev)
+	dh_md5sums -p$(pkg_dev)
+	dh_builddeb -p$(pkg_dev)
 
 binary-arch: binary-gnumach binary-gnumach-dbg
 
 binary-gnumach: stamp-build
-	$(checkdir)
-	$(checkroot)
-	-rm -rf			debian/tmp
+	dh_testdir
+	dh_testroot
+	dh_clean -p$(pkg) -k
+	dh_installdirs -p$(pkg)
 	
-	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR) debian/tmp$(INFODIR)
+	$(MAKE) -C build install-kernel \
+		prefix=$(CURDIR)/debian/$(pkg)/usr \
+		exec_prefix=$(CURDIR)/debian/$(pkg)
 	
-	$(MAKE) -C build install-kernel prefix=$(CURDIR)/debian/tmp
-	strip --strip-all	debian/tmp/boot/gnumach
-	gzip -9fq		debian/tmp/boot/gnumach
-	-find debian/tmp -type d | xargs chmod g-w
-	$(install_file)         build/doc/mach.info* debian/tmp$(INFODIR)
-	-gzip -9frq             debian/tmp$(INFODIR)
+	dh_installdocs -p$(pkg)
+	dh_installchangelogs -p$(pkg) -k ChangeLog
+	dh_installinfo -p$(pkg)
 	
-	$(install_file)		README debian/tmp$(DOCDIR)
-	$(install_file)		NEWS debian/tmp$(DOCDIR)
-	$(install_file)		ChangeLog debian/tmp$(DOCDIR)/ChangeLog
-	$(install_file)		ChangeLog.0 debian/tmp$(DOCDIR)
-	$(install_file)		ChangeLog.00 debian/tmp$(DOCDIR)
-	$(install_file)		i386/README-Drivers debian/tmp$(DOCDIR)
-	$(install_file)		debian/README.Debian debian/tmp$(DOCDIR)
-	$(install_file)		debian/changelog debian/tmp$(DOCDIR)/changelog.Debian
-	gzip -9frq		debian/tmp$(DOCDIR)/.
-	$(install_file)		debian/copyright debian/tmp$(DOCDIR)
-	ln -s			ChangeLog.gz debian/tmp$(DOCDIR)/changelog.gz
-	
-	$(install_script)	debian/postinst debian/tmp/DEBIAN
-	$(install_script)	debian/prerm debian/tmp/DEBIAN
-	dpkg-gencontrol         -isp -p$(package) -Pdebian/tmp
-	chown -R root.root      debian/tmp
-	dpkg --build            debian/tmp ..
+	dh_link -p$(pkg)
+	dh_strip -p$(pkg)
+	dh_compress -p$(pkg) boot/gnumach
+	dh_fixperms -p$(pkg)
+	dh_installdeb -p$(pkg)
+	dh_gencontrol -p$(pkg)
+	dh_md5sums -p$(pkg)
+	dh_builddeb -p$(pkg)
 
 binary-gnumach-dbg: stamp-build-dbg
-	$(checkdir)
-	$(checkroot)
-	-rm -rf			debian/tmp
+	dh_testdir
+	dh_testroot
+	dh_clean -p$(pkg_dbg) -k
+	dh_installdirs -p$(pkg_dbg)
 	
-	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR)-dbg
+	$(MAKE) -C build-dbg install-kernel \
+		prefix=$(CURDIR)/debian/$(pkg_dbg)/usr \
+		exec_prefix=$(CURDIR)/debian/$(pkg_dbg)
+	mv debian/$(pkg_dbg)/boot/gnumach debian/$(pkg_dbg)/boot/gnumach-dbg
 	
-	$(MAKE) -C build-dbg install-kernel prefix=$(CURDIR)/debian/tmp
-	mv debian/tmp/boot/gnumach debian/tmp/boot/gnumach-dbg
-	gzip -9fq		debian/tmp/boot/gnumach-dbg
-	-find debian/tmp -type d | xargs chmod g-w
+	dh_installdocs -p$(pkg_dbg)
+	dh_installchangelogs -p$(pkg_dbg) -k ChangeLog
 	
-	$(install_file)		README debian/tmp$(DOCDIR)-dbg
-	$(install_file)		NEWS debian/tmp$(DOCDIR)-dbg
-	$(install_file)		ChangeLog debian/tmp$(DOCDIR)-dbg/ChangeLog
-	$(install_file)		ChangeLog.0 debian/tmp$(DOCDIR)-dbg
-	$(install_file)		ChangeLog.00 debian/tmp$(DOCDIR)-dbg
-	$(install_file)		i386/README-Drivers debian/tmp$(DOCDIR)-dbg
-	$(install_file)		debian/README.Debian debian/tmp$(DOCDIR)-dbg
-	$(install_file)		debian/changelog debian/tmp$(DOCDIR)-dbg/changelog.Debian
-	gzip -9frq		debian/tmp$(DOCDIR)-dbg/.
-	$(install_file)		debian/copyright debian/tmp$(DOCDIR)-dbg
-	ln -s			ChangeLog.gz debian/tmp$(DOCDIR)-dbg/changelog.gz
-	
-	dpkg-gencontrol         -isp -p$(package)-dbg -Pdebian/tmp
-	chown -R root.root      debian/tmp
-	dpkg --build            debian/tmp ..
+	dh_link -p$(pkg_dbg)
+	dh_compress -p$(pkg_dbg) boot/gnumach-dbg
+	dh_fixperms -p$(pkg_dbg)
+	dh_installdeb -p$(pkg_dbg)
+	dh_gencontrol -p$(pkg_dbg)
+	dh_md5sums -p$(pkg_dbg)
+	dh_builddeb -p$(pkg_dbg)
 
 binary-indep: build
-# We have nothing to do here.
 
-.PHONY: build clean binary-indep binary-arch binary-gnumach binary-gnumach-dbg 
-.PHONY: binary configure
+.PHONY: build clean configure
+.PHONY: binary binary-indep binary-arch binary-gnumach binary-gnumach-dbg
 
