@@ -1,3 +1,15 @@
+gnumach (1:20040915.dfsg.1-1) unstable; urgency=low
+
+  * Repackage upstream source to remove binary only data.
+    (Closes: #252323)
+    - i386/i386/fpe.b: Remove binary without source.
+    - i386/i386/fpe.b_elf: Likewise.
+    - linux/src/drivers/scsi/qlogicisp_asm.c: Likewise.
+  * Disable floating point emulation usage.
+  * Disable qlogicisp firmware loading.
+
+ -- Guillem Jover <guillem@debian.org>  Tue, 16 Nov 2004 07:58:02 +0100
+
 gnumach (1:20040915-1) unstable; urgency=low
 
   * New upstream CVS snapshot.

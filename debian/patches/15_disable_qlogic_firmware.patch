@@ -1,0 +1,44 @@
+#DPATCHLEVEL=1
+
+2004-10-27  Guillem Jover  <guillem@hadrons.org>
+
+	* linux/src/drivers/scsi/qlogicisp_asm.c: Remove file with binary
+	only firmware.
+	* linux/src/drivers/scsi/qlogicisp.c: Do not include "qlogicisp_asm.c".
+	(RELOAD_FIRMWARE): Set to 0.
+	(risc_code_addr01): New variable from qlogicisp_asm.c.
+	* linux/Files: Remove linux/src/drivers/scsi/qlogicisp_asm.c.
+
+
+diff -Naur -x CVS gnumach.orig/linux/Files gnumach/linux/Files
+--- gnumach.orig/linux/Files	2002-05-23 02:06:26.000000000 +0200
++++ gnumach/linux/Files	2004-10-27 06:04:12.000000000 +0200
+@@ -198,7 +198,6 @@
+ linux/src/drivers/scsi/ppa.h
+ linux/src/drivers/scsi/qlogicfas.c
+ linux/src/drivers/scsi/qlogicfas.h
+-linux/src/drivers/scsi/qlogicisp_asm.c
+ linux/src/drivers/scsi/qlogicisp.c
+ linux/src/drivers/scsi/qlogicisp.h
+ linux/src/drivers/scsi/scripts.h
+diff -Naur -x CVS gnumach.orig/linux/src/drivers/scsi/qlogicisp.c gnumach/linux/src/drivers/scsi/qlogicisp.c
+--- gnumach.orig/linux/src/drivers/scsi/qlogicisp.c	2004-10-27 03:06:03.000000000 +0200
++++ gnumach/linux/src/drivers/scsi/qlogicisp.c	2004-10-27 06:04:45.000000000 +0200
+@@ -105,7 +105,7 @@
+    the latest firmware provided by QLogic.  This may be an earlier/later
+    revision than supplied by your board. */
+ 
+-#define RELOAD_FIRMWARE		1
++#define RELOAD_FIRMWARE		0
+ 
+ /* Set the following macro to 1 to reload the ISP1020's defaults from nvram.
+    If you are not sure of your settings, leave this alone, the driver will
+@@ -433,7 +433,7 @@
+ #define MBOX_WRITE_FOUR_RAM_WORDS	0x0041
+ #define MBOX_EXEC_BIOS_IOCB		0x0042
+ 
+-#include "qlogicisp_asm.c"
++unsigned short risc_code_addr01 = 0x1000 ;
+ 
+ #define PACKB(a, b)			(((a)<<4)|(b))
+ 
