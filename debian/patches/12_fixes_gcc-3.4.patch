@@ -4,7 +4,7 @@
 
 	* linux/dev/include/linux/skbuff.h (skb_put, skb_push): Fix errors
 	for deprecated use of labels at end of compound statements.
-	* i386/i386/fpe_linkage.c: Forward declare enable_fpe.
+	* i386/i386/fpe_linkage.c (enable_fpe): Declare.
 
 
 diff -Naur gnumach-20040229.orig/linux/dev/include/linux/skbuff.h gnumach-20040229/linux/dev/include/linux/skbuff.h
