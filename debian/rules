@@ -134,26 +134,26 @@ stamp-configure: patch
 	$(checkdir)
 	-mkdir build
 	cd build && ../configure $(drivers) \
-	--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure
 
 stamp-configure-dbg: patch
 	$(checkdir)
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
-	--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure-dbg
 
 all build: stamp-build stamp-build-dbg
 stamp-build: stamp-configure
 	$(checkdir)
-	cd build && $(MAKE)
-	cd build/doc && $(MAKE)
+	$(MAKE) -C build
+	$(MAKE) -C build/doc
 	touch stamp-build
 
 stamp-build-dbg: stamp-configure-dbg
 	$(checkdir)
-	cd build-dbg && $(MAKE)
+	$(MAKE) -C build-dbg
 	touch stamp-build-dbg
 
 clean::
@@ -172,13 +172,13 @@ binary-indep: build
 	$(checkdir)
 	$(checkroot)
 	-rm -rf			debian/tmp
-
+	
 	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR-DEV)
-
-	pfx=`cd debian/tmp && pwd` && cd build && $(MAKE) install-headers prefix=$$pfx
+	
+	$(MAKE) -C build install-headers prefix=$(CURDIR)/debian/tmp
 	mv debian/tmp/include debian/tmp/usr/.
 	-find debian/tmp -type d | xargs chmod g-w
-
+	
 	$(install_file)		NEWS debian/tmp$(DOCDIR-DEV)
 	$(install_file)		ChangeLog debian/tmp$(DOCDIR-DEV)/ChangeLog
 	$(install_file)		ChangeLog.0 debian/tmp$(DOCDIR-DEV)
@@ -187,7 +187,7 @@ binary-indep: build
 	gzip -9frq		debian/tmp$(DOCDIR-DEV)/.
 	$(install_file)		debian/copyright debian/tmp$(DOCDIR-DEV)
 	ln -s			ChangeLog.gz debian/tmp$(DOCDIR-DEV)/changelog.gz
-
+	
 	dpkg-gencontrol         -isp -p$(package-dev) -Pdebian/tmp
 	chown -R root.root      debian/tmp
 	dpkg --build            debian/tmp ..
@@ -198,17 +198,16 @@ binary-gnumach: stamp-build
 	$(checkdir)
 	$(checkroot)
 	-rm -rf			debian/tmp
-
+	
 	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR) debian/tmp$(INFODIR)
-
-	pfx=`cd debian/tmp && pwd` && cd build && $(MAKE) install-kernel prefix=$$pfx
+	
+	$(MAKE) -C build install-kernel prefix=$(CURDIR)/debian/tmp
 	strip --strip-all	debian/tmp/boot/gnumach
 	gzip -9fq		debian/tmp/boot/gnumach
 	-find debian/tmp -type d | xargs chmod g-w
 	$(install_file)         build/doc/mach.info* debian/tmp$(INFODIR)
 	-gzip -9frq             debian/tmp$(INFODIR)
-
-
+	
 	$(install_file)		README debian/tmp$(DOCDIR)
 	$(install_file)		NEWS debian/tmp$(DOCDIR)
 	$(install_file)		ChangeLog debian/tmp$(DOCDIR)/ChangeLog
@@ -220,7 +219,7 @@ binary-gnumach: stamp-build
 	gzip -9frq		debian/tmp$(DOCDIR)/.
 	$(install_file)		debian/copyright debian/tmp$(DOCDIR)
 	ln -s			ChangeLog.gz debian/tmp$(DOCDIR)/changelog.gz
-
+	
 	$(install_script)	debian/postinst debian/tmp/DEBIAN
 	$(install_script)	debian/prerm debian/tmp/DEBIAN
 	dpkg-gencontrol         -isp -p$(package) -Pdebian/tmp
@@ -231,14 +230,14 @@ binary-gnumach-dbg: stamp-build-dbg
 	$(checkdir)
 	$(checkroot)
 	-rm -rf			debian/tmp
-
+	
 	$(make_directory)	debian/tmp/DEBIAN debian/tmp$(DOCDIR)-dbg
-
-	pfx=`cd debian/tmp && pwd` && cd build-dbg && $(MAKE) install-kernel prefix=$$pfx
+	
+	$(MAKE) -C build-dbg install-kernel prefix=$(CURDIR)/debian/tmp
 	mv debian/tmp/boot/gnumach debian/tmp/boot/gnumach-dbg
 	gzip -9fq		debian/tmp/boot/gnumach-dbg
 	-find debian/tmp -type d | xargs chmod g-w
-
+	
 	$(install_file)		README debian/tmp$(DOCDIR)-dbg
 	$(install_file)		NEWS debian/tmp$(DOCDIR)-dbg
 	$(install_file)		ChangeLog debian/tmp$(DOCDIR)-dbg/ChangeLog
@@ -250,7 +249,7 @@ binary-gnumach-dbg: stamp-build-dbg
 	gzip -9frq		debian/tmp$(DOCDIR)-dbg/.
 	$(install_file)		debian/copyright debian/tmp$(DOCDIR)-dbg
 	ln -s			ChangeLog.gz debian/tmp$(DOCDIR)-dbg/changelog.gz
-
+	
 	dpkg-gencontrol         -isp -p$(package)-dbg -Pdebian/tmp
 	chown -R root.root      debian/tmp
 	dpkg --build            debian/tmp ..
@@ -258,4 +257,6 @@ binary-gnumach-dbg: stamp-build-dbg
 binary-indep: build
 # We have nothing to do here.
 
-.PHONY: build clean binary-indep binary-arch binary-gnumach binary-gnumach-dbg binary configure
+.PHONY: build clean binary-indep binary-arch binary-gnumach binary-gnumach-dbg 
+.PHONY: binary configure
+
