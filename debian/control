@@ -9,7 +9,7 @@ Build-Depends: mig, sharutils, texinfo
 Package: gnumach
 Section: base
 Priority: optional
-Architecture: hurd-i386
+Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
@@ -17,7 +17,7 @@ Package: gnumach-dbg
 Section: devel
 Priority: extra
 Provides: gnumach
-Architecture: hurd-i386
+Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel for debugging
  This is the Utah Mach microkernel used by the Hurd.
  .
@@ -28,6 +28,6 @@ Description: The GNU version of the Mach microkernel for debugging
 Package: gnumach-dev
 Section: devel
 Priority: optional
-Architecture: hurd-i386
+Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  These are the header files for the Utah Mach microkernel used by the Hurd.
