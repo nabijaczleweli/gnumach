@@ -1,0 +1,30 @@
+diff -Naur gnumach-20040229.orig/configure gnumach-20040229/configure
+--- gnumach-20040229.orig/configure	2004-03-01 00:26:39.000000000 +0100
++++ gnumach-20040229/configure	2004-09-13 19:25:33.000000000 +0200
+@@ -586,11 +586,6 @@
+ *) { echo "configure: error: unsupported CPU type" 1>&2; exit 1; } ;;
+ esac
+ 
+-case "$host_os" in
+-gnu*) ;;
+-*) { echo "configure: error: sorry, this is the gnu os, not $host_os" 1>&2; exit 1; } ;;
+-esac
+-
+ 
+ 
+ 
+diff -Naur gnumach-20040229.orig/configure.in gnumach-20040229/configure.in
+--- gnumach-20040229.orig/configure.in	2004-02-29 21:26:22.000000000 +0100
++++ gnumach-20040229/configure.in	2004-09-13 19:25:03.000000000 +0200
+@@ -28,11 +28,6 @@
+ *) AC_MSG_ERROR([unsupported CPU type]) ;;
+ esac
+ 
+-case "$host_os" in
+-gnu*) ;;
+-*) AC_MSG_ERROR([sorry, this is the gnu os, not $host_os]) ;;
+-esac
+-
+ AC_SUBST(systype)
+ AC_SUBST(cross_compiling)
+ 
