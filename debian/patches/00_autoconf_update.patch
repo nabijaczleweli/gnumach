@@ -1,5 +1,11 @@
 #DPATCHLEVEL=1
 
+2004-10-25  Guillem Jover  <guillem@hadrons.org>
+
+	* Drivers.macros (AC_DRIVER_CLASS): Use AH_TEMPLATE.
+	(AC_DRIVER): Set the value for the AC_DEFINE and AC_DEFINE_UNQUOTTED
+	to 1.
+
 2004-09-15  Guillem Jover  <guillem@hadrons.org>
 
 	* aclocal.m4 (AC_PROG_CC_LOCAL, AC_PROG_CC_WORKS_LOCAL): Removed.
@@ -289,7 +295,7 @@ diff -Naur gnumach-20040915.orig/Drivers.macros gnumach-20040915/Drivers.macros
  )])
  
  dnl AC_DRIVER_CLASS(name,option,files) defines a class of drivers.  If
-@@ -30,9 +31,9 @@
+@@ -30,9 +31,10 @@
  dnl the specified files to the output variable `device_drivers'.  This
  dnl macro must precede the use of any corresponding AC_DRIVER macros.
  
@@ -297,12 +303,13 @@ diff -Naur gnumach-20040915.orig/Drivers.macros gnumach-20040915/Drivers.macros
 -driver_class_[$1]_option=[$2]
 -driver_class_[$1]_files="[$3]"
 +AC_DEFUN([AC_DRIVER_CLASS], [
++AH_TEMPLATE([$2], [Driver Class $1])
 +driver_class_$1_option=$2
 +driver_class_$1_files="$3"
  ])
  
  dnl AC_DRIVER(name,option,files [,class]) detects option --enable-name.  If
-@@ -40,16 +41,17 @@
+@@ -40,16 +42,17 @@
  dnl added to the output variable `device_drivers'.  The driver is of class
  dnl `class'; see the comments on AC_DRIVER_CLASS for more information.
  
@@ -314,12 +321,12 @@ diff -Naur gnumach-20040915.orig/Drivers.macros gnumach-20040915/Drivers.macros
 +AS_HELP_STRING([--enable-$1], [enable driver $1]), [
  if test "x$enableval" != xno; then
 -AC_DEFINE([$2])
-+AC_DEFINE([$2], [], [$1])
++AC_DEFINE([$2], [1], [$1])
  device_drivers="$device_drivers [$3]"
  if test "${driver_class_[$4]_selected+set}" != set; then
    driver_class_[$4]_selected=yes
 -  AC_DEFINE_UNQUOTED($driver_class_[$4]_option)
-+  AC_DEFINE_UNQUOTED([$driver_class_$4_option])
++  AC_DEFINE_UNQUOTED([$driver_class_$4_option], [1])
    device_drivers="$device_drivers $driver_class_[$4]_files"
  fi
  fi
