@@ -1,3 +1,5 @@
+#DPATCHLEVEL=0
+
 2004-09-07  Neal H. Walfield  <neal@cs.uml.edu>
 
 	* chips/lk201.c: Change #ifdef DEBUG to #ifndef NDEBUG et al.
