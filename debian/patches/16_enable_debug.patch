@@ -1,0 +1,1069 @@
+2004-09-07  Neal H. Walfield  <neal@cs.uml.edu>
+
+	* chips/lk201.c: Change #ifdef DEBUG to #ifndef NDEBUG et al.
+	* i386/i386/debug.h: Likewise.
+	* i386/i386at/if_de6c.c: Likewise.
+	* i386/i386at/if_pc586.c: Likewise.
+	* i386/i386at/kd.c: Likewise.
+	* kern/debug.h: Likewise.
+	* linux/dev/drivers/block/ide.c: Likewise.
+	* linux/dev/drivers/net/wavelan.p.h: Likewise.
+	* linux/dev/drivers/scsi/aha152x.c: Likewise.
+	* linux/dev/drivers/scsi/seagate.c: Likewise.
+	* linux/dev/include/linux/sched.h: Likewise.
+	* linux/src/drivers/block/ide.c: Likewise.
+	* linux/src/drivers/net/3c515.c: Likewise.
+	* linux/src/drivers/net/de4x5.h: Likewise.
+	* linux/src/drivers/net/ni52.c: Likewise.
+	* linux/src/drivers/net/wavelan.c: Likewise.
+	* linux/src/drivers/net/wavelan.p.h: Likewise.
+	* linux/src/drivers/scsi/aha152x.c: Likewise.
+	* linux/src/drivers/scsi/aha1542.c: Likewise.
+	* linux/src/drivers/scsi/aha1740.c: Likewise.
+	* linux/src/drivers/scsi/eata_dma.h: Likewise.
+	* linux/src/drivers/scsi/eata_pio.h: Likewise.
+	* linux/src/drivers/scsi/fdomain.c: Likewise.
+	* linux/src/drivers/scsi/qlogicisp.c: Likewise.
+	* linux/src/drivers/scsi/seagate.c: Likewise.
+	* linux/src/include/linux/sched.h: Likewise.
+	* scsi/adapters/scsi_33C93_hdw.c: Likewise.
+	* scsi/adapters/scsi_5380_hdw.c: Likewise.
+	* scsi/adapters/scsi_53C700_hdw.c: Likewise.
+	* scsi/adapters/scsi_53C94_hdw.c: Likewise.
+	* scsi/adapters/scsi_7061_hdw.c: Likewise.
+	* scsi/adapters/scsi_89352_hdw.c: Likewise.
+	* scsi/adapters/scsi_aha15_hdw.c: Likewise.
+	* util/debug.h: Likewise.
+
+
+Index: i386/i386/debug.h
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386/Attic/debug.h,v
+retrieving revision 1.2
+diff -u -p -r1.2 debug.h
+--- i386/i386/debug.h	5 Apr 2001 06:39:20 -0000	1.2
++++ i386/i386/debug.h	7 Sep 2004 11:43:51 -0000
+@@ -24,7 +24,7 @@
+ #define _I386_DEBUG_
+ 
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 
+ 
+ /* Maximum number of entries in a debug trace.
+@@ -65,7 +65,7 @@ void debug_trace_dump(void);
+ #endif /* ASSEMBLER */
+ 
+ 
+-#endif /* DEBUG */
++#endif  /* NDEBUG */
+ 
+ /* XXX #include_next "debug.h" */
+ 
+Index: i386/i386at/if_de6c.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386at/Attic/if_de6c.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 if_de6c.c
+--- i386/i386at/if_de6c.c	25 Feb 1997 21:27:16 -0000	1.1.1.1
++++ i386/i386at/if_de6c.c	7 Sep 2004 11:43:55 -0000
+@@ -276,14 +276,14 @@ int de6cactive[NDE6C];
+  */
+ int de6c_latency = 30;	/* works on NEC Versa (pottsylvania.mach) */
+ 
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ int de6crcv0, de6crcv1, de6crcv2, de6crcv3;
+ int de6cdo_rcvintr = 0, de6cdo_watch = 0;
+ int de6cdo_xmt = 0;
+ #define D(X) X
+-#else	/* DEBUG */
++#else	 /* NDEBUG */
+ #define D(X)
+-#endif	/* DEBUG */
++#endif	 /* NDEBUG */
+ 
+ /*
+  * de6cprobe:
+@@ -1618,7 +1618,7 @@ de6c_softc_t *sp;
+ /* d-link 600 OFF; d-link 600 OFF; d-link 600 OFF; d-link 600 OFF */
+ /* d-link 600 OFF; d-link 600 OFF; d-link 600 OFF; d-link 600 OFF */
+ 
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ #define STATIC
+ STATIC int print_pkt(), print_bdy();
+ STATIC int print_e_hdr(), print_ip_hdr(), print_ip();
+@@ -1777,4 +1777,4 @@ u_char *u;
+ 		}
+ 	printf("<|");
+ }
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+Index: i386/i386at/if_pc586.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386at/Attic/if_pc586.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 if_pc586.c
+--- i386/i386at/if_pc586.c	25 Feb 1997 21:27:16 -0000	1.1.1.1
++++ i386/i386at/if_pc586.c	7 Sep 2004 11:43:59 -0000
+@@ -1489,9 +1489,9 @@ fd_t	*fd_p;
+  * output	: board memory and registers are set for xfer and attention
+  *
+  */
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ int xmt_debug = 0;
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+ pc586xmt(unit, m)
+ int	unit;
+ #ifdef	MACH_KERNEL
+@@ -1526,10 +1526,10 @@ struct	mbuf	*m;
+ 	cb_p->cmd.transmit.length = (u_short)(eh_p->ether_type);
+ 
+ #ifndef	MACH_KERNEL
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 	if (xmt_debug)
+ 		printf("XMT    mbuf: L%d @%x ", count, mb_p);
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+ #endif	MACH_KERNEL
+ 	tbd_p->act_count = 0;
+ 	tbd_p->buffer_base = 0;
+@@ -1587,16 +1587,16 @@ struct	mbuf	*m;
+ 			break;
+ 		count = tm_p->m_len;
+ 		mb_p = mtod(tm_p, u_char *);
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 		if (xmt_debug)
+ 			printf("mbuf+ L%d @%x ", count, mb_p);
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+ 	} while (1);
+ #endif	MACH_KERNEL
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 	if (xmt_debug)
+ 		printf("CLEN = %d\n", clen);
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+ 	if (clen < ETHERMIN) {
+ 		tbd_p->act_count += ETHERMIN - clen;
+ 		for (xmtshort_p = (u_short *)xmtdata_p;
+@@ -1610,12 +1610,12 @@ struct	mbuf	*m;
+ 	pc586_eout[log_2(clen)]++;
+ 	if (clen < 128)  pc586_lout[clen>>3]++;
+ #endif	IF_CNTRS
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 	if (xmt_debug) {
+ 		pc586tbd(unit);
+ 		printf("\n");
+ 	}
+-#endif	DEBUG
++#endif	 /* NDEBUG */
+ 
+ 	while (scb_p->scb_command) ;
+ 	scb_p->scb_command = SCB_CU_STRT;
+Index: i386/i386at/kd.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386at/Attic/kd.c,v
+retrieving revision 1.5.2.1
+diff -u -p -r1.5.2.1 kd.c
+--- i386/i386at/kd.c	2 Feb 2004 21:44:40 -0000	1.5.2.1
++++ i386/i386at/kd.c	7 Sep 2004 11:44:05 -0000
+@@ -401,7 +401,7 @@ short	font_byte_width	= 0;		/* num bytes
+  */
+ int	kd_pollc = 0;
+ 
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ /*
+  * feep:
+  *
+@@ -439,7 +439,7 @@ char	c;
+ 
+ 	(*kd_dput)(pos, c, KA_NORMAL);
+ }
+-#endif /* DEBUG */
++#endif  /* NDEBUG */
+ 
+ 
+ extern int	mouse_in_use;
+Index: kern/debug.h
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/kern/debug.h,v
+retrieving revision 1.2
+diff -u -p -r1.2 debug.h
+--- kern/debug.h	5 Apr 2001 06:39:20 -0000	1.2
++++ kern/debug.h	7 Sep 2004 11:44:05 -0000
+@@ -30,7 +30,7 @@
+ 
+ #include <kern/assert.h> /*XXX*/
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 
+ #define here() printf("@ %s:%d\n", __FILE__, __LINE__)
+ #define message(args) ({ printf("@ %s:%d: ", __FILE__, __LINE__); printf args; printf("\n"); })
+@@ -46,7 +46,7 @@
+ 			__FILE__, __LINE__, (p), (id), (p->struct_id)); \
+ 	})
+ 
+-#else /* !DEBUG */
++#else  /* NDEBUG */
+ 
+ #define otsan()
+ 
+@@ -55,6 +55,6 @@
+ #define struct_id_denit(p)
+ #define struct_id_verify(p,id)
+ 
+-#endif /* !DEBUG */
++#endif  /* NDEBUG */
+ 
+ #endif /* _mach_debug__debug_ */
+Index: linux/dev/drivers/block/ide.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/dev/drivers/block/Attic/ide.c,v
+retrieving revision 1.5
+diff -u -p -r1.5 ide.c
+--- linux/dev/drivers/block/ide.c	28 Jun 2001 08:55:02 -0000	1.5
++++ linux/dev/drivers/block/ide.c	7 Sep 2004 11:44:12 -0000
+@@ -587,7 +587,7 @@ void atapi_output_bytes (ide_drive_t *dr
+ void ide_set_handler (ide_drive_t *drive, ide_handler_t *handler, unsigned int timeout)
+ {
+ 	ide_hwgroup_t *hwgroup = HWGROUP(drive);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	if (hwgroup->handler != NULL) {
+ 		printk("%s: ide_set_handler: handler not null; old=%p, new=%p\n",
+ 			drive->name, hwgroup->handler, handler);
+@@ -1130,7 +1130,7 @@ read_next:
+ 	} else
+ 		nsect = 1;
+ 	ide_input_data(drive, rq->buffer, nsect * SECTOR_WORDS);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s:  read: sectors(%ld-%ld), buffer=0x%08lx, remaining=%ld\n",
+ 		drive->name, rq->sector, rq->sector+nsect-1,
+ 		(unsigned long) rq->buffer+(nsect<<9), rq->nr_sectors-nsect);
+@@ -1159,7 +1159,7 @@ static void write_intr (ide_drive_t *dri
+ 	struct request *rq = hwgroup->rq;
+ 
+ 	if (OK_STAT(stat=GET_STAT(),DRIVE_READY,drive->bad_wstat)) {
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: write: sector %ld, buffer=0x%08lx, remaining=%ld\n",
+ 			drive->name, rq->sector, (unsigned long) rq->buffer,
+ 			rq->nr_sectors-1);
+@@ -1197,7 +1197,7 @@ void ide_multwrite (ide_drive_t *drive, 
+ 		mcount -= nsect;
+ 
+ 		ide_output_data(drive, rq->buffer, nsect<<7);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: multwrite: sector %ld, buffer=0x%08lx, count=%d, remaining=%ld\n",
+ 			drive->name, rq->sector, (unsigned long) rq->buffer,
+ 			nsect, rq->nr_sectors - nsect);
+@@ -1346,7 +1346,7 @@ static inline void do_special (ide_drive
+ {
+ 	special_t *s = &drive->special;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s: do_special: 0x%02x\n", drive->name, s->all);
+ #endif
+ 	if (s->b.set_geometry) {
+@@ -1450,7 +1450,7 @@ static inline void do_rw_disk (ide_drive
+ #else /* !CONFIG_BLK_DEV_PROMISE */
+ 	if (drive->select.b.lba) {
+ #endif /* CONFIG_BLK_DEV_PROMISE */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: %sing: LBAsect=%ld, sectors=%ld, buffer=0x%08lx\n",
+ 			drive->name, (rq->cmd==READ)?"read":"writ",
+ 			block, rq->nr_sectors, (unsigned long) rq->buffer);
+@@ -1469,7 +1469,7 @@ static inline void do_rw_disk (ide_drive
+ 		OUT_BYTE(cyl,io_base+IDE_LCYL_OFFSET);
+ 		OUT_BYTE(cyl>>8,io_base+IDE_HCYL_OFFSET);
+ 		OUT_BYTE(head|drive->select.all,io_base+IDE_SELECT_OFFSET);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: %sing: CHS=%d/%d/%d, sectors=%ld, buffer=0x%08lx\n",
+ 			drive->name, (rq->cmd==READ)?"read":"writ", cyl,
+ 			head, sect, rq->nr_sectors, (unsigned long) rq->buffer);
+@@ -1525,7 +1525,7 @@ static void execute_drive_cmd (ide_drive
+ {
+ 	byte *args = rq->buffer;
+ 	if (args) {
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: DRIVE_CMD cmd=0x%02x sc=0x%02x fr=0x%02x xx=0x%02x\n",
+ 		 drive->name, args[0], args[1], args[2], args[3]);
+ #endif
+@@ -1537,7 +1537,7 @@ static void execute_drive_cmd (ide_drive
+ 		 * NULL is actually a valid way of waiting for
+ 		 * all current requests to be flushed from the queue.
+ 		 */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: DRIVE_CMD (null)\n", drive->name);
+ #endif
+ 		ide_end_drive_cmd(drive, GET_STAT(), GET_ERR());
+@@ -1555,7 +1555,7 @@ static inline void do_request (ide_hwif_
+ 	ide_drive_t *drive;
+ 
+ 	sti();
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s: do_request: current=0x%08lx\n", hwif->name, (unsigned long) rq);
+ #endif
+ 	minor = MINOR(rq->rq_dev);
+@@ -1566,7 +1566,7 @@ static inline void do_request (ide_hwif_
+ 		goto kill_rq;
+ 	}
+ 	drive = &hwif->drives[unit];
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	if (rq->bh && !buffer_locked(rq->bh)) {
+ 		printk("%s: block not locked\n", drive->name);
+ 		goto kill_rq;
+@@ -2768,7 +2768,7 @@ static int do_probe (ide_drive_t *drive,
+ 			return 4;
+ 	}
+ #endif	/* CONFIG_BLK_DEV_IDEATAPI */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("probing for %s: present=%d, media=%d, probetype=%s\n",
+ 		drive->name, drive->present, drive->media,
+ 		(cmd == WIN_IDENTIFY) ? "ATA" : "ATAPI");
+Index: linux/dev/drivers/scsi/seagate.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/dev/drivers/scsi/Attic/seagate.c,v
+retrieving revision 1.2
+diff -u -p -r1.2 seagate.c
+--- linux/dev/drivers/scsi/seagate.c	23 Jul 2000 00:34:12 -0000	1.2
++++ linux/dev/drivers/scsi/seagate.c	7 Sep 2004 11:44:26 -0000
+@@ -300,7 +300,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ /*
+  *	First, we try for the manual override.
+  */
+-#ifdef DEBUG 
++#ifndef NDEBUG 
+ 	printk("Autodetecting ST0x / TMC-8xx\n");
+ #endif
+ 	
+@@ -323,7 +323,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ #else
+ #error Please use -DCONTROLLER=SEAGATE or -DCONTROLLER=FD to override controller type
+ #endif /* CONTROLLER */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("Base address overridden to %x, controller type is %s\n",
+ 		base_address,controller_type == SEAGATE ? "SEAGATE" : "FD");
+ #endif 
+@@ -356,7 +356,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ 		{
+ 		st0x_cr_sr =(void *) (((const unsigned char *) base_address) + (controller_type == SEAGATE ? 0x1a00 : 0x1c00)); 
+ 		st0x_dr = (void *) (((const unsigned char *) base_address ) + (controller_type == SEAGATE ? 0x1c00 : 0x1e00));
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s detected. Base address = %x, cr = %x, dr = %x\n", tpnt->name, base_address, st0x_cr_sr, st0x_dr);
+ #endif
+ /*
+@@ -399,7 +399,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ 		}
+ 	else
+ 		{
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("ST0x / TMC-8xx not detected.\n");
+ #endif
+ 		return 0;
+@@ -1529,7 +1529,7 @@ int seagate_st0x_reset (Scsi_Cmnd * SCpn
+ 		it was reset.
+ 	*/
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("In seagate_st0x_reset()\n");
+ #endif
+ 
+@@ -1548,7 +1548,7 @@ int seagate_st0x_reset (Scsi_Cmnd * SCpn
+ 	
+ 	st0x_aborted = DID_RESET;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("SCSI bus reset.\n");
+ #endif
+ 	return SCSI_RESET_WAKEUP;
+Index: linux/src/drivers/block/ide.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/block/Attic/ide.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 ide.c
+--- linux/src/drivers/block/ide.c	26 Apr 1999 05:51:37 -0000	1.1
++++ linux/src/drivers/block/ide.c	7 Sep 2004 11:44:38 -0000
+@@ -583,7 +583,7 @@ void atapi_output_bytes (ide_drive_t *dr
+ void ide_set_handler (ide_drive_t *drive, ide_handler_t *handler, unsigned int timeout)
+ {
+ 	ide_hwgroup_t *hwgroup = HWGROUP(drive);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	if (hwgroup->handler != NULL) {
+ 		printk("%s: ide_set_handler: handler not null; old=%p, new=%p\n",
+ 			drive->name, hwgroup->handler, handler);
+@@ -1128,7 +1128,7 @@ read_next:
+ 	} else
+ 		nsect = 1;
+ 	ide_input_data(drive, rq->buffer, nsect * SECTOR_WORDS);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s:  read: sectors(%ld-%ld), buffer=0x%08lx, remaining=%ld\n",
+ 		drive->name, rq->sector, rq->sector+nsect-1,
+ 		(unsigned long) rq->buffer+(nsect<<9), rq->nr_sectors-nsect);
+@@ -1157,7 +1157,7 @@ static void write_intr (ide_drive_t *dri
+ 	struct request *rq = hwgroup->rq;
+ 
+ 	if (OK_STAT(stat=GET_STAT(),DRIVE_READY,drive->bad_wstat)) {
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: write: sector %ld, buffer=0x%08lx, remaining=%ld\n",
+ 			drive->name, rq->sector, (unsigned long) rq->buffer,
+ 			rq->nr_sectors-1);
+@@ -1195,7 +1195,7 @@ void ide_multwrite (ide_drive_t *drive, 
+ 		mcount -= nsect;
+ 
+ 		ide_output_data(drive, rq->buffer, nsect<<7);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: multwrite: sector %ld, buffer=0x%08lx, count=%d, remaining=%ld\n",
+ 			drive->name, rq->sector, (unsigned long) rq->buffer,
+ 			nsect, rq->nr_sectors - nsect);
+@@ -1344,7 +1344,7 @@ static inline void do_special (ide_drive
+ {
+ 	special_t *s = &drive->special;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s: do_special: 0x%02x\n", drive->name, s->all);
+ #endif
+ 	if (s->b.set_geometry) {
+@@ -1448,7 +1448,7 @@ static inline void do_rw_disk (ide_drive
+ #else /* !CONFIG_BLK_DEV_PROMISE */
+ 	if (drive->select.b.lba) {
+ #endif /* CONFIG_BLK_DEV_PROMISE */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: %sing: LBAsect=%ld, sectors=%ld, buffer=0x%08lx\n",
+ 			drive->name, (rq->cmd==READ)?"read":"writ",
+ 			block, rq->nr_sectors, (unsigned long) rq->buffer);
+@@ -1467,7 +1467,7 @@ static inline void do_rw_disk (ide_drive
+ 		OUT_BYTE(cyl,io_base+IDE_LCYL_OFFSET);
+ 		OUT_BYTE(cyl>>8,io_base+IDE_HCYL_OFFSET);
+ 		OUT_BYTE(head|drive->select.all,io_base+IDE_SELECT_OFFSET);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: %sing: CHS=%d/%d/%d, sectors=%ld, buffer=0x%08lx\n",
+ 			drive->name, (rq->cmd==READ)?"read":"writ", cyl,
+ 			head, sect, rq->nr_sectors, (unsigned long) rq->buffer);
+@@ -1523,7 +1523,7 @@ static void execute_drive_cmd (ide_drive
+ {
+ 	byte *args = rq->buffer;
+ 	if (args) {
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: DRIVE_CMD cmd=0x%02x sc=0x%02x fr=0x%02x xx=0x%02x\n",
+ 		 drive->name, args[0], args[1], args[2], args[3]);
+ #endif
+@@ -1535,7 +1535,7 @@ static void execute_drive_cmd (ide_drive
+ 		 * NULL is actually a valid way of waiting for
+ 		 * all current requests to be flushed from the queue.
+ 		 */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s: DRIVE_CMD (null)\n", drive->name);
+ #endif
+ 		ide_end_drive_cmd(drive, GET_STAT(), GET_ERR());
+@@ -1553,7 +1553,7 @@ static inline void do_request (ide_hwif_
+ 	ide_drive_t *drive;
+ 
+ 	sti();
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("%s: do_request: current=0x%08lx\n", hwif->name, (unsigned long) rq);
+ #endif
+ 	minor = MINOR(rq->rq_dev);
+@@ -1564,7 +1564,7 @@ static inline void do_request (ide_hwif_
+ 		goto kill_rq;
+ 	}
+ 	drive = &hwif->drives[unit];
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	if (rq->bh && !buffer_locked(rq->bh)) {
+ 		printk("%s: block not locked\n", drive->name);
+ 		goto kill_rq;
+@@ -2741,7 +2741,7 @@ static int do_probe (ide_drive_t *drive,
+ 			return 4;
+ 	}
+ #endif	/* CONFIG_BLK_DEV_IDEATAPI */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("probing for %s: present=%d, media=%d, probetype=%s\n",
+ 		drive->name, drive->present, drive->media,
+ 		(cmd == WIN_IDENTIFY) ? "ATA" : "ATAPI");
+Index: linux/src/drivers/net/ni52.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/net/Attic/ni52.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 ni52.c
+--- linux/src/drivers/net/ni52.c	26 Apr 1999 05:52:29 -0000	1.1
++++ linux/src/drivers/net/ni52.c	7 Sep 2004 11:44:47 -0000
+@@ -1121,7 +1121,7 @@ static int ni52_send_packet(struct sk_bu
+     if(p->scb->cus & CU_ACTIVE) /* COMMAND-UNIT active? */
+     {
+       dev->tbusy = 0;
+-#ifdef DEBUG
++#ifndef NDEBUG
+       printk("%s: strange ... timeout with CU active?!?\n",dev->name);
+       printk("%s: X0: %04x N0: %04x N1: %04x %d\n",dev->name,(int)p->xmit_cmds[0]->cmd_status,(int)p->nop_cmds[0]->cmd_status,(int)p->nop_cmds[1]->cmd_status,(int)p->nop_point);
+ #endif
+@@ -1139,7 +1139,7 @@ static int ni52_send_packet(struct sk_bu
+     else
+ #endif
+     {
+-#ifdef DEBUG
++#ifndef NDEBUG
+       printk("%s: xmitter timed out, try to restart! stat: %02x\n",dev->name,p->scb->cus);
+       printk("%s: command-stats: %04x %04x\n",dev->name,p->xmit_cmds[0]->cmd_status,p->xmit_cmds[1]->cmd_status);
+       printk("%s: check, whether you set the right interrupt number!\n",dev->name);
+@@ -1183,7 +1183,7 @@ static int ni52_send_packet(struct sk_bu
+ #if (NUM_XMIT_BUFFS == 1)
+ #  ifdef NO_NOPCOMMANDS
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     if(p->scb->cus & CU_ACTIVE)
+     {
+       printk("%s: Hmmm .. CU is still running and we wanna send a new packet.\n",dev->name);
+Index: linux/src/drivers/scsi/aha1542.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/scsi/Attic/aha1542.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 aha1542.c
+--- linux/src/drivers/scsi/aha1542.c	26 Apr 1999 05:54:11 -0000	1.1
++++ linux/src/drivers/scsi/aha1542.c	7 Sep 2004 11:45:09 -0000
+@@ -47,7 +47,7 @@ struct proc_dir_entry proc_scsi_aha1542 
+     S_IFDIR | S_IRUGO | S_IXUGO, 2
+ };
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ #define DEB(x) x
+ #else
+ #define DEB(x)
+@@ -370,7 +370,7 @@ static void aha1542_intr_handle(int irq,
+     mb = HOSTDATA(shost)->mb;
+     ccb = HOSTDATA(shost)->ccb;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     {
+     flag = inb(INTRFLAGS(shost->io_port));
+     printk("aha1542_intr_handle: ");
+@@ -431,7 +431,7 @@ static void aha1542_intr_handle(int irq,
+       HOSTDATA(shost)->aha1542_last_mbi_used = mbi;
+       restore_flags(flags);
+       
+-#ifdef DEBUG
++#ifndef NDEBUG
+       {
+ 	if (ccb[mbo].tarstat|ccb[mbo].hastat)
+ 	  printk("aha1542_command: returning %x (status %d)\n", 
+@@ -441,7 +441,7 @@ static void aha1542_intr_handle(int irq,
+ 
+       if(mbistatus == 3) continue; /* Aborted command not found */
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+       printk("...done %d %d\n",mbo, mbi);
+ #endif
+       
+@@ -474,17 +474,17 @@ static void aha1542_intr_handle(int irq,
+       else
+ 	errstatus = 0;
+       
+-#ifdef DEBUG
++#ifndef NDEBUG
+       if(errstatus) printk("(aha1542 error:%x %x %x) ",errstatus, 
+ 			   ccb[mbo].hastat, ccb[mbo].tarstat);
+ #endif
+ 
+       if (ccb[mbo].tarstat == 2) {
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	int i;
+ #endif
+ 	DEB(printk("aha1542_intr_handle: sense:"));
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	for (i = 0; i < 12; i++)
+ 	  printk("%02x ", ccb[mbo].cdb[ccb[mbo].cdblen+i]);
+ 	printk("\n");
+@@ -539,7 +539,7 @@ int aha1542_queuecommand(Scsi_Cmnd * SCp
+       return 0;
+     };
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     if (*cmd == READ_10 || *cmd == WRITE_10)
+       i = xscsi2int(cmd+2);
+     else if (*cmd == READ_6 || *cmd == WRITE_6)
+@@ -581,7 +581,7 @@ int aha1542_queuecommand(Scsi_Cmnd * SCp
+     HOSTDATA(SCpnt->host)->aha1542_last_mbo_used = mbo;    
+     restore_flags(flags);
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     printk("Sending command (%d %x)...",mbo, done);
+ #endif
+ 
+@@ -602,7 +602,7 @@ int aha1542_queuecommand(Scsi_Cmnd * SCp
+     if (SCpnt->use_sg) {
+       struct scatterlist * sgpnt;
+       struct chain * cptr;
+-#ifdef DEBUG
++#ifndef NDEBUG
+       unsigned char * ptr;
+ #endif
+       int i;
+@@ -631,7 +631,7 @@ int aha1542_queuecommand(Scsi_Cmnd * SCp
+       };
+       any2scsi(ccb[mbo].datalen, SCpnt->use_sg * sizeof(struct chain));
+       any2scsi(ccb[mbo].dataptr, cptr);
+-#ifdef DEBUG
++#ifndef NDEBUG
+       printk("cptr %x: ",cptr);
+       ptr = (unsigned char *) cptr;
+       for(i=0;i<18;i++) printk("%02x ", ptr[i]);
+@@ -648,7 +648,7 @@ int aha1542_queuecommand(Scsi_Cmnd * SCp
+     ccb[mbo].linkptr[0] = ccb[mbo].linkptr[1] = ccb[mbo].linkptr[2] = 0;
+     ccb[mbo].commlinkid = 0;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     { int i;
+     printk("aha1542_command: sending.. ");
+     for (i = 0; i < sizeof(ccb[mbo])-10; i++)
+Index: linux/src/drivers/scsi/aha1740.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/scsi/Attic/aha1740.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 aha1740.c
+--- linux/src/drivers/scsi/aha1740.c	26 Apr 1999 05:54:13 -0000	1.1
++++ linux/src/drivers/scsi/aha1740.c	7 Sep 2004 11:45:10 -0000
+@@ -54,7 +54,7 @@ struct proc_dir_entry proc_scsi_aha1740 
+    IT WORK, THEN:
+ #define DEBUG
+ */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ #define DEB(x) x
+ #else
+ #define DEB(x)
+@@ -132,7 +132,7 @@ int aha1740_makecode(unchar *sense, unch
+     int retval = DID_OK;
+ 
+     status_word = * (struct statusword *) status;
+-#ifdef DEBUG
++#ifndef NDEBUG
+     printk("makecode from %x,%x,%x,%x %x,%x,%x,%x",
+ 	   status[0], status[1], status[2], status[3],
+ 	   sense[0], sense[1], sense[2], sense[3]);
+@@ -330,7 +330,7 @@ int aha1740_queuecommand(Scsi_Cmnd * SCp
+ 	return 0;
+     }
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     if (*cmd == READ_10 || *cmd == WRITE_10)
+ 	i = xscsi2int(cmd+2);
+     else if (*cmd == READ_6 || *cmd == WRITE_6)
+@@ -367,7 +367,7 @@ int aha1740_queuecommand(Scsi_Cmnd * SCp
+     host->last_ecb_used = ecbno;    
+     restore_flags(flags);
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+     printk("Sending command (%d %x)...", ecbno, done);
+ #endif
+ 
+@@ -400,7 +400,7 @@ int aha1740_queuecommand(Scsi_Cmnd * SCp
+ 	}
+ 	host->ecb[ecbno].datalen = SCpnt->use_sg * sizeof(struct aha1740_chain);
+ 	host->ecb[ecbno].dataptr = virt_to_bus(cptr);
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("cptr %x: ",cptr);
+ 	ptr = (unsigned char *) cptr;
+ 	for(i=0;i<24;i++) printk("%02x ", ptr[i]);
+@@ -421,7 +421,7 @@ int aha1740_queuecommand(Scsi_Cmnd * SCp
+     host->ecb[ecbno].statusptr = virt_to_bus(host->ecb[ecbno].status);
+     host->ecb[ecbno].done = done;
+     host->ecb[ecbno].SCpnt = SCpnt;
+-#ifdef DEBUG
++#ifndef NDEBUG
+     {
+ 	int i;
+ 	printk("aha1740_command: sending.. ");
+Index: linux/src/drivers/scsi/fdomain.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/scsi/Attic/fdomain.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 fdomain.c
+--- linux/src/drivers/scsi/fdomain.c	26 Apr 1999 05:54:32 -0000	1.1
++++ linux/src/drivers/scsi/fdomain.c	7 Sep 2004 11:45:14 -0000
+@@ -287,7 +287,7 @@ struct proc_dir_entry proc_scsi_fdomain 
+ 
+ /* END OF USER DEFINABLE OPTIONS */
+ 
+-#if DEBUG
++#if !NDEBUG
+ #define EVERY_ACCESS     0	/* Write a line on every scsi access */
+ #define ERRORS_ONLY      1	/* Only write a line if there is an error */
+ #define DEBUG_DETECT     0	/* Debug fdomain_16x0_detect() */
+Index: linux/src/drivers/scsi/seagate.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/scsi/Attic/seagate.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 seagate.c
+--- linux/src/drivers/scsi/seagate.c	26 Apr 1999 05:55:05 -0000	1.1
++++ linux/src/drivers/scsi/seagate.c	7 Sep 2004 11:45:21 -0000
+@@ -292,7 +292,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ /*
+  *	First, we try for the manual override.
+  */
+-#ifdef DEBUG 
++#ifndef NDEBUG 
+ 	printk("Autodetecting ST0x / TMC-8xx\n");
+ #endif
+ 	
+@@ -315,7 +315,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ #else
+ #error Please use -DCONTROLLER=SEAGATE or -DCONTROLLER=FD to override controller type
+ #endif /* CONTROLLER */
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("Base address overridden to %x, controller type is %s\n",
+ 		base_address,controller_type == SEAGATE ? "SEAGATE" : "FD");
+ #endif 
+@@ -348,7 +348,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ 		{
+ 		st0x_cr_sr =(void *) (((const unsigned char *) base_address) + (controller_type == SEAGATE ? 0x1a00 : 0x1c00)); 
+ 		st0x_dr = (void *) (((const unsigned char *) base_address ) + (controller_type == SEAGATE ? 0x1c00 : 0x1e00));
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("%s detected. Base address = %x, cr = %x, dr = %x\n", tpnt->name, base_address, st0x_cr_sr, st0x_dr);
+ #endif
+ /*
+@@ -391,7 +391,7 @@ int seagate_st0x_detect (Scsi_Host_Templ
+ 		}
+ 	else
+ 		{
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 		printk("ST0x / TMC-8xx not detected.\n");
+ #endif
+ 		return 0;
+@@ -1605,7 +1605,7 @@ int seagate_st0x_reset (Scsi_Cmnd * SCpn
+ 		it was reset.
+ 	*/
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("In seagate_st0x_reset()\n");
+ #endif
+ 
+@@ -1624,7 +1624,7 @@ int seagate_st0x_reset (Scsi_Cmnd * SCpn
+ 	
+ 	st0x_aborted = DID_RESET;
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 	printk("SCSI bus reset.\n");
+ #endif
+ 	return SCSI_RESET_WAKEUP;
+Index: scsi/adapters/scsi_33C93_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_33C93_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_33C93_hdw.c
+--- scsi/adapters/scsi_33C93_hdw.c	25 Feb 1997 21:28:32 -0000	1.1.1.1
++++ scsi/adapters/scsi_33C93_hdw.c	7 Sep 2004 11:45:27 -0000
+@@ -522,7 +522,7 @@ sbic_script_try_synch[] = {	/* started w
+ 
+ 
+ #define DEBUG
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ #define	PRINT(x)	if (scsi_debug) printf x
+ 
+@@ -687,12 +687,12 @@ sbic_print_stat()
+ #define LOGSIZE
+ #endif	/*TRACE*/
+ 
+-#else	/*DEBUG*/
++#else	 /* NDEBUG */
+ #define PRINT(x)
+ #define	LOG(e,f)
+ #define LOGSIZE
+ 
+-#endif	/*DEBUG*/
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+Index: scsi/adapters/scsi_5380_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_5380_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_5380_hdw.c
+--- scsi/adapters/scsi_5380_hdw.c	25 Feb 1997 21:28:32 -0000	1.1.1.1
++++ scsi/adapters/scsi_5380_hdw.c	7 Sep 2004 11:45:31 -0000
+@@ -331,7 +331,7 @@ sci_script_disconnect[] = {
+ 
+ 
+ #define	DEBUG
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ sci_state(base)
+ 	vm_offset_t	base;
+@@ -485,13 +485,13 @@ sci_print_stat()
+ #define	LOG(e,f)
+ #endif	/* TRACE */
+ 
+-#else	/* DEBUG */
++#else	 /* NDEBUG */
+ #define	PRINT(x)
+ #define	LOG(e,f)
+ #define TR(x)
+ #define TRCHECK
+ #define TRWRAP
+-#endif	/* DEBUG */
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+Index: scsi/adapters/scsi_53C700_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_53C700_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_53C700_hdw.c
+--- scsi/adapters/scsi_53C700_hdw.c	25 Feb 1997 21:28:32 -0000	1.1.1.1
++++ scsi/adapters/scsi_53C700_hdw.c	7 Sep 2004 11:45:32 -0000
+@@ -272,7 +272,7 @@ siop_script_disconnect[] = {
+ 
+ 
+ #define	DEBUG
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ siop_state(base)
+ 	vm_offset_t	base;
+@@ -402,13 +402,13 @@ siop_print_stat()
+ #define	LOG(e,f)
+ #endif	/* TRACE */
+ 
+-#else	/* DEBUG */
++#else	 /* NDEBUG */
+ #define	PRINT(x)
+ #define	LOG(e,f)
+ #define TR(x)
+ #define TRCHECK
+ #define TRWRAP
+-#endif	/* DEBUG */
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+Index: scsi/adapters/scsi_53C94_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_53C94_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_53C94_hdw.c
+--- scsi/adapters/scsi_53C94_hdw.c	25 Feb 1997 21:28:32 -0000	1.1.1.1
++++ scsi/adapters/scsi_53C94_hdw.c	7 Sep 2004 11:45:37 -0000
+@@ -388,7 +388,7 @@ asc_script_t_data_out[] = {
+ };
+ 
+ 
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ #define	PRINT(x)	if (scsi_debug) printf x
+ 
+@@ -531,7 +531,7 @@ asc_print_stat()
+ #define LOGSIZE
+ #endif	/*TRACE*/
+ 
+-#else	/*DEBUG*/
++#else	 /* NDEBUG */
+ #define PRINT(x)
+ #define	LOG(e,f)
+ #define LOGSIZE
+@@ -539,7 +539,7 @@ asc_print_stat()
+ #define TRCHECK
+ #define TRWRAP
+ 
+-#endif	/*DEBUG*/
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+Index: scsi/adapters/scsi_7061_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_7061_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_7061_hdw.c
+--- scsi/adapters/scsi_7061_hdw.c	25 Feb 1997 21:28:33 -0000	1.1.1.1
++++ scsi/adapters/scsi_7061_hdw.c	7 Sep 2004 11:45:41 -0000
+@@ -365,7 +365,7 @@ sii_script_disconnect[] = {
+ 
+ 
+ #define	DEBUG
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ sii_state(regs)
+ 	sii_padded_regmap_t	*regs;
+@@ -543,13 +543,13 @@ static bump(counter, value)
+ struct cnt
+ 	s_cnt;
+ 
+-#else	/* DEBUG */
++#else	 /* NDEBUG */
+ #define	PRINT(x)
+ #define	LOG(e,f)
+ #define TR(x)
+ #define TRCHECK
+ #define TRWRAP
+-#endif	/* DEBUG */
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+@@ -872,7 +872,7 @@ static sii_wait(preg, until, complain)
+ 			break;
+ 		}
+ 	}
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 	bump(&s_cnt, 1000000-timeo);
+ #endif
+ 	return *preg;
+Index: scsi/adapters/scsi_89352_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_89352_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_89352_hdw.c
+--- scsi/adapters/scsi_89352_hdw.c	25 Feb 1997 21:28:34 -0000	1.1.1.1
++++ scsi/adapters/scsi_89352_hdw.c	7 Sep 2004 11:45:47 -0000
+@@ -311,7 +311,7 @@ spc_script_disconnect[] = {
+ 
+ 
+ #define	DEBUG
+-#ifdef	DEBUG
++#ifndef	NDEBUG
+ 
+ int spc_state(base)
+ 	vm_offset_t	base;
+@@ -463,13 +463,13 @@ void spc_print_stat()
+ #define	LOG(e,f)
+ #endif	/* TRACE */
+ 
+-#else	/* DEBUG */
++#else	 /* NDEBUG */
+ #define	PRINT(x)
+ #define	LOG(e,f)
+ #define TR(x)
+ #define TRCHECK
+ #define TRWRAP
+-#endif	/* DEBUG */
++#endif	 /* NDEBUG */
+ 
+ 
+ /*
+Index: scsi/adapters/scsi_aha15_hdw.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/scsi/adapters/Attic/scsi_aha15_hdw.c,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 scsi_aha15_hdw.c
+--- scsi/adapters/scsi_aha15_hdw.c	25 Feb 1997 21:28:34 -0000	1.1.1.1
++++ scsi/adapters/scsi_aha15_hdw.c	7 Sep 2004 11:45:50 -0000
+@@ -207,7 +207,7 @@ struct	bus_driver aha_driver = 
+ 	  "ahac", aha_minfo, BUS_INTR_B4_PROBE};
+ 
+ #define DEBUG	1
+-#if	DEBUG
++#if	!NDEBUG
+ 
+ #define	PRINT(x)	if (scsi_debug) printf x
+ 
+@@ -318,14 +318,14 @@ aha_print_stat()
+ #define LOGSIZE
+ #endif	/*TRACE*/
+ 
+-#else	/*DEBUG*/
++#else	 /* NDEBUG */
+ #define PRINT(x)
+ #define	LOG(e,f)
+ #define LOGSIZE
+ #define TRCHECK
+ #define TR(a)
+ 
+-#endif	/*DEBUG*/
++#endif	 /* NDEBUG */
+ 
+ /* Utility functions at end */
+ 
+Index: util/debug.h
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/util/Attic/debug.h,v
+retrieving revision 1.1.1.1
+diff -u -p -r1.1.1.1 debug.h
+--- util/debug.h	25 Feb 1997 21:28:35 -0000	1.1.1.1
++++ util/debug.h	7 Sep 2004 11:45:50 -0000
+@@ -34,7 +34,7 @@
+ #include <mach/macro_help.h>
+ 
+ 
+-#ifdef DEBUG
++#ifndef NDEBUG
+ 
+ extern void panic(const char *fmt, ...);
+ 
+@@ -64,7 +64,7 @@ extern void panic(const char *fmt, ...);
+ 			__FILE__, __LINE__, (p), (id), (p->struct_id)); \
+ 	})
+ 
+-#else !DEBUG
++#else  /* NDEBUG */
+ 
+ #define otsan()
+ #define assert(v)
+@@ -76,6 +76,6 @@ extern void panic(const char *fmt, ...);
+ #define struct_id_denit(p)
+ #define struct_id_verify(p,id)
+ 
+-#endif !DEBUG
++#endif  /* NDEBUG */
+ 
+ #endif _MACH_UTIL_DEBUG_H_
