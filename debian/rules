@@ -132,22 +132,18 @@ stamp-configure-dbg:
 
 all build:
 
-build-gnumach: stamp-build-gnumach
-stamp-build-gnumach: configure
+build-gnumach: configure
 	dh_testdir
-	$(MAKE) -C build
+	$(MAKE) -C build CFLAGS="$(CFLAGS) -DNDEBUG"
 	$(MAKE) -C build/doc
-	touch stamp-build-gnumach
 
-build-gnumach-dbg: stamp-build-gnumach-dbg
-stamp-build-gnumach-dbg: configure-dbg
+build-gnumach-dbg: configure-dbg
 	dh_testdir
 	$(MAKE) -C build-dbg
-	touch stamp-build-gnumach-dbg
 
 clean::
 	dh_testdir
-	-rm -f machine stamp-build stamp-configure
+	-rm -f machine stamp-configure
 	-rm -rf build build-dbg
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
                 -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
