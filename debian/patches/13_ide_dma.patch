@@ -1,5 +1,8 @@
 #DPATCHLEVEL=0
 
+Not --enable-forcedma by default, it's too dangerous on non-DMA supporting
+hardware.
+
 
 diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
 --- i386.orig/linux/configure.ac	2004-09-17 01:03:19.000000000 +0200
@@ -8,10 +11,10 @@ diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
  AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
    cmd640.o ide-cd.o ide.o rz1000.o triton.o])
  
-+AC_ARG_ENABLE([forcedma], [], [forcedma=$enableval], [forcedma=no])
-+if test x"$forcedma" = xno; then
-+  AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [], [Force DMA on block devices])
-+fi
++AC_ARG_ENABLE([forcedma],
++  AS_HELP_STRING([--enable-forcedma], [enable forced use of DMA]),
++  [test x"$enableval" = xno &&
++   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [], [Force DMA on block devices])])
 +
  
  dnl SCSI Disk controllers
