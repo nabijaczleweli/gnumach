@@ -1,7 +1,7 @@
 #DPATCHLEVEL=0
 
-Not --enable-forcedma by default, it's too dangerous on non-DMA supporting
-hardware.
+Do not --enable-ide-forcedma by default, it's too dangerous on non-DMA
+supporting hardware.
 
 
 diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
@@ -11,25 +11,14 @@ diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
  AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
    cmd640.o ide-cd.o ide.o rz1000.o triton.o])
  
-+AC_ARG_ENABLE([forcedma],
-+  AS_HELP_STRING([--enable-forcedma], [enable forced use of DMA]),
++AC_ARG_ENABLE([ide-forcedma],
++  AS_HELP_STRING([--enable-ide-forcedma], [enable forced use of DMA on IDE]),
 +  [test x"$enableval" = xno &&
-+   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [], [Force DMA on block devices])])
++   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [1], [Force DMA on IDE block devices])])
 +
  
  dnl SCSI Disk controllers
  
-diff -dur i386.orig/linux/device-drivers.h.in i386/linux/device-drivers.h.in
---- i386.orig/linux/device-drivers.h.in	2001-05-27 14:44:22.000000000 +0200
-+++ i386/linux/device-drivers.h.in	2004-09-16 22:57:13.000000000 +0200
-@@ -9,6 +9,7 @@
- #undef CONFIG_INET
- #undef CONFIG_BLK_DEV_FD
- #undef CONFIG_BLK_DEV_IDE
-+#undef CONFIG_BLK_DEV_FORCE_DMA
- #undef CONFIG_SCSI_ADVANSYS
- #undef CONFIG_SCSI_BUSLOGIC
- #undef CONFIG_SCSI_OMIT_FLASHPOINT
 diff -dur linux.orig/dev/drivers/block/ide.c linux/dev/drivers/block/ide.c
 --- linux.orig/dev/drivers/block/ide.c	2001-06-28 10:55:02.000000000 +0200
 +++ linux/dev/drivers/block/ide.c	2004-09-16 21:30:40.000000000 +0200
