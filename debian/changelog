@@ -9,6 +9,8 @@ gnumach (1:20040915.dfsg.1-1) unstable; urgency=low
   * Disable qlogicisp firmware loading.
   * Enable debug code by default (disable with NDEBUG).
     Thanks to Neal H. Walfield <neal@cs.uml.edu>.
+  * Fix double free and memory loss probing partition table.
+    Thanks to Neal H. Walfield <neal@cs.uml.edu>.
 
  -- Guillem Jover <guillem@debian.org>  Tue, 16 Nov 2004 07:58:02 +0100
 
