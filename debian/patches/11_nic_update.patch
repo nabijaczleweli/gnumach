@@ -35,41 +35,36 @@
 	linux/src/drivers/net/myson803.c, linux/src/drivers/net/natsemi.c,
 	linux/src/drivers/net/cb_shim.c: New files from netdrivers 3.5
 	package (http://www.scyld.com/network).
-	
 
-Index: i386/linux/Drivers.in
-===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/linux/Attic/Drivers.in,v
-retrieving revision 1.4
-diff -u -r1.4 Drivers.in
---- i386/linux/Drivers.in 27 May 2001 12:44:22 -0000 1.4
-+++ i386/linux/Drivers.in 20 Aug 2004 10:32:51 -0000
-@@ -99,7 +99,7 @@
+
+--- i386/linux/configure.ac
++++ i386/linux/configure.ac
+@@ -108,7 +108,7 @@
+   sd_ioctl.o sr.o sr_ioctl.o])
  
- AC_DRIVER_CLASS(scsi, CONFIG_SCSI, constants.o hosts.o scsi.o scsi_ioctl.o scsi_proc.o scsicam.o sd.o sd_ioctl.o sr.o sr_ioctl.o)
- 
--AC_DRIVER_CLASS(net, CONFIG_INET, auto_irq.o net.o Space.o dev.o net_init.o)
-+AC_DRIVER_CLASS(net, CONFIG_INET, auto_irq.o net.o Space.o dev.o net_init.o pci-scan.o pci-skeleton.o)
+ AC_DRIVER_CLASS([net], [CONFIG_INET], [ \
+-  auto_irq.o net.o Space.o dev.o net_init.o])
++  auto_irq.o net.o Space.o dev.o net_init.o pci-scan.o pci-skeleton.o])
  
  dnl Strictly speaking, we could have a `linux' option too, but it's
  dnl not possible to built a useful kernel without at least one Linux
-@@ -159,6 +159,36 @@
+@@ -170,6 +170,36 @@
  
  dnl Ethernet controllers
  
 +dnl FIXME: Can't be enabled since it is a pcmcia driver, and we don't
 +dnl have that kind of fluff.
 +dnl
-+dnl linux_DRIVER(cb_shim, CONFIG_CB_SHIM, cb_shim, net)
++dnl linux_DRIVER([cb_shim], [CONFIG_CB_SHIM], [cb_shim], [net])
 +
 +dnl FIXME: Depends on L1_CACHE_BYTES being defined, usually in
 +dnl asm-*/cache.h.
 +dnl
-+dnl linux_DRIVER(starfire, CONFIG_STARFIRE, starfire, net)
++dnl linux_DRIVER([starfire], [CONFIG_STARFIRE], [starfire], [net])
 +
-+linux_DRIVER(sundance, CONFIG_SUNDANCE, sundance, net)
-+linux_DRIVER(winbond-840, CONFIG_WINBOND840, winbond-840, net)
-+linux_DRIVER(hamachi, CONFIG_HAMACHI, hamachi, net)
++linux_DRIVER([sundance], [CONFIG_SUNDANCE], [sundance], [net])
++linux_DRIVER([winbond-840], [CONFIG_WINBOND840], [winbond-840], [net])
++linux_DRIVER([hamachi], [CONFIG_HAMACHI], [hamachi], [net])
 +
 +dnl FIXME: Getting the following while linking:
 +dnl
@@ -81,23 +76,15 @@ diff -u -r1.4 Drivers.in
 +dnl
 +dnl So these two are disabled because of that...
 +dnl
-+dnl linux_DRIVER(intel_gige, CONFIG_INTER_GIGE, intel-gige, net)
-+dnl linux_DRIVER(natsemi, CONFIG_NATSEMI, natsemi, net)
++dnl linux_DRIVER([intel_gige], [CONFIG_INTER_GIGE], [intel-gige], [net])
++dnl linux_DRIVER([natsemi], [CONFIG_NATSEMI], [natsemi], [net])
 +
-+linux_DRIVER(myson803, CONFIG_MYSON803, myson803, net)
-+linux_DRIVER(ns820, CONFIG_NS820, ns820, net)
++linux_DRIVER([myson803], [CONFIG_MYSON803], [myson803], [net])
++linux_DRIVER([ns820], [CONFIG_NS820], [ns820], [net])
 +
- AC_DRIVER(ne2000, CONFIG_NE2000, ne.o 8390.o, net)
- AC_DRIVER(el2, CONFIG_EL2, 3c503.o 8390.o, net)
- linux_DRIVER(el3, EL3, 3c509, net)
-@@ -204,3 +234,7 @@
- linux_DRIVER(tlan, TLAN, tlan, net)
- linux_DRIVER(viarhine, VIA_RHINE, via-rhine, net)
- AC_OUTPUT(Makefile)
-+
-+dnl Local Variables:
-+dnl mode: autoconf
-+dnl End:
+ AC_DRIVER([ne2000], [CONFIG_NE2000], [ne.o 8390.o], [net])
+ AC_DRIVER([el2], [CONFIG_EL2], [3c503.o 8390.o], [net])
+ linux_DRIVER([el3], [EL3], [3c509], [net])
 Index: i386/linux/Makefile.in
 ===================================================================
 RCS file: /cvsroot/hurd/gnumach/i386/linux/Attic/Makefile.in,v

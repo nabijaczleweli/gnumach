@@ -1,40 +1,65 @@
-#DPATCHLEVEL=0
+#DPATCHLEVEL=1
 
-2004-03-01  Marco Gerards  <metgerards@student.han.nl>
+2004-09-15  Guillem Jover  <guillem@hadrons.org>
 
-	* aclocal.m4: (AC_PROG_CC_LOCAL): Macro removed.
-	(AC_PROG_CC_WORKS_LOCAL): Likewise.
-	* configure.in: Update AC_INIT to contain the version, bug address
-	and program name.  Changed the version to 1.4.  Use
-	AC_CONFIG_SRCDIR to check for the source directory, instead of
-	using AC_INIT for this.  Set the required autoconf version to
-	version 2.57.  Use the AC_CONFIG_HEADER config.h.  Removed check
-	to test if the host is GNU.  Added missing parameters to all
-	AC_DEFINE's.  Use AC_PROG_CC instead of AC_PROG_CC_LOCAL.  Added
-	AC_SUBST to AC_CHECK_TOOL test.  Split up AC_CONFIG_SUBDIRS test
-	into `linux' and `i386'.  Use AC_CONFIG_FILES and AC_OUTPUT
-	instead of AC_OUTPUT alone.
-	(VERSION): Removed.
-	* i386/linux/Drivers.in: Changed AC_PREREQ to version 2.57.  Use
-	AC_PROG_CC instead of AC_PROG_CC_LOCAL.  Added AC_SUBST to
-	AC_CHECK_TOOL test.
-	* version.c.in (version): Use @PACKAGE_NAME@ instead of a literal
-	string.  Changed @VERSION@ into @PACKAGE_VERSION@ to match the
-	configure.in changes.
+	* aclocal.m4 (AC_PROG_CC_LOCAL, AC_PROG_CC_WORKS_LOCAL): Removed.
+	* version.m4: New file.
+	* version.c.in: Use PACKAGE_VERSION, not VERSION.
+	* Makefile.in: Likewise.
+	* doc/Makefile.in: Likewise.
+	* i386/linux/Makefile.in (configure): Change its source to
+	configure.ac.
+
+	* aclocal.m4: Add missing quotations.
+	* Drivers.macros: Likewise.
+	* configure.in: Likewise. Include version.m4 and use PACKAGE and
+	VERSION m4 macros from it.
+	* i386/configure.in: Likewise.
+	(AC_INIT): Use new syntax and move source check to AC_CONFIG_SRCDIR.
+	* i386/linux/configure.ac: Likewise. Use m4_sinclude, not sinclude.
+	* linux/configure.in: Likewise.
+
+	* configure.in: Use AC_CONFIG_LINKS, not AC_LINK_FILES.
+	* linux/configure.in: Likewise.
+
+	* i386/configure.in: Call AC_CONFIG_FILES and use the new form of
+	AC_OUTPUT.
+	* i386/linux/configure.ac: Likewise.
+	* linux/configure.in: Likewise
+
+	* configure.in: Use AS_HELP_STRING in AC_ARG_ENABLE help strings.
+	* i386/configure.in: Likewise.
+
+2004-09-06  Neal H. Walfield  <neal@cs.uml.edu>
+
+	* configure.in: Update to use autoconf 2.57.
+	Do not error out if host_os is not GNU.
+	Update AC_DEFINEs to the required three argument form.
+	Don't call AC_CHECK_TOOL(CC, gcc) and AC_PROG_CC_LOCAL, just use
+	AC_PROG_CC.
+	AC_SUBST(LDFLAGS).
+	Refactor AC_CONFIG_SUBDIRS to not do variable substitution.
+	Call AC_CONFIG_FILES and use the new form of AC_OUTPUT.
+	* i386/configure.in: Require autoconf 2.57.
+	* linux/configure.in: Likewise.
+	* i386/linux/Drivers.in: Move from here...
+	* i386/linux/configure.ac: ... to here to conform to the
+	environment autoreconf expects.
+	(hurd_host_CPU): New macro.
+	Call AC_PROG_CC, not AC_PROG_CC_LOCAL.
+	AC_SUBST(LD_FLAGS).
+	(flashpoint): Update AC_DEFINE to the new three argument form.
+	* Drivers.macros (AC_DRIVER): Update AC_DEFINE to the new three
+	argument form.
 
 
-Index: aclocal.m4
-===================================================================
-RCS file: /cvsroot/hurd/gnumach/Attic/aclocal.m4,v
-retrieving revision 1.2
-diff -u -p -r1.2 aclocal.m4
---- aclocal.m4	1 May 1999 00:34:20 -0000	1.2
-+++ aclocal.m4	29 Feb 2004 13:23:44 -0000
-@@ -1,77 +1,3 @@
--dnl These modifications are to allow for an empty cross compiler tree.
--dnl In the situation that cross-linking is impossible, the variable
--dnl `cross_linkable' will be substituted with "yes".
--
+diff -Naur gnumach-20040229.orig/aclocal.m4 gnumach-20040229/aclocal.m4
+--- gnumach-20040229.orig/aclocal.m4	2004-02-29 21:26:19.000000000 +0100
++++ gnumach-20040229/aclocal.m4	2004-09-15 11:35:15.000000000 +0200
+@@ -2,80 +2,10 @@
+ dnl In the situation that cross-linking is impossible, the variable
+ dnl `cross_linkable' will be substituted with "yes".
+ 
 -dnl
 -AC_DEFUN(AC_PROG_CC_LOCAL,
 -[AC_BEFORE([$0], [AC_PROG_CPP])dnl
@@ -105,16 +130,18 @@ diff -u -p -r1.2 aclocal.m4
 -cross_compiling=$ac_cv_prog_cc_cross
 -])
 -
- AC_DEFUN(hurd_SYSTYPE,
+-AC_DEFUN(hurd_SYSTYPE,
++AC_DEFUN([hurd_SYSTYPE],
  [AC_REQUIRE([AC_CANONICAL_HOST])dnl
  case "$host_cpu" in
-Index: configure.in
-===================================================================
-RCS file: /cvsroot/hurd/gnumach/configure.in,v
-retrieving revision 1.12
-diff -u -p -r1.12 configure.in
---- configure.in	23 May 2002 00:06:36 -0000	1.12
-+++ configure.in	29 Feb 2004 13:23:46 -0000
+ i[[3456]]86)	systype=i386 ;;
+ *)		systype="$host_cpu" ;;
+ esac
+-AC_SUBST(systype)])
++AC_SUBST([systype])])
+diff -Naur gnumach-20040229.orig/configure.in gnumach-20040229/configure.in
+--- gnumach-20040229.orig/configure.in	2004-02-29 21:26:22.000000000 +0100
++++ gnumach-20040229/configure.in	2004-09-15 11:35:15.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Configure script for GNU Mach.
 -dnl Copyright 1997, 1998, 1999 Free Software Foundation, Inc.
@@ -122,23 +149,23 @@ diff -u -p -r1.12 configure.in
  
  dnl Permission to use, copy, modify and distribute this software and its
  dnl documentation is hereby granted, provided that both the copyright
-@@ -12,11 +12,10 @@ dnl "AS IS" CONDITION.  THE FREE SOFTWAR
+@@ -12,11 +12,11 @@
  dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
  dnl USE OF THIS SOFTWARE.
  
 -AC_INIT(kern/ipc_kobject.c)
 -AC_PREREQ(2.12)
--
++m4_include([version.m4])
+ 
 -VERSION=1.3
 -AC_SUBST(VERSION)
-+AC_INIT([GNU Mach], [1.4], [bug-hurd@gnu.org], [gnumach])
++AC_INIT([PACKAGE], [VERSION], [bug-hurd@gnu.org], [gnumach])
 +AC_CONFIG_SRCDIR([kern/ipc_kobject.c])
 +AC_PREREQ(2.57)
-+AC_CONFIG_HEADER(config.h)
  
  #
  # Deduce output var `systype' from configuration parms.
-@@ -28,11 +27,6 @@ i[[3456]]86) systype=i386 ;;
+@@ -28,27 +28,23 @@
  *) AC_MSG_ERROR([unsupported CPU type]) ;;
  esac
  
@@ -147,46 +174,61 @@ diff -u -p -r1.12 configure.in
 -*) AC_MSG_ERROR([sorry, this is the gnu os, not $host_os]) ;;
 -esac
 -
- AC_SUBST(systype)
- AC_SUBST(cross_compiling)
+-AC_SUBST(systype)
+-AC_SUBST(cross_compiling)
++AC_SUBST([systype])
++AC_SUBST([cross_compiling])
  
-@@ -44,11 +38,12 @@ AC_PREFIX_DEFAULT()
+ # Default prefix is / for the kernel.
+-AC_PREFIX_DEFAULT()
++AC_PREFIX_DEFAULT([])
+ 
  #
- AC_ARG_ENABLE(kdb,
- [  --enable-kdb             enable use of in-kernel debugger],
+ # Options
+ #
+-AC_ARG_ENABLE(kdb,
++AC_ARG_ENABLE([kdb],
+-[  --enable-kdb             enable use of in-kernel debugger],
++AS_HELP_STRING([--enable-kdb], [enable use of in-kernel debugger]),
 -[test "x$enableval" = xno || AC_DEFINE(MACH_KDB)])
-+[test "x$enableval" = xno || AC_DEFINE(MACH_KDB, 1, [enable use of in-kernel debugger])])
++[test "x$enableval" = xno || AC_DEFINE([MACH_KDB], [1], [enable use of in-kernel debugger])])
  
- AC_ARG_ENABLE(kmsg,
- [  --enable-kmsg            enable use of kmsg device [default=yes]],
+-AC_ARG_ENABLE(kmsg,
++AC_ARG_ENABLE([kmsg],
+-[  --enable-kmsg            enable use of kmsg device [default=yes]],
++AS_HELP_STRING([--enable-kmsg], [enable use of kmsg device [[default=yes]]]),
 -[test "x$enableval" = xno || AC_DEFINE(MACH_KMSG)], [AC_DEFINE(MACH_KMSG)])
-+[test "x$enableval" = xno || AC_DEFINE(MACH_KMSG, [], [enable use of kmsg device])],
-+			    [AC_DEFINE(MACH_KMSG, [], [enable use of kmsg device])])
++[test "x$enableval" = xno || AC_DEFINE([MACH_KMSG], [], [enable use of kmsg device])],
++			    [AC_DEFINE([MACH_KMSG], [], [enable use of kmsg device])])
  
  #
  # Programs
-@@ -56,13 +51,10 @@ AC_ARG_ENABLE(kmsg,
+@@ -56,23 +52,24 @@
  
  AC_PROG_INSTALL
  AC_PROG_AWK
--
++AC_PROG_CC
+ 
 -AC_CHECK_TOOL(CC, gcc)
 -# That check handles cross-compilation well, but AC_PROG_CC tests for GCC
 -# and sets default CFLAGS nicely for us, so do that too.
 -AC_PROG_CC_LOCAL
-+AC_PROG_CC
+-
+-AC_CHECK_TOOL(LD, ld)
+-AC_CHECK_TOOL(NM, nm)
++AC_CHECK_TOOL([LD], [ld])
++AC_SUBST([LDFLAGS])
++AC_CHECK_TOOL([NM], [nm])
  
- AC_CHECK_TOOL(LD, ld)
-+AC_SUBST(LDFLAGS)
- AC_CHECK_TOOL(NM, nm)
+-AC_CHECK_TOOL(MIG, mig, mig)
++AC_CHECK_TOOL([MIG], [mig], [mig])
  
- AC_CHECK_TOOL(MIG, mig, mig)
-@@ -70,9 +62,13 @@ AC_CHECK_TOOL(MIG, mig, mig)
  # Set up `machine' link in build directory for easier header file location.
- AC_LINK_FILES(${systype}/${systype},machine)
- 
-+AC_CONFIG_SUBDIRS([linux])
+-AC_LINK_FILES(${systype}/${systype},machine)
++AC_CONFIG_LINKS([machine:${systype}/${systype}])
 +
++AC_CONFIG_SUBDIRS([linux])
+ 
  # Do machine-specific configuration last so that it can override anything
  # set above if necessary.
 +if test "$systype" = i386; then
@@ -198,24 +240,132 @@ diff -u -p -r1.12 configure.in
 -AC_OUTPUT(Makefile version.c doc/Makefile)
 +AC_CONFIG_FILES([Makefile version.c doc/Makefile])
 +AC_OUTPUT
-Index: version.c.in
-===================================================================
-RCS file: /cvsroot/hurd/gnumach/version.c.in,v
-retrieving revision 1.1
-diff -u -p -r1.1 version.c.in
---- version.c.in	23 May 2002 00:06:36 -0000	1.1
-+++ version.c.in	29 Feb 2004 13:23:46 -0000
-@@ -1,2 +1,2 @@
- /* @configure_input@ */
--const char version[] = "GNUmach @VERSION@";
-+const char version[] = "@PACKAGE_NAME@ @PACKAGE_VERSION@";
-Index: i386/linux/Drivers.in
-===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/linux/Attic/Drivers.in,v
-retrieving revision 1.4
-diff -u -p -r1.4 Drivers.in
---- i386/linux/Drivers.in	27 May 2001 12:44:22 -0000	1.4
-+++ i386/linux/Drivers.in	29 Feb 2004 13:23:59 -0000
+diff -Naur gnumach-20040229.orig/doc/Makefile.in gnumach-20040229/doc/Makefile.in
+--- gnumach-20040229.orig/doc/Makefile.in	2004-02-29 21:27:03.000000000 +0100
++++ gnumach-20040229/doc/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+@@ -1,5 +1,5 @@
+ #
+-#   Copyright (C) 2001,02 Free Software Foundation, Inc.
++#   Copyright (C) 2001, 2002, 2004 Free Software Foundation, Inc.
+ #
+ #   This program is free software; you can redistribute it and/or
+ #   modify it under the terms of the GNU General Public License as
+@@ -15,7 +15,7 @@
+ #   along with this program; if not, write to the Free Software
+ #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ 
+-mach-version := @VERSION@
++mach-version := @PACKAGE_VERSION@
+ targets := mach.info
+ 
+ # Variables from `configure'.
+diff -Naur gnumach-20040229.orig/Drivers.macros gnumach-20040229/Drivers.macros
+--- gnumach-20040229.orig/Drivers.macros	2004-02-29 21:32:27.000000000 +0100
++++ gnumach-20040229/Drivers.macros	2004-09-15 11:35:15.000000000 +0200
+@@ -13,15 +13,15 @@
+ dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
+ dnl USE OF THIS SOFTWARE.
+ 
+-AC_SUBST(device_drivers)
++AC_SUBST([device_drivers])
+ 
+ dnl AC_DRIVER_ALIAS(alias, canonical) makes --enable-alias have the
+ dnl same effect as --enable-canonical.
+ 
+-AC_DEFUN(AC_DRIVER_ALIAS, [
++AC_DEFUN([AC_DRIVER_ALIAS], [
+ [#] Checking for alias [$1]
+-AC_ARG_ENABLE([$1],,
+-enable_[$2]="$enable_[$1]"
++AC_ARG_ENABLE([$1],[],
++[enable_$2="$enable_$1"]
+ )])
+ 
+ dnl AC_DRIVER_CLASS(name,option,files) defines a class of drivers.  If
+@@ -30,9 +30,9 @@
+ dnl the specified files to the output variable `device_drivers'.  This
+ dnl macro must precede the use of any corresponding AC_DRIVER macros.
+ 
+-AC_DEFUN(AC_DRIVER_CLASS, [
+-driver_class_[$1]_option=[$2]
+-driver_class_[$1]_files="[$3]"
++AC_DEFUN([AC_DRIVER_CLASS], [
++driver_class_$1_option=$2
++driver_class_$1_files="$3"
+ ])
+ 
+ dnl AC_DRIVER(name,option,files [,class]) detects option --enable-name.  If
+@@ -40,16 +40,16 @@
+ dnl added to the output variable `device_drivers'.  The driver is of class
+ dnl `class'; see the comments on AC_DRIVER_CLASS for more information.
+ 
+-AC_DEFUN(AC_DRIVER, [
++AC_DEFUN([AC_DRIVER], [
+ [#] Checking for device driver option [$1]
+-AC_ARG_ENABLE([$1],,
++AC_ARG_ENABLE([$1],[],[
+ if test "x$enableval" != xno; then
+-AC_DEFINE([$2])
++AC_DEFINE([$2], [], [$1])
+ device_drivers="$device_drivers [$3]"
+ if test "${driver_class_[$4]_selected+set}" != set; then
+   driver_class_[$4]_selected=yes
+-  AC_DEFINE_UNQUOTED($driver_class_[$4]_option)
++  AC_DEFINE_UNQUOTED([$driver_class_$4_option])
+   device_drivers="$device_drivers $driver_class_[$4]_files"
+ fi
+ fi
+-)])
++])])
+diff -Naur gnumach-20040229.orig/i386/configure.in gnumach-20040229/i386/configure.in
+--- gnumach-20040229.orig/i386/configure.in	2004-02-29 21:28:26.000000000 +0100
++++ gnumach-20040229/i386/configure.in	2004-09-15 11:35:15.000000000 +0200
+@@ -1,5 +1,5 @@
+ dnl Configure script for i386
+-dnl Copyright 1999 Free Software Foundation, Inc.
++dnl Copyright 1999, 2004 Free Software Foundation, Inc.
+ 
+ dnl Permission to use, copy, modify and distribute this software and its
+ dnl documentation is hereby granted, provided that both the copyright
+@@ -13,22 +13,26 @@
+ dnl USE OF THIS SOFTWARE.
+ 
+ 
+-AC_INIT(i386/i386asm.sym)
+-AC_PREREQ(2.12)
++m4_include([../version.m4])
++
++AC_INIT([PACKAGE], [VERSION])
++AC_CONFIG_SRCDIR([i386/i386asm.sym])
++AC_PREREQ(2.57)
+ 
+ #
+ # Options
+ #
+-AC_ARG_ENABLE(lpr,
++AC_ARG_ENABLE([lpr],
+-[  --enable-lpr             enable use of lpr device],
++AS_HELP_STRING([--enable-lpr], [enable use of lpr device]),
+-[test "x$enableval" = xno || AC_DEFINE(MACH_LPR)])
++[test "x$enableval" = xno || AC_DEFINE([MACH_LPR])])
+ 
+ #
+ # Programs
+ #
+-AC_CHECK_TOOL(LD, ld)
+-AC_CHECK_TOOL(MAKE, make)
++AC_CHECK_TOOL([LD], [ld])
++AC_CHECK_TOOL([MAKE], [make])
+ 
+-AC_CONFIG_SUBDIRS(linux)
++AC_CONFIG_SUBDIRS([linux])
+ 
+-AC_OUTPUT(Makefile)
++AC_CONFIG_FILES([Makefile])
++AC_OUTPUT
+diff -Naur gnumach-20040229.orig/i386/linux/configure.ac gnumach-20040229/i386/linux/configure.ac
+--- gnumach-20040229.orig/i386/linux/configure.ac	2004-02-29 21:28:07.000000000 +0100
++++ gnumach-20040229/i386/linux/configure.ac	2004-09-15 11:35:15.000000000 +0200
 @@ -1,5 +1,5 @@
  dnl Device driver options for i386
 -dnl Copyright 1997, 1999 Free Software Foundation, Inc.
@@ -223,24 +373,445 @@ diff -u -p -r1.4 Drivers.in
  
  dnl Permission to use, copy, modify and distribute this software and its
  dnl documentation is hereby granted, provided that both the copyright
-@@ -13,7 +13,7 @@ dnl LIABILITY OF ANY KIND FOR ANY DAMAGE
+@@ -12,94 +12,103 @@
+ dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
  dnl USE OF THIS SOFTWARE.
  
- AC_INIT(dev/include/linux/autoconf.h)
+-AC_INIT(dev/include/linux/autoconf.h)
 -AC_PREREQ(2.12)
++m4_include([../../version.m4])
+ 
+-sinclude([../../Drivers.macros])
+-sinclude([../../aclocal.m4])
++AC_INIT([PACKAGE], [VERSION])
++AC_CONFIG_SRCDIR([dev/include/linux/autoconf.h])
 +AC_PREREQ(2.57)
  
- sinclude([../../Drivers.macros])
- sinclude([../../aclocal.m4])
-@@ -40,9 +40,10 @@ esac
+-AC_CONFIG_HEADER(device-drivers.h)
++m4_sinclude([../../Drivers.macros])
++m4_sinclude([../../aclocal.m4])
++
++AC_CONFIG_HEADER([device-drivers.h])
+ 
+ dnl Check the cpu type.
+ 
+ AC_CANONICAL_HOST
+ 
++dnl Which host CPU
++AC_DEFUN([hurd_host_CPU], [
++  AC_DEFINE([CONFIG_M$1], [], [$1])
++  AC_DEFINE([CPU], [$1], [CPU])
++])
++
++
+ case "$host_cpu" in
+-i386) AC_DEFINE(CONFIG_M386)
+-      AC_DEFINE(CPU, 386)    ;;
+-i486) AC_DEFINE(CONFIG_M486)
+-      AC_DEFINE(CPU, 486)    ;;
+-i586) AC_DEFINE(CONFIG_M586)
+-      AC_DEFINE(CPU, 586)    ;;
+-i686) AC_DEFINE(CONFIG_M686)
+-      AC_DEFINE(CPU, 686)    ;;
+-*)    AC_DEFINE(CONFIG_M486)
+-      AC_DEFINE(CPU, 486)    ;;
++i386) hurd_host_CPU([386]) ;;
++i486) hurd_host_CPU([486]) ;;
++i586) hurd_host_CPU([586]) ;;
++i686) hurd_host_CPU([686]) ;;
++*)    hurd_host_CPU([486]) ;;
+ esac
+ 
  hurd_SYSTYPE
  
- AC_CHECK_TOOL(CC, gcc)
+-AC_CHECK_TOOL(CC, gcc)
 -AC_PROG_CC_LOCAL
++AC_CHECK_TOOL([CC], [gcc])
 +AC_PROG_CC
  
- AC_CHECK_TOOL(LD, ld)
-+AC_SUBST(LDFLAGS)
+-AC_CHECK_TOOL(LD, ld)
++AC_CHECK_TOOL([LD], [ld])
++AC_SUBST([LDFLAGS])
  
  
  dnl Aliases have to come first.
+ 
+-AC_DRIVER_ALIAS(3c501, el1)
+-AC_DRIVER_ALIAS(3c503, el2)
+-AC_DRIVER_ALIAS(3c509, el3)
+-AC_DRIVER_ALIAS(3c579, el3)
+-AC_DRIVER_ALIAS(3c59x, vortex)
+-AC_DRIVER_ALIAS(3c90x, vortex)
+-AC_DRIVER_ALIAS(hpj2577, hp100)
+-AC_DRIVER_ALIAS(hpj2573, hp100)
+-AC_DRIVER_ALIAS(hpj2585, hp100)
+-AC_DRIVER_ALIAS(hp27248b, hp100)
+-AC_DRIVER_ALIAS(eth32, eth16i)
+-AC_DRIVER_ALIAS(znote, znet)
+-AC_DRIVER_ALIAS(de100, depca)
+-AC_DRIVER_ALIAS(de101, depca)
+-AC_DRIVER_ALIAS(de200, depca)
+-AC_DRIVER_ALIAS(de201, depca)
+-AC_DRIVER_ALIAS(de202, depca)
+-AC_DRIVER_ALIAS(de210, depca)
+-AC_DRIVER_ALIAS(de422, depca)
+-AC_DRIVER_ALIAS(de203, ewrk3)
+-AC_DRIVER_ALIAS(de204, ewrk3)
+-AC_DRIVER_ALIAS(de205, ewrk3)
+-AC_DRIVER_ALIAS(de425, de4x5)
+-AC_DRIVER_ALIAS(de434, de4x5)
+-AC_DRIVER_ALIAS(de435, de4x5)
+-AC_DRIVER_ALIAS(de450, de4x5)
+-AC_DRIVER_ALIAS(de500, de4x5)
+-AC_DRIVER_ALIAS(3c507, el16)
+-AC_DRIVER_ALIAS(3c505, elplus)
+-AC_DRIVER_ALIAS(ne1000, ne2000)
+-AC_DRIVER_ALIAS(ne, ne2000)
+-AC_DRIVER_ALIAS(at1500, lance)
+-AC_DRIVER_ALIAS(ne2100, lance)
+-AC_DRIVER_ALIAS(tulip, elcp)
+-AC_DRIVER_ALIAS(rtl8129, rtl8139)
+-AC_DRIVER_ALIAS(aha2825, aha152x)
+-AC_DRIVER_ALIAS(ncr53c400, ncr5380)
+-AC_DRIVER_ALIAS(t128f, t128)
+-AC_DRIVER_ALIAS(t228, t128)
+-AC_DRIVER_ALIAS(am79c974, am53c974)
+-AC_DRIVER_ALIAS(dtc3180, dtc3280)
+-AC_DRIVER_ALIAS(dc390w, ncr53c8xx)
+-AC_DRIVER_ALIAS(dc390u, ncr53c8xx)
+-AC_DRIVER_ALIAS(dc390f, ncr53c8xx)
+-AC_DRIVER_ALIAS(dc390, dc390t)
+-AC_DRIVER_ALIAS(epic100, epic)
++AC_DRIVER_ALIAS([3c501], [el1])
++AC_DRIVER_ALIAS([3c503], [el2])
++AC_DRIVER_ALIAS([3c509], [el3])
++AC_DRIVER_ALIAS([3c579], [el3])
++AC_DRIVER_ALIAS([3c59x], [vortex])
++AC_DRIVER_ALIAS([3c90x], [vortex])
++AC_DRIVER_ALIAS([hpj2577], [hp100])
++AC_DRIVER_ALIAS([hpj2573], [hp100])
++AC_DRIVER_ALIAS([hpj2585], [hp100])
++AC_DRIVER_ALIAS([hp27248b], [hp100])
++AC_DRIVER_ALIAS([eth32], [eth16i])
++AC_DRIVER_ALIAS([znote], [znet])
++AC_DRIVER_ALIAS([de100], [depca])
++AC_DRIVER_ALIAS([de101], [depca])
++AC_DRIVER_ALIAS([de200], [depca])
++AC_DRIVER_ALIAS([de201], [depca])
++AC_DRIVER_ALIAS([de202], [depca])
++AC_DRIVER_ALIAS([de210], [depca])
++AC_DRIVER_ALIAS([de422], [depca])
++AC_DRIVER_ALIAS([de203], [ewrk3])
++AC_DRIVER_ALIAS([de204], [ewrk3])
++AC_DRIVER_ALIAS([de205], [ewrk3])
++AC_DRIVER_ALIAS([de425], [de4x5])
++AC_DRIVER_ALIAS([de434], [de4x5])
++AC_DRIVER_ALIAS([de435], [de4x5])
++AC_DRIVER_ALIAS([de450], [de4x5])
++AC_DRIVER_ALIAS([de500], [de4x5])
++AC_DRIVER_ALIAS([3c507], [el16])
++AC_DRIVER_ALIAS([3c505], [elplus])
++AC_DRIVER_ALIAS([ne1000], [ne2000])
++AC_DRIVER_ALIAS([ne], [ne2000])
++AC_DRIVER_ALIAS([at1500], [lance])
++AC_DRIVER_ALIAS([ne2100], [lance])
++AC_DRIVER_ALIAS([tulip], [elcp])
++AC_DRIVER_ALIAS([rtl8129], [rtl8139])
++AC_DRIVER_ALIAS([aha2825], [aha152x])
++AC_DRIVER_ALIAS([ncr53c400], [ncr5380])
++AC_DRIVER_ALIAS([t128f], [t128])
++AC_DRIVER_ALIAS([t228], [t128])
++AC_DRIVER_ALIAS([am79c974], [am53c974])
++AC_DRIVER_ALIAS([dtc3180], [dtc3280])
++AC_DRIVER_ALIAS([dc390w], [ncr53c8xx])
++AC_DRIVER_ALIAS([dc390u], [ncr53c8xx])
++AC_DRIVER_ALIAS([dc390f], [ncr53c8xx])
++AC_DRIVER_ALIAS([dc390], [dc390t])
++AC_DRIVER_ALIAS([epic100], [epic])
+ 
+ 
+ dnl Kinds of drivers that have gobs of source files that get brought in.
+ 
+-AC_DRIVER_CLASS(scsi, CONFIG_SCSI, constants.o hosts.o scsi.o scsi_ioctl.o scsi_proc.o scsicam.o sd.o sd_ioctl.o sr.o sr_ioctl.o)
++AC_DRIVER_CLASS([scsi], [CONFIG_SCSI], [ \
++  constants.o hosts.o scsi.o scsi_ioctl.o scsi_proc.o scsicam.o sd.o \
++  sd_ioctl.o sr.o sr_ioctl.o])
+ 
+-AC_DRIVER_CLASS(net, CONFIG_INET, auto_irq.o net.o Space.o dev.o net_init.o)
++AC_DRIVER_CLASS([net], [CONFIG_INET], [ \
++  auto_irq.o net.o Space.o dev.o net_init.o])
+ 
+ dnl Strictly speaking, we could have a `linux' option too, but it's
+ dnl not possible to built a useful kernel without at least one Linux
+@@ -109,98 +118,102 @@
+ dnl
+ dnl linux_DRIVER(machname, MACRO, linuxname, class)
+ dnl
+-AC_DEFUN([linux_DRIVER],[AC_DRIVER_ALIAS($3, $1)
+-AC_DRIVER($1, CONFIG_$2, $3.o, $4)])dnl
++AC_DEFUN([linux_DRIVER], [
++  AC_DRIVER_ALIAS([$3], [$1])
++  AC_DRIVER([$1], [CONFIG_$2], [$3.o], [$4])
++])dnl
+ 
+ dnl non-SCSI Disk controllers
+ 
+-AC_DRIVER(floppy, CONFIG_BLK_DEV_FD, floppy.o)
+-AC_DRIVER(ide, CONFIG_BLK_DEV_IDE, cmd640.o ide-cd.o ide.o rz1000.o triton.o)
++AC_DRIVER([floppy], [CONFIG_BLK_DEV_FD], [floppy.o])
++AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
++  cmd640.o ide-cd.o ide.o rz1000.o triton.o])
+ 
+ 
+ dnl SCSI Disk controllers
+ 
+-linux_DRIVER(advansys, SCSI_ADVANSYS, advansys, scsi)
+-linux_DRIVER(buslogic, SCSI_BUSLOGIC, BusLogic, scsi)
+-linux_DRIVER(u1434f, SCSI_U14_34F, u14-34f, scsi)
+-linux_DRIVER(ultrastor, SCSI_ULTRASTOR, ultrastor, scsi)
+-linux_DRIVER(aha152x, SCSI_AHA152X, aha152x, scsi)
+-linux_DRIVER(aha1542, SCSI_AHA1542, aha1542, scsi)
+-linux_DRIVER(aha1740, SCSI_AHA1740, aha1740, scsi)
+-linux_DRIVER(aic7xxx, SCSI_AIC7XXX, aic7xxx, scsi)
+-linux_DRIVER(futuredomain, SCSI_FUTURE_DOMAIN, fdomain, scsi)
+-linux_DRIVER(in2000, SCSI_IN2000, in2000, scsi)
+-linux_DRIVER(ncr5380, SCSI_GENERIC_NCR5380, g_NCR5380, scsi)
+-linux_DRIVER(ncr53c406a, SCSI_NCR53C406A, NCR53c406a, scsi)
+-linux_DRIVER(pas16, SCSI_PASS16, pas16, scsi)
+-linux_DRIVER(seagate, SCSI_SEAGATE, seagate, scsi)
+-linux_DRIVER(t128, SCSI_T128, t128, scsi)
+-linux_DRIVER(ncr53c7xx, SCSI_NCR53C7xx, 53c78xx, scsi)
+-linux_DRIVER(eatadma, SCSI_EATA_DMA, eata_dma, scsi)
+-linux_DRIVER(eatapio, SCSI_EATA_PIO, eata_pio, scsi)
+-linux_DRIVER(wd7000, SCSI_7000FASST, wd7000, scsi)
+-linux_DRIVER(eata, SCSI_EATA, eata, scsi)
+-linux_DRIVER(am53c974, SCSI_AM53C974, AM53C974, scsi)
+-linux_DRIVER(dtc3280, SCSI_DTC3280, dtc, scsi)
+-linux_DRIVER(ncr53c8xx, SCSI_NCR53C8XX, ncr53c8xx, scsi)
+-linux_DRIVER(dc390t, SCSI_DC390T, tmscsim, scsi)
+-linux_DRIVER(ppa, SCSI_PPA, ppa, scsi)
+-linux_DRIVER(qlogicfas, SCSI_QLOGIC_FAS, qlogicfas, scsi)
+-linux_DRIVER(qlogicisp, SCSI_QLOGIC_ISP, qlogicisp, scsi)
+-linux_DRIVER(gdth, SCSI_GDTH, gdth, scsi)
++linux_DRIVER([advansys], [SCSI_ADVANSYS], [advansys], [scsi])
++linux_DRIVER([buslogic], [SCSI_BUSLOGIC], [BusLogic], [scsi])
++linux_DRIVER([u1434f], [SCSI_U14_34F], [u14-34f], [scsi])
++linux_DRIVER([ultrastor], [SCSI_ULTRASTOR], [ultrastor], [scsi])
++linux_DRIVER([aha152x], [SCSI_AHA152X], [aha152x], [scsi])
++linux_DRIVER([aha1542], [SCSI_AHA1542], [aha1542], [scsi])
++linux_DRIVER([aha1740], [SCSI_AHA1740], [aha1740], [scsi])
++linux_DRIVER([aic7xxx], [SCSI_AIC7XXX], [aic7xxx], [scsi])
++linux_DRIVER([futuredomain], [SCSI_FUTURE_DOMAIN], [fdomain], [scsi])
++linux_DRIVER([in2000], [SCSI_IN2000], [in2000], [scsi])
++linux_DRIVER([ncr5380], [SCSI_GENERIC_NCR5380], [g_NCR5380], [scsi])
++linux_DRIVER([ncr53c406a], [SCSI_NCR53C406A], [NCR53c406a], [scsi])
++linux_DRIVER([pas16], [SCSI_PASS16], [pas16], [scsi])
++linux_DRIVER([seagate], [SCSI_SEAGATE], [seagate], [scsi])
++linux_DRIVER([t128], [SCSI_T128], [t128], [scsi])
++linux_DRIVER([ncr53c7xx], [SCSI_NCR53C7xx], [53c78xx], [scsi])
++linux_DRIVER([eatadma], [SCSI_EATA_DMA], [eata_dma], [scsi])
++linux_DRIVER([eatapio], [SCSI_EATA_PIO], [eata_pio], [scsi])
++linux_DRIVER([wd7000], [SCSI_7000FASST], [wd7000], [scsi])
++linux_DRIVER([eata], [SCSI_EATA], [eata], [scsi])
++linux_DRIVER([am53c974], [SCSI_AM53C974], [AM53C974], [scsi])
++linux_DRIVER([dtc3280], [SCSI_DTC3280], [dtc], [scsi])
++linux_DRIVER([ncr53c8xx], [SCSI_NCR53C8XX], [ncr53c8xx], [scsi])
++linux_DRIVER([dc390t], [SCSI_DC390T], [tmscsim], [scsi])
++linux_DRIVER([ppa], [SCSI_PPA], [ppa], [scsi])
++linux_DRIVER([qlogicfas], [SCSI_QLOGIC_FAS], [qlogicfas], [scsi])
++linux_DRIVER([qlogicisp], [SCSI_QLOGIC_ISP], [qlogicisp], [scsi])
++linux_DRIVER([gdth], [SCSI_GDTH], [gdth], [scsi])
+ dnl Dirty implementation...
+ 
+-AC_ARG_ENABLE(flashpoint,,[
+-if test ${enableval} = no; then
+-  AC_DEFINE(CONFIG_SCSI_OMIT_FLASHPOINT)
++AC_ARG_ENABLE([flashpoint], [], [flashpoint=$enableval], [flashpoint=no])
++if test x"$flashpoint" = xno; then
++  AC_DEFINE([CONFIG_SCSI_OMIT_FLASHPOINT], [], [scsi omit flashpoint])
+ fi
+-])
+ 
+ 
+ dnl Ethernet controllers
+ 
+-AC_DRIVER(ne2000, CONFIG_NE2000, ne.o 8390.o, net)
+-AC_DRIVER(el2, CONFIG_EL2, 3c503.o 8390.o, net)
+-linux_DRIVER(el3, EL3, 3c509, net)
+-AC_DRIVER(wd80x3, CONFIG_WD80x3, wd.o 8390.o, net)
+-linux_DRIVER(el1, EL1, 3c501, net)
+-AC_DRIVER(ul, CONFIG_ULTRA, smc-ultra.o 8390.o, net)
+-AC_DRIVER(ul32, CONFIG_ULTRA32, smc-ultra32.o 8390.o, net)
+-AC_DRIVER(hplanplus, CONFIG_HPLAN_PLUS, hp-plus.o 8390.o, net)
+-AC_DRIVER(hplan, CONFIG_HPLAN, hp.o 8390.o, net)
+-linux_DRIVER(vortex, VORTEX, 3c59x, net)
+-linux_DRIVER(seeq8005, SEEQ8005, seeq8005, net)
+-linux_DRIVER(hp100, HP100, hp100, net)
+-AC_DRIVER(ac3200, CONFIG_AC3200, ac3200.o 8390.o, net)
+-AC_DRIVER(e2100, CONFIG_E2100, e2100.o 8390.o, net)
+-linux_DRIVER(at1700, AT1700, at1700, net)
+-linux_DRIVER(eth16i, ETH16I, eth16i, net)
+-linux_DRIVER(znet, ZNET, znet, net)
+-linux_DRIVER(eexpress, EEXPRESS, eexpress, net)
+-linux_DRIVER(eexpresspro, EEXPRESS_PRO, eepro, net)
+-linux_DRIVER(eexpresspro100, EEXPRESS_PRO100B, eepro100, net)
+-linux_DRIVER(depca, DEPCA, depca, net)
+-linux_DRIVER(ewrk3, EWRK3, ewrk3, net)
+-linux_DRIVER(de4x5, DE4X5, de4x5, net)
+-linux_DRIVER(apricot, APRICOT, apricot, net)
+-linux_DRIVER(wavelan, WAVELAN, wavelan, net)
+-linux_DRIVER(el16, EL16, 3c507, net)
+-linux_DRIVER(elplus, ELPLUS, 3c505, net)
+-linux_DRIVER(de600, DE600, de600, net)
+-linux_DRIVER(de620, DE620, de620, net)
+-linux_DRIVER(skg16, SK_G16, sk_g16, net)
+-linux_DRIVER(ni52, NI52, ni52, net)
+-linux_DRIVER(ni65, NI65, ni65, net)
+-linux_DRIVER(atp, ATP, atp, net)
+-linux_DRIVER(lance, LANCE, lance, net)
+-linux_DRIVER(elcp, DEC_ELCP, tulip, net)
+-linux_DRIVER(fmv18x, FMV18X, fmv18x, net)
+-linux_DRIVER(3c515, 3C515, 3c515, net)
+-linux_DRIVER(pcnet32, PCNET32, pcnet32, net)
+-AC_DRIVER(ne2kpci, CONFIG_NE2K_PCI, ne2k-pci.o 8390.o, net)
+-linux_DRIVER(yellowfin, YELLOWFIN, yellowfin, net)
+-linux_DRIVER(rtl8139, RTL8139, rtl8139, net)
+-linux_DRIVER(epic, EPIC, epic100, net)
+-linux_DRIVER(tlan, TLAN, tlan, net)
+-linux_DRIVER(viarhine, VIA_RHINE, via-rhine, net)
+-AC_OUTPUT(Makefile)
++AC_DRIVER([ne2000], [CONFIG_NE2000], [ne.o 8390.o], [net])
++AC_DRIVER([el2], [CONFIG_EL2], [3c503.o 8390.o], [net])
++linux_DRIVER([el3], [EL3], [3c509], [net])
++AC_DRIVER([wd80x3], [CONFIG_WD80x3], [wd.o 8390.o], [net])
++linux_DRIVER([el1], [EL1], [3c501], [net])
++AC_DRIVER([ul], [CONFIG_ULTRA], [smc-ultra.o 8390.o], [net])
++AC_DRIVER([ul32], [CONFIG_ULTRA32], [smc-ultra32.o 8390.o], [net])
++AC_DRIVER([hplanplus], [CONFIG_HPLAN_PLUS], [hp-plus.o 8390.o], [net])
++AC_DRIVER([hplan], [CONFIG_HPLAN], [hp.o 8390.o], [net])
++linux_DRIVER([vortex], [VORTEX], [3c59x], [net])
++linux_DRIVER([seeq8005], [SEEQ8005], [seeq8005], [net])
++linux_DRIVER([hp100], [HP100], [hp100], [net])
++AC_DRIVER([ac3200], [CONFIG_AC3200], [ac3200.o 8390.o], [net])
++AC_DRIVER([e2100], [CONFIG_E2100], [e2100.o 8390.o], [net])
++linux_DRIVER([at1700], [AT1700], [at1700], [net])
++linux_DRIVER([eth16i], [ETH16I], [eth16i], [net])
++linux_DRIVER([znet], [ZNET], [znet], [net])
++linux_DRIVER([eexpress], [EEXPRESS], [eexpress], [net])
++linux_DRIVER([eexpresspro], [EEXPRESS_PRO], [eepro], [net])
++linux_DRIVER([eexpresspro100], [EEXPRESS_PRO100B], [eepro100], [net])
++linux_DRIVER([depca], [DEPCA], [depca], [net])
++linux_DRIVER([ewrk3], [EWRK3], [ewrk3], [net])
++linux_DRIVER([de4x5], [DE4X5], [de4x5], [net])
++linux_DRIVER([apricot], [APRICOT], [apricot], [net])
++linux_DRIVER([wavelan], [WAVELAN], [wavelan], [net])
++linux_DRIVER([el16], [EL16], [3c507], [net])
++linux_DRIVER([elplus], [ELPLUS], [3c505], [net])
++linux_DRIVER([de600], [DE600], [de600], [net])
++linux_DRIVER([de620], [DE620], [de620], [net])
++linux_DRIVER([skg16], [SK_G16], [sk_g16], [net])
++linux_DRIVER([ni52], [NI52], [ni52], [net])
++linux_DRIVER([ni65], [NI65], [ni65], [net])
++linux_DRIVER([atp], [ATP], [atp], [net])
++linux_DRIVER([lance], [LANCE], [lance], [net])
++linux_DRIVER([elcp], [DEC_ELCP], [tulip], [net])
++linux_DRIVER([fmv18x], [FMV18X], [fmv18x], [net])
++linux_DRIVER([3c515], [3C515], [3c515], [net])
++linux_DRIVER([pcnet32], [PCNET32], [pcnet32], [net])
++AC_DRIVER([ne2kpci], [CONFIG_NE2K_PCI], [ne2k-pci.o 8390.o], [net])
++linux_DRIVER([yellowfin], [YELLOWFIN], [yellowfin], [net])
++linux_DRIVER([rtl8139], [RTL8139], [rtl8139], [net])
++linux_DRIVER([epic], [EPIC], [epic100], [net])
++linux_DRIVER([tlan], [TLAN], [tlan], [net])
++linux_DRIVER([viarhine], [VIA_RHINE], [via-rhine], [net])
++
++AC_CONFIG_FILES([Makefile])
++AC_OUTPUT
+diff -Naur gnumach-20040229.orig/i386/linux/Makefile.in gnumach-20040229/i386/linux/Makefile.in
+--- gnumach-20040229.orig/i386/linux/Makefile.in	2004-02-29 21:28:08.000000000 +0100
++++ gnumach-20040229/i386/linux/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+@@ -175,8 +175,8 @@
+ 
+ # Autoconf support
+ 
+-$(srcdir)/configure: $(srcdir)/Drivers.in $(srcdir)/../../Drivers.macros
+-	cd $(srcdir) && rm -f configure && autoconf Drivers.in > configure
++$(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/../../Drivers.macros
++	cd $(srcdir) && autoconf
+ 
+ device-drivers.h: $(srcdir)/Makefile.in config.status
+ 	./config.status
+diff -Naur gnumach-20040229.orig/linux/configure.in gnumach-20040229/linux/configure.in
+--- gnumach-20040229.orig/linux/configure.in	2004-02-29 21:32:02.000000000 +0100
++++ gnumach-20040229/linux/configure.in	2004-09-15 11:35:15.000000000 +0200
+@@ -1,5 +1,5 @@
+ dnl Configure script for linux code snarfed into GNU Mach.
+-dnl Copyright 1999 Free Software Foundation, Inc.
++dnl Copyright 1999, 2004 Free Software Foundation, Inc.
+ 
+ dnl Permission to use, copy, modify and distribute this software and its
+ dnl documentation is hereby granted, provided that both the copyright
+@@ -12,16 +12,23 @@
+ dnl LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE
+ dnl USE OF THIS SOFTWARE.
+ 
+-AC_INIT(src/include/linux/version.h)
+-AC_PREREQ(2.12)
+-sinclude([../aclocal.m4])
++m4_include([../version.m4])
++
++AC_INIT([PACKAGE],[VERSION])
++AC_CONFIG_SRCDIR([src/include/linux/version.h])
++AC_PREREQ(2.57)
++
++m4_sinclude([../aclocal.m4])
+ 
+ hurd_SYSTYPE
+ 
+-AC_LINK_FILES(src/include/asm-${systype} dev/include/asm-${systype},
+-              src/include/asm dev/include/asm)
++AC_CONFIG_LINKS([src/include/asm:src/include/asm-${systype}
++		 dev/include/asm:dev/include/asm-${systype}])
+ 
+ dnl We need to write these bogus output files to make autoconf create
+ dnl the directories where the directory symlinks need to go.
+-AC_OUTPUT(src/.dummy:dummy.in dev/.dummy:dummy.in
+-          src/include/.dummy:dummy.in dev/include/.dummy:dummy.in)
++AC_CONFIG_FILES([src/.dummy:dummy.in
++		 dev/.dummy:dummy.in
++		 src/include/.dummy:dummy.in
++		 dev/include/.dummy:dummy.in])
++AC_OUTPUT
+diff -Naur gnumach-20040229.orig/Makefile.in gnumach-20040229/Makefile.in
+--- gnumach-20040229.orig/Makefile.in	2004-02-29 21:26:20.000000000 +0100
++++ gnumach-20040229/Makefile.in	2004-09-15 11:35:15.000000000 +0200
+@@ -1,5 +1,5 @@
+ # Makefile for Mach 4 kernel directory
+-# Copyright 1997, 1999 Free Software Foundation, Inc.
++# Copyright 1997, 1999, 2004 Free Software Foundation, Inc.
+ #
+ # Permission to use, copy, modify and distribute this software and its
+ # documentation is hereby granted, provided that both the copyright
+@@ -19,7 +19,7 @@
+ srcdir=@srcdir@
+ systype=@systype@
+ prefix=@prefix@
+-version = @VERSION@
++version = @PACKAGE_VERSION@
+ 
+ exec_prefix=$(prefix)
+ 
+diff -Naur gnumach-20040229.orig/version.c.in gnumach-20040229/version.c.in
+--- gnumach-20040229.orig/version.c.in	2004-02-29 21:26:22.000000000 +0100
++++ gnumach-20040229/version.c.in	2004-09-15 11:35:15.000000000 +0200
+@@ -1,2 +1,2 @@
+ /* @configure_input@ */
+-const char version[] = "GNUmach @VERSION@";
++const char version[] = "GNUmach @PACKAGE_VERSION@";
+diff -Naur gnumach-20040229.orig/version.m4 gnumach-20040229/version.m4
+--- gnumach-20040229.orig/version.m4	1970-01-01 01:00:00.000000000 +0100
++++ gnumach-20040229/version.m4	2004-09-15 11:35:15.000000000 +0200
+@@ -0,0 +1,3 @@
++m4_define([PACKAGE],[GNU Mach])
++m4_define([VERSION],[1.3])
++
