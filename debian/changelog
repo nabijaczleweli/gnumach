@@ -1,7 +1,6 @@
 gnumach (1:20040915-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
-  * Changed Maintainer address.
   * Added former implicit maintainers to Uploaders.
   * Added myself to Uploaders.
   * Cleaned and updated debian/copyright file.
