@@ -119,6 +119,7 @@ stamp-configure:
 	dh_testdir
 	-mkdir build
 	cd build && ../configure $(drivers) \
+		CFLAGS="$(CFLAGS) -DNDEBUG" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure
 
@@ -127,6 +128,7 @@ stamp-configure-dbg:
 	dh_testdir
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
+		CFLAGS="$(CFLAGS)" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure-dbg
 
@@ -134,7 +136,7 @@ all build:
 
 build-gnumach: configure
 	dh_testdir
-	$(MAKE) -C build CFLAGS="$(CFLAGS) -DNDEBUG"
+	$(MAKE) -C build
 	$(MAKE) -C build/doc
 
 build-gnumach-dbg: configure-dbg
