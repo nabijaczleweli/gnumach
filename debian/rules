@@ -64,9 +64,12 @@ drivers := --enable-floppy \
 	--enable-elcp --enable-tulip \
 	--enable-yellowfin \
 	\
+	--enable-starfire \
 	--enable-sundance \
 	--enable-winbond-840 \
 	--enable-hamachi \
+	--enable-intel-gige \
+	--enable-natsami \
 	--enable-myson803 \
 	--enable-ns820 \
 	\
