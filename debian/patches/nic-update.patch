@@ -1,3 +1,5 @@
+#DPATCHLEVEL=0
+
 2004-08-05  Arief M. Utama  <arief_mulya@yahoo.com>
 
 	* linux/dev/drivers/net/eepro100.c (pci_tbl): Add PCI ID's from

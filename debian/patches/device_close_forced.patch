@@ -1,3 +1,5 @@
+#DPATCHLEVEL=1
+
 --- gnumach-20040229.orig/linux/dev/glue/block.c
 +++ gnumach-20040229/linux/dev/glue/block.c
 @@ -797,6 +797,7 @@
