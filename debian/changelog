@@ -3,6 +3,9 @@ gnumach (1:20040229-2) unstable; urgency=low
   * Split patches into debian/patches/.
   * Allow to build natively on non GNU/Hurd systems.
   * Enable i386, kfreebsd-i386 and knetbsd-i386 on all packages.
+  * Update NICs from Linux.
+    Thanks to Alfred M. Szmidt <ams@kemisten.nu> and
+    Arief M. Utama <arief_mulya@yahoo.com>.
 
  -- Guillem Jover <guillem@debian.org>  Mon, 13 Sep 2004 19:19:30 +0200
 
