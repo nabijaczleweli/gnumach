@@ -5,7 +5,6 @@ gnumach (1:20040915-1) unstable; urgency=low
   * Added myself to Uploaders.
   * Cleaned and updated debian/copyright file.
   * Honour DEB_BUILD_OPTIONS.
-  * Support DESTDIR on upstream makefiles.
   * Split patches into debian/patches/.
   * Allow to build natively on non GNU/Hurd systems.
   * Enable i386, kfreebsd-i386 and knetbsd-i386 on all packages.
