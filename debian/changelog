@@ -3,6 +3,7 @@ gnumach (1:20040915-1) unstable; urgency=low
   * New upstream CVS snapshot.
   * Changed Maintainer address.
   * Added myself to Uploaders.
+  * Cleaned and updated debian/copyright file.
   * Split patches into debian/patches/.
   * Allow to build natively on non GNU/Hurd systems.
   * Enable i386, kfreebsd-i386 and knetbsd-i386 on all packages.
