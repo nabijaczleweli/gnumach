@@ -128,14 +128,16 @@ drivers := --enable-floppy \
 	--enable-lance \
 	--enable-tlan
 
-stamp-configure:
+include debian/patch.mk
+
+stamp-configure: patch
 	$(checkdir)
 	-mkdir build
 	cd build && ../configure $(drivers) \
 	--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure
 
-stamp-configure-dbg:
+stamp-configure-dbg: patch
 	$(checkdir)
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
@@ -154,7 +156,7 @@ stamp-build-dbg: stamp-configure-dbg
 	cd build-dbg && $(MAKE)
 	touch stamp-build-dbg
 
-clean:
+clean::
 	$(checkdir)
 	-rm -f  $(FILES_TO_CLEAN) $(STAMPS_TO_CLEAN)
 	-rm -rf $(DIRS_TO_CLEAN)

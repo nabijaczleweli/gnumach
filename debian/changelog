@@ -1,3 +1,9 @@
+gnumach (1:20040229-2) unstable; urgency=low
+
+  * Split patches into debian/patches/.
+
+ -- Guillem Jover <guillem@debian.org>  Mon, 13 Sep 2004 19:19:30 +0200
+
 gnumach (1:20040229-1) unstable; urgency=low
 
   * Update to CVS 20040229.
