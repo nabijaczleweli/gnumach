@@ -153,9 +153,10 @@ clean::
 
 binary: binary-indep binary-arch
 
-# Build architecture-independent files here.
+binary-indep:
+binary-arch: binary-gnumach binary-gnumach-dev binary-gnumach-dbg
 
-binary-indep: build
+binary-gnumach-dev: stamp-build
 	dh_testdir
 	dh_testroot
 	dh_clean -p$(pkg_dev) -k
@@ -177,8 +178,6 @@ binary-indep: build
 	dh_gencontrol -p$(pkg_dev)
 	dh_md5sums -p$(pkg_dev)
 	dh_builddeb -p$(pkg_dev)
-
-binary-arch: binary-gnumach binary-gnumach-dbg
 
 binary-gnumach: stamp-build
 	dh_testdir
@@ -225,8 +224,6 @@ binary-gnumach-dbg: stamp-build-dbg
 	dh_md5sums -p$(pkg_dbg)
 	dh_builddeb -p$(pkg_dbg)
 
-binary-indep: build
-
-.PHONY: build clean configure
-.PHONY: binary binary-indep binary-arch binary-gnumach binary-gnumach-dbg
+.PHONY: build clean configure binary binary-indep binary-arch
+.PHONY: binary-gnumach binary-gnumach-dev binary-gnumach-dbg
 
