@@ -9302,7 +9302,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  --enable-sundance       enable driver alias sundance
 +  --enable-sundance       enable driver sundance
 +  --enable-winbond-840    enable driver alias winbond-840
-+  --enable-winbond-840    enable driver winbond-840
++  --enable-winbond_840    enable driver winbond_840
 +  --enable-hamachi        enable driver alias hamachi
 +  --enable-hamachi        enable driver hamachi
 +  --enable-myson803       enable driver alias myson803
@@ -13134,12 +13134,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +# Check whether --enable-winbond-840 or --disable-winbond-840 was given.
 +if test "${enable_winbond_840+set}" = set; then
 +  enableval="$enable_winbond_840"
-+  enable_winbond-840="$enable_winbond-840"
++  enable_winbond_840="$enable_winbond-840"
 +
 +fi;
 +
-+# Checking for device driver option winbond-840
-+# Check whether --enable-winbond-840 or --disable-winbond-840 was given.
++# Checking for device driver option winbond_840
++# Check whether --enable-winbond_840 or --disable-winbond_840 was given.
 +if test "${enable_winbond_840+set}" = set; then
 +  enableval="$enable_winbond_840"
 +
@@ -16459,7 +16459,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/device-drivers.h.in gnumach-20040915
 +/* sundance */
 +#undef CONFIG_CONFIG_SUNDANCE
 +
-+/* winbond-840 */
++/* winbond_840 */
 +#undef CONFIG_CONFIG_WINBOND840
 +
 +/* de4x5 */
