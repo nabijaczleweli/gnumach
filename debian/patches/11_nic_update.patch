@@ -2,8 +2,7 @@
 
 2004-09-21  Guillem Jover  <guillem@hadrons.org>
 
-	* i386/linux/Drivers.in (winbond-840): Renamed to ...
-	(winbond_840): ... this.
+	* i386/linux/configure.ac: Renamed winbond-840 driver to winbond_840.
 
 2004-08-05  Arief M. Utama  <arief_mulya@yahoo.com>
 
