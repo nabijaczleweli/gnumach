@@ -1,0 +1,21 @@
+#DPATCHLEVEL=1
+
+2005-02-10  Guillem Jover  <guillem@hadrons.org>
+
+	* linux/dev/glue/block.c (rdwr_partial): Remove leftover assert.
+
+The error can be reproduced by "fdisk /dev/hf0". Giving:
+
+  linux/dev/glue/block.c 547 (rdwr_partial): assert(*resid <= c);
+
+diff -Naur gnumach-20040915.orig/linux/dev/glue/block.c gnumach-20040915/linux/dev/glue/block.c
+--- gnumach-20040915.orig/linux/dev/glue/block.c	2005-02-10 05:40:34.000000000 +0100
++++ gnumach-20040915/linux/dev/glue/block.c	2005-02-10 05:59:14.000000000 +0100
+@@ -544,7 +544,6 @@ rdwr_partial (int rw, kdev_t dev, loff_t
+     {
+       o = *off & BMASK;
+       c = bh->b_size - o;
+-      assert (*resid <= c);
+       if (c > *resid)
+ 	c = *resid;
+       if (rw == READ)

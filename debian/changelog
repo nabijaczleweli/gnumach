@@ -4,6 +4,7 @@ gnumach (1:20040915.dfsg.1-2) UNRELEASED; urgency=low
     Thanks to Regis Boudin <regis.boudin@gmail.com>.
   * Sync patches with latest ones sent to upstream.
   * Fix Subversion repository address.
+  * Remove leftover assert on the block glue.
 
  -- Guillem Jover <guillem@debian.org>  Mon,  7 Feb 2005 07:37:48 +0100
 
