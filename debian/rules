@@ -127,17 +127,20 @@ stamp-configure-dbg:
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure-dbg
 
-all build: stamp-build stamp-build-dbg
-stamp-build: configure
+all build:
+
+build-gnumach: stamp-build-gnumach
+stamp-build-gnumach: configure
 	dh_testdir
 	$(MAKE) -C build
 	$(MAKE) -C build/doc
-	touch stamp-build
+	touch stamp-build-gnumach
 
-stamp-build-dbg: configure-dbg
+build-gnumach-dbg: stamp-build-gnumach-dbg
+stamp-build-gnumach-dbg: configure-dbg
 	dh_testdir
 	$(MAKE) -C build-dbg
-	touch stamp-build-dbg
+	touch stamp-build-gnumach-dbg
 
 clean::
 	dh_testdir
@@ -151,12 +154,17 @@ clean::
 	
 	dh_clean
 
-binary: binary-indep binary-arch
+install-gnumach: build-gnumach
+	dh_testdir
+	dh_testroot
+	dh_clean -p$(pkg) -k
+	dh_installdirs -p$(pkg)
+	
+	$(MAKE) -C build install-kernel \
+		prefix=$(CURDIR)/debian/$(pkg)/usr \
+		exec_prefix=$(CURDIR)/debian/$(pkg)
 
-binary-indep:
-binary-arch: binary-gnumach binary-gnumach-dev binary-gnumach-dbg
-
-binary-gnumach-dev: stamp-build
+install-gnumach-dev: build-gnumach
 	dh_testdir
 	dh_testroot
 	dh_clean -p$(pkg_dev) -k
@@ -166,43 +174,8 @@ binary-gnumach-dev: stamp-build
 		prefix=$(CURDIR)/debian/$(pkg_dev)/usr \
 		exec_prefix=$(CURDIR)/debian/$(pkg_dev) \
 		includedir=\$${prefix}/include
-	
-	dh_installdocs -p$(pkg_dev)
-	dh_installchangelogs -p$(pkg_dev) -k ChangeLog
-	
-	dh_link -p$(pkg_dev)
-	dh_strip -p$(pkg_dev)
-	dh_compress -p$(pkg_dev)
-	dh_fixperms -p$(pkg_dev)
-	dh_installdeb -p$(pkg_dev)
-	dh_gencontrol -p$(pkg_dev)
-	dh_md5sums -p$(pkg_dev)
-	dh_builddeb -p$(pkg_dev)
 
-binary-gnumach: stamp-build
-	dh_testdir
-	dh_testroot
-	dh_clean -p$(pkg) -k
-	dh_installdirs -p$(pkg)
-	
-	$(MAKE) -C build install-kernel \
-		prefix=$(CURDIR)/debian/$(pkg)/usr \
-		exec_prefix=$(CURDIR)/debian/$(pkg)
-	
-	dh_installdocs -p$(pkg)
-	dh_installchangelogs -p$(pkg) -k ChangeLog
-	dh_installinfo -p$(pkg)
-	
-	dh_link -p$(pkg)
-	dh_strip -p$(pkg)
-	dh_compress -p$(pkg) boot/gnumach
-	dh_fixperms -p$(pkg)
-	dh_installdeb -p$(pkg)
-	dh_gencontrol -p$(pkg)
-	dh_md5sums -p$(pkg)
-	dh_builddeb -p$(pkg)
-
-binary-gnumach-dbg: stamp-build-dbg
+install-gnumach-dbg: build-gnumach-dbg
 	dh_testdir
 	dh_testroot
 	dh_clean -p$(pkg_dbg) -k
@@ -212,18 +185,28 @@ binary-gnumach-dbg: stamp-build-dbg
 		prefix=$(CURDIR)/debian/$(pkg_dbg)/usr \
 		exec_prefix=$(CURDIR)/debian/$(pkg_dbg)
 	mv debian/$(pkg_dbg)/boot/gnumach debian/$(pkg_dbg)/boot/gnumach-dbg
-	
-	dh_installdocs -p$(pkg_dbg)
-	dh_installchangelogs -p$(pkg_dbg) -k ChangeLog
-	
-	dh_link -p$(pkg_dbg)
+
+binary: binary-indep binary-arch
+
+binary-indep:
+
+binary-arch: install-gnumach install-gnumach-dev install-gnumach-dbg
+	dh_testdir
+	dh_testroot
+	dh_installdocs -a
+	dh_installchangelogs -a -k ChangeLog
+	dh_installinfo -a
+	dh_link -a
+	dh_strip -a
+	dh_compress -p$(pkg) boot/gnumach
 	dh_compress -p$(pkg_dbg) boot/gnumach-dbg
-	dh_fixperms -p$(pkg_dbg)
-	dh_installdeb -p$(pkg_dbg)
-	dh_gencontrol -p$(pkg_dbg)
-	dh_md5sums -p$(pkg_dbg)
-	dh_builddeb -p$(pkg_dbg)
+	dh_compress -p$(pkg_dev)
+	dh_strip -a -N$(pkg_dbg)
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
 .PHONY: build clean configure binary binary-indep binary-arch
-.PHONY: binary-gnumach binary-gnumach-dev binary-gnumach-dbg
 
