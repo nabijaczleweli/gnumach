@@ -3,7 +3,7 @@
 2004-10-25  Guillem Jover  <guillem@hadrons.org>
 
 	* Drivers.macros (AC_DRIVER_CLASS): Use AH_TEMPLATE.
-	(AC_DRIVER): Set the value for the AC_DEFINE and AC_DEFINE_UNQUOTTED
+	(AC_DRIVER): Set the value for the AC_DEFINE and AC_DEFINE_UNQUOTED
 	to 1.
 
 2004-09-15  Guillem Jover  <guillem@hadrons.org>

@@ -2,20 +2,25 @@
 
 2004-10-25  Guillem Jover  <guillem@hadrons.org>
 
-	* i386/linux/configure.ac: Renamed winbond-840 driver to winbond_840.
-	Do not include "pci-skeleton.c" in the "net" driver class. Enable
-	intel_gige and natsemi network drivers. Remove "CONFIG_" from cb_chim,
-	starfire, sundance, winbond840, hamachi, natsemi, myson803 and ns820
-	driver declarations. s/INTER_GIGE/INTEL_GIGE/.
+	* i386/linux/Drivers.in: Renamed winbond-840 driver to winbond_840.
+	Do not include "pci-skeleton.c" in the "net" AC_DRIVER_CLASS.
+	Enable the starfire, intel_gige and natsemi network drivers. Remove
+	"CONFIG_" from cb_chim, starfire, sundance, winbond840, hamachi,
+	natsemi, myson803 and ns820 driver declarations. Replace INTER_GIGE
+	with INTEL_GIGE.
 	* linux/src/include/asm-i386/cache.h: New file from linux 2.2.26.
 	* linux/dev/include/linux/malloc.h: Include <asm/cache.h>.
-	* linux/dev/drivers/net/ns820.c (netsami_drv_id): Renamed to ...
+	* linux/src/drivers/net/ns820.c: Copied to ...
+	* linux/dev/drivers/net/ns820.c: ... here.
+	(netsami_drv_id): Renamed to ...
 	(ns820_drv_id): ... this. Fix all callers.
-	* linux/dev/drivers/net/intel-gige.c (skel_netdev_probe): Renamed to ...
+	* linux/src/drivers/net/intel-gige.c: Copied to ...
+	* linux/dev/drivers/net/intel-gige.c: ... here.
+	(skel_netdev_probe): Renamed to ...
 	(igige_probe): ... this.
-	* linux/dev/drivers/net/Space.c: Add probes for natsemi, ns820,
-	winbond840, hamachi, sundance, starfire, myson803 and intel-gige
-	drivers.
+	* linux/dev/drivers/net/Space.c: Add conditional probes for natsemi,
+	ns820, winbond840, hamachi, sundance, starfire, myson803 and
+	intel-gige drivers.
 
 2004-08-05  Arief M. Utama  <arief_mulya@yahoo.com>
 
