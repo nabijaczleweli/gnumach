@@ -17,11 +17,11 @@ gnumach (1:20040915-1) unstable; urgency=low
   * Update NICs from Linux.
     Thanks to Alfred M. Szmidt <ams@kemisten.nu> and
     Arief M. Utama <arief_mulya@yahoo.com>.
-  * Add newer DMA support.
+  * Add newer IDE DMA support.
     Thanks to Sergio López <koro@menteslibres.org>.
   * Fix build failures for gcc-3.4.
 
- -- Guillem Jover <guillem@debian.org>  Mon, 13 Sep 2004 19:19:30 +0200
+ -- Guillem Jover <guillem@debian.org>  Mon, 25 Oct 2004 09:53:30 +0200
 
 gnumach (1:20040229-1) unstable; urgency=low
 
