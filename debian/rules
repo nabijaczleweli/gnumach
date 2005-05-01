@@ -61,6 +61,7 @@ drivers := --enable-floppy \
 	--enable-pcnet32 \
 	--enable-rtl8139 --enable-rtl8129 \
 	--enable-viarhine \
+	--enable-sis900 \
 	--enable-elcp --enable-tulip \
 	--enable-yellowfin \
 	\
