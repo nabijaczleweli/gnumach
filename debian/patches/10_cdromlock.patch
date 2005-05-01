@@ -2,7 +2,7 @@
 
 --- gnumach-20040229.orig/linux/dev/glue/block.c
 +++ gnumach-20040229/linux/dev/glue/block.c
-@@ -797,6 +797,7 @@
+@@ -789,6 +789,7 @@
  extern struct device_emulation_ops linux_block_emulation_ops;
  
  static io_return_t device_close (void *);
@@ -10,7 +10,7 @@
  
  /* Return a send right for block device BD.  */
  static ipc_port_t
-@@ -1172,6 +1173,7 @@
+@@ -1164,6 +1165,7 @@
  	    {
  	      ipc_kobject_set (bd->port, IKO_NULL, IKOT_NONE);
  	      ipc_port_dealloc_kernel (bd->port);
@@ -18,7 +18,7 @@
  	    }
  	  kfree ((vm_offset_t) bd, sizeof (struct block_data));
  	  bd = NULL;
-@@ -1182,18 +1184,16 @@
+@@ -1174,18 +1176,16 @@
        bd->open_count = 1;
        bd->next = open_list;
        open_list = bd;
@@ -41,7 +41,7 @@
  {
    struct block_data *bd = d, *bdp, **prev;
    struct device_struct *ds = bd->ds;
-@@ -1210,7 +1210,7 @@
+@@ -1202,7 +1202,7 @@
      }
    ds->busy = 1;
  
@@ -50,7 +50,7 @@
      {
        /* Wait for pending I/O to complete.  */
        while (bd->iocount > 0)
-@@ -1253,6 +1253,13 @@
+@@ -1245,6 +1245,13 @@
    return D_SUCCESS;
  }
  
@@ -64,7 +64,7 @@
  #define MAX_COPY	(VM_MAP_COPY_PAGE_LIST_MAX << PAGE_SHIFT)
  
  /* Check block BN and size COUNT for I/O validity
-@@ -1712,6 +1719,16 @@
+@@ -1704,6 +1711,16 @@
    return D_SUCCESS;
  }
  
@@ -81,7 +81,7 @@
  struct device_emulation_ops linux_block_emulation_ops =
  {
    NULL,
-@@ -1727,7 +1744,7 @@
+@@ -1719,7 +1736,7 @@
    device_get_status,
    NULL,
    NULL,

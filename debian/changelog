@@ -1,3 +1,22 @@
+gnumach (1:20050501-1) unstable; urgency=low
+
+  * New upstream CVS snapshot.
+    - debian/patches/12_fixes_gcc-3.4.patch: Remove upstream integrated patch.
+    - debian/patches/14_disable_fpe.patch: Likewise.
+    - debian/patches/15_disable_qlogic_firmware.patch: Likewise.
+    - debian/patches/16_enable_debug.patch: Likewise.
+    - debian/patches/17_fix_double_free.patch: Likewise.
+    - debian/patches/18_linux_printk_buffer_overrun.patch: Likewise.
+    - debian/patches/19_cpu_detect.patch: Likewise.
+    - debian/patches/20_glue_block_assert.patch: Likewise.
+    - debian/patches/10_cdromlock.patch: Rediff.
+    - debian/patches/90_autoconf_autogen.patch: Regenerate.
+  * Add suport for SiS 900 NIC.
+    - debian/patches/12_sis900.patch: New file.
+    Thanks to Andreas B. Mundt <andi.mundt@web.de>.
+
+ -- Guillem Jover <guillem@debian.org>  Sun,  1 May 2005 19:26:39 +0300
+
 gnumach (1:20040915.dfsg.1-2) unstable; urgency=low
 
   * Fix a typo in natsemi driver enable command. (Closes: #293950)

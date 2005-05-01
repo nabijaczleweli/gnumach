@@ -7,9 +7,9 @@ Regenerate with:
 	find -name autom4te.cache | xargs rm -rf
 
 
-diff -Naur gnumach-20040915.orig/configure gnumach-20040915/configure
---- gnumach-20040915.orig/configure	2002-05-23 02:06:35.000000000 +0200
-+++ gnumach-20040915/configure	2004-10-25 06:48:10.000000000 +0200
+diff -Naur gnumach-20050501.orig/configure gnumach-20050501/configure
+--- gnumach-20050501.orig/configure	2002-05-23 03:06:35.000000000 +0300
++++ gnumach-20050501/configure	2005-05-01 19:24:47.205773072 +0300
 @@ -1,31 +1,293 @@
  #! /bin/sh
 -
@@ -4787,9 +4787,9 @@ diff -Naur gnumach-20040915.orig/configure gnumach-20040915/configure
    done
  fi
  
-diff -Naur gnumach-20040915.orig/i386/configure gnumach-20040915/i386/configure
---- gnumach-20040915.orig/i386/configure	1999-05-01 02:34:06.000000000 +0200
-+++ gnumach-20040915/i386/configure	2004-10-25 06:48:09.000000000 +0200
+diff -Naur gnumach-20050501.orig/i386/configure gnumach-20050501/i386/configure
+--- gnumach-20050501.orig/i386/configure	1999-05-01 03:34:06.000000000 +0300
++++ gnumach-20050501/i386/configure	2005-05-01 19:24:46.419892544 +0300
 @@ -1,28 +1,289 @@
  #! /bin/sh
 -
@@ -7853,9 +7853,9 @@ diff -Naur gnumach-20040915.orig/i386/configure gnumach-20040915/i386/configure
    done
  fi
  
-diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linux/configure
---- gnumach-20040915.orig/i386/linux/configure	2001-05-27 14:44:22.000000000 +0200
-+++ gnumach-20040915/i386/linux/configure	2004-10-25 06:48:07.000000000 +0200
+diff -Naur gnumach-20050501.orig/i386/linux/configure gnumach-20050501/i386/linux/configure
+--- gnumach-20050501.orig/i386/linux/configure	2001-05-27 15:44:22.000000000 +0300
++++ gnumach-20050501/i386/linux/configure	2005-05-01 19:24:44.516181952 +0300
 @@ -1,392 +1,288 @@
  #! /bin/sh
 -
@@ -8088,13 +8088,13 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +
 +# Sed expression to map a string onto a valid CPP name.
 +as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
- 
--# Defaults:
--ac_help=
++
 +# Sed expression to map a string onto a valid variable name.
 +as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
 +
-+
+ 
+-# Defaults:
+-ac_help=
 +# IFS
 +# We need space, tab and new line, in precisely that order.
 +as_nl='
@@ -9075,7 +9075,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
    srcdir=$ac_confdir
    if test ! -r $srcdir/$ac_unique_file; then
      srcdir=..
-@@ -835,13 +690,654 @@
+@@ -835,13 +690,656 @@
  fi
  if test ! -r $srcdir/$ac_unique_file; then
    if test "$ac_srcdir_defaulted" = yes; then
@@ -9197,127 +9197,127 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +Optional Features:
 +  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
 +  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-+  --enable-3c501          enable driver alias 3c501
-+  --enable-3c503          enable driver alias 3c503
-+  --enable-3c509          enable driver alias 3c509
-+  --enable-3c579          enable driver alias 3c579
-+  --enable-3c59x          enable driver alias 3c59x
-+  --enable-3c90x          enable driver alias 3c90x
-+  --enable-hpj2577        enable driver alias hpj2577
-+  --enable-hpj2573        enable driver alias hpj2573
-+  --enable-hpj2585        enable driver alias hpj2585
-+  --enable-hp27248b       enable driver alias hp27248b
-+  --enable-eth32          enable driver alias eth32
-+  --enable-znote          enable driver alias znote
-+  --enable-de100          enable driver alias de100
-+  --enable-de101          enable driver alias de101
-+  --enable-de200          enable driver alias de200
-+  --enable-de201          enable driver alias de201
-+  --enable-de202          enable driver alias de202
-+  --enable-de210          enable driver alias de210
-+  --enable-de422          enable driver alias de422
-+  --enable-de203          enable driver alias de203
-+  --enable-de204          enable driver alias de204
-+  --enable-de205          enable driver alias de205
-+  --enable-de425          enable driver alias de425
-+  --enable-de434          enable driver alias de434
-+  --enable-de435          enable driver alias de435
-+  --enable-de450          enable driver alias de450
-+  --enable-de500          enable driver alias de500
-+  --enable-3c507          enable driver alias 3c507
-+  --enable-3c505          enable driver alias 3c505
-+  --enable-ne1000         enable driver alias ne1000
-+  --enable-ne             enable driver alias ne
-+  --enable-at1500         enable driver alias at1500
-+  --enable-ne2100         enable driver alias ne2100
-+  --enable-tulip          enable driver alias tulip
-+  --enable-rtl8129        enable driver alias rtl8129
-+  --enable-aha2825        enable driver alias aha2825
-+  --enable-ncr53c400      enable driver alias ncr53c400
-+  --enable-t128f          enable driver alias t128f
-+  --enable-t228           enable driver alias t228
-+  --enable-am79c974       enable driver alias am79c974
-+  --enable-dtc3180        enable driver alias dtc3180
-+  --enable-dc390w         enable driver alias dc390w
-+  --enable-dc390u         enable driver alias dc390u
-+  --enable-dc390f         enable driver alias dc390f
-+  --enable-dc390          enable driver alias dc390
-+  --enable-epic100        enable driver alias epic100
++  --enable-3c501          enable driver alias 3c501 for el1
++  --enable-3c503          enable driver alias 3c503 for el2
++  --enable-3c509          enable driver alias 3c509 for el3
++  --enable-3c579          enable driver alias 3c579 for el3
++  --enable-3c59x          enable driver alias 3c59x for vortex
++  --enable-3c90x          enable driver alias 3c90x for vortex
++  --enable-hpj2577        enable driver alias hpj2577 for hp100
++  --enable-hpj2573        enable driver alias hpj2573 for hp100
++  --enable-hpj2585        enable driver alias hpj2585 for hp100
++  --enable-hp27248b       enable driver alias hp27248b for hp100
++  --enable-eth32          enable driver alias eth32 for eth16i
++  --enable-znote          enable driver alias znote for znet
++  --enable-de100          enable driver alias de100 for depca
++  --enable-de101          enable driver alias de101 for depca
++  --enable-de200          enable driver alias de200 for depca
++  --enable-de201          enable driver alias de201 for depca
++  --enable-de202          enable driver alias de202 for depca
++  --enable-de210          enable driver alias de210 for depca
++  --enable-de422          enable driver alias de422 for depca
++  --enable-de203          enable driver alias de203 for ewrk3
++  --enable-de204          enable driver alias de204 for ewrk3
++  --enable-de205          enable driver alias de205 for ewrk3
++  --enable-de425          enable driver alias de425 for de4x5
++  --enable-de434          enable driver alias de434 for de4x5
++  --enable-de435          enable driver alias de435 for de4x5
++  --enable-de450          enable driver alias de450 for de4x5
++  --enable-de500          enable driver alias de500 for de4x5
++  --enable-3c507          enable driver alias 3c507 for el16
++  --enable-3c505          enable driver alias 3c505 for elplus
++  --enable-ne1000         enable driver alias ne1000 for ne2000
++  --enable-ne             enable driver alias ne for ne2000
++  --enable-at1500         enable driver alias at1500 for lance
++  --enable-ne2100         enable driver alias ne2100 for lance
++  --enable-tulip          enable driver alias tulip for elcp
++  --enable-rtl8129        enable driver alias rtl8129 for rtl8139
++  --enable-aha2825        enable driver alias aha2825 for aha152x
++  --enable-ncr53c400      enable driver alias ncr53c400 for ncr5380
++  --enable-t128f          enable driver alias t128f for t128
++  --enable-t228           enable driver alias t228 for t128
++  --enable-am79c974       enable driver alias am79c974 for am53c974
++  --enable-dtc3180        enable driver alias dtc3180 for dtc3280
++  --enable-dc390w         enable driver alias dc390w for ncr53c8xx
++  --enable-dc390u         enable driver alias dc390u for ncr53c8xx
++  --enable-dc390f         enable driver alias dc390f for ncr53c8xx
++  --enable-dc390          enable driver alias dc390 for dc390t
++  --enable-epic100        enable driver alias epic100 for epic
 +  --enable-floppy         enable driver floppy
 +  --enable-ide            enable driver ide
 +  --enable-ide-forcedma   enable forced use of DMA on IDE
-+  --enable-advansys       enable driver alias advansys
++  --enable-advansys       enable driver alias advansys for advansys
 +  --enable-advansys       enable driver advansys
-+  --enable-BusLogic       enable driver alias BusLogic
++  --enable-BusLogic       enable driver alias BusLogic for buslogic
 +  --enable-buslogic       enable driver buslogic
-+  --enable-u14-34f        enable driver alias u14-34f
++  --enable-u14-34f        enable driver alias u14-34f for u1434f
 +  --enable-u1434f         enable driver u1434f
-+  --enable-ultrastor      enable driver alias ultrastor
++  --enable-ultrastor      enable driver alias ultrastor for ultrastor
 +  --enable-ultrastor      enable driver ultrastor
-+  --enable-aha152x        enable driver alias aha152x
++  --enable-aha152x        enable driver alias aha152x for aha152x
 +  --enable-aha152x        enable driver aha152x
-+  --enable-aha1542        enable driver alias aha1542
++  --enable-aha1542        enable driver alias aha1542 for aha1542
 +  --enable-aha1542        enable driver aha1542
-+  --enable-aha1740        enable driver alias aha1740
++  --enable-aha1740        enable driver alias aha1740 for aha1740
 +  --enable-aha1740        enable driver aha1740
-+  --enable-aic7xxx        enable driver alias aic7xxx
++  --enable-aic7xxx        enable driver alias aic7xxx for aic7xxx
 +  --enable-aic7xxx        enable driver aic7xxx
-+  --enable-fdomain        enable driver alias fdomain
++  --enable-fdomain        enable driver alias fdomain for futuredomain
 +  --enable-futuredomain   enable driver futuredomain
-+  --enable-in2000         enable driver alias in2000
++  --enable-in2000         enable driver alias in2000 for in2000
 +  --enable-in2000         enable driver in2000
-+  --enable-g_NCR5380      enable driver alias g_NCR5380
++  --enable-g_NCR5380      enable driver alias g_NCR5380 for ncr5380
 +  --enable-ncr5380        enable driver ncr5380
-+  --enable-NCR53c406a     enable driver alias NCR53c406a
++  --enable-NCR53c406a     enable driver alias NCR53c406a for ncr53c406a
 +  --enable-ncr53c406a     enable driver ncr53c406a
-+  --enable-pas16          enable driver alias pas16
++  --enable-pas16          enable driver alias pas16 for pas16
 +  --enable-pas16          enable driver pas16
-+  --enable-seagate        enable driver alias seagate
++  --enable-seagate        enable driver alias seagate for seagate
 +  --enable-seagate        enable driver seagate
-+  --enable-t128           enable driver alias t128
++  --enable-t128           enable driver alias t128 for t128
 +  --enable-t128           enable driver t128
-+  --enable-53c78xx        enable driver alias 53c78xx
++  --enable-53c78xx        enable driver alias 53c78xx for ncr53c7xx
 +  --enable-ncr53c7xx      enable driver ncr53c7xx
-+  --enable-eata_dma       enable driver alias eata_dma
++  --enable-eata_dma       enable driver alias eata_dma for eatadma
 +  --enable-eatadma        enable driver eatadma
-+  --enable-eata_pio       enable driver alias eata_pio
++  --enable-eata_pio       enable driver alias eata_pio for eatapio
 +  --enable-eatapio        enable driver eatapio
-+  --enable-wd7000         enable driver alias wd7000
++  --enable-wd7000         enable driver alias wd7000 for wd7000
 +  --enable-wd7000         enable driver wd7000
-+  --enable-eata           enable driver alias eata
++  --enable-eata           enable driver alias eata for eata
 +  --enable-eata           enable driver eata
-+  --enable-AM53C974       enable driver alias AM53C974
++  --enable-AM53C974       enable driver alias AM53C974 for am53c974
 +  --enable-am53c974       enable driver am53c974
-+  --enable-dtc            enable driver alias dtc
++  --enable-dtc            enable driver alias dtc for dtc3280
 +  --enable-dtc3280        enable driver dtc3280
-+  --enable-ncr53c8xx      enable driver alias ncr53c8xx
++  --enable-ncr53c8xx      enable driver alias ncr53c8xx for ncr53c8xx
 +  --enable-ncr53c8xx      enable driver ncr53c8xx
-+  --enable-tmscsim        enable driver alias tmscsim
++  --enable-tmscsim        enable driver alias tmscsim for dc390t
 +  --enable-dc390t         enable driver dc390t
-+  --enable-ppa            enable driver alias ppa
++  --enable-ppa            enable driver alias ppa for ppa
 +  --enable-ppa            enable driver ppa
-+  --enable-qlogicfas      enable driver alias qlogicfas
++  --enable-qlogicfas      enable driver alias qlogicfas for qlogicfas
 +  --enable-qlogicfas      enable driver qlogicfas
-+  --enable-qlogicisp      enable driver alias qlogicisp
++  --enable-qlogicisp      enable driver alias qlogicisp for qlogicisp
 +  --enable-qlogicisp      enable driver qlogicisp
-+  --enable-gdth           enable driver alias gdth
++  --enable-gdth           enable driver alias gdth for gdth
 +  --enable-gdth           enable driver gdth
 +  --enable-flashpoint     enable SCSI flashpoint [default=no]
-+  --enable-starfire       enable driver alias starfire
++  --enable-starfire       enable driver alias starfire for starfire
 +  --enable-starfire       enable driver starfire
-+  --enable-sundance       enable driver alias sundance
++  --enable-sundance       enable driver alias sundance for sundance
 +  --enable-sundance       enable driver sundance
-+  --enable-winbond-840    enable driver alias winbond-840
++  --enable-winbond-840    enable driver alias winbond-840 for winbond_840
 +  --enable-winbond_840    enable driver winbond_840
-+  --enable-hamachi        enable driver alias hamachi
++  --enable-hamachi        enable driver alias hamachi for hamachi
 +  --enable-hamachi        enable driver hamachi
-+  --enable-intel-gige     enable driver alias intel-gige
++  --enable-intel-gige     enable driver alias intel-gige for intel_gige
 +  --enable-intel_gige     enable driver intel_gige
-+  --enable-natsemi        enable driver alias natsemi
++  --enable-natsemi        enable driver alias natsemi for natsemi
 +  --enable-natsemi        enable driver natsemi
-+  --enable-myson803       enable driver alias myson803
++  --enable-myson803       enable driver alias myson803 for myson803
 +  --enable-myson803       enable driver myson803
-+  --enable-ns820          enable driver alias ns820
++  --enable-ns820          enable driver alias ns820 for ns820
 +  --enable-ns820          enable driver ns820
 +  --enable-ne2000         enable driver ne2000
 +  --enable-el2            enable driver el2
@@ -9329,66 +9329,68 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  --enable-hplanplus      enable driver hplanplus
 +  --enable-hplan          enable driver hplan
 +  --enable-vortex         enable driver vortex
-+  --enable-seeq8005       enable driver alias seeq8005
++  --enable-seeq8005       enable driver alias seeq8005 for seeq8005
 +  --enable-seeq8005       enable driver seeq8005
-+  --enable-hp100          enable driver alias hp100
++  --enable-hp100          enable driver alias hp100 for hp100
 +  --enable-hp100          enable driver hp100
 +  --enable-ac3200         enable driver ac3200
 +  --enable-e2100          enable driver e2100
-+  --enable-at1700         enable driver alias at1700
++  --enable-at1700         enable driver alias at1700 for at1700
 +  --enable-at1700         enable driver at1700
-+  --enable-eth16i         enable driver alias eth16i
++  --enable-eth16i         enable driver alias eth16i for eth16i
 +  --enable-eth16i         enable driver eth16i
-+  --enable-znet           enable driver alias znet
++  --enable-znet           enable driver alias znet for znet
 +  --enable-znet           enable driver znet
-+  --enable-eexpress       enable driver alias eexpress
++  --enable-eexpress       enable driver alias eexpress for eexpress
 +  --enable-eexpress       enable driver eexpress
-+  --enable-eepro          enable driver alias eepro
++  --enable-eepro          enable driver alias eepro for eexpresspro
 +  --enable-eexpresspro    enable driver eexpresspro
-+  --enable-eepro100       enable driver alias eepro100
++  --enable-eepro100       enable driver alias eepro100 for eexpresspro100
 +  --enable-eexpresspro100 enable driver eexpresspro100
-+  --enable-depca          enable driver alias depca
++  --enable-depca          enable driver alias depca for depca
 +  --enable-depca          enable driver depca
-+  --enable-ewrk3          enable driver alias ewrk3
++  --enable-ewrk3          enable driver alias ewrk3 for ewrk3
 +  --enable-ewrk3          enable driver ewrk3
-+  --enable-de4x5          enable driver alias de4x5
++  --enable-de4x5          enable driver alias de4x5 for de4x5
 +  --enable-de4x5          enable driver de4x5
-+  --enable-apricot        enable driver alias apricot
++  --enable-apricot        enable driver alias apricot for apricot
 +  --enable-apricot        enable driver apricot
-+  --enable-wavelan        enable driver alias wavelan
++  --enable-wavelan        enable driver alias wavelan for wavelan
 +  --enable-wavelan        enable driver wavelan
 +  --enable-el16           enable driver el16
 +  --enable-elplus         enable driver elplus
-+  --enable-de600          enable driver alias de600
++  --enable-de600          enable driver alias de600 for de600
 +  --enable-de600          enable driver de600
-+  --enable-de620          enable driver alias de620
++  --enable-de620          enable driver alias de620 for de620
 +  --enable-de620          enable driver de620
-+  --enable-sk_g16         enable driver alias sk_g16
++  --enable-sis900         enable driver alias sis900 for sis900
++  --enable-sis900         enable driver sis900
++  --enable-sk_g16         enable driver alias sk_g16 for skg16
 +  --enable-skg16          enable driver skg16
-+  --enable-ni52           enable driver alias ni52
++  --enable-ni52           enable driver alias ni52 for ni52
 +  --enable-ni52           enable driver ni52
-+  --enable-ni65           enable driver alias ni65
++  --enable-ni65           enable driver alias ni65 for ni65
 +  --enable-ni65           enable driver ni65
-+  --enable-atp            enable driver alias atp
++  --enable-atp            enable driver alias atp for atp
 +  --enable-atp            enable driver atp
-+  --enable-lance          enable driver alias lance
++  --enable-lance          enable driver alias lance for lance
 +  --enable-lance          enable driver lance
 +  --enable-elcp           enable driver elcp
-+  --enable-fmv18x         enable driver alias fmv18x
++  --enable-fmv18x         enable driver alias fmv18x for fmv18x
 +  --enable-fmv18x         enable driver fmv18x
-+  --enable-3c515          enable driver alias 3c515
++  --enable-3c515          enable driver alias 3c515 for 3c515
 +  --enable-3c515          enable driver 3c515
-+  --enable-pcnet32        enable driver alias pcnet32
++  --enable-pcnet32        enable driver alias pcnet32 for pcnet32
 +  --enable-pcnet32        enable driver pcnet32
 +  --enable-ne2kpci        enable driver ne2kpci
-+  --enable-yellowfin      enable driver alias yellowfin
++  --enable-yellowfin      enable driver alias yellowfin for yellowfin
 +  --enable-yellowfin      enable driver yellowfin
-+  --enable-rtl8139        enable driver alias rtl8139
++  --enable-rtl8139        enable driver alias rtl8139 for rtl8139
 +  --enable-rtl8139        enable driver rtl8139
 +  --enable-epic           enable driver epic
-+  --enable-tlan           enable driver alias tlan
++  --enable-tlan           enable driver alias tlan for tlan
 +  --enable-tlan           enable driver tlan
-+  --enable-via-rhine      enable driver alias via-rhine
++  --enable-via-rhine      enable driver alias via-rhine for viarhine
 +  --enable-viarhine       enable driver viarhine
 +
 +Some influential environment variables:
@@ -9551,7 +9553,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +done
 +
 +} >&5
-+
+ 
 +cat >&5 <<_ACEOF
 +
 +
@@ -9712,7 +9714,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +cat >>confdefs.h <<_ACEOF
 +#define PACKAGE_TARNAME "$PACKAGE_TARNAME"
 +_ACEOF
- 
++
 +
 +cat >>confdefs.h <<_ACEOF
 +#define PACKAGE_VERSION "$PACKAGE_VERSION"
@@ -9733,7 +9735,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  # Prefer explicitly selected file to automatically selected ones.
  if test -z "$CONFIG_SITE"; then
    if test "x$prefix" != xNONE; then
-@@ -852,39 +1348,100 @@
+@@ -852,39 +1350,90 @@
  fi
  for ac_site_file in $CONFIG_SITE; do
    if test -r "$ac_site_file"; then
@@ -9844,23 +9846,23 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +
 +
 +
-+
-+
-+
-+
-+
-+
-+
-+
-+
-+
  
  
  
-@@ -912,6 +1469,15 @@
+@@ -912,6 +1461,25 @@
  
  
  
++
++
++
++
++
++
++
++
++
++
 +
 +
 +
@@ -9873,7 +9875,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  ac_aux_dir=
  for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
    if test -f $ac_dir/install-sh; then
-@@ -929,385 +1495,1223 @@
+@@ -929,95 +1497,133 @@
    fi
  done
  if test -z "$ac_aux_dir"; then
@@ -9942,9 +9944,9 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +build_cpu=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
 +build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
 +build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
++
  
 -echo "$ac_t""$ac_cv_host" 1>&6
- 
 +echo "$as_me:$LINENO: checking host system type" >&5
 +echo $ECHO_N "checking host system type... $ECHO_C" >&6
 +if test "${ac_cv_host+set}" = set; then
@@ -9957,7 +9959,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  { { echo "$as_me:$LINENO: error: $ac_config_sub $ac_cv_host_alias failed" >&5
 +echo "$as_me: error: $ac_config_sub $ac_cv_host_alias failed" >&2;}
 +   { (exit 1); exit 1; }; }
-+
+ 
 +fi
 +echo "$as_me:$LINENO: result: $ac_cv_host" >&5
 +echo "${ECHO_T}$ac_cv_host" >&6
@@ -9980,13 +9982,13 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -#define CONFIG_M386 1
 -EOF
 +i386)
- 
--      cat >> confdefs.h <<\EOF
++
 +cat >>confdefs.h <<\_ACEOF
 +#define CONFIG_M386
 +_ACEOF
 +
-+
+ 
+-      cat >> confdefs.h <<\EOF
 +cat >>confdefs.h <<\_ACEOF
  #define CPU 386
 -EOF
@@ -9995,155 +9997,95 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -#define CONFIG_M486 1
 -EOF
 +_ACEOF
++
++ ;;
++i486)
++
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_M486
++_ACEOF
  
 -      cat >> confdefs.h <<\EOF
--#define CPU 486
++
++cat >>confdefs.h <<\_ACEOF
+ #define CPU 486
 -EOF
 -    ;;
 -i586) cat >> confdefs.h <<\EOF
 -#define CONFIG_M586 1
 -EOF
++_ACEOF
++
 + ;;
-+i486)
++i586)
  
 -      cat >> confdefs.h <<\EOF
--#define CPU 586
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_M586
++_ACEOF
++
++
++cat >>confdefs.h <<\_ACEOF
+ #define CPU 586
 -EOF
 -    ;;
 -i686) cat >> confdefs.h <<\EOF
 -#define CONFIG_M686 1
 -EOF
-+cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_M486
 +_ACEOF
++
++ ;;
++i686)
++
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_M686
++_ACEOF
++
  
 -      cat >> confdefs.h <<\EOF
--#define CPU 686
++cat >>confdefs.h <<\_ACEOF
+ #define CPU 686
 -EOF
 -    ;;
 -*)    cat >> confdefs.h <<\EOF
 -#define CONFIG_M486 1
 -EOF
- 
--      cat >> confdefs.h <<\EOF
-+cat >>confdefs.h <<\_ACEOF
- #define CPU 486
--EOF
--    ;;
--esac
--
--case "$host_cpu" in
--i[3456]86)	systype=i386 ;;
--*)		systype="$host_cpu" ;;
--esac
 +_ACEOF
- 
-+ ;;
-+i586)
- 
-+cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_M586
-+_ACEOF
- 
--echo $ac_n "checking build system type""... $ac_c" 1>&6
--echo "configure:1032: checking build system type" >&5
--if test "x$ac_cv_build" = "x" || (test "x$build" != "xNONE" && test "x$build" != "x$ac_cv_build_alias"); then
- 
--# Make sure we can run config.sub.
--  if $ac_config_sub sun4 >/dev/null 2>&1; then :
--    else { echo "configure: error: can not run $ac_config_sub" 1>&2; exit 1; }
--  fi
-+cat >>confdefs.h <<\_ACEOF
-+#define CPU 586
-+_ACEOF
- 
--  ac_cv_build_alias=$build
--  case "$ac_cv_build_alias" in
--  NONE)
--    case $nonopt in
--    NONE)
--      ac_cv_build_alias=$host_alias ;;
-+ ;;
-+i686)
- 
--    *) ac_cv_build_alias=$nonopt ;;
--    esac ;;
--  esac
-+cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_M686
-+_ACEOF
- 
--  ac_cv_build=`$ac_config_sub $ac_cv_build_alias`
--  ac_cv_build_cpu=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
--  ac_cv_build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
--  ac_cv_build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
--else
--  echo $ac_n "(cached) $ac_c" 1>&6
--fi
- 
--echo "$ac_t""$ac_cv_build" 1>&6
-+cat >>confdefs.h <<\_ACEOF
-+#define CPU 686
-+_ACEOF
- 
--build=$ac_cv_build
--build_alias=$ac_cv_build_alias
--build_cpu=$ac_cv_build_cpu
--build_vendor=$ac_cv_build_vendor
--build_os=$ac_cv_build_os
++
 + ;;
 +*)
- 
++
 +cat >>confdefs.h <<\_ACEOF
 +#define CONFIG_M486
 +_ACEOF
  
- 
+-      cat >> confdefs.h <<\EOF
++
 +cat >>confdefs.h <<\_ACEOF
-+#define CPU 486
+ #define CPU 486
+-EOF
+-    ;;
 +_ACEOF
- 
--if test $host != $build; then
--  ac_tool_prefix=${host_alias}-
--else
--  ac_tool_prefix=
--fi
++
 + ;;
-+esac
+ esac
  
--# Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
-+case "$host_cpu" in
-+i[3456]86)	systype=i386 ;;
-+*)		systype="$host_cpu" ;;
-+esac
-+
-+
+ case "$host_cpu" in
+@@ -1026,288 +1632,1088 @@
+ esac
+ 
+ 
 +if test -n "$ac_tool_prefix"; then
 +  # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
- set dummy ${ac_tool_prefix}gcc; ac_word=$2
--echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
--echo "configure:1079: checking for $ac_word" >&5
--if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
--  echo $ac_n "(cached) $ac_c" 1>&6
++set dummy ${ac_tool_prefix}gcc; ac_word=$2
 +echo "$as_me:$LINENO: checking for $ac_word" >&5
 +echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 +if test "${ac_cv_prog_CC+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
- else
-   if test -n "$CC"; then
-   ac_cv_prog_CC="$CC" # Let the user override the test.
- else
--  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
--  ac_dummy="$PATH"
--  for ac_dir in $ac_dummy; do
--    test -z "$ac_dir" && ac_dir=.
--    if test -f $ac_dir/$ac_word; then
--      ac_cv_prog_CC="${ac_tool_prefix}gcc"
--      break
--    fi
--  done
--  IFS="$ac_save_ifs"
--  test -z "$ac_cv_prog_CC" && ac_cv_prog_CC="gcc"
++else
++  if test -n "$CC"; then
++  ac_cv_prog_CC="$CC" # Let the user override the test.
++else
 +as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 +for as_dir in $PATH
 +do
@@ -10157,21 +10099,24 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  fi
 +done
 +done
-+
- fi
- fi
--CC="$ac_cv_prog_CC"
+ 
+-echo $ac_n "checking build system type""... $ac_c" 1>&6
+-echo "configure:1032: checking build system type" >&5
+-if test "x$ac_cv_build" = "x" || (test "x$build" != "xNONE" && test "x$build" != "x$ac_cv_build_alias"); then
++fi
++fi
 +CC=$ac_cv_prog_CC
- if test -n "$CC"; then
--  echo "$ac_t""$CC" 1>&6
++if test -n "$CC"; then
 +  echo "$as_me:$LINENO: result: $CC" >&5
 +echo "${ECHO_T}$CC" >&6
- else
--  echo "$ac_t""no" 1>&6
++else
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
- fi
++fi
  
+-# Make sure we can run config.sub.
+-  if $ac_config_sub sun4 >/dev/null 2>&1; then :
+-    else { echo "configure: error: can not run $ac_config_sub" 1>&2; exit 1; }
 +fi
 +if test -z "$ac_cv_prog_CC"; then
 +  ac_ct_CC=$CC
@@ -10195,10 +10140,16 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +    ac_cv_prog_ac_ct_CC="gcc"
 +    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
 +    break 2
-+  fi
+   fi
 +done
 +done
  
+-  ac_cv_build_alias=$build
+-  case "$ac_cv_build_alias" in
+-  NONE)
+-    case $nonopt in
+-    NONE)
+-      ac_cv_build_alias=$host_alias ;;
 +fi
 +fi
 +ac_ct_CC=$ac_cv_prog_ac_ct_CC
@@ -10210,7 +10161,9 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +echo "${ECHO_T}no" >&6
 +fi
  
--# Extract the first word of "gcc", so it can be a program name with args.
+-    *) ac_cv_build_alias=$nonopt ;;
+-    esac ;;
+-  esac
 +  CC=$ac_ct_CC
 +else
 +  CC="$ac_cv_prog_CC"
@@ -10245,27 +10198,29 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  fi
 +done
 +done
-+
+ 
+-  ac_cv_build=`$ac_config_sub $ac_cv_build_alias`
+-  ac_cv_build_cpu=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\1/'`
+-  ac_cv_build_vendor=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
+-  ac_cv_build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 +fi
 +fi
 +CC=$ac_cv_prog_CC
 +if test -n "$CC"; then
 +  echo "$as_me:$LINENO: result: $CC" >&5
 +echo "${ECHO_T}$CC" >&6
-+else
+ else
+-  echo $ac_n "(cached) $ac_c" 1>&6
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
-+fi
-+
+ fi
+ 
+-echo "$ac_t""$ac_cv_build" 1>&6
 +fi
 +if test -z "$ac_cv_prog_CC"; then
 +  ac_ct_CC=$CC
 +  # Extract the first word of "gcc", so it can be a program name with args.
- set dummy gcc; ac_word=$2
--echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
--echo "configure:1111: checking for $ac_word" >&5
--if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
--  echo $ac_n "(cached) $ac_c" 1>&6
++set dummy gcc; ac_word=$2
 +echo "$as_me:$LINENO: checking for $ac_word" >&5
 +echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 +if test "${ac_cv_prog_ac_ct_CC+set}" = set; then
@@ -10287,7 +10242,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  fi
 +done
 +done
-+
+ 
+-build=$ac_cv_build
+-build_alias=$ac_cv_build_alias
+-build_cpu=$ac_cv_build_cpu
+-build_vendor=$ac_cv_build_vendor
+-build_os=$ac_cv_build_os
 +fi
 +fi
 +ac_ct_CC=$ac_cv_prog_ac_ct_CC
@@ -10298,12 +10258,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
 +fi
-+
+ 
 +  CC=$ac_ct_CC
 +else
 +  CC="$ac_cv_prog_CC"
 +fi
-+
+ 
 +if test -z "$CC"; then
 +  if test -n "$ac_tool_prefix"; then
 +  # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
@@ -10312,20 +10272,10 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 +if test "${ac_cv_prog_CC+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
- else
-   if test -n "$CC"; then
-   ac_cv_prog_CC="$CC" # Let the user override the test.
- else
--  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
--  ac_dummy="$PATH"
--  for ac_dir in $ac_dummy; do
--    test -z "$ac_dir" && ac_dir=.
--    if test -f $ac_dir/$ac_word; then
--      ac_cv_prog_CC="gcc"
--      break
--    fi
--  done
--  IFS="$ac_save_ifs"
++else
++  if test -n "$CC"; then
++  ac_cv_prog_CC="$CC" # Let the user override the test.
++else
 +as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 +for as_dir in $PATH
 +do
@@ -10339,21 +10289,20 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  fi
 +done
 +done
-+
- fi
- fi
--CC="$ac_cv_prog_CC"
+ 
++fi
++fi
 +CC=$ac_cv_prog_CC
- if test -n "$CC"; then
--  echo "$ac_t""$CC" 1>&6
++if test -n "$CC"; then
 +  echo "$as_me:$LINENO: result: $CC" >&5
 +echo "${ECHO_T}$CC" >&6
- else
--  echo "$ac_t""no" 1>&6
++else
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
- fi
++fi
  
+-if test $host != $build; then
+-  ac_tool_prefix=${host_alias}-
 +fi
 +if test -z "$ac_cv_prog_CC"; then
 +  ac_ct_CC=$CC
@@ -10387,24 +10336,27 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +if test -n "$ac_ct_CC"; then
 +  echo "$as_me:$LINENO: result: $ac_ct_CC" >&5
 +echo "${ECHO_T}$ac_ct_CC" >&6
-+else
+ else
+-  ac_tool_prefix=
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
-+fi
-+
+ fi
+ 
+-# Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
+-set dummy ${ac_tool_prefix}gcc; ac_word=$2
+-echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+-echo "configure:1079: checking for $ac_word" >&5
+-if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
+-  echo $ac_n "(cached) $ac_c" 1>&6
 +  CC=$ac_ct_CC
 +else
 +  CC="$ac_cv_prog_CC"
 +fi
 +
 +fi
- if test -z "$CC"; then
-   # Extract the first word of "cc", so it can be a program name with args.
- set dummy cc; ac_word=$2
--echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
--echo "configure:1141: checking for $ac_word" >&5
--if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
--  echo $ac_n "(cached) $ac_c" 1>&6
++if test -z "$CC"; then
++  # Extract the first word of "cc", so it can be a program name with args.
++set dummy cc; ac_word=$2
 +echo "$as_me:$LINENO: checking for $ac_word" >&5
 +echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 +if test "${ac_cv_prog_CC+set}" = set; then
@@ -10414,20 +10366,17 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
    ac_cv_prog_CC="$CC" # Let the user override the test.
  else
 -  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
-   ac_prog_rejected=no
 -  ac_dummy="$PATH"
 -  for ac_dir in $ac_dummy; do
 -    test -z "$ac_dir" && ac_dir=.
 -    if test -f $ac_dir/$ac_word; then
--      if test "$ac_dir/$ac_word" = "/usr/ucb/cc"; then
--        ac_prog_rejected=yes
--	continue
--      fi
--      ac_cv_prog_CC="cc"
+-      ac_cv_prog_CC="${ac_tool_prefix}gcc"
 -      break
 -    fi
 -  done
 -  IFS="$ac_save_ifs"
+-  test -z "$ac_cv_prog_CC" && ac_cv_prog_CC="gcc"
++  ac_prog_rejected=no
 +as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 +for as_dir in $PATH
 +do
@@ -10446,22 +10395,18 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +done
 +done
 +
- if test $ac_prog_rejected = yes; then
-   # We found a bogon in the path, so make sure we never use it.
-   set dummy $ac_cv_prog_CC
-   shift
--  if test $# -gt 0; then
++if test $ac_prog_rejected = yes; then
++  # We found a bogon in the path, so make sure we never use it.
++  set dummy $ac_cv_prog_CC
++  shift
 +  if test $# != 0; then
-     # We chose a different compiler from the bogus one.
-     # However, it has the same basename, so the bogon will be chosen
-     # first if we set CC to just the basename; use the full file name.
-     shift
--    set dummy "$ac_dir/$ac_word" "$@"
--    shift
--    ac_cv_prog_CC="$@"
++    # We chose a different compiler from the bogus one.
++    # However, it has the same basename, so the bogon will be chosen
++    # first if we set CC to just the basename; use the full file name.
++    shift
 +    ac_cv_prog_CC="$as_dir/$ac_word${1+' '}$@"
-   fi
- fi
++  fi
++fi
  fi
  fi
 -CC="$ac_cv_prog_CC"
@@ -10474,10 +10419,9 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -  echo "$ac_t""no" 1>&6
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
- fi
- 
--  test -z "$CC" && { echo "configure: error: no acceptable cc found in \$PATH" 1>&2; exit 1; }
- fi
++fi
++
++fi
 +if test -z "$CC"; then
 +  if test -n "$ac_tool_prefix"; then
 +  for ac_prog in cl
@@ -10505,9 +10449,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  fi
 +done
 +done
- 
--echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works""... $ac_c" 1>&6
--echo "configure:1190: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works" >&5
++
 +fi
 +fi
 +CC=$ac_cv_prog_CC
@@ -10518,29 +10460,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
 +fi
- 
--ac_ext=c
--# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
--ac_cpp='$CPP $CPPFLAGS'
--ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
--ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
--cross_compiling=$ac_cv_prog_cc_cross
--
--cat > conftest.$ac_ext << EOF
--
--#line 1201 "configure"
--#include "confdefs.h"
--
--main(){return(0);}
--EOF
--if { (eval echo configure:1206: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
--  ac_cv_prog_cc_works=yes
--  # If we can't run a trivial program, we are probably using a cross compiler.
--  if (./conftest; exit) 2>/dev/null; then
--    ac_cv_prog_cc_cross=no
--  else
--    ac_cv_prog_cc_cross=yes
--  fi
++
 +    test -n "$CC" && break
 +  done
 +fi
@@ -10554,10 +10474,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 +if test "${ac_cv_prog_ac_ct_CC+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  echo "configure: failed program was:" >&5
--  cat conftest.$ac_ext >&5
--  ac_cv_prog_cc_works=no
++else
 +  if test -n "$ac_ct_CC"; then
 +  ac_cv_prog_ac_ct_CC="$ac_ct_CC" # Let the user override the test.
 +else
@@ -10575,48 +10492,13 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +done
 +done
 +
- fi
--rm -fr conftest*
--ac_ext=c
--# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
--ac_cpp='$CPP $CPPFLAGS'
--ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
--ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
--cross_compiling=$ac_cv_prog_cc_cross
--
--echo "$ac_t""$ac_cv_prog_cc_works" 1>&6
--if test $ac_cv_prog_cc_works = no; then
-- cross_linkable=no
-- ac_cv_prog_cc_cross=yes
-- # AC_MSG_ERROR([installation or configuration problem: C compiler cannot create executables.])
--else
-- cross_linkable=yes
--fi
--echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler""... $ac_c" 1>&6
--echo "configure:1236: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler" >&5
--echo "$ac_t""$ac_cv_prog_cc_cross" 1>&6
--
--cross_compiling=$ac_cv_prog_cc_cross
--
--echo $ac_n "checking whether we are using GNU C""... $ac_c" 1>&6
--echo "configure:1242: checking whether we are using GNU C" >&5
--if eval "test \"\${ac_cv_prog_gcc+set}\" = set"; then
--  echo $ac_n "(cached) $ac_c" 1>&6
--else
--  cat > conftest.c <<EOF
--#ifdef __GNUC__
--  yes;
--#endif
--EOF
--if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:1251: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
--  ac_cv_prog_gcc=yes
++fi
 +fi
 +ac_ct_CC=$ac_cv_prog_ac_ct_CC
 +if test -n "$ac_ct_CC"; then
 +  echo "$as_me:$LINENO: result: $ac_ct_CC" >&5
 +echo "${ECHO_T}$ac_ct_CC" >&6
- else
--  ac_cv_prog_gcc=no
++else
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
 +fi
@@ -10626,18 +10508,19 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +
 +  CC=$ac_ct_CC
  fi
-+
- fi
  
--echo "$ac_t""$ac_cv_prog_gcc" 1>&6
++fi
  
--if test $ac_cv_prog_gcc = yes; then
--  GCC=yes
--  ac_test_CFLAGS="${CFLAGS+set}"
--  ac_save_CFLAGS="$CFLAGS"
--  CFLAGS=
--  if test "$ac_test_CFLAGS" = set; then
--    CFLAGS="$ac_save_CFLAGS"
+ 
+-# Extract the first word of "gcc", so it can be a program name with args.
+-set dummy gcc; ac_word=$2
+-echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+-echo "configure:1111: checking for $ac_word" >&5
+-if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
+-  echo $ac_n "(cached) $ac_c" 1>&6
+-else
+-  if test -n "$CC"; then
+-  ac_cv_prog_CC="$CC" # Let the user override the test.
 +test -z "$CC" && { { echo "$as_me:$LINENO: error: no acceptable C compiler found in \$PATH
 +See \`config.log' for more details." >&5
 +echo "$as_me: error: no acceptable C compiler found in \$PATH
@@ -10724,7 +10607,14 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +	break;;
 +  esac
 +done
-+else
+ else
+-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+-  ac_dummy="$PATH"
+-  for ac_dir in $ac_dummy; do
+-    test -z "$ac_dir" && ac_dir=.
+-    if test -f $ac_dir/$ac_word; then
+-      ac_cv_prog_CC="gcc"
+-      break
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
@@ -10753,16 +10643,10 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: \$? = $ac_status" >&5
 +  (exit $ac_status); }; }; then
 +    cross_compiling=no
-   else
--    # Add "-O" to both the CC and CPP commands, to eliminate possible confusion
--    # that results from __OPTIMIZE__ being defined for CC but not CPP.
--    if echo "$CC " | grep ' -O[1-9 ]' > /dev/null 2>&1; then
--      : # already optimizing
++  else
 +    if test "$cross_compiling" = maybe; then
 +	cross_compiling=yes
-     else
--      CC="$CC -O"
--      ac_cv_prog_CC="$CC"
++    else
 +	{ { echo "$as_me:$LINENO: error: cannot run C compiled programs.
 +If you meant to cross compile, use \`--host'.
 +See \`config.log' for more details." >&5
@@ -10771,8 +10655,14 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +See \`config.log' for more details." >&2;}
 +   { (exit 1); exit 1; }; }
      fi
-   fi
-+fi
+-  done
+-  IFS="$ac_save_ifs"
+-fi
++  fi
+ fi
+-CC="$ac_cv_prog_CC"
+-if test -n "$CC"; then
+-  echo "$ac_t""$CC" 1>&6
 +echo "$as_me:$LINENO: result: yes" >&5
 +echo "${ECHO_T}yes" >&6
 +
@@ -10916,15 +10806,23 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: \$? = $ac_status" >&5
 +  (exit $ac_status); }; }; then
 +  ac_compiler_gnu=yes
-+else
+ else
+-  echo "$ac_t""no" 1>&6
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
 +ac_compiler_gnu=no
-+fi
+ fi
 +rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 +ac_cv_c_compiler_gnu=$ac_compiler_gnu
-+
+ 
+-if test -z "$CC"; then
+-  # Extract the first word of "cc", so it can be a program name with args.
+-set dummy cc; ac_word=$2
+-echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+-echo "configure:1141: checking for $ac_word" >&5
+-if eval "test \"\${ac_cv_prog_CC+set}\" = set"; then
+-  echo $ac_n "(cached) $ac_c" 1>&6
 +fi
 +echo "$as_me:$LINENO: result: $ac_cv_c_compiler_gnu" >&5
 +echo "${ECHO_T}$ac_cv_c_compiler_gnu" >&6
@@ -10936,7 +10834,9 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +echo $ECHO_N "checking whether $CC accepts -g... $ECHO_C" >&6
 +if test "${ac_cv_prog_cc_g+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
+ else
+-  if test -n "$CC"; then
+-  ac_cv_prog_CC="$CC" # Let the user override the test.
 +  cat >conftest.$ac_ext <<_ACEOF
 +/* confdefs.h.  */
 +_ACEOF
@@ -10974,14 +10874,42 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: \$? = $ac_status" >&5
 +  (exit $ac_status); }; }; then
 +  ac_cv_prog_cc_g=yes
-+else
+ else
+-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+-  ac_prog_rejected=no
+-  ac_dummy="$PATH"
+-  for ac_dir in $ac_dummy; do
+-    test -z "$ac_dir" && ac_dir=.
+-    if test -f $ac_dir/$ac_word; then
+-      if test "$ac_dir/$ac_word" = "/usr/ucb/cc"; then
+-        ac_prog_rejected=yes
+-	continue
+-      fi
+-      ac_cv_prog_CC="cc"
+-      break
+-    fi
+-  done
+-  IFS="$ac_save_ifs"
+-if test $ac_prog_rejected = yes; then
+-  # We found a bogon in the path, so make sure we never use it.
+-  set dummy $ac_cv_prog_CC
+-  shift
+-  if test $# -gt 0; then
+-    # We chose a different compiler from the bogus one.
+-    # However, it has the same basename, so the bogon will be chosen
+-    # first if we set CC to just the basename; use the full file name.
+-    shift
+-    set dummy "$ac_dir/$ac_word" "$@"
+-    shift
+-    ac_cv_prog_CC="$@"
+-  fi
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
 +ac_cv_prog_cc_g=no
-+fi
+ fi
 +rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
-+fi
+ fi
 +echo "$as_me:$LINENO: result: $ac_cv_prog_cc_g" >&5
 +echo "${ECHO_T}$ac_cv_prog_cc_g" >&6
 +if test "$ac_test_CFLAGS" = set; then
@@ -10998,13 +10926,16 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  else
 +    CFLAGS=
 +  fi
-+fi
+ fi
+-CC="$ac_cv_prog_CC"
+-if test -n "$CC"; then
+-  echo "$ac_t""$CC" 1>&6
 +echo "$as_me:$LINENO: checking for $CC option to accept ANSI C" >&5
 +echo $ECHO_N "checking for $CC option to accept ANSI C... $ECHO_C" >&6
 +if test "${ac_cv_prog_cc_stdc+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
  else
--  GCC=
+-  echo "$ac_t""no" 1>&6
 +  ac_cv_prog_cc_stdc=no
 +ac_save_CC=$CC
 +cat >conftest.$ac_ext <<_ACEOF
@@ -11101,9 +11032,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +done
 +rm -f conftest.$ac_ext conftest.$ac_objext
 +CC=$ac_save_CC
-+
-+fi
-+
+ 
+-  test -z "$CC" && { echo "configure: error: no acceptable cc found in \$PATH" 1>&2; exit 1; }
+ fi
+ 
+-echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works""... $ac_c" 1>&6
+-echo "configure:1190: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works" >&5
 +case "x$ac_cv_prog_cc_stdc" in
 +  x|xno)
 +    echo "$as_me:$LINENO: result: none needed" >&5
@@ -11113,7 +11047,29 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +echo "${ECHO_T}$ac_cv_prog_cc_stdc" >&6
 +    CC="$CC $ac_cv_prog_cc_stdc" ;;
 +esac
-+
+ 
+-ac_ext=c
+-# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
+-ac_cpp='$CPP $CPPFLAGS'
+-ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
+-ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
+-cross_compiling=$ac_cv_prog_cc_cross
+-
+-cat > conftest.$ac_ext << EOF
+-
+-#line 1201 "configure"
+-#include "confdefs.h"
+-
+-main(){return(0);}
+-EOF
+-if { (eval echo configure:1206: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+-  ac_cv_prog_cc_works=yes
+-  # If we can't run a trivial program, we are probably using a cross compiler.
+-  if (./conftest; exit) 2>/dev/null; then
+-    ac_cv_prog_cc_cross=no
+-  else
+-    ac_cv_prog_cc_cross=yes
+-  fi
 +# Some people use a C++ compiler to compile C.  Since we use `exit',
 +# in C++ we need to declare it.  In case someone uses the same compiler
 +# for both compiling C and C++ we need to have the C++ compiler decide
@@ -11190,12 +11146,49 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: \$? = $ac_status" >&5
 +  (exit $ac_status); }; }; then
 +  :
-+else
+ else
+-  echo "configure: failed program was:" >&5
+-  cat conftest.$ac_ext >&5
+-  ac_cv_prog_cc_works=no
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
 +continue
-+fi
+ fi
+-rm -fr conftest*
+-ac_ext=c
+-# CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
+-ac_cpp='$CPP $CPPFLAGS'
+-ac_compile='${CC-cc} -c $CFLAGS $CPPFLAGS conftest.$ac_ext 1>&5'
+-ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
+-cross_compiling=$ac_cv_prog_cc_cross
+-
+-echo "$ac_t""$ac_cv_prog_cc_works" 1>&6
+-if test $ac_cv_prog_cc_works = no; then
+- cross_linkable=no
+- ac_cv_prog_cc_cross=yes
+- # AC_MSG_ERROR([installation or configuration problem: C compiler cannot create executables.])
+-else
+- cross_linkable=yes
+-fi
+-echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler""... $ac_c" 1>&6
+-echo "configure:1236: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler" >&5
+-echo "$ac_t""$ac_cv_prog_cc_cross" 1>&6
+-
+-cross_compiling=$ac_cv_prog_cc_cross
+-
+-echo $ac_n "checking whether we are using GNU C""... $ac_c" 1>&6
+-echo "configure:1242: checking whether we are using GNU C" >&5
+-if eval "test \"\${ac_cv_prog_gcc+set}\" = set"; then
+-  echo $ac_n "(cached) $ac_c" 1>&6
+-else
+-  cat > conftest.c <<EOF
+-#ifdef __GNUC__
+-  yes;
+-#endif
+-EOF
+-if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:1251: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+-  ac_cv_prog_gcc=yes
 +rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 +  cat >conftest.$ac_ext <<_ACEOF
 +/* confdefs.h.  */
@@ -11234,11 +11227,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo "$as_me:$LINENO: \$? = $ac_status" >&5
 +  (exit $ac_status); }; }; then
 +  break
-+else
+ else
+-  ac_cv_prog_gcc=no
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
-+fi
+ fi
 +rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 +done
 +rm -f conftest*
@@ -11246,13 +11240,33 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  echo '#ifdef __cplusplus' >>confdefs.h
 +  echo $ac_declaration      >>confdefs.h
 +  echo '#endif'             >>confdefs.h
-+fi
-+
-+else
+ fi
+ 
+-echo "$ac_t""$ac_cv_prog_gcc" 1>&6
+-
+-if test $ac_cv_prog_gcc = yes; then
+-  GCC=yes
+-  ac_test_CFLAGS="${CFLAGS+set}"
+-  ac_save_CFLAGS="$CFLAGS"
+-  CFLAGS=
+-  if test "$ac_test_CFLAGS" = set; then
+-    CFLAGS="$ac_save_CFLAGS"
+-  else
+-    # Add "-O" to both the CC and CPP commands, to eliminate possible confusion
+-    # that results from __OPTIMIZE__ being defined for CC but not CPP.
+-    if echo "$CC " | grep ' -O[1-9 ]' > /dev/null 2>&1; then
+-      : # already optimizing
+-    else
+-      CC="$CC -O"
+-      ac_cv_prog_CC="$CC"
+-    fi
+-  fi
+ else
+-  GCC=
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
-+fi
+ fi
 +rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 +ac_ext=c
 +ac_cpp='$CPP $CPPFLAGS'
@@ -11310,12 +11324,11 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -  echo "$ac_t""$LD" 1>&6
 +  echo "$as_me:$LINENO: result: $LD" >&5
 +echo "${ECHO_T}$LD" >&6
- else
--  echo "$ac_t""no" 1>&6
++else
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
- fi
- 
++fi
++
 +fi
 +if test -z "$ac_cv_prog_LD"; then
 +  ac_ct_LD=$LD
@@ -11349,11 +11362,12 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +if test -n "$ac_ct_LD"; then
 +  echo "$as_me:$LINENO: result: $ac_ct_LD" >&5
 +echo "${ECHO_T}$ac_ct_LD" >&6
-+else
+ else
+-  echo "$ac_t""no" 1>&6
 +  echo "$as_me:$LINENO: result: no" >&5
 +echo "${ECHO_T}no" >&6
-+fi
-+
+ fi
+ 
 +  LD=$ac_ct_LD
 +else
 +  LD="$ac_cv_prog_LD"
@@ -11361,7 +11375,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  
-@@ -1320,8 +2724,7 @@
+@@ -1320,8 +2726,7 @@
    enableval="$enable_3c501"
    enable_el1="$enable_3c501"
  
@@ -11371,7 +11385,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c503
  # Check whether --enable-3c503 or --disable-3c503 was given.
-@@ -1329,8 +2732,7 @@
+@@ -1329,8 +2734,7 @@
    enableval="$enable_3c503"
    enable_el2="$enable_3c503"
  
@@ -11381,7 +11395,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c509
  # Check whether --enable-3c509 or --disable-3c509 was given.
-@@ -1338,8 +2740,7 @@
+@@ -1338,8 +2742,7 @@
    enableval="$enable_3c509"
    enable_el3="$enable_3c509"
  
@@ -11391,7 +11405,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c579
  # Check whether --enable-3c579 or --disable-3c579 was given.
-@@ -1347,8 +2748,7 @@
+@@ -1347,8 +2750,7 @@
    enableval="$enable_3c579"
    enable_el3="$enable_3c579"
  
@@ -11401,7 +11415,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c59x
  # Check whether --enable-3c59x or --disable-3c59x was given.
-@@ -1356,8 +2756,7 @@
+@@ -1356,8 +2758,7 @@
    enableval="$enable_3c59x"
    enable_vortex="$enable_3c59x"
  
@@ -11411,7 +11425,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c90x
  # Check whether --enable-3c90x or --disable-3c90x was given.
-@@ -1365,8 +2764,7 @@
+@@ -1365,8 +2766,7 @@
    enableval="$enable_3c90x"
    enable_vortex="$enable_3c90x"
  
@@ -11421,7 +11435,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias hpj2577
  # Check whether --enable-hpj2577 or --disable-hpj2577 was given.
-@@ -1374,8 +2772,7 @@
+@@ -1374,8 +2774,7 @@
    enableval="$enable_hpj2577"
    enable_hp100="$enable_hpj2577"
  
@@ -11431,7 +11445,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias hpj2573
  # Check whether --enable-hpj2573 or --disable-hpj2573 was given.
-@@ -1383,8 +2780,7 @@
+@@ -1383,8 +2782,7 @@
    enableval="$enable_hpj2573"
    enable_hp100="$enable_hpj2573"
  
@@ -11441,7 +11455,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias hpj2585
  # Check whether --enable-hpj2585 or --disable-hpj2585 was given.
-@@ -1392,8 +2788,7 @@
+@@ -1392,8 +2790,7 @@
    enableval="$enable_hpj2585"
    enable_hp100="$enable_hpj2585"
  
@@ -11451,7 +11465,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias hp27248b
  # Check whether --enable-hp27248b or --disable-hp27248b was given.
-@@ -1401,8 +2796,7 @@
+@@ -1401,8 +2798,7 @@
    enableval="$enable_hp27248b"
    enable_hp100="$enable_hp27248b"
  
@@ -11461,7 +11475,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias eth32
  # Check whether --enable-eth32 or --disable-eth32 was given.
-@@ -1410,8 +2804,7 @@
+@@ -1410,8 +2806,7 @@
    enableval="$enable_eth32"
    enable_eth16i="$enable_eth32"
  
@@ -11471,7 +11485,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias znote
  # Check whether --enable-znote or --disable-znote was given.
-@@ -1419,8 +2812,7 @@
+@@ -1419,8 +2814,7 @@
    enableval="$enable_znote"
    enable_znet="$enable_znote"
  
@@ -11481,7 +11495,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de100
  # Check whether --enable-de100 or --disable-de100 was given.
-@@ -1428,8 +2820,7 @@
+@@ -1428,8 +2822,7 @@
    enableval="$enable_de100"
    enable_depca="$enable_de100"
  
@@ -11491,7 +11505,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de101
  # Check whether --enable-de101 or --disable-de101 was given.
-@@ -1437,8 +2828,7 @@
+@@ -1437,8 +2830,7 @@
    enableval="$enable_de101"
    enable_depca="$enable_de101"
  
@@ -11501,7 +11515,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de200
  # Check whether --enable-de200 or --disable-de200 was given.
-@@ -1446,8 +2836,7 @@
+@@ -1446,8 +2838,7 @@
    enableval="$enable_de200"
    enable_depca="$enable_de200"
  
@@ -11511,7 +11525,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de201
  # Check whether --enable-de201 or --disable-de201 was given.
-@@ -1455,8 +2844,7 @@
+@@ -1455,8 +2846,7 @@
    enableval="$enable_de201"
    enable_depca="$enable_de201"
  
@@ -11521,7 +11535,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de202
  # Check whether --enable-de202 or --disable-de202 was given.
-@@ -1464,8 +2852,7 @@
+@@ -1464,8 +2854,7 @@
    enableval="$enable_de202"
    enable_depca="$enable_de202"
  
@@ -11531,7 +11545,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de210
  # Check whether --enable-de210 or --disable-de210 was given.
-@@ -1473,8 +2860,7 @@
+@@ -1473,8 +2862,7 @@
    enableval="$enable_de210"
    enable_depca="$enable_de210"
  
@@ -11541,7 +11555,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de422
  # Check whether --enable-de422 or --disable-de422 was given.
-@@ -1482,8 +2868,7 @@
+@@ -1482,8 +2870,7 @@
    enableval="$enable_de422"
    enable_depca="$enable_de422"
  
@@ -11551,7 +11565,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de203
  # Check whether --enable-de203 or --disable-de203 was given.
-@@ -1491,8 +2876,7 @@
+@@ -1491,8 +2878,7 @@
    enableval="$enable_de203"
    enable_ewrk3="$enable_de203"
  
@@ -11561,7 +11575,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de204
  # Check whether --enable-de204 or --disable-de204 was given.
-@@ -1500,8 +2884,7 @@
+@@ -1500,8 +2886,7 @@
    enableval="$enable_de204"
    enable_ewrk3="$enable_de204"
  
@@ -11571,7 +11585,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de205
  # Check whether --enable-de205 or --disable-de205 was given.
-@@ -1509,8 +2892,7 @@
+@@ -1509,8 +2894,7 @@
    enableval="$enable_de205"
    enable_ewrk3="$enable_de205"
  
@@ -11581,7 +11595,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de425
  # Check whether --enable-de425 or --disable-de425 was given.
-@@ -1518,8 +2900,7 @@
+@@ -1518,8 +2902,7 @@
    enableval="$enable_de425"
    enable_de4x5="$enable_de425"
  
@@ -11591,7 +11605,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de434
  # Check whether --enable-de434 or --disable-de434 was given.
-@@ -1527,8 +2908,7 @@
+@@ -1527,8 +2910,7 @@
    enableval="$enable_de434"
    enable_de4x5="$enable_de434"
  
@@ -11601,7 +11615,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de435
  # Check whether --enable-de435 or --disable-de435 was given.
-@@ -1536,8 +2916,7 @@
+@@ -1536,8 +2918,7 @@
    enableval="$enable_de435"
    enable_de4x5="$enable_de435"
  
@@ -11611,7 +11625,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de450
  # Check whether --enable-de450 or --disable-de450 was given.
-@@ -1545,8 +2924,7 @@
+@@ -1545,8 +2926,7 @@
    enableval="$enable_de450"
    enable_de4x5="$enable_de450"
  
@@ -11621,7 +11635,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias de500
  # Check whether --enable-de500 or --disable-de500 was given.
-@@ -1554,8 +2932,7 @@
+@@ -1554,8 +2934,7 @@
    enableval="$enable_de500"
    enable_de4x5="$enable_de500"
  
@@ -11631,7 +11645,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c507
  # Check whether --enable-3c507 or --disable-3c507 was given.
-@@ -1563,8 +2940,7 @@
+@@ -1563,8 +2942,7 @@
    enableval="$enable_3c507"
    enable_el16="$enable_3c507"
  
@@ -11641,7 +11655,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias 3c505
  # Check whether --enable-3c505 or --disable-3c505 was given.
-@@ -1572,8 +2948,7 @@
+@@ -1572,8 +2950,7 @@
    enableval="$enable_3c505"
    enable_elplus="$enable_3c505"
  
@@ -11651,7 +11665,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias ne1000
  # Check whether --enable-ne1000 or --disable-ne1000 was given.
-@@ -1581,8 +2956,7 @@
+@@ -1581,8 +2958,7 @@
    enableval="$enable_ne1000"
    enable_ne2000="$enable_ne1000"
  
@@ -11661,7 +11675,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias ne
  # Check whether --enable-ne or --disable-ne was given.
-@@ -1590,8 +2964,7 @@
+@@ -1590,8 +2966,7 @@
    enableval="$enable_ne"
    enable_ne2000="$enable_ne"
  
@@ -11671,7 +11685,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias at1500
  # Check whether --enable-at1500 or --disable-at1500 was given.
-@@ -1599,8 +2972,7 @@
+@@ -1599,8 +2974,7 @@
    enableval="$enable_at1500"
    enable_lance="$enable_at1500"
  
@@ -11681,7 +11695,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias ne2100
  # Check whether --enable-ne2100 or --disable-ne2100 was given.
-@@ -1608,8 +2980,7 @@
+@@ -1608,8 +2982,7 @@
    enableval="$enable_ne2100"
    enable_lance="$enable_ne2100"
  
@@ -11691,7 +11705,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias tulip
  # Check whether --enable-tulip or --disable-tulip was given.
-@@ -1617,8 +2988,7 @@
+@@ -1617,8 +2990,7 @@
    enableval="$enable_tulip"
    enable_elcp="$enable_tulip"
  
@@ -11701,7 +11715,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias rtl8129
  # Check whether --enable-rtl8129 or --disable-rtl8129 was given.
-@@ -1626,8 +2996,7 @@
+@@ -1626,8 +2998,7 @@
    enableval="$enable_rtl8129"
    enable_rtl8139="$enable_rtl8129"
  
@@ -11711,7 +11725,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias aha2825
  # Check whether --enable-aha2825 or --disable-aha2825 was given.
-@@ -1635,8 +3004,7 @@
+@@ -1635,8 +3006,7 @@
    enableval="$enable_aha2825"
    enable_aha152x="$enable_aha2825"
  
@@ -11721,7 +11735,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias ncr53c400
  # Check whether --enable-ncr53c400 or --disable-ncr53c400 was given.
-@@ -1644,8 +3012,7 @@
+@@ -1644,8 +3014,7 @@
    enableval="$enable_ncr53c400"
    enable_ncr5380="$enable_ncr53c400"
  
@@ -11731,7 +11745,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias t128f
  # Check whether --enable-t128f or --disable-t128f was given.
-@@ -1653,8 +3020,7 @@
+@@ -1653,8 +3022,7 @@
    enableval="$enable_t128f"
    enable_t128="$enable_t128f"
  
@@ -11741,7 +11755,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias t228
  # Check whether --enable-t228 or --disable-t228 was given.
-@@ -1662,8 +3028,7 @@
+@@ -1662,8 +3030,7 @@
    enableval="$enable_t228"
    enable_t128="$enable_t228"
  
@@ -11751,7 +11765,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias am79c974
  # Check whether --enable-am79c974 or --disable-am79c974 was given.
-@@ -1671,8 +3036,7 @@
+@@ -1671,8 +3038,7 @@
    enableval="$enable_am79c974"
    enable_am53c974="$enable_am79c974"
  
@@ -11761,7 +11775,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias dtc3180
  # Check whether --enable-dtc3180 or --disable-dtc3180 was given.
-@@ -1680,8 +3044,7 @@
+@@ -1680,8 +3046,7 @@
    enableval="$enable_dtc3180"
    enable_dtc3280="$enable_dtc3180"
  
@@ -11771,7 +11785,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias dc390w
  # Check whether --enable-dc390w or --disable-dc390w was given.
-@@ -1689,8 +3052,7 @@
+@@ -1689,8 +3054,7 @@
    enableval="$enable_dc390w"
    enable_ncr53c8xx="$enable_dc390w"
  
@@ -11781,7 +11795,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias dc390u
  # Check whether --enable-dc390u or --disable-dc390u was given.
-@@ -1698,8 +3060,7 @@
+@@ -1698,8 +3062,7 @@
    enableval="$enable_dc390u"
    enable_ncr53c8xx="$enable_dc390u"
  
@@ -11791,7 +11805,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias dc390f
  # Check whether --enable-dc390f or --disable-dc390f was given.
-@@ -1707,8 +3068,7 @@
+@@ -1707,8 +3070,7 @@
    enableval="$enable_dc390f"
    enable_ncr53c8xx="$enable_dc390f"
  
@@ -11801,7 +11815,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias dc390
  # Check whether --enable-dc390 or --disable-dc390 was given.
-@@ -1716,8 +3076,7 @@
+@@ -1716,8 +3078,7 @@
    enableval="$enable_dc390"
    enable_dc390t="$enable_dc390"
  
@@ -11811,7 +11825,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  # Checking for alias epic100
  # Check whether --enable-epic100 or --disable-epic100 was given.
-@@ -1725,19 +3084,25 @@
+@@ -1725,19 +3086,25 @@
    enableval="$enable_epic100"
    enable_epic="$enable_epic100"
  
@@ -11840,7 +11854,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  
-@@ -1749,46 +3114,61 @@
+@@ -1749,46 +3116,61 @@
  # Check whether --enable-floppy or --disable-floppy was given.
  if test "${enable_floppy+set}" = set; then
    enableval="$enable_floppy"
@@ -11916,7 +11930,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  
-@@ -1800,30 +3180,32 @@
+@@ -1800,30 +3182,32 @@
    enableval="$enable_advansys"
    enable_advansys="$enable_advansys"
  
@@ -11957,7 +11971,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias BusLogic
-@@ -1832,30 +3214,32 @@
+@@ -1832,30 +3216,32 @@
    enableval="$enable_BusLogic"
    enable_buslogic="$enable_BusLogic"
  
@@ -11998,7 +12012,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias u14-34f
-@@ -1864,30 +3248,32 @@
+@@ -1864,30 +3250,32 @@
    enableval="$enable_u14_34f"
    enable_u1434f="$enable_u14-34f"
  
@@ -12039,7 +12053,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias ultrastor
-@@ -1896,30 +3282,32 @@
+@@ -1896,30 +3284,32 @@
    enableval="$enable_ultrastor"
    enable_ultrastor="$enable_ultrastor"
  
@@ -12080,7 +12094,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias aha152x
-@@ -1928,30 +3316,32 @@
+@@ -1928,30 +3318,32 @@
    enableval="$enable_aha152x"
    enable_aha152x="$enable_aha152x"
  
@@ -12121,7 +12135,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias aha1542
-@@ -1960,30 +3350,32 @@
+@@ -1960,30 +3352,32 @@
    enableval="$enable_aha1542"
    enable_aha1542="$enable_aha1542"
  
@@ -12162,7 +12176,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias aha1740
-@@ -1992,30 +3384,32 @@
+@@ -1992,30 +3386,32 @@
    enableval="$enable_aha1740"
    enable_aha1740="$enable_aha1740"
  
@@ -12203,7 +12217,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias aic7xxx
-@@ -2024,30 +3418,32 @@
+@@ -2024,30 +3420,32 @@
    enableval="$enable_aic7xxx"
    enable_aic7xxx="$enable_aic7xxx"
  
@@ -12244,7 +12258,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias fdomain
-@@ -2056,30 +3452,32 @@
+@@ -2056,30 +3454,32 @@
    enableval="$enable_fdomain"
    enable_futuredomain="$enable_fdomain"
  
@@ -12285,7 +12299,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias in2000
-@@ -2088,30 +3486,32 @@
+@@ -2088,30 +3488,32 @@
    enableval="$enable_in2000"
    enable_in2000="$enable_in2000"
  
@@ -12326,7 +12340,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias g_NCR5380
-@@ -2120,30 +3520,32 @@
+@@ -2120,30 +3522,32 @@
    enableval="$enable_g_NCR5380"
    enable_ncr5380="$enable_g_NCR5380"
  
@@ -12367,7 +12381,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias NCR53c406a
-@@ -2152,30 +3554,32 @@
+@@ -2152,30 +3556,32 @@
    enableval="$enable_NCR53c406a"
    enable_ncr53c406a="$enable_NCR53c406a"
  
@@ -12408,7 +12422,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias pas16
-@@ -2184,30 +3588,32 @@
+@@ -2184,30 +3590,32 @@
    enableval="$enable_pas16"
    enable_pas16="$enable_pas16"
  
@@ -12449,7 +12463,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias seagate
-@@ -2216,30 +3622,32 @@
+@@ -2216,30 +3624,32 @@
    enableval="$enable_seagate"
    enable_seagate="$enable_seagate"
  
@@ -12490,7 +12504,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias t128
-@@ -2248,30 +3656,32 @@
+@@ -2248,30 +3658,32 @@
    enableval="$enable_t128"
    enable_t128="$enable_t128"
  
@@ -12531,7 +12545,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 53c78xx
-@@ -2280,30 +3690,32 @@
+@@ -2280,30 +3692,32 @@
    enableval="$enable_53c78xx"
    enable_ncr53c7xx="$enable_53c78xx"
  
@@ -12572,7 +12586,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eata_dma
-@@ -2312,30 +3724,32 @@
+@@ -2312,30 +3726,32 @@
    enableval="$enable_eata_dma"
    enable_eatadma="$enable_eata_dma"
  
@@ -12613,7 +12627,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eata_pio
-@@ -2344,30 +3758,32 @@
+@@ -2344,30 +3760,32 @@
    enableval="$enable_eata_pio"
    enable_eatapio="$enable_eata_pio"
  
@@ -12654,7 +12668,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias wd7000
-@@ -2376,30 +3792,32 @@
+@@ -2376,30 +3794,32 @@
    enableval="$enable_wd7000"
    enable_wd7000="$enable_wd7000"
  
@@ -12695,7 +12709,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eata
-@@ -2408,30 +3826,32 @@
+@@ -2408,30 +3828,32 @@
    enableval="$enable_eata"
    enable_eata="$enable_eata"
  
@@ -12736,7 +12750,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias AM53C974
-@@ -2440,30 +3860,32 @@
+@@ -2440,30 +3862,32 @@
    enableval="$enable_AM53C974"
    enable_am53c974="$enable_AM53C974"
  
@@ -12777,7 +12791,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias dtc
-@@ -2472,30 +3894,32 @@
+@@ -2472,30 +3896,32 @@
    enableval="$enable_dtc"
    enable_dtc3280="$enable_dtc"
  
@@ -12818,7 +12832,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias ncr53c8xx
-@@ -2504,30 +3928,32 @@
+@@ -2504,30 +3930,32 @@
    enableval="$enable_ncr53c8xx"
    enable_ncr53c8xx="$enable_ncr53c8xx"
  
@@ -12859,7 +12873,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias tmscsim
-@@ -2536,174 +3962,454 @@
+@@ -2536,30 +3964,32 @@
    enableval="$enable_tmscsim"
    enable_dc390t="$enable_tmscsim"
  
@@ -12886,39 +12900,46 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
    driver_class_scsi_selected=yes
 -  cat >> confdefs.h <<EOF
 +  cat >>confdefs.h <<_ACEOF
-+#define $driver_class_scsi_option 1
+ #define $driver_class_scsi_option 1
+-EOF
 +_ACEOF
-+
-+  device_drivers="$device_drivers $driver_class_scsi_files"
-+fi
-+fi
-+
+ 
+   device_drivers="$device_drivers $driver_class_scsi_files"
+ fi
+ fi
+ 
+-fi
 +fi;
 +
-+
-+
-+# Checking for alias ppa
-+# Check whether --enable-ppa or --disable-ppa was given.
-+if test "${enable_ppa+set}" = set; then
-+  enableval="$enable_ppa"
-+  enable_ppa="$enable_ppa"
-+
+ 
+ 
+ # Checking for alias ppa
+@@ -2568,142 +3998,420 @@
+   enableval="$enable_ppa"
+   enable_ppa="$enable_ppa"
+ 
+-fi
+-
 +fi;
-+
-+# Checking for device driver option ppa
-+# Check whether --enable-ppa or --disable-ppa was given.
-+if test "${enable_ppa+set}" = set; then
-+  enableval="$enable_ppa"
+ 
+ # Checking for device driver option ppa
+ # Check whether --enable-ppa or --disable-ppa was given.
+ if test "${enable_ppa+set}" = set; then
+   enableval="$enable_ppa"
+-  if test "x$enableval" != xno; then
+-cat >> confdefs.h <<\EOF
 +
 +if test "x$enableval" != xno; then
 +
 +cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_SCSI_PPA 1
+ #define CONFIG_SCSI_PPA 1
+-EOF
 +_ACEOF
-+
-+device_drivers="$device_drivers ppa.o"
-+if test "${driver_class_scsi_selected+set}" != set; then
-+  driver_class_scsi_selected=yes
+ 
+ device_drivers="$device_drivers ppa.o"
+ if test "${driver_class_scsi_selected+set}" != set; then
+   driver_class_scsi_selected=yes
+-  cat >> confdefs.h <<EOF
 +  cat >>confdefs.h <<_ACEOF
 +#define $driver_class_scsi_option 1
 +_ACEOF
@@ -13184,55 +13205,55 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +
 +fi;
 +
-+
  
+ 
+-# Checking for alias qlogicfas
+-# Check whether --enable-qlogicfas or --disable-qlogicfas was given.
+-if test "${enable_qlogicfas+set}" = set; then
+-  enableval="$enable_qlogicfas"
+-  enable_qlogicfas="$enable_qlogicfas"
 +# Checking for alias intel-gige
 +# Check whether --enable-intel-gige or --disable-intel-gige was given.
 +if test "${enable_intel_gige+set}" = set; then
 +  enableval="$enable_intel_gige"
 +  enable_intel_gige="$enable_intel-gige"
  
--# Checking for alias ppa
--# Check whether --enable-ppa or --disable-ppa was given.
--if test "${enable_ppa+set}" = set; then
--  enableval="$enable_ppa"
--  enable_ppa="$enable_ppa"
+-fi
 +fi;
  
--fi
 +# Checking for device driver option intel_gige
 +# Check whether --enable-intel_gige or --disable-intel_gige was given.
 +if test "${enable_intel_gige+set}" = set; then
 +  enableval="$enable_intel_gige"
  
-+if test "x$enableval" != xno; then
- 
--# Checking for device driver option ppa
--# Check whether --enable-ppa or --disable-ppa was given.
--if test "${enable_ppa+set}" = set; then
--  enableval="$enable_ppa"
+-# Checking for device driver option qlogicfas
+-# Check whether --enable-qlogicfas or --disable-qlogicfas was given.
+-if test "${enable_qlogicfas+set}" = set; then
+-  enableval="$enable_qlogicfas"
 -  if test "x$enableval" != xno; then
 -cat >> confdefs.h <<\EOF
--#define CONFIG_SCSI_PPA 1
+-#define CONFIG_SCSI_QLOGIC_FAS 1
 -EOF
-+cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_INTEL_GIGE 1
-+_ACEOF
++if test "x$enableval" != xno; then
  
--device_drivers="$device_drivers ppa.o"
+-device_drivers="$device_drivers qlogicfas.o"
 -if test "${driver_class_scsi_selected+set}" != set; then
 -  driver_class_scsi_selected=yes
 -  cat >> confdefs.h <<EOF
 -#define $driver_class_scsi_option 1
 -EOF
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_INTEL_GIGE 1
++_ACEOF
+ 
+-  device_drivers="$device_drivers $driver_class_scsi_files"
 +device_drivers="$device_drivers intel-gige.o"
 +if test "${driver_class_net_selected+set}" != set; then
 +  driver_class_net_selected=yes
 +  cat >>confdefs.h <<_ACEOF
 +#define $driver_class_net_option 1
 +_ACEOF
- 
--  device_drivers="$device_drivers $driver_class_scsi_files"
++
 +  device_drivers="$device_drivers $driver_class_net_files"
  fi
  fi
@@ -13241,11 +13262,11 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +fi;
  
  
--# Checking for alias qlogicfas
--# Check whether --enable-qlogicfas or --disable-qlogicfas was given.
--if test "${enable_qlogicfas+set}" = set; then
--  enableval="$enable_qlogicfas"
--  enable_qlogicfas="$enable_qlogicfas"
+-# Checking for alias qlogicisp
+-# Check whether --enable-qlogicisp or --disable-qlogicisp was given.
+-if test "${enable_qlogicisp+set}" = set; then
+-  enableval="$enable_qlogicisp"
+-  enable_qlogicisp="$enable_qlogicisp"
  
 -fi
 +# Checking for alias natsemi
@@ -13256,20 +13277,20 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
 +fi;
  
--# Checking for device driver option qlogicfas
--# Check whether --enable-qlogicfas or --disable-qlogicfas was given.
--if test "${enable_qlogicfas+set}" = set; then
--  enableval="$enable_qlogicfas"
+-# Checking for device driver option qlogicisp
+-# Check whether --enable-qlogicisp or --disable-qlogicisp was given.
+-if test "${enable_qlogicisp+set}" = set; then
+-  enableval="$enable_qlogicisp"
 -  if test "x$enableval" != xno; then
 -cat >> confdefs.h <<\EOF
--#define CONFIG_SCSI_QLOGIC_FAS 1
+-#define CONFIG_SCSI_QLOGIC_ISP 1
 -EOF
 +# Checking for device driver option natsemi
 +# Check whether --enable-natsemi or --disable-natsemi was given.
 +if test "${enable_natsemi+set}" = set; then
 +  enableval="$enable_natsemi"
  
--device_drivers="$device_drivers qlogicfas.o"
+-device_drivers="$device_drivers qlogicisp.o"
 -if test "${driver_class_scsi_selected+set}" != set; then
 -  driver_class_scsi_selected=yes
 -  cat >> confdefs.h <<EOF
@@ -13297,11 +13318,11 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +fi;
  
  
--# Checking for alias qlogicisp
--# Check whether --enable-qlogicisp or --disable-qlogicisp was given.
--if test "${enable_qlogicisp+set}" = set; then
--  enableval="$enable_qlogicisp"
--  enable_qlogicisp="$enable_qlogicisp"
+-# Checking for alias gdth
+-# Check whether --enable-gdth or --disable-gdth was given.
+-if test "${enable_gdth+set}" = set; then
+-  enableval="$enable_gdth"
+-  enable_gdth="$enable_gdth"
  
 -fi
 +# Checking for alias myson803
@@ -13312,56 +13333,6 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
 +fi;
  
--# Checking for device driver option qlogicisp
--# Check whether --enable-qlogicisp or --disable-qlogicisp was given.
--if test "${enable_qlogicisp+set}" = set; then
--  enableval="$enable_qlogicisp"
--  if test "x$enableval" != xno; then
--cat >> confdefs.h <<\EOF
--#define CONFIG_SCSI_QLOGIC_ISP 1
--EOF
-+# Checking for device driver option myson803
-+# Check whether --enable-myson803 or --disable-myson803 was given.
-+if test "${enable_myson803+set}" = set; then
-+  enableval="$enable_myson803"
- 
--device_drivers="$device_drivers qlogicisp.o"
--if test "${driver_class_scsi_selected+set}" != set; then
--  driver_class_scsi_selected=yes
--  cat >> confdefs.h <<EOF
--#define $driver_class_scsi_option 1
--EOF
-+if test "x$enableval" != xno; then
- 
--  device_drivers="$device_drivers $driver_class_scsi_files"
--fi
--fi
-+cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_MYSON803 1
-+_ACEOF
- 
--fi
-+device_drivers="$device_drivers myson803.o"
-+if test "${driver_class_net_selected+set}" != set; then
-+  driver_class_net_selected=yes
-+  cat >>confdefs.h <<_ACEOF
-+#define $driver_class_net_option 1
-+_ACEOF
- 
-+  device_drivers="$device_drivers $driver_class_net_files"
-+fi
-+fi
- 
--# Checking for alias gdth
--# Check whether --enable-gdth or --disable-gdth was given.
--if test "${enable_gdth+set}" = set; then
--  enableval="$enable_gdth"
--  enable_gdth="$enable_gdth"
-+fi;
- 
--fi
- 
- 
 -# Checking for device driver option gdth
 -# Check whether --enable-gdth or --disable-gdth was given.
 -if test "${enable_gdth+set}" = set; then
@@ -13370,11 +13341,10 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -cat >> confdefs.h <<\EOF
 -#define CONFIG_SCSI_GDTH 1
 -EOF
-+# Checking for alias ns820
-+# Check whether --enable-ns820 or --disable-ns820 was given.
-+if test "${enable_ns820+set}" = set; then
-+  enableval="$enable_ns820"
-+  enable_ns820="$enable_ns820"
++# Checking for device driver option myson803
++# Check whether --enable-myson803 or --disable-myson803 was given.
++if test "${enable_myson803+set}" = set; then
++  enableval="$enable_myson803"
  
 -device_drivers="$device_drivers gdth.o"
 -if test "${driver_class_scsi_selected+set}" != set; then
@@ -13382,22 +13352,27 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -  cat >> confdefs.h <<EOF
 -#define $driver_class_scsi_option 1
 -EOF
-+fi;
- 
--  device_drivers="$device_drivers $driver_class_scsi_files"
--fi
--fi
-+# Checking for device driver option ns820
-+# Check whether --enable-ns820 or --disable-ns820 was given.
-+if test "${enable_ns820+set}" = set; then
-+  enableval="$enable_ns820"
- 
--fi
 +if test "x$enableval" != xno; then
  
+-  device_drivers="$device_drivers $driver_class_scsi_files"
 +cat >>confdefs.h <<\_ACEOF
-+#define CONFIG_NS820 1
++#define CONFIG_MYSON803 1
 +_ACEOF
++
++device_drivers="$device_drivers myson803.o"
++if test "${driver_class_net_selected+set}" != set; then
++  driver_class_net_selected=yes
++  cat >>confdefs.h <<_ACEOF
++#define $driver_class_net_option 1
++_ACEOF
++
++  device_drivers="$device_drivers $driver_class_net_files"
+ fi
+ fi
+ 
+-fi
++fi;
+ 
  
 -# Check whether --enable-flashpoint or --disable-flashpoint was given.
 -if test "${enable_flashpoint+set}" = set; then
@@ -13407,6 +13382,28 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 -  cat >> confdefs.h <<\EOF
 -#define CONFIG_SCSI_OMIT_FLASHPOINT 1
 -EOF
+ 
+-fi
++# Checking for alias ns820
++# Check whether --enable-ns820 or --disable-ns820 was given.
++if test "${enable_ns820+set}" = set; then
++  enableval="$enable_ns820"
++  enable_ns820="$enable_ns820"
+ 
+-fi
++fi;
++
++# Checking for device driver option ns820
++# Check whether --enable-ns820 or --disable-ns820 was given.
++if test "${enable_ns820+set}" = set; then
++  enableval="$enable_ns820"
++
++if test "x$enableval" != xno; then
++
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_NS820 1
++_ACEOF
++
 +device_drivers="$device_drivers ns820.o"
 +if test "${driver_class_net_selected+set}" != set; then
 +  driver_class_net_selected=yes
@@ -13415,16 +13412,14 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +_ACEOF
  
 +  device_drivers="$device_drivers $driver_class_net_files"
- fi
--
- fi
++fi
++fi
  
--
 +fi;
  
  
  
-@@ -2711,46 +4417,49 @@
+@@ -2711,46 +4419,49 @@
  # Check whether --enable-ne2000 or --disable-ne2000 was given.
  if test "${enable_ne2000+set}" = set; then
    enableval="$enable_ne2000"
@@ -13487,7 +13482,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c509
-@@ -2759,53 +4468,56 @@
+@@ -2759,53 +4470,56 @@
    enableval="$enable_3c509"
    enable_el3="$enable_3c509"
  
@@ -13558,7 +13553,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c501
-@@ -2814,122 +4526,128 @@
+@@ -2814,122 +4528,128 @@
    enableval="$enable_3c501"
    enable_el1="$enable_3c501"
  
@@ -13722,7 +13717,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c59x
-@@ -2938,30 +4656,32 @@
+@@ -2938,30 +4658,32 @@
    enableval="$enable_3c59x"
    enable_vortex="$enable_3c59x"
  
@@ -13763,7 +13758,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias seeq8005
-@@ -2970,30 +4690,32 @@
+@@ -2970,30 +4692,32 @@
    enableval="$enable_seeq8005"
    enable_seeq8005="$enable_seeq8005"
  
@@ -13804,7 +13799,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias hp100
-@@ -3002,76 +4724,80 @@
+@@ -3002,76 +4726,80 @@
    enableval="$enable_hp100"
    enable_hp100="$enable_hp100"
  
@@ -13906,7 +13901,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias at1700
-@@ -3080,30 +4806,32 @@
+@@ -3080,30 +4808,32 @@
    enableval="$enable_at1700"
    enable_at1700="$enable_at1700"
  
@@ -13947,7 +13942,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eth16i
-@@ -3112,30 +4840,32 @@
+@@ -3112,30 +4842,32 @@
    enableval="$enable_eth16i"
    enable_eth16i="$enable_eth16i"
  
@@ -13988,7 +13983,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias znet
-@@ -3144,30 +4874,32 @@
+@@ -3144,30 +4876,32 @@
    enableval="$enable_znet"
    enable_znet="$enable_znet"
  
@@ -14029,7 +14024,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eexpress
-@@ -3176,30 +4908,32 @@
+@@ -3176,30 +4910,32 @@
    enableval="$enable_eexpress"
    enable_eexpress="$enable_eexpress"
  
@@ -14070,7 +14065,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eepro
-@@ -3208,30 +4942,32 @@
+@@ -3208,30 +4944,32 @@
    enableval="$enable_eepro"
    enable_eexpresspro="$enable_eepro"
  
@@ -14111,7 +14106,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias eepro100
-@@ -3240,30 +4976,32 @@
+@@ -3240,30 +4978,32 @@
    enableval="$enable_eepro100"
    enable_eexpresspro100="$enable_eepro100"
  
@@ -14152,7 +14147,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias depca
-@@ -3272,30 +5010,32 @@
+@@ -3272,30 +5012,32 @@
    enableval="$enable_depca"
    enable_depca="$enable_depca"
  
@@ -14193,7 +14188,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias ewrk3
-@@ -3304,30 +5044,32 @@
+@@ -3304,30 +5046,32 @@
    enableval="$enable_ewrk3"
    enable_ewrk3="$enable_ewrk3"
  
@@ -14234,7 +14229,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias de4x5
-@@ -3336,30 +5078,32 @@
+@@ -3336,30 +5080,32 @@
    enableval="$enable_de4x5"
    enable_de4x5="$enable_de4x5"
  
@@ -14275,7 +14270,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias apricot
-@@ -3368,30 +5112,32 @@
+@@ -3368,30 +5114,32 @@
    enableval="$enable_apricot"
    enable_apricot="$enable_apricot"
  
@@ -14316,7 +14311,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias wavelan
-@@ -3400,30 +5146,32 @@
+@@ -3400,30 +5148,32 @@
    enableval="$enable_wavelan"
    enable_wavelan="$enable_wavelan"
  
@@ -14357,7 +14352,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c507
-@@ -3432,30 +5180,32 @@
+@@ -3432,30 +5182,32 @@
    enableval="$enable_3c507"
    enable_el16="$enable_3c507"
  
@@ -14398,7 +14393,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c505
-@@ -3464,30 +5214,32 @@
+@@ -3464,30 +5216,32 @@
    enableval="$enable_3c505"
    enable_elplus="$enable_3c505"
  
@@ -14439,7 +14434,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias de600
-@@ -3496,30 +5248,32 @@
+@@ -3496,30 +5250,32 @@
    enableval="$enable_de600"
    enable_de600="$enable_de600"
  
@@ -14480,7 +14475,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias de620
-@@ -3528,30 +5282,32 @@
+@@ -3528,30 +5284,66 @@
    enableval="$enable_de620"
    enable_de620="$enable_de620"
  
@@ -14515,13 +14510,46 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  fi
  fi
  
--fi
++fi;
++
++
++
++# Checking for alias sis900
++# Check whether --enable-sis900 or --disable-sis900 was given.
++if test "${enable_sis900+set}" = set; then
++  enableval="$enable_sis900"
++  enable_sis900="$enable_sis900"
++
++fi;
++
++# Checking for device driver option sis900
++# Check whether --enable-sis900 or --disable-sis900 was given.
++if test "${enable_sis900+set}" = set; then
++  enableval="$enable_sis900"
++
++if test "x$enableval" != xno; then
++
++cat >>confdefs.h <<\_ACEOF
++#define CONFIG_SIS900 1
++_ACEOF
++
++device_drivers="$device_drivers sis900.o"
++if test "${driver_class_net_selected+set}" != set; then
++  driver_class_net_selected=yes
++  cat >>confdefs.h <<_ACEOF
++#define $driver_class_net_option 1
++_ACEOF
++
++  device_drivers="$device_drivers $driver_class_net_files"
+ fi
++fi
++
 +fi;
 +
  
  
  # Checking for alias sk_g16
-@@ -3560,30 +5316,32 @@
+@@ -3560,30 +5352,32 @@
    enableval="$enable_sk_g16"
    enable_skg16="$enable_sk_g16"
  
@@ -14562,7 +14590,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias ni52
-@@ -3592,30 +5350,32 @@
+@@ -3592,30 +5386,32 @@
    enableval="$enable_ni52"
    enable_ni52="$enable_ni52"
  
@@ -14603,7 +14631,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias ni65
-@@ -3624,30 +5384,32 @@
+@@ -3624,30 +5420,32 @@
    enableval="$enable_ni65"
    enable_ni65="$enable_ni65"
  
@@ -14644,7 +14672,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias atp
-@@ -3656,30 +5418,32 @@
+@@ -3656,30 +5454,32 @@
    enableval="$enable_atp"
    enable_atp="$enable_atp"
  
@@ -14685,7 +14713,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias lance
-@@ -3688,30 +5452,32 @@
+@@ -3688,30 +5488,32 @@
    enableval="$enable_lance"
    enable_lance="$enable_lance"
  
@@ -14726,7 +14754,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias tulip
-@@ -3720,30 +5486,32 @@
+@@ -3720,30 +5522,32 @@
    enableval="$enable_tulip"
    enable_elcp="$enable_tulip"
  
@@ -14767,7 +14795,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias fmv18x
-@@ -3752,30 +5520,32 @@
+@@ -3752,30 +5556,32 @@
    enableval="$enable_fmv18x"
    enable_fmv18x="$enable_fmv18x"
  
@@ -14808,7 +14836,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias 3c515
-@@ -3784,30 +5554,32 @@
+@@ -3784,30 +5590,32 @@
    enableval="$enable_3c515"
    enable_3c515="$enable_3c515"
  
@@ -14849,7 +14877,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias pcnet32
-@@ -3816,53 +5588,56 @@
+@@ -3816,53 +5624,56 @@
    enableval="$enable_pcnet32"
    enable_pcnet32="$enable_pcnet32"
  
@@ -14920,7 +14948,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias yellowfin
-@@ -3871,30 +5646,32 @@
+@@ -3871,30 +5682,32 @@
    enableval="$enable_yellowfin"
    enable_yellowfin="$enable_yellowfin"
  
@@ -14961,7 +14989,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias rtl8139
-@@ -3903,30 +5680,32 @@
+@@ -3903,30 +5716,32 @@
    enableval="$enable_rtl8139"
    enable_rtl8139="$enable_rtl8139"
  
@@ -15002,7 +15030,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias epic100
-@@ -3935,30 +5714,32 @@
+@@ -3935,30 +5750,32 @@
    enableval="$enable_epic100"
    enable_epic="$enable_epic100"
  
@@ -15043,7 +15071,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias tlan
-@@ -3967,30 +5748,32 @@
+@@ -3967,30 +5784,32 @@
    enableval="$enable_tlan"
    enable_tlan="$enable_tlan"
  
@@ -15084,7 +15112,7 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
  
  
  # Checking for alias via-rhine
-@@ -3999,389 +5782,1150 @@
+@@ -3999,389 +5818,1150 @@
    enableval="$enable_via_rhine"
    enable_viarhine="$enable_via-rhine"
  
@@ -16528,10 +16556,10 @@ diff -Naur gnumach-20040915.orig/i386/linux/configure gnumach-20040915/i386/linu
 +  $ac_cs_success || { (exit 1); exit 1; }
 +fi
  
-diff -Naur gnumach-20040915.orig/i386/linux/device-drivers.h.in gnumach-20040915/i386/linux/device-drivers.h.in
---- gnumach-20040915.orig/i386/linux/device-drivers.h.in	2001-05-27 14:44:22.000000000 +0200
-+++ gnumach-20040915/i386/linux/device-drivers.h.in	2004-10-25 06:48:08.000000000 +0200
-@@ -1,84 +1,289 @@
+diff -Naur gnumach-20050501.orig/i386/linux/device-drivers.h.in gnumach-20050501/i386/linux/device-drivers.h.in
+--- gnumach-20050501.orig/i386/linux/device-drivers.h.in	2001-05-27 15:44:22.000000000 +0300
++++ gnumach-20050501/i386/linux/device-drivers.h.in	2005-05-01 19:24:45.870975992 +0300
+@@ -1,84 +1,292 @@
 -/* All possible device drivers; must match Drivers.in. */
 +/* device-drivers.h.in.  Generated from configure.ac by autoheader.  */
  
@@ -16791,6 +16819,9 @@ diff -Naur gnumach-20040915.orig/i386/linux/device-drivers.h.in gnumach-20040915
 +/* seeq8005 */
 +#undef CONFIG_SEEQ8005
 +
++/* sis900 */
++#undef CONFIG_SIS900
++
 +/* skg16 */
 +#undef CONFIG_SK_G16
 +
@@ -16881,14 +16912,102 @@ diff -Naur gnumach-20040915.orig/i386/linux/device-drivers.h.in gnumach-20040915
 +
 +/* Define to the version of this package. */
 +#undef PACKAGE_VERSION
-diff -Naur gnumach-20040915.orig/linux/aclocal.m4 gnumach-20040915/linux/aclocal.m4
---- gnumach-20040915.orig/linux/aclocal.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gnumach-20040915/linux/aclocal.m4	2004-10-25 06:47:59.000000000 +0200
-@@ -0,0 +1,14 @@
-+# generated automatically by aclocal 1.9.2 -*- Autoconf -*-
+diff -Naur gnumach-20050501.orig/i386/linux/device-drivers.h.in~ gnumach-20050501/i386/linux/device-drivers.h.in~
+--- gnumach-20050501.orig/i386/linux/device-drivers.h.in~	1970-01-01 02:00:00.000000000 +0200
++++ gnumach-20050501/i386/linux/device-drivers.h.in~	2001-05-27 15:44:22.000000000 +0300
+@@ -0,0 +1,84 @@
++/* All possible device drivers; must match Drivers.in. */
 +
-+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
-+# Free Software Foundation, Inc.
++#undef CONFIG_M386
++#undef CONFIG_M486
++#undef CONFIG_M586
++#undef CONFIG_M686
++#undef CPU
++#undef CONFIG_SCSI
++#undef CONFIG_INET
++#undef CONFIG_BLK_DEV_FD
++#undef CONFIG_BLK_DEV_IDE
++#undef CONFIG_SCSI_ADVANSYS
++#undef CONFIG_SCSI_BUSLOGIC
++#undef CONFIG_SCSI_OMIT_FLASHPOINT
++#undef CONFIG_SCSI_U14_34F
++#undef CONFIG_SCSI_ULTRASTOR
++#undef CONFIG_SCSI_AHA152X
++#undef CONFIG_SCSI_AHA1542
++#undef CONFIG_SCSI_AHA1740
++#undef CONFIG_SCSI_AIC7XXX
++#undef CONFIG_SCSI_FUTURE_DOMAIN
++#undef CONFIG_SCSI_IN2000
++#undef CONFIG_SCSI_GENERIC_NCR5380
++#undef CONFIG_SCSI_NCR53C406A
++#undef CONFIG_SCSI_PASS16
++#undef CONFIG_SCSI_SEAGATE
++#undef CONFIG_SCSI_T128
++#undef CONFIG_SCSI_NCR53C7xx
++#undef CONFIG_SCSI_EATA_DMA
++#undef CONFIG_SCSI_EATA_PIO
++#undef CONFIG_SCSI_7000FASST
++#undef CONFIG_SCSI_EATA
++#undef CONFIG_SCSI_AM53C974
++#undef CONFIG_SCSI_DTC3280
++#undef CONFIG_SCSI_NCR53C8XX
++#undef CONFIG_SCSI_DC390T
++#undef CONFIG_SCSI_PPA
++#undef CONFIG_SCSI_QLOGIC_FAS
++#undef CONFIG_SCSI_QLOGIC_ISP
++#undef CONFIG_SCSI_GDTH
++#undef CONFIG_NE2000
++#undef CONFIG_EL2
++#undef CONFIG_EL3
++#undef CONFIG_WD80x3
++#undef CONFIG_EL1
++#undef CONFIG_ULTRA
++#undef CONFIG_ULTRA32
++#undef CONFIG_HPLAN_PLUS
++#undef CONFIG_HPLAN
++#undef CONFIG_VORTEX
++#undef CONFIG_SEEQ8005
++#undef CONFIG_HP100
++#undef CONFIG_AC3200
++#undef CONFIG_E2100
++#undef CONFIG_AT1700
++#undef CONFIG_ETH16I
++#undef CONFIG_ZNET
++#undef CONFIG_EEXPRESS
++#undef CONFIG_EEXPRESS_PRO
++#undef CONFIG_EEXPRESS_PRO100B
++#undef CONFIG_DEPCA
++#undef CONFIG_EWRK3
++#undef CONFIG_DE4X5
++#undef CONFIG_APRICOT
++#undef CONFIG_WAVELAN
++#undef CONFIG_EL16
++#undef CONFIG_ELPLUS
++#undef CONFIG_DE600
++#undef CONFIG_DE620
++#undef CONFIG_SK_G16
++#undef CONFIG_NI52
++#undef CONFIG_NI65
++#undef CONFIG_ATP
++#undef CONFIG_LANCE
++#undef CONFIG_DEC_ELCP
++#undef CONFIG_FMV18X
++#undef CONFIG_3C515
++#undef CONFIG_PCNET32
++#undef CONFIG_NE2K_PCI
++#undef CONFIG_YELLOWFIN
++#undef CONFIG_RTL8139
++#undef CONFIG_EPIC
++#undef CONFIG_TLAN
++#undef CONFIG_VIA_RHINE
+diff -Naur gnumach-20050501.orig/linux/aclocal.m4 gnumach-20050501/linux/aclocal.m4
+--- gnumach-20050501.orig/linux/aclocal.m4	1970-01-01 02:00:00.000000000 +0200
++++ gnumach-20050501/linux/aclocal.m4	2005-05-01 19:24:35.475556336 +0300
+@@ -0,0 +1,14 @@
++# generated automatically by aclocal 1.9.5 -*- Autoconf -*-
++
++# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
++# 2005  Free Software Foundation, Inc.
 +# This file is free software; the Free Software Foundation
 +# gives unlimited permission to copy and/or distribute it,
 +# with or without modifications, as long as this notice is preserved.
@@ -16899,9 +17018,9 @@ diff -Naur gnumach-20040915.orig/linux/aclocal.m4 gnumach-20040915/linux/aclocal
 +# PARTICULAR PURPOSE.
 +
 +m4_include([../aclocal.m4])
-diff -Naur gnumach-20040915.orig/linux/configure gnumach-20040915/linux/configure
---- gnumach-20040915.orig/linux/configure	1999-05-23 01:35:45.000000000 +0200
-+++ gnumach-20040915/linux/configure	2004-10-25 06:48:00.000000000 +0200
+diff -Naur gnumach-20050501.orig/linux/configure gnumach-20050501/linux/configure
+--- gnumach-20050501.orig/linux/configure	1999-05-23 02:35:45.000000000 +0300
++++ gnumach-20050501/linux/configure	2005-05-01 19:24:36.512398712 +0300
 @@ -1,26 +1,288 @@
  #! /bin/sh
 -
