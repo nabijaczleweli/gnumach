@@ -14,6 +14,7 @@ gnumach (1:20050501-1) unstable; urgency=low
   * Add suport for SiS 900 NIC.
     - debian/patches/12_sis900.patch: New file.
     Thanks to Andreas B. Mundt <andi.mundt@web.de>.
+  * Move configure drivers list to debian/rules.options.
 
  -- Guillem Jover <guillem@debian.org>  Sun,  1 May 2005 19:26:39 +0300
 
