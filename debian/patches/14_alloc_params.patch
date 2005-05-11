@@ -33,8 +33,8 @@ Index: zalloc.c
 RCS file: /cvsroot/hurd/gnumach/kern/zalloc.c,v
 retrieving revision 1.3
 diff -u -p -r1.3 zalloc.c
---- zalloc.c	5 Apr 2001 06:39:20 -0000	1.3
-+++ zalloc.c	11 May 2005 09:35:43 -0000
+--- kern/zalloc.c	5 Apr 2001 06:39:20 -0000	1.3
++++ kern/zalloc.c	11 May 2005 09:35:43 -0000
 @@ -99,7 +99,7 @@ zone_t		zone_zone;	/* this is the zone c
  boolean_t	zone_ignore_overflow = TRUE;
  
