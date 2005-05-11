@@ -1,3 +1,11 @@
+gnumach (1:20050501-2) unstable; urgency=low
+
+  * Add a system stabilizer patch.
+    - debian/patches/14_alloc_params.patch.
+    Thanks to Neal H. Walfield <neal@cs.uml.edu>.
+
+ -- Guillem Jover <guillem@debian.org>  Wed, 11 May 2005 22:47:47 +0300
+
 gnumach (1:20050501-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
