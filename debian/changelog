@@ -7,7 +7,7 @@ gnumach (1:20050501-2) unstable; urgency=low
     - debian/patches/13_ide_dma.patch.
     Thanks to Sergio López <koro@menteslibres.org> for noticing.
 
- -- Guillem Jover <guillem@debian.org>  Wed, 11 May 2005 22:47:47 +0300
+ -- Guillem Jover <guillem@debian.org>  Sat, 14 May 2005 20:42:29 +0300
 
 gnumach (1:20050501-1) unstable; urgency=low
 
