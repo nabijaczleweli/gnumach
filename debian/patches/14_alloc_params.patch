@@ -40,7 +40,7 @@ diff -u -p -r1.3 zalloc.c
  
  vm_map_t	zone_map = VM_MAP_NULL;
 -vm_size_t	zone_map_size = 12 * 1024 * 1024;
-+vm_size_t	zone_map_size = 18 * 1024 * 1024;
++vm_size_t	zone_map_size = 16 * 1024 * 1024;
  
  /*
   *	The VM system gives us an initial chunk of memory.
