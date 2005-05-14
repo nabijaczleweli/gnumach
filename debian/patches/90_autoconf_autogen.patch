@@ -11920,7 +11920,7 @@ diff -Naur gnumach-20050501.orig/i386/linux/configure gnumach-20050501/i386/linu
 +# Check whether --enable-ide-forcedma or --disable-ide-forcedma was given.
 +if test "${enable_ide_forcedma+set}" = set; then
 +  enableval="$enable_ide_forcedma"
-+  test x"$enableval" = xno &&
++  test x"$enableval" = xno ||
 +
 +cat >>confdefs.h <<\_ACEOF
 +#define CONFIG_BLK_DEV_FORCE_DMA 1
