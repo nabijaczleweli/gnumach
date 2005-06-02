@@ -5,6 +5,7 @@
 #
 
 pkg := gnumach
+pkg_udeb := gnumach-udeb
 pkg_dbg := gnumach-dbg
 pkg_dev := gnumach-dev
 
@@ -46,7 +47,7 @@ stamp-configure-dbg:
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 	touch stamp-configure-dbg
 
-all build:
+build:
 
 build-gnumach: configure
 	dh_testdir
@@ -72,18 +73,14 @@ clean::
 install-gnumach: build-gnumach
 	dh_testdir
 	dh_testroot
-	dh_clean -p$(pkg) -k
-	dh_installdirs -p$(pkg)
+	dh_clean -N$(pkg_dbg) -k
+	dh_installdirs -N$(pkg_dbg)
 	
 	$(MAKE) -C build install-kernel \
-		prefix=$(CURDIR)/debian/$(pkg)/usr \
 		exec_prefix=$(CURDIR)/debian/$(pkg)
-
-install-gnumach-dev: build-gnumach
-	dh_testdir
-	dh_testroot
-	dh_clean -p$(pkg_dev) -k
-	dh_installdirs -p$(pkg_dev)
+	
+	$(MAKE) -C build install-kernel \
+		exec_prefix=$(CURDIR)/debian/$(pkg_udeb)
 	
 	$(MAKE) -C build install-headers \
 		prefix=$(CURDIR)/debian/$(pkg_dev)/usr \
@@ -105,7 +102,7 @@ binary: binary-indep binary-arch
 
 binary-indep:
 
-binary-arch: install-gnumach install-gnumach-dev install-gnumach-dbg
+binary-arch: install-gnumach install-gnumach-dbg
 	dh_testdir
 	dh_testroot
 	dh_installdocs -a
@@ -113,7 +110,7 @@ binary-arch: install-gnumach install-gnumach-dev install-gnumach-dbg
 	dh_installinfo -a
 	dh_link -a
 	dh_strip -a -N$(pkg_dbg)
-	dh_compress -p$(pkg) boot/gnumach
+	dh_compress -p$(pkg) -p$(pkg_udeb) -A boot/gnumach
 	dh_compress -p$(pkg_dbg) boot/gnumach-dbg
 	dh_compress -p$(pkg_dev)
 	dh_fixperms -a
@@ -122,5 +119,6 @@ binary-arch: install-gnumach install-gnumach-dev install-gnumach-dbg
 	dh_md5sums -a
 	dh_builddeb -a
 
-.PHONY: build clean configure binary binary-indep binary-arch
+.PHONY: build build-gnumach build-gnumach-dbg clean configure configure-dbg
+.PHONY: install-gnumach install-gnumach-dbg binary binary-indep binary-arch
 

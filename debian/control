@@ -4,10 +4,18 @@ Priority: optional
 Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
 Uploaders: Marcus Brinkmann <brinkmd@debian.org>, Jeff Bailey <jbailey@raspberryginger.com>, Neal H. Walfield <neal@debian.org>, Guillem Jover <guillem@debian.org>
 Standards-Version: 3.6.1
-Build-Depends: debhelper (>= 4.0.0), mig, sharutils, texinfo
+Build-Depends: debhelper (>= 4.2.0), mig, sharutils, texinfo
 
 Package: gnumach
 Section: base
+Priority: optional
+Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
+Description: The GNU version of the Mach microkernel
+ This is the Utah Mach microkernel used by the Hurd.
+
+Package: gnumach-udeb
+XC-Package-Type: udeb
+Section: debian-installer
 Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel

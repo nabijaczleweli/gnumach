@@ -1,3 +1,14 @@
+gnumach (1:20050501-3) unstable; urgency=low
+
+  * Provide a udeb package.
+    - Depend on debhelper >= 4.2.
+  * Cleaned debian/rules:
+    - Merge install-gnumach-dev target with install-gnumach.
+    - Add PHONY targets.
+    - Remove unused all target.
+
+ -- Guillem Jover <guillem@debian.org>  Thu,  2 Jun 2005 22:14:40 +0300
+
 gnumach (1:20050501-2) unstable; urgency=low
 
   * Add a system stabilizer patch.
