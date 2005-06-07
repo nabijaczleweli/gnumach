@@ -1,0 +1,383 @@
+#DPATCHLEVEL=1
+
+2005-06-06  Marcus Brinkmann  <marcus@gnu.org>
+
+	* include/mach/mach4.defs: Add memory_object_create_proxy
+	interface.
+	* Makefile.in (vm-cfiles): Add memory_object_proxy.c.
+	* i386/include/mach/i386/vm_types.h (vm_offset_array_t): New type.
+	* include/mach/memory_object.h (memory_object_array_t): New type.
+	* vm/memory_object_proxy.c: New file.
+	* kern/ipc_kobject.h: New macro IKOT_PAGER_PROXY.  Bump up macros
+	IKOT_UNKNOWN and IKOT_MAX_TYPE.
+	* kern/ipc_kobject.c (ipc_kobject_notify): Call
+	memory_object_proxy_notify for IKOT_PAGER_PROXY.
+	* vm/vm_init.c (vm_mem_init): Call memory_object_proxy_init.
+	* vm/vm_user.c (vm_map): Implement support for proxy memory
+	objects.
+
+diff -rupN gnumach-1/Makefile.in gnumach/Makefile.in
+--- gnumach-1/Makefile.in	2005-06-06 21:37:42.000000000 +0200
++++ gnumach/Makefile.in	2005-06-07 04:08:55.000000000 +0200
+@@ -1,5 +1,5 @@
+ # Makefile for Mach 4 kernel directory
+-# Copyright 1997, 1999, 2004 Free Software Foundation, Inc.
++# Copyright 1997, 1999, 2004, 2005 Free Software Foundation, Inc.
+ #
+ # Permission to use, copy, modify and distribute this software and its
+ # documentation is hereby granted, provided that both the copyright
+@@ -157,7 +157,7 @@ util-files = $(util-cfiles) config.h cpu
+ 	phys_mem.h ref_count.h
+ 
+ # Virtual memory implementation
+-vm-cfiles = $(addprefix vm_,$(vm-names)) memory_object.c
++vm-cfiles = $(addprefix vm_,$(vm-names)) memory_object.c memory_object_proxy.c
+ vm-names = debug.c external.c fault.c init.c kern.c map.c \
+ 	object.c pageout.c resident.c user.c
+ vm-files = $(vm-cfiles) memory_object_default.cli memory_object_user.cli \
+diff -rupN gnumach-1/i386/include/mach/i386/vm_types.h gnumach/i386/include/mach/i386/vm_types.h
+--- gnumach-1/i386/include/mach/i386/vm_types.h	2005-06-06 21:37:55.000000000 +0200
++++ gnumach/i386/include/mach/i386/vm_types.h	2005-06-07 04:08:55.000000000 +0200
+@@ -74,6 +74,7 @@ typedef unsigned int	uint32;
+  * e.g. an offset into a virtual memory space.
+  */
+ typedef	natural_t	vm_offset_t;
++typedef	vm_offset_t *	vm_offset_array_t;
+ 
+ /*
+  * A vm_size_t is the proper type for e.g.
+diff -rupN gnumach-1/include/mach/mach4.defs gnumach/include/mach/mach4.defs
+--- gnumach-1/include/mach/mach4.defs	2005-06-06 21:38:01.000000000 +0200
++++ gnumach/include/mach/mach4.defs	2005-06-07 04:10:27.000000000 +0200
+@@ -79,4 +79,34 @@ skip	/* pc_sampling reserved 1*/;
+ skip	/* pc_sampling reserved 2*/;
+ skip	/* pc_sampling reserved 3*/;
+ skip	/* pc_sampling reserved 4*/;
++
++#else
++
++skip;	/* task_enable_pc_sampling */
++skip;	/* task_disable_pc_sampling */
++skip;	/* task_get_sampled_pcs */
++skip;	/* thread_enable_pc_sampling */
++skip;	/* thread_disable_pc_sampling */
++skip;	/* thread_get_sampled_pcs */
++
++skip	/* pc_sampling reserved 1*/;
++skip	/* pc_sampling reserved 2*/;
++skip	/* pc_sampling reserved 3*/;
++skip	/* pc_sampling reserved 4*/;
++
+ #endif
++
++
++/* Create a new proxy memory object from [START;START+LEN) in the
++   given OBJECT at OFFSET in the new object with the maximum
++   protection MAX_PROTECTION and return it in *PORT.  */
++type vm_offset_array_t = array[*:1024] of vm_offset_t;
++routine memory_object_create_proxy(
++		task		: ipc_space_t;
++		max_protection	: vm_prot_t;
++		object		: memory_object_array_t =
++				  array[*:1024] of memory_object_t;
++		offset		: vm_offset_array_t;
++		start		: vm_offset_array_t;
++		len		: vm_offset_array_t;
++		out proxy	: mach_port_t);
+diff -rupN gnumach-1/include/mach/memory_object.h gnumach/include/mach/memory_object.h
+--- gnumach-1/include/mach/memory_object.h	2005-06-06 21:38:01.000000000 +0200
++++ gnumach/include/mach/memory_object.h	2005-06-07 04:08:56.000000000 +0200
+@@ -46,6 +46,9 @@ typedef	mach_port_t	memory_object_t;
+ 					/*  the object to map; used by the */
+ 					/*  kernel to retrieve or store data */
+ 
++typedef	mach_port_t *	memory_object_array_t;
++					/* should be memory_object_t * */
++
+ typedef	mach_port_t	memory_object_control_t;
+ 					/* Provided to a memory manager; ... */
+ 					/*  used to control a memory object */
+diff -rupN gnumach-1/kern/ipc_kobject.c gnumach/kern/ipc_kobject.c
+--- gnumach-1/kern/ipc_kobject.c	2005-06-06 21:38:07.000000000 +0200
++++ gnumach/kern/ipc_kobject.c	2005-06-07 04:08:56.000000000 +0200
+@@ -385,6 +385,9 @@ ipc_kobject_notify(request_header, reply
+ 		case IKOT_DEVICE:
+ 		return ds_notify(request_header);
+ 
++		case IKOT_PAGER_PROXY:
++		return memory_object_proxy_notify(request_header);
++
+ 		default:
+ 		return FALSE;
+ 	}
+diff -rupN gnumach-1/kern/ipc_kobject.h gnumach/kern/ipc_kobject.h
+--- gnumach-1/kern/ipc_kobject.h	2005-06-06 21:38:07.000000000 +0200
++++ gnumach/kern/ipc_kobject.h	2005-06-07 04:08:56.000000000 +0200
+@@ -77,9 +77,10 @@ typedef unsigned int ipc_kobject_type_t;
+ #define IKOT_LOCK_SET		24
+ #define IKOT_CLOCK		25
+ #define IKOT_CLOCK_CTRL		26
++#define	IKOT_PAGER_PROXY	27
+ 					/* << new entries here	*/
+-#define	IKOT_UNKNOWN		27	/* magic catchall	*/
+-#define	IKOT_MAX_TYPE		28	/* # of IKOT_ types	*/
++#define	IKOT_UNKNOWN		28	/* magic catchall	*/
++#define	IKOT_MAX_TYPE		29	/* # of IKOT_ types	*/
+  /* Please keep ipc/ipc_object.c:ikot_print_array up to date	*/
+ 
+ #define is_ipc_kobject(ikot)	(ikot != IKOT_NONE)
+diff -rupN gnumach-1/vm/memory_object_proxy.c gnumach/vm/memory_object_proxy.c
+--- gnumach-1/vm/memory_object_proxy.c	1970-01-01 01:00:00.000000000 +0100
++++ gnumach/vm/memory_object_proxy.c	2005-06-07 04:13:37.000000000 +0200
+@@ -0,0 +1,200 @@
++/* memory_object_proxy.c - Proxy memory objects for Mach.
++   Copyright (C) 2005 Free Software Foundation, Inc.
++   Written by Marcus Brinkmann.
++
++   This file is part of GNU Mach.
++
++   GNU Mach is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 2, or (at your option)
++   any later version.
++
++   GNU Mach is distributed in the hope that it will be useful, but
++   WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program; if not, write to the Free Software
++   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA. */
++
++/* A proxy memory object is a kernel port that can be used like a real
++   memory object in a vm_map call, except that the current and maximum
++   protection are restricted to the proxy object's maximum protection
++   at the time the mapping is established.  The kernel port will hold
++   a reference to the real memory object for the life time of the
++   proxy object.
++
++   Note that we don't need to do any reference counting on the proxy
++   object.  Our caller will hold a reference to the proxy object when
++   looking it up, and is expected to acquire its own reference to the
++   real memory object if needed before releasing the reference to the
++   proxy object.
++
++   The user provided real memory object and the maximum protection are
++   not checked for validity.  The maximum protection is only used as a
++   mask, and the memory object is validated at the time the mapping is
++   established.  */
++
++#include <mach/port.h>
++#include <mach/kern_return.h>
++#include <mach/notify.h>
++#include <mach/vm_prot.h>
++#include <kern/zalloc.h>
++#include <kern/mach_param.h>
++#include <ipc/ipc_port.h>
++#include <ipc/ipc_space.h>
++
++/* The zone which holds our proxy memory objects.  */
++static zone_t memory_object_proxy_zone;
++
++struct memory_object_proxy
++{
++  struct ipc_port *port;
++
++  ipc_port_t object;
++  vm_prot_t max_protection;
++};
++typedef struct memory_object_proxy *memory_object_proxy_t;
++
++
++void
++memory_object_proxy_init (void)
++{
++  /* For limit, see PORT_MAX.  */
++  memory_object_proxy_zone = zinit (sizeof (struct memory_object_proxy),
++				    (TASK_MAX * 3 + THREAD_MAX)
++				    * sizeof (struct memory_object_proxy),
++				    256 * sizeof (struct memory_object_proxy),
++				    ZONE_EXHAUSTIBLE,
++				    "proxy memory object zone");
++}
++  
++/* Lookup a proxy memory object by its port.  */
++static memory_object_proxy_t
++memory_object_proxy_port_lookup (ipc_port_t port)
++{
++  memory_object_proxy_t proxy;
++
++  if (!IP_VALID(port))
++    return 0;
++
++  ip_lock (port);
++  if (ip_active (port) && (ip_kotype (port) == IKOT_PAGER_PROXY))
++    proxy = (memory_object_proxy_t) port->ip_kobject;
++  else
++    proxy = 0;
++  ip_unlock (port);
++  return proxy;
++}
++
++
++/* Process a no-sender notification for the proxy memory object
++   port.  */
++boolean_t
++memory_object_proxy_notify (mach_msg_header_t *msg)
++{
++  if (msg->msgh_id == MACH_NOTIFY_NO_SENDERS)
++    {
++      memory_object_proxy_t proxy;
++      mach_no_senders_notification_t *ns;
++
++      ns = (mach_no_senders_notification_t *) msg;
++      proxy = memory_object_proxy_port_lookup
++	((ipc_port_t) ns->not_header.msgh_remote_port);
++      assert (proxy);
++
++      ipc_port_release_send (proxy->object);
++      return TRUE;
++    }
++
++  printf ("memory_object_proxy_notify: strange notification %d\n",
++	  msg->msgh_id);
++  return FALSE;
++}
++
++
++/* Create a new proxy memory object from [START;START+LEN) in the
++   given OBJECT at OFFSET in the new object with the maximum
++   protection MAX_PROTECTION and return it in *PORT.  */
++kern_return_t
++memory_object_create_proxy (ipc_space_t space, vm_prot_t max_protection,
++			    ipc_port_t *object, natural_t object_count,
++			    vm_offset_t *offset, natural_t offset_count,
++			    vm_offset_t *start, natural_t start_count,
++			    vm_offset_t *len, natural_t len_count,
++			    ipc_port_t *port)
++{
++  kern_return_t kr;
++  memory_object_proxy_t proxy;
++  ipc_port_t notify;
++
++  if (space == IS_NULL)
++    return KERN_INVALID_TASK;
++
++  if (offset_count != object_count || start_count != object_count
++      || len_count != object_count)
++    return KERN_INVALID_ARGUMENT;
++
++  /* FIXME: Support more than one memory object.  */
++  if (object_count != 1)
++    return KERN_INVALID_ARGUMENT;
++
++  if (!IP_VALID(object[0]))
++    return KERN_INVALID_NAME;
++
++  /* FIXME: Support a different offset from 0.  */
++  if (offset[0] != 0)
++    return KERN_INVALID_ARGUMENT;
++
++  /* FIXME: Support a different range from total.  */
++  if (start[0] != 0 || len[0] != (vm_offset_t) ~0)
++    return KERN_INVALID_ARGUMENT;
++
++  proxy = (memory_object_proxy_t) zalloc (memory_object_proxy_zone);
++
++  /* Allocate port, keeping a reference for it.  */
++  proxy->port = ipc_port_alloc_kernel ();
++  if (proxy->port == IP_NULL)
++    {
++      zfree (memory_object_proxy_zone, (vm_offset_t) proxy);
++      return KERN_RESOURCE_SHORTAGE;
++    }
++  /* Associate the port with the proxy memory object.  */
++  ipc_kobject_set (proxy->port, (ipc_kobject_t) proxy, IKOT_PAGER_PROXY);
++
++  /* Request no-senders notifications on the port.  */
++  notify = ipc_port_make_sonce (proxy->port);
++  ip_lock (proxy->port);
++  ipc_port_nsrequest (proxy->port, 1, notify, &notify);
++  assert (notify == IP_NULL);
++
++  proxy->object = ipc_port_copy_send (object[0]);
++  proxy->max_protection = max_protection;
++
++  *port = ipc_port_make_send (proxy->port);
++  return KERN_SUCCESS;
++}
++
++
++/* Lookup the real memory object and maximum protection for the proxy
++   memory object port PORT, for which the caller holds a reference.
++   *OBJECT is only guaranteed to be valid as long as the caller holds
++   the reference to PORT (unless the caller acquires its own reference
++   to it).  If PORT is not a proxy memory object, return
++   KERN_INVALID_ARGUMENT.  */
++kern_return_t
++memory_object_proxy_lookup (ipc_port_t port, ipc_port_t *object,
++			    vm_prot_t *max_protection)
++{
++  memory_object_proxy_t proxy;
++
++  proxy = memory_object_proxy_port_lookup (port);
++  if (!proxy)
++    return KERN_INVALID_ARGUMENT;
++
++   *object = proxy->object;
++   *max_protection = proxy->max_protection;
++
++  return KERN_SUCCESS;
++}
+diff -rupN gnumach-1/vm/vm_init.c gnumach/vm/vm_init.c
+--- gnumach-1/vm/vm_init.c	2005-06-06 21:38:40.000000000 +0200
++++ gnumach/vm/vm_init.c	2005-06-07 04:08:56.000000000 +0200
+@@ -81,4 +81,5 @@ void vm_mem_bootstrap()
+ void vm_mem_init()
+ {
+ 	vm_object_init();
++	memory_object_proxy_init();
+ }
+diff -rupN gnumach-1/vm/vm_user.c gnumach/vm/vm_user.c
+--- gnumach-1/vm/vm_user.c	2005-06-06 21:38:43.000000000 +0200
++++ gnumach/vm/vm_user.c	2005-06-07 04:08:56.000000000 +0200
+@@ -275,6 +275,12 @@ kern_return_t vm_copy(map, source_addres
+ 	return KERN_SUCCESS;
+ }
+ 
++
++/* XXX From memory_object_proxy.c  */
++kern_return_t
++memory_object_proxy_lookup (ipc_port_t proxy_object, ipc_port_t *object,
++                            vm_prot_t *max_protection);
++
+ /*
+  *	Routine:	vm_map
+  */
+@@ -324,7 +330,22 @@ kern_return_t vm_map(
+ 		copy = FALSE;
+ 	} else if ((object = vm_object_enter(memory_object, size, FALSE))
+ 			== VM_OBJECT_NULL)
+-		return(KERN_INVALID_ARGUMENT);
++	  {
++	    ipc_port_t real_memobj;
++	    vm_prot_t prot;
++	    result = memory_object_proxy_lookup (memory_object, &real_memobj,
++						 &prot);
++	    if (result != KERN_SUCCESS)
++	      return result;
++
++	    /* Reduce the allowed access to the memory object.  */
++	    max_protection &= prot;
++	    cur_protection &= prot;
++
++	    if ((object = vm_object_enter(real_memobj, size, FALSE))
++		== VM_OBJECT_NULL)
++	      return KERN_INVALID_ARGUMENT;
++	  }
+ 
+ 	/*
+ 	 *	Perform the copy if requested
+
+

@@ -1,3 +1,11 @@
+gnumach (1:20050501-4) unstable; urgency=low
+
+  * Add proxy memory objets.
+    - debian/patches/15_mem_obj_proxy.patch.
+    Thanks to Marcus Brinkmann <marcus@gnu.org>.
+
+ -- Guillem Jover <guillem@debian.org>  Wed,  8 Jun 2005 02:01:42 +0300
+
 gnumach (1:20050501-3) unstable; urgency=low
 
   * Provide a udeb package.
