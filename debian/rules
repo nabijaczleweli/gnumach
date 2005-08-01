@@ -27,39 +27,46 @@ include debian/patch.mk
 configure: patch stamp-configure
 stamp-configure:
 	dh_testdir
+	
 	-mkdir build
 	cd build && ../configure $(drivers) \
 		CFLAGS="$(CFLAGS)" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+	
 	touch stamp-configure
 
 configure-dbg: patch stamp-configure-dbg
 stamp-configure-dbg:
 	dh_testdir
+	
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
 		CFLAGS="$(CFLAGS)" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+	
 	touch stamp-configure-dbg
 
 build:
 
 build-gnumach: configure
 	dh_testdir
+	
 	$(MAKE) -C build
 	$(MAKE) -C build/doc
 
 build-gnumach-dbg: configure-dbg
 	dh_testdir
+	
 	$(MAKE) -C build-dbg
 
 clean::
 	dh_testdir
+	
 	-rm -f machine stamp-configure
 	-rm -rf build build-dbg
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
-                -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
-                -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
+	  -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
+	  -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
 	
 	dh_clean
 
