@@ -1,3 +1,17 @@
+#DPATCHLEVEL=1
+
+2005-05-01  Andreas B. Mundt  <andi.mundt@web.de>
+
+	* doc/mach.texi: Add --enable-sis900 option.
+	* i386/README-Drivers: Likewise.
+	* i386/linux/Makefile.in (linux-net-files): Added 'sis900'.
+	* i386/linux/configure.ac (sis900): New driver.
+	* linux/dev/drivers/net/Space.c: Add conditional probes 'sis900'
+	driver.
+	* linux/src/drivers/net/sis900.c: New file.
+	* linux/src/drivers/net/sis900.h: Likewise.
+
+
 diff -ruN gnumach.orig/doc/mach.texi gnumach.sis900/doc/mach.texi
 --- gnumach.orig/doc/mach.texi	2002-03-29 22:01:19.000000000 +0100
 +++ gnumach.sis900/doc/mach.texi	2005-03-26 21:08:35.000000000 +0100
@@ -2163,6 +2177,3 @@ diff -ruN gnumach.orig/linux/src/drivers/net/sis900.h gnumach.sis900/linux/src/d
 +#define SIOCSMIIREG (SIOCDEVPRIVATE+2)		/* Write a PHY register */
 
 
--- 
-To UNSUBSCRIBE, email to debian-hurd-REQUEST@lists.debian.org
-with a subject of "unsubscribe". Trouble? Contact listmaster@lists.debian.org
