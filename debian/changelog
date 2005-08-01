@@ -1,3 +1,13 @@
+gnumach (1:20050501-5) UNRELEASED; urgency=low
+
+  * New upstream CVS snapshot.
+    - debian/patches/00_autoconf_update.patch: Remove, integrated upstream.
+    - debian/patches/11_nic_update.patch: Rediff.
+    - debian/patches/90_autoconf_autogen.patch: Regenerate.
+  * No need to rename Drivers.in to configure.ac anymore.
+
+ -- Guillem Jover <guillem@debian.org>  Mon,  1 Aug 2005 03:46:51 +0300
+
 gnumach (1:20050501-4) unstable; urgency=low
 
   * Add proxy memory objets.

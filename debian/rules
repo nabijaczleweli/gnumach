@@ -22,11 +22,6 @@ endif
 
 include debian/rules.options
 
-patch::
-	# XXX: Should be removed once the autoconf patch is in upstream
-	test -f i386/linux/configure.ac || \
-	  cp i386/linux/Drivers.in i386/linux/configure.ac
-
 include debian/patch.mk
 
 configure: patch stamp-configure
@@ -65,8 +60,6 @@ clean::
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
                 -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
                 -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
-	# XXX: Should be removed once the autoconf patch is in upstream
-	rm -f i386/linux/configure.ac
 	
 	dh_clean
 
