@@ -1,4 +1,4 @@
-gnumach (1:20050801-5) unstable; urgency=low
+gnumach (1:20050801-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
     - debian/patches/00_autoconf_update.patch: Remove, integrated upstream.
@@ -23,7 +23,7 @@ gnumach (1:20050801-5) unstable; urgency=low
   * Upgrade to debhelper compat version 5.
   * Update FSF's address.
 
- -- Guillem Jover <guillem@debian.org>  Thu, 10 Nov 2005 05:01:08 +0200
+ -- Guillem Jover <guillem@debian.org>  Thu, 10 Nov 2005 06:01:36 +0200
 
 gnumach (1:20050501-4) unstable; urgency=low
 
