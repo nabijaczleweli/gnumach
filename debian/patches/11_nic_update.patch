@@ -21,6 +21,9 @@
 	* linux/dev/drivers/net/eepro100.c: Remove obsoleted file.
 	* linux/src/drivers/net/eepro100.c (pci_id_tbl): Add PCI ID's from
 	linux-2.6.14-rc4.
+
+2005-11-05  Thomas Schwinge  <tschwinge@gnu.org>
+
 	* linux/src/drivers/net/ne2k-pci.c (ne2k_pci_block_input)
 	(ne2k_pci_block_output): Fix invalid lvalue errors with gcc 4.0.
 
@@ -17690,7 +17693,7 @@ diff -u -r1.1 ne2k-pci.c
  	outb(E8390_NODMA+E8390_PAGE0+E8390_START, nic_base+ NE_CMD);
  	outb(count & 0xff, nic_base + EN0_RCNTLO);
  	outb(count >> 8, nic_base + EN0_RCNTHI);
-@@ -537,31 +537,29 @@
+@@ -537,31 +537,30 @@
  	outb(ring_offset >> 8, nic_base + EN0_RSARHI);
  	outb(E8390_RREAD+E8390_START, nic_base + NE_CMD);
  
@@ -17702,14 +17705,6 @@ diff -u -r1.1 ne2k-pci.c
 -			{
 -				*buf = *(u16 *) buf + 1;
 -				*buf = inw(NE_BASE + NE_DATAPORT);
--			}
--		if (count & 1)
--			*buf = inb(NE_BASE + NE_DATAPORT);
--	}
--#else
--	insw(NE_BASE + NE_DATAPORT,buf,count>>1);
--	if (count & 0x01) {
--		buf[count-1] = inb(NE_BASE + NE_DATAPORT);
 +	if (ei_status.ne2k_flags & ONLY_16BIT_IO) {
 +		insw(NE_BASE + NE_DATAPORT,buf,count>>1);
 +		if (count & 0x01) {
@@ -17719,9 +17714,17 @@ diff -u -r1.1 ne2k-pci.c
 +		insl(NE_BASE + NE_DATAPORT, buf, count>>2);
 +		if (count & 3) {
 +			buf += count & ~3;
-+			if (count & 2)
-+				*((u16*)buf) = le16_to_cpu(inw(NE_BASE + NE_DATAPORT));
-+				buf = (u16*)buf + 1;
++			if (count & 2) {
++				*((u16 *) buf) = le16_to_cpu(inw(NE_BASE + NE_DATAPORT));
++				buf = (void *) buf + sizeof (u16);
+ 			}
+-		if (count & 1)
+-			*buf = inb(NE_BASE + NE_DATAPORT);
+-	}
+-#else
+-	insw(NE_BASE + NE_DATAPORT,buf,count>>1);
+-	if (count & 0x01) {
+-		buf[count-1] = inb(NE_BASE + NE_DATAPORT);
 +			if (count & 1)
 +				*buf = inb(NE_BASE + NE_DATAPORT);
 +		}
@@ -17738,7 +17741,7 @@ diff -u -r1.1 ne2k-pci.c
  		const unsigned char *buf, const int start_page)
  {
  	int nic_base = NE_BASE;
-@@ -569,15 +567,18 @@
+@@ -569,15 +568,18 @@
  
  	/* On little-endian it's always safe to round the count up for
  	   word writes. */
@@ -17761,7 +17764,7 @@ diff -u -r1.1 ne2k-pci.c
  		return;
  	}
  	ei_status.dmaing |= 0x01;
-@@ -603,24 +604,25 @@
+@@ -603,24 +605,25 @@
  	outb(0x00, nic_base + EN0_RSARLO);
  	outb(start_page, nic_base + EN0_RSARHI);
  	outb(E8390_RWRITE+E8390_START, nic_base + NE_CMD);
@@ -17779,8 +17782,8 @@ diff -u -r1.1 ne2k-pci.c
 +		if (count & 3) {
 +			buf += count & ~3;
 +			if (count & 2) {
-+				outw(cpu_to_le16(*((u16*)buf)), NE_BASE + NE_DATAPORT);
-+				buf = (u16*)buf + 1;
++				outw(cpu_to_le16(*((u16 *) buf)), NE_BASE + NE_DATAPORT);
++				buf = (void *) buf + sizeof (u16);
 +			}
 +		}
  	}
@@ -17798,7 +17801,7 @@ diff -u -r1.1 ne2k-pci.c
  			LNS8390_init(dev,1);
  			break;
  		}
-@@ -633,8 +635,8 @@
+@@ -633,8 +636,8 @@
  
  /*
   * Local variables:
