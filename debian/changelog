@@ -14,6 +14,10 @@ gnumach (1:20050801-5) unstable; urgency=low
   * Fix an off-by-one bug in the PATA probe function.
     - debian/patches/21_pata_off_by_one_irq.patch: New file.
     Thanks to Patch by Sergio Lopez <koro@sinrega.org>.
+  * Set correct values for %gs and %fs when entering kernel mode. Make sure
+    to always copy the master LDT when the user does not have a modified one.
+    - debian/patches/31_tls_ldt.patch: New file.
+    Thanks to Jeroen Dekkers <jeroen@dekkers.cx>.
   * Now using Standards-Version 3.6.2 (no changes needed).
 
  -- Guillem Jover <guillem@debian.org>  Mon,  1 Aug 2005 04:43:41 +0300
