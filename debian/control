@@ -2,7 +2,9 @@ Source: gnumach
 Section: base
 Priority: optional
 Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
-Uploaders: Marcus Brinkmann <brinkmd@debian.org>, Jeff Bailey <jbailey@raspberryginger.com>, Neal H. Walfield <neal@debian.org>, Guillem Jover <guillem@debian.org>
+Uploaders: Marcus Brinkmann <brinkmd@debian.org>,
+ Jeff Bailey <jbailey@raspberryginger.com>, Neal H. Walfield <neal@debian.org>,
+ Guillem Jover <guillem@debian.org>
 Standards-Version: 3.6.2
 Build-Depends: debhelper (>= 4.2.0), mig, sharutils, texinfo
 

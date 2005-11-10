@@ -19,6 +19,7 @@ gnumach (1:20050801-5) unstable; urgency=low
     - debian/patches/31_tls_ldt.patch: New file.
     Thanks to Jeroen Dekkers <jeroen@dekkers.cx>.
   * Now using Standards-Version 3.6.2 (no changes needed).
+  * Wrap lines in debian/control fields (knowingly breaking policy).
 
  -- Guillem Jover <guillem@debian.org>  Mon,  1 Aug 2005 04:43:41 +0300
 
