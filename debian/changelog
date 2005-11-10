@@ -23,7 +23,7 @@ gnumach (1:20050801-5) unstable; urgency=low
   * Upgrade to debhelper compat version 5.
   * Update FSF's address.
 
- -- Guillem Jover <guillem@debian.org>  Mon,  1 Aug 2005 04:43:41 +0300
+ -- Guillem Jover <guillem@debian.org>  Thu, 10 Nov 2005 05:01:08 +0200
 
 gnumach (1:20050501-4) unstable; urgency=low
 
