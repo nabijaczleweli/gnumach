@@ -1,0 +1,44 @@
+#DPATCHLEVEL=0
+
+2005-10-29  Alfred M. Szmidt  <ams@gnu.org>
+
+	* linux/src/drivers/scsi/eata_pio.c (eata_pio_detect): Fix a
+	off-by-one error when probing.
+	* linux/src/drivers/scsi/eata_dma.c (eata_detect): Likewise.
+	* linux/dev/drivers/scsi/eata_dma.c (eata_detect): Likewise.
+	Patch by Sergio Lopez <koro@sinrega.org>.
+
+--- linux/src/drivers/scsi/eata_dma.c
++++ linux/src/drivers/scsi/eata_dma.c
+@@ -1532,7 +1532,7 @@
+     
+     find_ISA(&gc, tpnt);
+     
+-    for (i = 0; i <= MAXIRQ; i++) { /* Now that we know what we have, we     */
++    for (i = 0; i < MAXIRQ; i++) {  /* Now that we know what we have, we     */
+ 	if (reg_IRQ[i] >= 1){       /* exchange the interrupt handler which  */
+ 	    free_irq(i, NULL);      /* we used for probing with the real one */
+ 	    request_irq(i, (void *)(eata_int_handler), SA_INTERRUPT|SA_SHIRQ, 
+--- linux/src/drivers/scsi/eata_pio.c
++++ linux/src/drivers/scsi/eata_pio.c
+@@ -981,7 +981,7 @@
+ 
+     find_pio_ISA(&gc, tpnt);
+     
+-    for (i = 0; i <= MAXIRQ; i++)
++    for (i = 0; i < MAXIRQ; i++)
+ 	if (reg_IRQ[i])
+ 	    request_irq(i, eata_pio_int_handler, SA_INTERRUPT, "EATA-PIO", NULL);
+     
+--- linux/dev/drivers/scsi/eata_dma.c
++++ linux/dev/drivers/scsi/eata_dma.c
+@@ -1536,7 +1536,7 @@
+     
+     find_ISA(&gc, tpnt);
+     
+-    for (i = 0; i <= MAXIRQ; i++) { /* Now that we know what we have, we     */
++    for (i = 0; i < MAXIRQ; i++) {  /* Now that we know what we have, we     */
+ 	if (reg_IRQ[i] >= 1){       /* exchange the interrupt handler which  */
+ 	    free_irq(i, NULL);      /* we used for probing with the real one */
+ 	    request_irq(i, (void *)(eata_int_handler), SA_INTERRUPT|SA_SHIRQ, 
+

@@ -11,6 +11,9 @@ gnumach (1:20050801-5) unstable; urgency=low
     request_irq().
     - debian/patches/20_ide_disable_irqs.patch: New file.
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
+  * Fix an off-by-one bug in the PATA probe function.
+    - debian/patches/21_pata_off_by_one_irq.patch: New file.
+    Thanks to Patch by Sergio Lopez <koro@sinrega.org>.
   * Now using Standards-Version 3.6.2 (no changes needed).
 
  -- Guillem Jover <guillem@debian.org>  Mon,  1 Aug 2005 04:43:41 +0300
