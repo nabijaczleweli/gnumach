@@ -1,3 +1,9 @@
+gnumach (1:20050801-2) UNRELEASED; urgency=low
+
+  * Added a watch file.
+
+ -- Guillem Jover <guillem@debian.org>  Thu, 17 Nov 2005 01:20:14 +0200
+
 gnumach (1:20050801-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
