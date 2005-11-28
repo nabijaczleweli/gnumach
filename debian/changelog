@@ -1,6 +1,10 @@
 gnumach (1:20050801-2) UNRELEASED; urgency=low
 
   * Added a watch file.
+  * Fix segmentation fault on boot up. The apricot net driver was trashing the
+    stack when reading the MAC address from the io port. (Closes: #340389)
+    - debian/patches/16_net_apricot_stack_of.patch: New file.
+    Thanks to Sergio Lopez  <koro@sinrega.org>.
 
  -- Guillem Jover <guillem@debian.org>  Thu, 17 Nov 2005 01:20:14 +0200
 
