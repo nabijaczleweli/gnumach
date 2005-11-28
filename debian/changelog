@@ -1,7 +1,7 @@
-gnumach (1:20050801-2) UNRELEASED; urgency=low
+gnumach (1:20050801-2) unstable; urgency=low
 
   * Added a watch file.
-  * Fix segmentation fault on boot up. The apricot net driver was trashing the
+  * Fix segmentation fault on boot. The apricot net driver was trashing the
     stack when reading the MAC address from the io port. (Closes: #340389)
     - debian/patches/16_net_apricot_stack_of.patch: New file.
     Thanks to Sergio Lopez  <koro@sinrega.org>.
@@ -10,7 +10,7 @@ gnumach (1:20050801-2) UNRELEASED; urgency=low
     - debian/pacthes/17_net_gcc_4.0.patch: ... here.
     Thanks to Thomas Schwinge <tschwinge@gnu.org>.
 
- -- Guillem Jover <guillem@debian.org>  Thu, 17 Nov 2005 01:20:14 +0200
+ -- Guillem Jover <guillem@debian.org>  Mon, 28 Nov 2005 03:46:36 +0200
 
 gnumach (1:20050801-1) unstable; urgency=low
 
@@ -27,7 +27,7 @@ gnumach (1:20050801-1) unstable; urgency=low
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
   * Fix an off-by-one bug in the PATA probe function.
     - debian/patches/21_pata_off_by_one_irq.patch: New file.
-    Thanks to Patch by Sergio Lopez <koro@sinrega.org>.
+    Thanks to Sergio Lopez <koro@sinrega.org>.
   * Set correct values for %gs and %fs when entering kernel mode. Make sure
     to always copy the master LDT when the user does not have a modified one.
     - debian/patches/31_tls_ldt.patch: New file.
