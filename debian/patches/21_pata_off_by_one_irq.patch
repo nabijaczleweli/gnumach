@@ -8,6 +8,7 @@
 	* linux/dev/drivers/scsi/eata_dma.c (eata_detect): Likewise.
 	Patch by Sergio Lopez <koro@sinrega.org>.
 
+
 --- linux/src/drivers/scsi/eata_dma.c
 +++ linux/src/drivers/scsi/eata_dma.c
 @@ -1532,7 +1532,7 @@

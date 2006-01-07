@@ -16,6 +16,7 @@
 	* vm/vm_user.c (vm_map): Implement support for proxy memory
 	objects.
 
+
 diff -rupN gnumach-1/Makefile.in gnumach/Makefile.in
 --- gnumach-1/Makefile.in	2005-06-06 21:37:42.000000000 +0200
 +++ gnumach/Makefile.in	2005-06-07 04:08:55.000000000 +0200
