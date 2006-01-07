@@ -3,6 +3,8 @@
 Do not --enable-ide-forcedma by default, it's too dangerous on non-DMA
 supporting hardware.
 
+2004-09-17  Sergio Lopez  <koro@sinrega.org>
+
 
 diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
 --- i386.orig/linux/configure.ac	2004-09-17 01:03:19.000000000 +0200

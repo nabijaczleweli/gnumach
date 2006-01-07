@@ -1,3 +1,11 @@
+gnumach (1:20050801-3) unstable; urgency=low
+
+  * Added ChangeLog entries.
+    - debian/patches/13_ide_dma.patch: Modify
+    - debian/patches/14_alloc_params.patch: Likewise.
+
+ -- Guillem Jover <guillem@debian.org>  Sat,  7 Jan 2006 01:06:40 +0200
+
 gnumach (1:20050801-2) unstable; urgency=low
 
   * Added a watch file.

@@ -1,5 +1,12 @@
 #DPATCHLEVEL=0
 
+2005-05-11  Neal H. Walfield  <neal@cs.uml.edu>
+
+	* kern/mach_param.h (THREAD_MAX, TASK_MAX, ACT_MAX,
+	ACTPOOL_MAX): Make them 64 times bigger.
+	* kern/zalloc.c (zone_map_size): Increase from 12 to 16 MiB.
+
+
 Index: kern/mach_param.h
 ===================================================================
 RCS file: /cvsroot/hurd/gnumach/kern/mach_param.h,v
