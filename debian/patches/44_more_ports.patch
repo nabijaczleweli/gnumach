@@ -1,0 +1,50 @@
+#DPATCHLEVEL=1
+
+2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+	* i386/i386at/iopl.c (iopl_port_list): Add timer controler port.
+	* i386/i386at/kd.c (vga_port_list): Renamed to ...
+	(kd_port_list): ... this. Add timer and speaker ports.
+
+
+diff -urp gnumach-mine-3-device_port_fix/i386/i386at/iopl.c gnumach-mine-4-more_ports/i386/i386at/iopl.c
+--- gnumach-mine-3-device_port_fix/i386/i386at/iopl.c	2006-01-02 18:43:09.000000000 +0100
++++ gnumach-mine-4-more_ports/i386/i386at/iopl.c	2006-01-02 18:45:17.000000000 +0100
+@@ -47,7 +47,7 @@
+  */
+ io_reg_t iopl_port_list[] = {
+ 	/* timer 2 */
+-	0x42,
++	0x42, 0x43,
+ 	/* speaker output */
+ 	0x61,
+ 	/* ATI - savage */
+
+2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+        * kd.c(vga_port_list): Rename to...
+	(kd_port_list): this, set static, add timer and speaker ports.
+
+diff -urp gnumach-mine-3-device_port_fix/i386/i386at/kd.c gnumach-mine-4-more_ports/i386/i386at/kd.c
+--- gnumach-mine-3-device_port_fix/i386/i386at/kd.c	2006-01-02 18:43:12.000000000 +0100
++++ gnumach-mine-4-more_ports/i386/i386at/kd.c	2006-01-02 19:14:48.000000000 +0100
+@@ -348,7 +348,9 @@
+ /*
+  * IO port sets for different controllers.
+  */
+-io_reg_t vga_port_list[] = {
++static io_reg_t kd_port_list[] = {
++	0x42, 0x43,	/* Timer */
++	0x61,		/* Speaker */
+ 	0x3b4, 0x3b5, 0x3b8, 0x3b9, 0x3ba,	/* MDA/EGA */
+ 	0x3d4, 0x3d5, 0x3d8, 0x3d9, 0x3da,	/* CGA/EGA */
+ 	0x3c0, 0x3c1, 0x3c2, 0x3c3, 0x3c4, 0x3c5, 0x3c6, 0x3c7,
+@@ -362,7 +364,7 @@ kd_io_map_open(device)
+ 	mach_device_t	device;
+ {
+ 	kd_io_device = device;
+-	io_port_create(device, vga_port_list);
++	io_port_create(device, kd_port_list);
+ }
+ 
+ kd_io_map_close()

@@ -1,0 +1,57 @@
+#DPATCHLEVEL=1
+
+2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+	* i386/i386/iopb.c (i386_io_port_add): Fix getting device parameter.
+	(i386_io_port_remove): Same as above.
+
+
+diff -urp gnumach-mine-2-default_noio/i386/i386/iopb.c gnumach-mine-3-device_port_fix/i386/i386/iopb.c
+--- gnumach-mine-2-default_noio/i386/i386/iopb.c	2006-01-02 18:38:31.000000000 +0100
++++ gnumach-mine-3-device_port_fix/i386/i386/iopb.c	2006-01-02 18:42:45.000000000 +0100
+@@ -308,12 +308,22 @@
+ /*
+  * Add an IO mapping to a thread.
+  */
++#ifdef i386
++kern_return_t
++i386_io_port_add(
++	thread_t	thread,
++	device_t	d)
++#else
+ kern_return_t
+ i386_io_port_add(
+ 	thread_t	thread,
+ 	mach_device_t	device)
++#endif
+ {
+ 	pcb_t		pcb;
++#ifdef i386
++	mach_device_t	device = d->emul_data;
++#endif
+ 	iopb_tss_t	io_tss, new_io_tss;
+ 	io_port_t	io_port;
+ 	io_use_t	iu, old_iu;
+@@ -407,12 +417,22 @@
+ /*
+  * Remove an IO mapping from a thread.
+  */
++#ifdef i386
++kern_return_t
++i386_io_port_remove(thread, d)
++	thread_t	thread;
++	device_t	d;
++#else
+ kern_return_t
+ i386_io_port_remove(thread, device)
+ 	thread_t	thread;
+ 	mach_device_t	device;
++#endif
+ {
+ 	pcb_t		pcb;
++#ifdef i386
++	mach_device_t	device = d->emul_data;
++#endif
+ 	iopb_tss_t	io_tss;
+ 	io_port_t	io_port;
+ 	io_use_t	iu;

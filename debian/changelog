@@ -1,8 +1,17 @@
-gnumach (1:20050801-3) unstable; urgency=low
+gnumach (1:20050801-3) UNRELEASED; urgency=low
 
   * Added ChangeLog entries.
     - debian/patches/13_ide_dma.patch: Modify
     - debian/patches/14_alloc_params.patch: Likewise.
+  * Fix io port access. (Closes: #46709)
+    - debian/patches/40_user-tss.patch: New file.
+    - debian/patches/41_io_unlock_ioremove.patch: Likewise.
+    - debian/patches/42_disable_ioperm.disabled: Likewise.
+    - debian/patches/43_debvice_port_fix.patch: Likewise.
+    - debian/patches/44_more_ports.patch: Likewise.
+    - debian/patches/45_io_per_task.patch: Likewise.
+    - debian/patches/46_io_device.patch: Likewise.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
  -- Guillem Jover <guillem@debian.org>  Sat,  7 Jan 2006 01:06:40 +0200
 

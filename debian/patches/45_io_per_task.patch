@@ -1,0 +1,591 @@
+#DPATCHLEVEL=1
+
+2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+	* i386/i386/iopb.c: IO ports permissions are now task-based.
+	(i386_io_port_add): Fix TSS access and locking accordingly.
+	(i386_io_port_remove): Likewise.
+	(i386_io_port_list): Likewise.
+	(iopb_check_mapping): Likewise.
+	* i386/i386/pcb.c (switch_ktss): Now takes next thread as parameter
+	for TSS switch to be task-based.  Fix all callers.
+	(switch_context): Likewise.
+	(pcb_module_init): Move iopb initialization to ...
+	(machine_task_module_init): ... here.  New function.
+	(pcb_terminate): Move iopb termination to ...
+	(machine_task_terminate): ... here.  New function.
+	(machine_task_init): New function.
+	(machine_task_collect): Likewise.
+	(thread_setstatus): TSS is now task-based, fix TSS and locking
+	accordingly.
+	(thread_getstatus): Likewise.
+	* i386/i386/thread.h (i386_machine_state): Move io_tss member to ...
+	(machine_task): ... here.  New structure.
+
+	* i386/i386at/iopl.c (iopl_emulate): TSS is now task-based, fix TSS
+	and locking accordingly.
+
+	* kern/task.c (task_init): Call new machine_task_module_init() function.
+	(task_create): Call new machine_task_init() function.
+	(task_deallocate): Call new machine_task_terminate() function.
+	(task_collect_scan): Call new machine_task_collect() function.
+	* kern/task.h: Include <machine/thread.h> for machine_task_t.
+	(task): Add new machine member.
+
+
+diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/i386/i386/iopb.c
+--- gnumach-mine-4-more_ports/i386/i386/iopb.c	2006-01-02 18:42:45.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386/iopb.c	2005-12-29 23:42:34.000000000 +0100
+@@ -65,8 +65,8 @@
+ 
+ /*
+  * Cross-reference:
+- *	all threads that have IO ports mapped
+- *	all IO ports that have threads mapped
++ *	all tasks that have IO ports mapped
++ *	all IO ports that have tasks mapped
+  */
+ struct io_use {
+ 	queue_chain_t	psq;	/* Links from port set */
+@@ -306,7 +306,7 @@
+ }
+ 
+ /*
+- * Add an IO mapping to a thread.
++ * Add an IO mapping to a task.
+  */
+ #ifdef i386
+ kern_return_t
+@@ -320,7 +320,7 @@ i386_io_port_add(
+ 	mach_device_t	device)
+ #endif
+ {
+-	pcb_t		pcb;
++	task_t		task;
+ #ifdef i386
+ 	mach_device_t	device = d->emul_data;
+ #endif
+@@ -332,7 +332,7 @@ i386_io_port_add(
+ 	 || device == DEVICE_NULL)
+ 	    return KERN_INVALID_ARGUMENT;
+ 
+-	pcb = thread->pcb;
++	task = thread->task;
+ 
+ 	new_io_tss = 0;
+ 	iu = (io_use_t) kalloc(sizeof(struct io_use));
+@@ -355,16 +355,16 @@ i386_io_port_add(
+ 
+ 	/* Have the IO port. */
+ 
+-	/* Make sure the thread has a TSS. */
++	/* Make sure the task has a TSS. */
+ 
+-	simple_lock(&pcb->lock);
+-	io_tss = pcb->ims.io_tss;
++	task_lock(task);
++	io_tss = task->machine.io_tss;
+ 	if (io_tss == 0) {
+ 	    if (new_io_tss == 0) {
+ 		/*
+ 		 * Allocate an IO-tss.
+ 		 */
+-		simple_unlock(&pcb->lock);
++		task_unlock(task);
+ 		simple_unlock(&iopb_lock);
+ 
+ 		new_io_tss = (iopb_tss_t) kalloc(sizeof(struct iopb_tss));
+@@ -373,7 +373,12 @@ i386_io_port_add(
+ 		goto Retry;
+ 	    }
+ 	    io_tss = new_io_tss;
+-	    pcb->ims.io_tss = io_tss;
++	    task->machine.io_tss = io_tss;
++
++	    /* Update hardware if needed.  */
++	    if (task == current_thread()->task)
++		switch_ktss(thread);
++
+ 	    new_io_tss = 0;
+ 	}
+ 
+@@ -386,7 +391,7 @@ i386_io_port_add(
+ 		/*
+ 		 * Already mapped.
+ 		 */
+-		simple_unlock(&pcb->lock);
++		task_unlock(task);
+ 		simple_unlock(&iopb_lock);
+ 
+ 		kfree((vm_offset_t)iu, sizeof(struct io_use));
+@@ -405,7 +410,7 @@ i386_io_port_add(
+ 	queue_enter(&io_tss->io_port_list, iu, io_use_t, tsq);
+ 	io_bitmap_set(io_tss->bitmap, io_port->io_port_list);
+ 
+-	simple_unlock(&pcb->lock);
++	task_unlock(task);
+ 	simple_unlock(&iopb_lock);
+ 
+ 	if (new_io_tss)
+@@ -415,7 +420,7 @@ i386_io_port_add(
+ }
+ 
+ /*
+- * Remove an IO mapping from a thread.
++ * Remove an IO mapping from a task.
+  */
+ #ifdef i386
+ kern_return_t
+@@ -429,7 +434,7 @@ i386_io_port_remove(thread, device)
+ 	mach_device_t	device;
+ #endif
+ {
+-	pcb_t		pcb;
++	task_t		task;
+ #ifdef i386
+ 	mach_device_t	device = d->emul_data;
+ #endif
+@@ -441,7 +446,7 @@ i386_io_port_remove(thread, device)
+ 	 || device == DEVICE_NULL)
+ 	    return KERN_INVALID_ARGUMENT;
+ 
+-	pcb = thread->pcb;
++	task = thread->task;
+ 
+ 	simple_lock(&iopb_lock);
+ 
+@@ -456,10 +461,10 @@ i386_io_port_remove(thread, device)
+ 	    return KERN_INVALID_ARGUMENT;
+ 	}
+ 
+-	simple_lock(&pcb->lock);
+-	io_tss = pcb->ims.io_tss;
++	task_lock(task);
++	io_tss = task->machine.io_tss;
+ 	if (io_tss == 0) {
+-	    simple_unlock(&pcb->lock);
++	    task_unlock(task);
+ 	    simple_unlock(&iopb_lock);
+ 	    return KERN_INVALID_ARGUMENT;	/* not mapped */
+ 	}
+@@ -477,7 +482,7 @@ i386_io_port_remove(thread, device)
+ 		queue_remove(&io_port->io_use_list, iu, io_use_t, psq);
+ 		queue_remove(&io_tss->io_port_list, iu, io_use_t, tsq);
+ 
+-		simple_unlock(&pcb->lock);
++		task_unlock(task);
+ 		simple_unlock(&iopb_lock);
+ 
+ 		kfree((vm_offset_t)iu, sizeof(struct io_use));
+@@ -486,6 +491,9 @@ i386_io_port_remove(thread, device)
+ 	    }
+ 	}
+ 
++	task_unlock(task);
++	simple_unlock(&iopb_lock);
++
+ 	/*
+ 	 * No mapping.
+ 	 */
+@@ -493,7 +501,7 @@ i386_io_port_remove(thread, device)
+ }
+ 
+ /*
+- * Return the IO ports mapped into a thread.
++ * Return the IO ports mapped into a task.
+  */
+ extern ipc_port_t	mach_convert_device_to_port(/* device_t */);
+ 
+@@ -503,7 +511,7 @@ i386_io_port_list(thread, list, list_cou
+ 	mach_device_t	**list;
+ 	unsigned int	*list_count;
+ {
+-	register pcb_t	pcb;
++	task_t		task;
+ 	register iopb_tss_t io_tss;
+ 	unsigned int	count, alloc_count;
+ 	mach_device_t	*devices;
+@@ -514,7 +522,7 @@ i386_io_port_list(thread, list, list_cou
+ 	if (thread == THREAD_NULL)
+ 	    return KERN_INVALID_ARGUMENT;
+ 
+-	pcb = thread->pcb;
++	task = thread->task;
+ 
+ 	alloc_count = 16;		/* a guess */
+ 
+@@ -537,8 +545,8 @@ i386_io_port_list(thread, list, list_cou
+ 	    count = 0;
+ 
+ 	    simple_lock(&iopb_lock);
+-	    simple_lock(&pcb->lock);
+-	    io_tss = pcb->ims.io_tss;
++	    task_lock(task);
++	    io_tss = task->machine.io_tss;
+ 	    if (io_tss != 0) {
+ 		register io_use_t iu;
+ 
+@@ -550,7 +558,7 @@ i386_io_port_list(thread, list, list_cou
+ 		    }
+ 		}
+ 	    }
+-	    simple_unlock(&pcb->lock);
++	    task_unlock(task);
+ 	    simple_unlock(&iopb_lock);
+ 	} while (count > alloc_count);
+ 
+@@ -596,7 +604,7 @@ i386_io_port_list(thread, list, list_cou
+ }
+ 
+ /*
+- * Check whether an IO device is mapped to a particular thread.
++ * Check whether an IO device is mapped to a particular task.
+  * Used to support the 'iopl' device automatic mapping.
+  */
+ boolean_t
+@@ -604,11 +612,11 @@ iopb_check_mapping(thread, device)
+ 	thread_t	thread;
+ 	mach_device_t	device;
+ {
+-	pcb_t		pcb;
++	task_t		task;
+ 	io_port_t	io_port;
+ 	io_use_t	iu;
+ 
+-	pcb = thread->pcb;
++	task = thread->task;
+ 
+ 	simple_lock(&iopb_lock);
+ 
+@@ -622,15 +630,18 @@ iopb_check_mapping(thread, device)
+ 
+ 	/* Look up the mapping in the device`s mapping list. */
+ 
++	task_lock(task);
+ 	queue_iterate(&io_port->io_use_list, iu, io_use_t, psq) {
+-	    if (iu->ts == pcb->ims.io_tss) {
++	    if (iu->ts == task->machine.io_tss) {
+ 		/*
+ 		 * Device is mapped.
+ 		 */
++		task_unlock(task);
+ 		simple_unlock(&iopb_lock);
+ 		return TRUE;
+ 	    }
+ 	}
++	task_unlock(task);
+ 	simple_unlock(&iopb_lock);
+ 	return FALSE;
+ }
+diff -urp gnumach-mine-4-more_ports/i386/i386/pcb.c gnumach-mine-5-io_per_task/i386/i386/pcb.c
+--- gnumach-mine-4-more_ports/i386/i386/pcb.c	2006-01-02 18:42:57.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386/pcb.c	2005-12-31 00:04:21.000000000 +0100
+@@ -131,12 +131,13 @@
+ #define	gdt_desc_p(mycpu,sel) \
+ 	((struct real_descriptor *)&curr_gdt(mycpu)[sel_idx(sel)])
+ 
+-void switch_ktss(pcb)
+-	register pcb_t	pcb;
++void switch_ktss(thread)
++	register thread_t	thread;
+ {
+ 	int			mycpu = cpu_number();
++	register pcb_t		pcb = thread->pcb;
+     {
+-	register iopb_tss_t	tss = pcb->ims.io_tss;
++	register iopb_tss_t	tss = thread->task->machine.io_tss;
+ 	vm_offset_t		pcb_stack_top;
+ 
+ 	/*
+@@ -234,7 +235,7 @@ void stack_handoff(old, new)
+ 	/*
+ 	 *	Load the rest of the user state for the new thread
+ 	 */
+-	switch_ktss(new->pcb);
++	switch_ktss(new);
+ 
+ 	/*
+ 	 *	Switch to new thread
+@@ -259,7 +260,7 @@ void stack_handoff(old, new)
+ void load_context(new)
+ 	register thread_t	new;
+ {
+-	switch_ktss(new->pcb);
++	switch_ktss(new);
+ 	Load_context(new);
+ }
+ 
+@@ -296,7 +297,7 @@ thread_t switch_context(old, continuatio
+ 	/*
+ 	 *	Load the rest of the user state for the new thread
+ 	 */
+-	switch_ktss(new->pcb);
++	switch_ktss(new);
+ 
+ 	return Switch_context(old, continuation, new);
+ }
+@@ -309,7 +310,6 @@ void pcb_module_init()
+ 			 0, "i386 pcb state");
+ 
+ 	fpu_module_init();
+-	iopb_init();
+ }
+ 
+ void pcb_init(thread)
+@@ -353,8 +353,6 @@ void pcb_terminate(thread)
+ 	counter(if (--c_threads_current < c_threads_min)
+ 			c_threads_min = c_threads_current);
+ 
+-	if (pcb->ims.io_tss != 0)
+-		iopb_destroy(pcb->ims.io_tss);
+ 	if (pcb->ims.ifps != 0)
+ 		fp_free(pcb->ims.ifps);
+ 	if (pcb->ims.ldt != 0)
+@@ -374,6 +372,30 @@ void pcb_collect(thread)
+ {
+ }
+ 
++void machine_task_module_init(void)
++{
++	iopb_init();
++}
++
++void machine_task_init(new_task)
++	task_t new_task;
++{
++	new_task->machine.io_tss = 0;
++}
++
++void machine_task_terminate(task)
++	task_t task;
++{
++	if (task->machine.io_tss != 0)
++		iopb_destroy(task->machine.io_tss);
++}
++
++void machine_task_collect(task)
++	task_t task;
++{
++	/* TODO: compare io_tss with 0xff, XXX: not if it is still in use, and
++	 * beware of races with threads adding io perms!  */
++}
+ 
+ /*
+  *	thread_setstatus:
+@@ -508,28 +530,40 @@ kern_return_t thread_setstatus(thread, f
+ 	     */
+ 	    case i386_ISA_PORT_MAP_STATE: {
+ 		register struct i386_isa_port_map_state *state;
+-		register iopb_tss_t	tss;
++		register iopb_tss_t	tss, old_tss;
++		task_t			task;
+ 
+ 		if (count < i386_ISA_PORT_MAP_STATE_COUNT)
+ 			return(KERN_INVALID_ARGUMENT);
+ 
+-#if 0
+ 		/*
+ 		 *	If the thread has no ktss yet,
+ 		 *	we must allocate one.
+ 		 */
+ 
+ 		state = (struct i386_isa_port_map_state *) tstate;
+-		tss = thread->pcb->ims.io_tss;
++		task = thread->task;
++		task_lock(task);
++		tss = task->machine.io_tss;
+ 		if (tss == 0) {
++			task_unlock(task);
+ 			tss = iopb_create();
+-			thread->pcb->ims.io_tss = tss;
++			task_lock(task);
++			old_tss = task->machine.io_tss;
++			if (old_tss == 0) {
++				task->machine.io_tss = tss;
++			} else {
++				task_unlock(task);
++				iopb_destroy(tss);
++				tss = old_tss;
++				task_lock(task);
++			}
+ 		}
+ 
+ 		bcopy((char *) state->pm,
+ 		      (char *) tss->bitmap,
+ 		      sizeof state->pm);
+-#endif
++		task_unlock(task);
+ 		break;
+ 	    }
+ 
+@@ -666,16 +700,21 @@ kern_return_t thread_getstatus(thread, f
+ 	    case i386_ISA_PORT_MAP_STATE: {
+ 		register struct i386_isa_port_map_state *state;
+ 		register iopb_tss_t tss;
++		task_t task;
+ 
+ 		if (*count < i386_ISA_PORT_MAP_STATE_COUNT)
+ 			return(KERN_INVALID_ARGUMENT);
+ 
+ 		state = (struct i386_isa_port_map_state *) tstate;
+-		tss = thread->pcb->ims.io_tss;
++		task = thread->task;
++		task_lock(task);
++		tss = task->machine.io_tss;
+ 
+ 		if (tss == 0) {
+ 		    int i;
+ 
++		    task_unlock(task);
++
+ 		    /*
+ 		     *	The thread has no ktss, so no IO permissions.
+ 		     */
+@@ -690,6 +729,7 @@ kern_return_t thread_getstatus(thread, f
+ 		    bcopy((char *) tss->bitmap,
+ 			  (char *) state->pm,
+ 			  sizeof state->pm);
++		    task_unlock(task);
+ 		}
+ 
+ 		*count = i386_ISA_PORT_MAP_STATE_COUNT;
+diff -urp gnumach-mine-4-more_ports/i386/i386/io_emulate.c gnumach-mine-5-io_per_task/i386/i386/io_emulate.c
+--- gnumach-mine-4-more_ports/i386/i386/io_emulate.c	2006-01-02 18:41:46.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386/io_emulate.c	2005-12-28 17:40:28.000000000 +0100
+@@ -102,7 +102,7 @@ emulate_io(regs, opcode, io_port)
+ 	 * Make the thread use its IO_TSS to get the IO permissions;
+ 	 * it may not have had one before this.
+ 	 */
+-	switch_ktss(thread->pcb);
++	switch_ktss(thread);
+ 
+ 	return EM_IO_RETRY;
+ }
+diff -urp gnumach-mine-4-more_ports/i386/i386/thread.h gnumach-mine-5-io_per_task/i386/i386/thread.h
+--- gnumach-mine-4-more_ports/i386/i386/thread.h	2006-01-02 18:43:01.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386/thread.h	2005-12-28 17:44:13.000000000 +0100
+@@ -157,12 +157,15 @@
+  */
+ 
+ struct i386_machine_state {
+-	iopb_tss_t		io_tss;
+ 	struct user_ldt	*	ldt;
+ 	struct i386_fpsave_state *ifps;
+ 	struct v86_assist_state	v86s;
+ };
+ 
++typedef struct machine_task {
++	iopb_tss_t		io_tss;
++} machine_task_t;
++
+ typedef struct pcb {
+ 	struct i386_interrupt_state iis[2];	/* interrupt and NMI */
+ 	struct i386_saved_state iss;
+diff -urp gnumach-mine-4-more_ports/i386/i386/user_ldt.c gnumach-mine-5-io_per_task/i386/i386/user_ldt.c
+--- gnumach-mine-4-more_ports/i386/i386/user_ldt.c	2006-01-02 18:43:04.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386/user_ldt.c	2005-12-28 17:40:37.000000000 +0100
+@@ -247,7 +247,7 @@ i386_set_ldt(thread, first_selector, des
+ 	     * make sure it is properly set.
+ 	     */
+ 	    if (thread == current_thread())
+-	        switch_ktss(pcb);
++	        switch_ktss(thread);
+ 	}
+ 
+ 	/*
+
+diff -urp gnumach-mine-4-more_ports/i386/i386at/iopl.c gnumach-mine-5-io_per_task/i386/i386at/iopl.c
+--- gnumach-mine-4-more_ports/i386/i386at/iopl.c	2006-01-02 18:45:17.000000000 +0100
++++ gnumach-mine-5-io_per_task/i386/i386at/iopl.c	2006-01-02 16:30:19.000000000 +0100
+@@ -217,10 +217,15 @@ iopl_emulate(regs, opcode, io_port)
+ 	int	io_port;
+ {
+ 	iopb_tss_t	iopb;
++	task_t		task;
+ 
+-	iopb = current_thread()->pcb->ims.io_tss;
+-	if (iopb == 0)
++	task = current_thread()->task;
++	task_lock(task);
++	iopb = task->machine.io_tss;
++	if (iopb == 0) {
++	    task_unlock(task);
+ 	    return FALSE;		/* no IO mapped */
++	}
+ 
+ 	/*
+ 	 * Handle outb to the timer control port,
+@@ -235,11 +240,14 @@ iopl_emulate(regs, opcode, io_port)
+ 	     && (opcode == 0xe6 || opcode == 0xee)	/* outb */
+ 	     && (io_byte & 0xc0) == 0x80)		/* timer 2 */
+ 	    {
++		task_unlock(task);
+ 		outb(io_port, io_byte);
+ 		return TRUE;
+ 	    }
++	    task_unlock(task);
+ 	    return FALSE;	/* invalid IO to port 42 */
+ 	}
++	task_unlock(task);
+ 
+ 	/*
+ 	 * If the thread has the IOPL device mapped, and
+
+
+diff -urp gnumach-mine-4-more_ports/kern/task.c gnumach-mine-5-io_per_task/kern/task.c
+--- gnumach-mine-4-more_ports/kern/task.c	2006-01-02 18:43:17.000000000 +0100
++++ gnumach-mine-5-io_per_task/kern/task.c	2005-12-28 17:10:07.000000000 +0100
+@@ -78,6 +78,7 @@ void task_init(void)
+ 			0, "tasks");
+ 
+ 	eml_init();
++	machine_task_module_init ();
+ 
+ 	/*
+ 	 * Create the kernel task as the first task.
+@@ -160,6 +161,7 @@ kern_return_t task_create(
+ #if	NET_ATM
+ 	new_task->nw_ep_owned = 0;
+ #endif
++	machine_task_init (new_task);
+ 
+ 	new_task->total_user_time.seconds = 0;
+ 	new_task->total_user_time.microseconds = 0;
+@@ -247,6 +249,8 @@ void task_deallocate(
+ 	}
+ #endif	/* NORMA_TASK */
+ 
++	machine_task_terminate (task);
++
+ 	eml_task_deallocate(task);
+ 
+ 	pset = task->processor_set;
+@@ -1126,6 +1130,7 @@ void task_collect_scan(void)
+ 			pset_unlock(pset);
+ 			simple_unlock(&all_psets_lock);
+ 
++			machine_task_collect (task);
+ 			pmap_collect(task->map->pmap);
+ 
+ 			if (prev_task != TASK_NULL)
+diff -urp gnumach-mine-4-more_ports/kern/task.h gnumach-mine-5-io_per_task/kern/task.h
+--- gnumach-mine-4-more_ports/kern/task.h	2006-01-02 18:43:22.000000000 +0100
++++ gnumach-mine-5-io_per_task/kern/task.h	2005-12-28 17:44:11.000000000 +0100
+@@ -49,6 +49,7 @@
+ #include <kern/pc_sample.h>
+ #include <kern/processor.h>
+ #include <kern/syscall_emulation.h>
++#include <machine/thread.h>
+ #include <vm/vm_map.h>
+ 
+ #if	NET_ATM
+@@ -117,6 +118,9 @@ struct task {
+ #if	NET_ATM
+ 	nw_ep_owned_t   nw_ep_owned;
+ #endif	/* NET_ATM */
++
++	/* Hardware specific data.  */
++	machine_task_t	machine;
+ };
+ 
+ #define task_lock(task)		simple_lock(&(task)->lock)
