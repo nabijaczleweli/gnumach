@@ -1,7 +1,8 @@
-gnumach (1:20050801-3) UNRELEASED; urgency=low
+gnumach (1:20050801-3) unstable; urgency=low
 
   * Fix build failure with latest make 3.81 beta and the new tab vs. shell
     POSIX behaviour.
+    - debian/patches/00_build_make_beta.patch: New file.
     Thanks to Alfred M. Szmidt <ams@gnu.org>.
   * Added ChangeLog entries.
     - debian/patches/13_ide_dma.patch: Modify
@@ -20,7 +21,7 @@ gnumach (1:20050801-3) UNRELEASED; urgency=low
     - debian/patches/50_mem_limit.patch: New file.
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
- -- Guillem Jover <guillem@debian.org>  Sat,  7 Jan 2006 01:06:40 +0200
+ -- Guillem Jover <guillem@debian.org>  Thu, 12 Jan 2006 00:54:05 +0200
 
 gnumach (1:20050801-2) unstable; urgency=low
 
