@@ -1,5 +1,8 @@
 gnumach (1:20050801-3) UNRELEASED; urgency=low
 
+  * Fix build failure with latest make 3.81 beta and the new tab vs. shell
+    POSIX behaviour.
+    Thanks to Alfred M. Szmidt <ams@gnu.org>.
   * Added ChangeLog entries.
     - debian/patches/13_ide_dma.patch: Modify
     - debian/patches/14_alloc_params.patch: Likewise.
