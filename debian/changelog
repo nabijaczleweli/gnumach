@@ -15,6 +15,10 @@ gnumach (1:20050801-3) UNRELEASED; urgency=low
     - debian/patches/45_io_per_task.patch: Likewise.
     - debian/patches/46_io_device.patch: Likewise.
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
+  * Fix memory limit, that was causing panics when having roughly more than
+    768 MiB of physical memory. (Closes: #226609)
+    - debian/patches/50_mem_limit.patch: New file.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
  -- Guillem Jover <guillem@debian.org>  Sat,  7 Jan 2006 01:06:40 +0200
 
