@@ -11,6 +11,7 @@ gnumach (1:20050801-4) UNRELEASED; urgency=low
     correct detection.
     - debian/patches/23_ps2_mouse.patch: New file.
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
+  * Build-Depend on the new POSIX compliant make.
 
  -- Guillem Jover <guillem@debian.org>  Sun, 15 Jan 2006 00:05:27 +0200
 
