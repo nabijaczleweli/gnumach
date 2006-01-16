@@ -16,8 +16,8 @@ gnumach (1:20050801-4) UNRELEASED; urgency=low
 
 gnumach (1:20050801-3) unstable; urgency=low
 
-  * Fix build failure with latest make 3.81 beta and the new tab vs. shell
-    POSIX behaviour.
+  * Fix build failure with latest make 3.81 beta and the new POSIX behaviour
+    related to new line vs shell command.
     - debian/patches/00_build_make_beta.patch: New file.
     Thanks to Alfred M. Szmidt <ams@gnu.org>.
   * Added ChangeLog entries.
