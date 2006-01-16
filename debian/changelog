@@ -3,6 +3,10 @@ gnumach (1:20050801-4) UNRELEASED; urgency=low
   * Actually enable the io access disabling patch.
     - debian/patches/42_disable_ioperm.disabled: Rename to ...
     - debian/patches/42_disable_ioperm.patch: ... this.
+  * Check for correct return code from pcibios in de4x5 SCSI driver, which
+    was making it loop infinitely if probed.
+    - debian/patches/22_scsi_inf_loop.patch: New file.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
  -- Guillem Jover <guillem@debian.org>  Sun, 15 Jan 2006 00:05:27 +0200
 
