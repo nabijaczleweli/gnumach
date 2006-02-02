@@ -21,7 +21,7 @@
  	return ts;
  }
  
-@@ -357,7 +362,7 @@
+@@ -358,7 +363,7 @@
  		simple_unlock(&iopb_lock);
  
  		new_io_tss = (iopb_tss_t) kalloc(sizeof(struct iopb_tss));
