@@ -18,6 +18,10 @@ gnumach (1:20060201-1) UNRELEASED; urgency=low
   * Do not allow PCI IRQ's higher than 16.
     - debian/patches/patches/24_pci_irq_fix.patch: New file.
     Thanks to Gianluca Guida <glguida@gmail.com>.
+  * Make the Linux glude code use GNU Mach's AST software interrupts instead
+    of hooking into SPL code.
+    - debian/patches/60_glue_linux_soft_ints.patch: New file.
+    Thanks to Gianluca Guida <glguida@gmail.com>.
 
  -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
 
