@@ -15,6 +15,9 @@ gnumach (1:20060201-1) UNRELEASED; urgency=low
     - debian/patches/90_autoconf_autogen.patch: Likewise.
   * Fix -H kernel command line argument to halt on panic. (Closes: #184624)
     Thanks to Soeren D. Schulze <soeren.d.schulze@gmx.de>.
+  * Do not allow PCI IRQ's higher than 16.
+    - debian/patches/patches/24_pci_irq_fix.patch: New file.
+    Thanks to Gianluca Guida <glguida@gmail.com>.
 
  -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
 
