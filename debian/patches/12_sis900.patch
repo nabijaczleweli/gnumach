@@ -1,4 +1,4 @@
-#DPATCHLEVEL=1
+#DPATCHLEVEL=0
 
 2005-05-01  Andreas B. Mundt  <andi.mundt@web.de>
 
@@ -12,46 +12,21 @@
 	* linux/src/drivers/net/sis900.h: Likewise.
 
 
-diff -ruN gnumach.orig/doc/mach.texi gnumach.sis900/doc/mach.texi
---- gnumach.orig/doc/mach.texi	2002-03-29 22:01:19.000000000 +0100
-+++ gnumach.sis900/doc/mach.texi	2005-03-26 21:08:35.000000000 +0100
-@@ -854,6 +854,9 @@
-
- @item --enable-viarhine
- Enables the VIA Rhine netword card devices eth%d.
+--- doc/mach.texi	2006-02-01 22:58:07.000000000 +0200
++++ doc/mach.texi	2006-02-01 23:32:52.000000000 +0200
+@@ -878,6 +878,9 @@
+ 
+ @item --enable-winbond-840
+ Enables the Winbond W89c840 PCI Ethernet devices eth%d.
 +
 +@item --enable-sis900
 +Enables the SiS900 PCI netword card devices eth%d.
  @end table
-
-
-diff -ruN gnumach.orig/i386/README-Drivers gnumach.sis900/i386/README-Drivers
---- gnumach.orig/i386/README-Drivers	2001-05-27 14:44:22.000000000 +0200
-+++ gnumach.sis900/i386/README-Drivers	2005-03-26 21:08:35.000000000 +0100
-@@ -371,3 +371,7 @@
-
- VIA Rhine
-   --enable-viarhine			net/via_rhine.c
-+
-+SiS 900
-+  --enable-sis900			net/sis900.c
-+
-diff -ruN gnumach.orig/i386/linux/Makefile.in gnumach.sis900/i386/linux/Makefile.in
---- gnumach.orig/i386/linux/Makefile.in	2005-03-26 20:38:18.000000000 +0100
-+++ gnumach.sis900/i386/linux/Makefile.in	2005-03-26 21:08:35.000000000 +0100
-@@ -67,7 +67,7 @@
- 	atp.c de4x5.c de600.c de620.c depca.c dev.c e2100.c eepro.c	\
- 	eepro100.c eexpress.c epic100.c eth16i.c ewrk3.c fmv18x.c	\
- 	hp-plus.c hp.c hp100.c lance.c ne.c ne2k-pci.c net_init.c	\
--	ni52.c ni65.c pcnet32.c rtl8139.c seeq8005.c sk_g16.c		\
-+	ni52.c ni65.c pcnet32.c rtl8139.c seeq8005.c sis900.c sk_g16.c	\
- 	smc-ultra.c smc-ultra32.c tlan.c tulip.c via-rhine.c wavelan.c	\
- 	wd.c yellowfin.c znet.c net.c net.c cb_shim.c hamachi.c		\
- 	intel-gige.c myson803.c natsemi.c ns820.c pci-scan.c		\
-diff -ruN gnumach.orig/i386/linux/configure.ac gnumach.sis900/i386/linux/configure.ac
---- gnumach.orig/i386/linux/configure.ac	2005-03-26 20:38:18.000000000 +0100
-+++ gnumach.sis900/i386/linux/configure.ac	2005-03-26 21:08:35.000000000 +0100
-@@ -213,6 +213,7 @@
+ 
+ 
+--- i386/linux/configure.ac	2006-02-01 22:58:08.000000000 +0200
++++ i386/linux/configure.ac	2006-02-01 23:31:33.000000000 +0200
+@@ -207,6 +207,7 @@
  linux_DRIVER([elplus], [ELPLUS], [3c505], [net])
  linux_DRIVER([de600], [DE600], [de600], [net])
  linux_DRIVER([de620], [DE620], [de620], [net])
@@ -59,9 +34,28 @@ diff -ruN gnumach.orig/i386/linux/configure.ac gnumach.sis900/i386/linux/configu
  linux_DRIVER([skg16], [SK_G16], [sk_g16], [net])
  linux_DRIVER([ni52], [NI52], [ni52], [net])
  linux_DRIVER([ni65], [NI65], [ni65], [net])
-diff -ruN gnumach.orig/linux/dev/drivers/net/Space.c gnumach.sis900/linux/dev/drivers/net/Space.c
---- gnumach.orig/linux/dev/drivers/net/Space.c	2005-03-26 20:38:18.000000000 +0100
-+++ gnumach.sis900/linux/dev/drivers/net/Space.c	2005-03-26 21:08:35.000000000 +0100
+--- i386/linux/Makefile.in	2006-02-01 22:58:08.000000000 +0200
++++ i386/linux/Makefile.in	2006-02-01 23:34:05.000000000 +0200
+@@ -90,7 +90,7 @@
+ 	eexpress.c epic100.c eth16i.c ewrk3.c fmv18x.c hp-plus.c hp.c hp100.c \
+ 	lance.c ne.c ne2k-pci.c net_init.c ni52.c ni65.c pcnet32.c rtl8139.c \
+ 	seeq8005.c sk_g16.c smc-ultra.c smc-ultra32.c tlan.c tulip.c \
+-	via-rhine.c wavelan.c wd.c yellowfin.c znet.c \
++	via-rhine.c sis900.c wavelan.c wd.c yellowfin.c znet.c \
+ 	cb_shim.c hamachi.c intel-gige.c myson803.c natsemi.c ns820.c \
+ 	starfire.c sundance.c winbond-840.c \
+ 	pci-scan.c \
+--- i386/README-Drivers	2006-02-01 22:58:07.000000000 +0200
++++ i386/README-Drivers	2006-02-01 23:34:52.000000000 +0200
+@@ -395,3 +395,6 @@
+ 
+ Winbond W89c840 PCI Ethernet
+   --enable-winbond-840			net/winbond-840.c
++
++SiS 900
++  --enable-sis900			net/sis900.c
+--- linux/dev/drivers/net/Space.c	2006-02-01 22:58:10.000000000 +0200
++++ linux/dev/drivers/net/Space.c	2006-02-01 23:31:33.000000000 +0200
 @@ -93,6 +93,7 @@
  extern int eepro100_probe(struct device *);
  extern int epic100_probe(struct device *);
@@ -80,9 +74,8 @@ diff -ruN gnumach.orig/linux/dev/drivers/net/Space.c gnumach.sis900/linux/dev/dr
  #ifdef CONFIG_VIA_RHINE
  	&& via_rhine_probe(dev)
  #endif
-diff -ruN gnumach.orig/linux/src/drivers/net/sis900.c gnumach.sis900/linux/src/drivers/net/sis900.c
---- gnumach.orig/linux/src/drivers/net/sis900.c	1970-01-01 01:00:00.000000000 +0100
-+++ gnumach.sis900/linux/src/drivers/net/sis900.c	2005-03-27 20:52:47.000000000 +0200
+--- linux/src/drivers/net/sis900.c	1970-01-01 02:00:00.000000000 +0200
++++ linux/src/drivers/net/sis900.c	2006-02-01 23:31:33.000000000 +0200
 @@ -0,0 +1,1803 @@
 +/* sis900.c: A SiS 900/7016 PCI Fast Ethernet driver for Linux.
 +   Copyright 1999 Silicon Integrated System Corporation
@@ -1887,9 +1880,8 @@ diff -ruN gnumach.orig/linux/src/drivers/net/sis900.c gnumach.sis900/linux/src/d
 +}
 +
 +#endif	/* MODULE */
-diff -ruN gnumach.orig/linux/src/drivers/net/sis900.h gnumach.sis900/linux/src/drivers/net/sis900.h
---- gnumach.orig/linux/src/drivers/net/sis900.h	1970-01-01 01:00:00.000000000 +0100
-+++ gnumach.sis900/linux/src/drivers/net/sis900.h	2005-03-26 21:08:35.000000000 +0100
+--- linux/src/drivers/net/sis900.h	1970-01-01 02:00:00.000000000 +0200
++++ linux/src/drivers/net/sis900.h	2006-02-01 23:31:33.000000000 +0200
 @@ -0,0 +1,284 @@
 +/* sis900.h Definitions for SiS ethernet controllers including 7014/7016 and 900
 + * Copyright 1999 Silicon Integrated System Corporation
@@ -2175,5 +2167,3 @@ diff -ruN gnumach.orig/linux/src/drivers/net/sis900.h gnumach.sis900/linux/src/d
 +#define SIOCGMIIPHY (SIOCDEVPRIVATE)		/* Get the PHY in use. */
 +#define SIOCGMIIREG (SIOCDEVPRIVATE+1)		/* Read a PHY register. */
 +#define SIOCSMIIREG (SIOCDEVPRIVATE+2)		/* Write a PHY register */
-
-

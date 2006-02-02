@@ -187,7 +187,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  	/*
  	 * No mapping.
  	 */
-@@ -493,7 +501,7 @@ i386_io_port_remove(thread, device)
+@@ -497,7 +505,7 @@ i386_io_port_remove(thread, device)
  }
  
  /*
@@ -196,7 +196,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
   */
  extern ipc_port_t	mach_convert_device_to_port(/* device_t */);
  
-@@ -503,7 +511,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -507,7 +515,7 @@ i386_io_port_list(thread, list, list_cou
  	mach_device_t	**list;
  	unsigned int	*list_count;
  {
@@ -205,7 +205,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  	register iopb_tss_t io_tss;
  	unsigned int	count, alloc_count;
  	mach_device_t	*devices;
-@@ -514,7 +522,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -518,7 +526,7 @@ i386_io_port_list(thread, list, list_cou
  	if (thread == THREAD_NULL)
  	    return KERN_INVALID_ARGUMENT;
  
@@ -214,7 +214,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  
  	alloc_count = 16;		/* a guess */
  
-@@ -537,8 +545,8 @@ i386_io_port_list(thread, list, list_cou
+@@ -541,8 +549,8 @@ i386_io_port_list(thread, list, list_cou
  	    count = 0;
  
  	    simple_lock(&iopb_lock);
@@ -225,7 +225,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  	    if (io_tss != 0) {
  		register io_use_t iu;
  
-@@ -550,7 +558,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -554,7 +562,7 @@ i386_io_port_list(thread, list, list_cou
  		    }
  		}
  	    }
@@ -234,7 +234,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  	    simple_unlock(&iopb_lock);
  	} while (count > alloc_count);
  
-@@ -596,7 +604,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -600,7 +608,7 @@ i386_io_port_list(thread, list, list_cou
  }
  
  /*
@@ -243,7 +243,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
   * Used to support the 'iopl' device automatic mapping.
   */
  boolean_t
-@@ -604,11 +612,11 @@ iopb_check_mapping(thread, device)
+@@ -608,11 +616,11 @@ iopb_check_mapping(thread, device)
  	thread_t	thread;
  	mach_device_t	device;
  {
@@ -257,7 +257,7 @@ diff -urp gnumach-mine-4-more_ports/i386/i386/iopb.c gnumach-mine-5-io_per_task/
  
  	simple_lock(&iopb_lock);
  
-@@ -622,15 +630,18 @@ iopb_check_mapping(thread, device)
+@@ -626,15 +634,18 @@ iopb_check_mapping(thread, device)
  
  	/* Look up the mapping in the device`s mapping list. */
  

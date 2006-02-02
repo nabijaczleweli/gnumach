@@ -12,7 +12,7 @@
 
 --- i386/i386/iopb.c	Tue Feb 25 22:27:09 1997
 +++ i386/i386/iopb.c	Sun Oct  7 05:00:09 2001
-@@ -270,7 +270,7 @@
+@@ -271,7 +271,7 @@
  	register iopb_tss_t ts;
  
  	ts = (iopb_tss_t) kalloc(sizeof (struct iopb_tss));
@@ -21,7 +21,7 @@
  	return ts;
  }
  
-@@ -357,7 +360,7 @@
+@@ -357,7 +362,7 @@
  		simple_unlock(&iopb_lock);
  
  		new_io_tss = (iopb_tss_t) kalloc(sizeof(struct iopb_tss));

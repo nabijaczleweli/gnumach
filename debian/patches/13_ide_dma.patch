@@ -9,7 +9,7 @@ supporting hardware.
 diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
 --- i386.orig/linux/configure.ac	2004-09-17 01:03:19.000000000 +0200
 +++ i386/linux/configure.ac	2004-09-17 01:01:49.000000000 +0200
-@@ -129,6 +129,11 @@
+@@ -123,6 +123,11 @@
  AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
    cmd640.o ide-cd.o ide.o rz1000.o triton.o])
  

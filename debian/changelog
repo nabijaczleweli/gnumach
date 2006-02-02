@@ -1,4 +1,22 @@
-gnumach (1:20050801-4) UNRELEASED; urgency=low
+gnumach (1:20060201-1) UNRELEASED; urgency=low
+
+  * New upstream CVS snapshot.
+    - debian/patches/11_nic_update.patch: Removed, integrated upstream.
+    - debian/patches/17_net_gcc_4.0.patch: Likewise.
+    - debian/patches/20_ide_disable_irqs.patch: Likewise.
+    - debian/patches/31_tls_ldt.patch: Likewise.
+    - debian/patches/00_build_make_beta.patch: Sync.
+    - debian/patches/12_sis900.patch: Likewise.
+    - debian/patches/13_ide_dma.patch: Likewise.
+    - debian/patches/15_mem_obj_proxy.patch: Likewise.
+    - debian/patches/41_io_unlock_ioremove.patch: Likewise.
+    - debian/patches/42_disable_ioperm.patch: Likewise.
+    - debian/patches/45_io_per_task.patch: Likewise.
+    - debian/patches/90_autoconf_autogen.patch: Likewise.
+
+ -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
+
+gnumach (1:20050801-4) unstable; urgency=low
 
   * Actually enable the io access disabling patch.
     - debian/patches/42_disable_ioperm.disabled: Rename to ...
@@ -13,7 +31,7 @@ gnumach (1:20050801-4) UNRELEASED; urgency=low
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
   * Build-Depend on the new POSIX compliant make.
 
- -- Guillem Jover <guillem@debian.org>  Sun, 15 Jan 2006 00:05:27 +0200
+ -- Guillem Jover <guillem@debian.org>  Mon, 16 Jan 2006 05:40:33 +0200
 
 gnumach (1:20050801-3) unstable; urgency=low
 
