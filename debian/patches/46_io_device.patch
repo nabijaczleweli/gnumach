@@ -1,3 +1,5 @@
+#DPATCHLEVEL=1
+
 2006-01-07  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	* i386/i386/iopb.c: Include <device/io_req.h> for io_req_t.  New "io"
