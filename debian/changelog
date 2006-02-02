@@ -27,6 +27,7 @@ gnumach (1:20060201-1) UNRELEASED; urgency=low
     glue code.
     - debian/patches/61_vm_resident-zoned.patch: New file.
     Thanks to Gianluca Guida <glguida@gmail.com>.
+  * Build with -fno-strict-aliasing.
 
  -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
 
