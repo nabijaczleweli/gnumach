@@ -19,10 +19,6 @@ gnumach (1:20060402-1) UNRELEASED; urgency=low
   * Do not allow PCI IRQ's higher than 16.
     - debian/patches/patches/24_pci_irq_fix.patch: New file.
     Thanks to Gianluca Guida <glguida@gmail.com>.
-  * Make the Linux glue code use GNU Mach's AST software interrupts instead
-    of hooking into SPL code.
-    - debian/patches/60_glue_linux_soft_ints.patch: New file.
-    Thanks to Gianluca Guida <glguida@gmail.com>.
   * Make the Linux device drivers use dynamic memory allocation via the
     glue code.
     - debian/patches/61_vm_resident-zoned.patch: New file.
