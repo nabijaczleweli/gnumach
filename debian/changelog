@@ -1,6 +1,8 @@
-gnumach (1:20060402-1) UNRELEASED; urgency=low
+gnumach (1:20060402.dfsg.1-1) UNRELEASED; urgency=low
 
   * New upstream CVS snapshot.
+    - Remove GFDL license and the manual licensed with it.
+    - debian/patches/00_clean_gfdl.patch: Do not build the manual.
     - debian/patches/11_nic_update.patch: Removed, integrated upstream.
     - debian/patches/16_net_apricot_stack_of.patch: Likewise.
     - debian/patches/17_net_gcc_4.0.patch: Likewise.
@@ -32,6 +34,8 @@ gnumach (1:20060402-1) UNRELEASED; urgency=low
   * Build with -fno-strict-aliasing.
   * Remove Build-Depend on the new POSIX compliant make, it should work on
     old versions as well now.
+  * Remove the no longer needed texinfo Buil-Depends, and comment out the
+    mach.info from debian/gnumach.info.
 
  -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
 

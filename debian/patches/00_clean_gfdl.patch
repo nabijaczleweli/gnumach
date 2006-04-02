@@ -1,0 +1,12 @@
+#DPATCHLEVEL=0
+--- doc/Makefile.in	2005-07-25 06:48:25.000000000 +0300
++++ doc/Makefile.in	2006-04-02 17:23:25.000000000 +0300
+@@ -16,7 +16,7 @@
+ #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ 
+ mach-version := @PACKAGE_VERSION@
+-targets := mach.info
++targets :=
+ 
+ # Variables from `configure'.
+ srcdir=@srcdir@
