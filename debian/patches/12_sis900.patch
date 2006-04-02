@@ -2,7 +2,6 @@
 
 2005-05-01  Andreas B. Mundt  <andi.mundt@web.de>
 
-	* doc/mach.texi: Add --enable-sis900 option.
 	* i386/README-Drivers: Likewise.
 	* i386/linux/Makefile.in (linux-net-files): Added 'sis900'.
 	* i386/linux/configure.ac (sis900): New driver.
@@ -12,18 +11,6 @@
 	* linux/src/drivers/net/sis900.h: Likewise.
 
 
---- doc/mach.texi	2006-02-01 22:58:07.000000000 +0200
-+++ doc/mach.texi	2006-02-01 23:32:52.000000000 +0200
-@@ -878,6 +878,9 @@
- 
- @item --enable-winbond-840
- Enables the Winbond W89c840 PCI Ethernet devices eth%d.
-+
-+@item --enable-sis900
-+Enables the SiS900 PCI netword card devices eth%d.
- @end table
- 
- 
 --- i386/linux/configure.ac	2006-02-01 22:58:08.000000000 +0200
 +++ i386/linux/configure.ac	2006-02-01 23:31:33.000000000 +0200
 @@ -207,6 +207,7 @@
