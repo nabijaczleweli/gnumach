@@ -14,9 +14,9 @@
 diff -upr gnumach-20050801/i386/i386at/model_dep.c gnumach-mine/i386/i386at/model_dep.c
 --- gnumach-20050801/i386/i386at/model_dep.c	2004-11-29 06:34:51.000000000 +0100
 +++ gnumach-mine/i386/i386at/model_dep.c	2006-01-09 00:07:46.000000000 +0100
-@@ -230,6 +230,11 @@ mem_size_init()
- 		/* This is actually enforced below, in init_alloc_aligned.  */
- 	}
+@@ -211,6 +211,11 @@ mem_size_init()
+ 	printf("AT386 boot: physical memory from 0x%x to 0x%x\n",
+ 	       phys_first_addr, phys_last_addr);
  
 +	/* Reserve 1/16 of memory address space for virtual mappings.
 +	 * Yes, this looses memory. Blame i386.  */

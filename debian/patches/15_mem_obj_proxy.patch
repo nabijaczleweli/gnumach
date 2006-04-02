@@ -20,8 +20,8 @@
 diff -rupN gnumach-1/Makefile.in gnumach/Makefile.in
 --- gnumach-1/Makefile.in	2005-06-06 21:37:42.000000000 +0200
 +++ gnumach/Makefile.in	2005-06-07 04:08:55.000000000 +0200
-@@ -158,7 +158,7 @@ util-files = $(util-cfiles) config.h cpu
- 	phys_mem.h ref_count.h
+@@ -137,7 +137,7 @@ util-cfiles = putchar.c puts.c
+ util-files = $(util-cfiles)
  
  # Virtual memory implementation
 -vm-cfiles = $(addprefix vm_,$(vm-names)) memory_object.c
@@ -94,7 +94,7 @@ diff -rupN gnumach-1/include/mach/memory_object.h gnumach/include/mach/memory_ob
 diff -rupN gnumach-1/kern/ipc_kobject.c gnumach/kern/ipc_kobject.c
 --- gnumach-1/kern/ipc_kobject.c	2005-06-06 21:38:07.000000000 +0200
 +++ gnumach/kern/ipc_kobject.c	2005-06-07 04:08:56.000000000 +0200
-@@ -385,6 +385,9 @@ ipc_kobject_notify(request_header, reply
+@@ -355,6 +355,9 @@ ipc_kobject_notify(request_header, reply
  		case IKOT_DEVICE:
  		return ds_notify(request_header);
  

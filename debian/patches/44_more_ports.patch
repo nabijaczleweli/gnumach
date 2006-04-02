@@ -28,7 +28,7 @@ diff -urp gnumach-mine-3-device_port_fix/i386/i386at/iopl.c gnumach-mine-4-more_
 diff -urp gnumach-mine-3-device_port_fix/i386/i386at/kd.c gnumach-mine-4-more_ports/i386/i386at/kd.c
 --- gnumach-mine-3-device_port_fix/i386/i386at/kd.c	2006-01-02 18:43:12.000000000 +0100
 +++ gnumach-mine-4-more_ports/i386/i386at/kd.c	2006-01-02 19:14:48.000000000 +0100
-@@ -348,7 +348,9 @@
+@@ -333,7 +333,9 @@
  /*
   * IO port sets for different controllers.
   */
@@ -39,7 +39,7 @@ diff -urp gnumach-mine-3-device_port_fix/i386/i386at/kd.c gnumach-mine-4-more_po
  	0x3b4, 0x3b5, 0x3b8, 0x3b9, 0x3ba,	/* MDA/EGA */
  	0x3d4, 0x3d5, 0x3d8, 0x3d9, 0x3da,	/* CGA/EGA */
  	0x3c0, 0x3c1, 0x3c2, 0x3c3, 0x3c4, 0x3c5, 0x3c6, 0x3c7,
-@@ -362,7 +364,7 @@ kd_io_map_open(device)
+@@ -347,7 +349,7 @@ kd_io_map_open(device)
  	mach_device_t	device;
  {
  	kd_io_device = device;

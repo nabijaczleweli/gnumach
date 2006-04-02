@@ -2,16 +2,22 @@ gnumach (1:20060402-1) UNRELEASED; urgency=low
 
   * New upstream CVS snapshot.
     - debian/patches/11_nic_update.patch: Removed, integrated upstream.
+    - debian/patches/16_net_apricot_stack_of.patch: Likewise.
     - debian/patches/17_net_gcc_4.0.patch: Likewise.
     - debian/patches/20_ide_disable_irqs.patch: Likewise.
+    - debian/patches/21_pata_off_by_one_irq.patch: Likewise.
     - debian/patches/31_tls_ldt.patch: Likewise.
+    - debian/patches/40_user-tss.patch: Likewise.
     - debian/patches/00_build_make_beta.patch: Removed, fixed upstream
     - debian/patches/12_sis900.patch: Sync.
     - debian/patches/13_ide_dma.patch: Likewise.
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
     - debian/patches/41_io_unlock_ioremove.patch: Likewise.
     - debian/patches/42_disable_ioperm.patch: Likewise.
+    - debian/patches/44_more_ports.patch: Likewise.
     - debian/patches/45_io_per_task.patch: Likewise.
+    - debian/patches/46_io_device.patch: Likewise.
+    - debian/patches/50_mem_limit.patch: Likewise.
     - debian/patches/90_autoconf_autogen.patch: Likewise.
   * Fix -H kernel command line argument to halt on panic. (Closes: #184624)
     - debian/patches/05_halt_on_panic_flag.patch: New file.

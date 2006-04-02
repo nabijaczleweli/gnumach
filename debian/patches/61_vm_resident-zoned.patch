@@ -1,4 +1,4 @@
-#DPATCHLEVEL=1
+#DPATCHLEVEL=0
 
 2006-01-20  Gianluca Guida  <glguida@gmail.com>
 
@@ -35,7 +35,6 @@
 	* i386/i386at/model_dep.c (use_all_mem): Always set to 1.
 	(init_alloc_aligned): Do not use any particular oder during
 	bootstrap allocation.
-	(alloc_dma_mem): Function removed.
 
 	* kern/startup.c: Include <vm/pmap.h>.
 	(setup_main): Calculate memory size using phys_last_addr and
@@ -78,27 +77,9 @@
 	linux_kmem_collect.
 
 
-diff -ru gnumach-vanilla/i386/i386at/model_dep.c gnumach-vm_resident/i386/i386at/model_dep.c
---- gnumach-vanilla/i386/i386at/model_dep.c	2004-11-28 18:29:35.000000000 +0100
-+++ gnumach-vm_resident/i386/i386at/model_dep.c	2006-01-26 00:37:31.000000000 +0100
-@@ -86,16 +86,7 @@
- /* Configuration parameter:
-    if zero, only use physical memory in the low 16MB of addresses.
-    Only SCSI still has DMA problems.  */
--#ifdef LINUX_DEV
--#define use_all_mem 1
--#else
--#include "nscsi.h"
--#if	NSCSI > 0
--#define use_all_mem 0
--#else
- #define use_all_mem 1
--#endif
--#endif
- 
- extern char	version[];
- 
-@@ -468,7 +459,6 @@
+--- i386/i386at/model_dep.c	2006-04-02 16:00:14.000000000 +0300
++++ i386/i386at/model_dep.c	2006-04-02 16:03:32.000000000 +0300
+@@ -449,7 +449,6 @@ init_alloc_aligned(vm_size_t size, vm_of
  	vm_offset_t addr;
  	extern char start[], end[];
  	int i;
@@ -106,12 +87,12 @@ diff -ru gnumach-vanilla/i386/i386at/model_dep.c gnumach-vm_resident/i386/i386at
  
  	/* Memory regions to skip.  */
  	vm_offset_t cmdline_start_pa = boot_info.flags & MULTIBOOT_CMDLINE
-@@ -488,25 +478,8 @@
+@@ -469,25 +468,8 @@ init_alloc_aligned(vm_size_t size, vm_of
  	/* Page-align the start address.  */
  	avail_next = round_page(avail_next);
  
 -	/* Start with memory above 16MB, reserving the low memory for later. */
--	if (use_all_mem && !wrapped && phys_last_addr > 16 * 1024*1024)
+-	if (!wrapped && phys_last_addr > 16 * 1024*1024)
 -	  {
 -	    if (avail_next < 16 * 1024*1024)
 -	      avail_next = 16 * 1024*1024;
@@ -129,122 +110,13 @@ diff -ru gnumach-vanilla/i386/i386at/model_dep.c gnumach-vm_resident/i386/i386at
 -
  	/* Check if we have reached the end of memory.  */
 -        if (avail_next == (wrapped ? 16 * 1024*1024 : phys_last_addr))
-+        if (avail_next == phys_last_addr)
++	if (avail_next == phys_last_addr)
  		return FALSE;
  
  	/* Tentatively assign the current location to the caller.  */
-@@ -599,107 +572,3 @@
- 		!(((boot_info.mem_lower * 1024) <= x) && (x < 1024*1024)));
- }
- 
--#ifndef NBBY
--#define NBBY	8
--#endif
--#ifndef NBPW
--#define NBPW	(NBBY * sizeof(int))
--#endif
--#define DMA_MAX	(16*1024*1024)
--
--/*
-- * Allocate contiguous pages below 16 MB
-- * starting at specified boundary for DMA.
-- */
--vm_offset_t
--alloc_dma_mem(size, align)
--	vm_size_t size;
--	vm_offset_t align;
--{
--	int *bits, i, j, k, n;
--	int npages, count, bit, mask;
--	int first_page, last_page;
--	vm_offset_t addr;
--	vm_page_t p, prevp;
--
--	npages = round_page(size) / PAGE_SIZE;
--	mask = align ? (align - 1) / PAGE_SIZE : 0;
--
--	/*
--	 * Allocate bit array.
--	 */
--	n = ((DMA_MAX / PAGE_SIZE) + NBPW - 1) / NBPW;
--	i = n * NBPW;
--	bits = (unsigned *)kalloc(i);
--	if (bits == 0) {
--		printf("alloc_dma_mem: unable alloc bit array\n");
--		return (0);
--	}
--	bzero((char *)bits, i);
--
--	/*
--	 * Walk the page free list and set a bit for
--	 * every usable page in bit array.
--	 */
--	simple_lock(&vm_page_queue_free_lock);
--	for (p = vm_page_queue_free; p; p = (vm_page_t)p->pageq.next) {
--		if (p->phys_addr < DMA_MAX) {
--			i = p->phys_addr / PAGE_SIZE;
--			bits[i / NBPW] |= 1 << (i % NBPW);
--		}
--	}
--
--	/*
--	 * Search for contiguous pages by scanning bit array.
--	 */
--	for (i = 0, first_page = -1; i < n; i++) {
--		for (bit = 1, j = 0; j < NBPW; j++, bit <<= 1) {
--			if (bits[i] & bit) {
--				if (first_page < 0) {
--					k = i * NBPW + j;
--					if (!mask
--					    || (((k & mask) + npages)
--						<= mask + 1)) {
--						first_page = k;
--						if (npages == 1)
--							goto found;
--						count = 1;
--					}
--				} else if (++count == npages)
--					goto found;
--			} else
--				first_page = -1;
--		}
--	}
--	addr = 0;
--	goto out;
--
-- found:
--	/*
--	 * Remove pages from the free list.
--	 */
--	addr = first_page * PAGE_SIZE;
--	last_page = first_page + npages;
--	vm_page_free_count -= npages;
--	p = vm_page_queue_free;
--	prevp = 0;
--	while (1) {
--		i = p->phys_addr / PAGE_SIZE;
--		if (i >= first_page && i < last_page) {
--			if (prevp)
--				prevp->pageq.next = p->pageq.next;
--			else
--				vm_page_queue_free = (vm_page_t)p->pageq.next;
--			p->free = FALSE;
--			if (--npages == 0)
--				break;
--		} else
--			prevp = p;
--		p = (vm_page_t)p->pageq.next;
--	}
--
-- out:
--	simple_unlock(&vm_page_queue_free_lock);
--	kfree((vm_offset_t)bits, n * NBPW);
--	return (addr);
--}
-diff -ru gnumach-vanilla/i386/intel/pmap.c gnumach-vm_resident/i386/intel/pmap.c
---- gnumach-vanilla/i386/intel/pmap.c	2001-04-05 08:39:21.000000000 +0200
-+++ gnumach-vm_resident/i386/intel/pmap.c	2006-01-26 00:37:31.000000000 +0100
-@@ -584,6 +584,11 @@
+--- i386/intel/pmap.c	2006-04-02 16:00:14.000000000 +0300
++++ i386/intel/pmap.c	2006-04-02 16:00:16.000000000 +0300
+@@ -584,6 +584,11 @@ vm_offset_t pmap_map_bd(virt, start, end
  	return(virt);
  }
  
@@ -256,7 +128,7 @@ diff -ru gnumach-vanilla/i386/intel/pmap.c gnumach-vm_resident/i386/intel/pmap.c
  /*
   *	Bootstrap the system enough to run with virtual memory.
   *	Allocate the kernel page directory and page tables,
-@@ -703,6 +708,25 @@
+@@ -703,6 +708,25 @@ void pmap_bootstrap()
  				va += INTEL_PGBYTES;
  			}
  		}
@@ -282,7 +154,7 @@ diff -ru gnumach-vanilla/i386/intel/pmap.c gnumach-vm_resident/i386/intel/pmap.c
  	}
  
  #if	i860
-@@ -2346,6 +2370,27 @@
+@@ -2346,6 +2370,27 @@ boolean_t pmap_is_referenced(phys)
  	return (phys_attribute_test(phys, PHYS_REFERENCED));
  }
  
@@ -310,10 +182,9 @@ diff -ru gnumach-vanilla/i386/intel/pmap.c gnumach-vm_resident/i386/intel/pmap.c
  #if	NCPUS > 1
  /*
  *	    TLB Coherence Code (TLB "shootdown" code)
-diff -ru gnumach-vanilla/kern/startup.c gnumach-vm_resident/kern/startup.c
---- gnumach-vanilla/kern/startup.c	2001-04-05 08:39:20.000000000 +0200
-+++ gnumach-vm_resident/kern/startup.c	2006-01-26 00:37:31.000000000 +0100
-@@ -80,9 +80,6 @@
+--- kern/startup.c	2006-03-25 19:36:11.000000000 +0200
++++ kern/startup.c	2006-04-02 16:00:16.000000000 +0300
+@@ -78,9 +78,6 @@ extern void	start_other_cpus();
  extern void	action_thread();
  #endif	/* NCPUS > 1 */
  
@@ -323,7 +194,7 @@ diff -ru gnumach-vanilla/kern/startup.c gnumach-vm_resident/kern/startup.c
  /*
   *	Running in virtual memory, on the interrupt stack.
   *	Does not return.  Dispatches initial thread.
-@@ -122,7 +119,7 @@
+@@ -120,7 +117,7 @@ void setup_main()
  	machine_init();
  
  	machine_info.max_cpus = NCPUS;
@@ -332,9 +203,8 @@ diff -ru gnumach-vanilla/kern/startup.c gnumach-vm_resident/kern/startup.c
  	machine_info.avail_cpus = 0;
  	machine_info.major_version = KERNEL_MAJOR_VERSION;
  	machine_info.minor_version = KERNEL_MINOR_VERSION;
-diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glue/kmem.c
---- gnumach-vanilla/linux/dev/glue/kmem.c	1999-04-26 07:45:35.000000000 +0200
-+++ gnumach-vm_resident/linux/dev/glue/kmem.c	2006-01-26 04:10:52.000000000 +0100
+--- linux/dev/glue/kmem.c	1999-04-26 08:45:35.000000000 +0300
++++ linux/dev/glue/kmem.c	2006-04-02 16:00:16.000000000 +0300
 @@ -25,6 +25,7 @@
  #include <sys/types.h>
  
@@ -366,7 +236,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
  /* Memory block header.  */
  struct blkhdr
  {
-@@ -70,62 +60,17 @@
+@@ -70,62 +60,17 @@ struct pagehdr
    struct pagehdr *next;	/* next header in list */
  };
  
@@ -431,7 +301,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
  }
  
  /* Return the number by which the page size should be
-@@ -178,7 +123,40 @@
+@@ -178,7 +123,40 @@ coalesce_blocks ()
  
    num_block_coalesce++;
  
@@ -473,7 +343,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
      {
        bh = (struct blkhdr *) (ph + 1);
        ebh = (struct blkhdr *) ((void *) ph + ph->size);
-@@ -216,20 +194,26 @@
+@@ -216,20 +194,26 @@ coalesce_blocks ()
  void *
  linux_kmalloc (unsigned int size, int priority)
  {
@@ -506,7 +376,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
    save_flags (flags);
    cli ();
  
-@@ -238,7 +222,7 @@
+@@ -238,7 +222,7 @@ again:
  
    /* Walk the page list and find the first free block with size
       greater than or equal to the one required.  */
@@ -515,7 +385,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
      {
        bh = (struct blkhdr *) (ph + 1);
        while (bh < (struct blkhdr *) ((void *) ph + ph->size))
-@@ -278,16 +262,26 @@
+@@ -278,16 +262,26 @@ again:
    order = get_page_order (size
  			  + sizeof (struct pagehdr)
  			  + sizeof (struct blkhdr));
@@ -545,7 +415,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
    bh = (struct blkhdr *) (ph + 1);
    bh->free = 0;
    bh->size = ph->size - sizeof (struct pagehdr) - sizeof (struct blkhdr);
-@@ -310,17 +304,28 @@
+@@ -310,17 +304,28 @@ void
  linux_kfree (void *p)
  {
    unsigned flags;
@@ -576,7 +446,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
      if (p >= (void *) ph && p < (void *) ph + ph->size)
        break;
  
-@@ -339,10 +344,10 @@
+@@ -339,10 +344,10 @@ linux_kfree (void *p)
    restore_flags (flags);
  }
  
@@ -589,7 +459,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
  {
    struct blkhdr *bh;
    struct pagehdr *ph, **prev_ph;
-@@ -353,8 +358,8 @@
+@@ -353,8 +358,8 @@ collect_kmalloc_pages ()
  
    check_page_list (__LINE__);
  
@@ -600,7 +470,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
    while (ph)
      {
        bh = (struct blkhdr *) (ph + 1);
-@@ -373,68 +378,91 @@
+@@ -373,68 +378,91 @@ collect_kmalloc_pages ()
  
    check_page_list (__LINE__);
  }
@@ -742,7 +612,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
  }
  
  /* Free ORDER + 1 number of physically
-@@ -442,36 +470,20 @@
+@@ -442,36 +470,20 @@ again:
  void
  free_pages (unsigned long addr, unsigned long order)
  {
@@ -788,7 +658,7 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
  }
  
  
-@@ -579,3 +591,9 @@
+@@ -579,3 +591,9 @@ vremap (unsigned long offset, unsigned l
    vmalloc_list_insert (addr, round_page (size));
    return (void *) addr;
  }
@@ -798,10 +668,9 @@ diff -ru gnumach-vanilla/linux/dev/glue/kmem.c gnumach-vm_resident/linux/dev/glu
 +  collect_kmalloc_pages_nml ();
 +  collect_kmalloc_pages_dma ();
 +}
-diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/init/main.c
---- gnumach-vanilla/linux/dev/init/main.c	1999-04-26 07:49:06.000000000 +0200
-+++ gnumach-vm_resident/linux/dev/init/main.c	2006-01-26 00:37:31.000000000 +0100
-@@ -82,9 +82,7 @@
+--- linux/dev/init/main.c	1999-04-26 08:49:06.000000000 +0300
++++ linux/dev/init/main.c	2006-04-02 16:00:16.000000000 +0300
+@@ -82,9 +82,7 @@ struct drive_info_struct
  static void calibrate_delay (void);
  
  extern int hz;
@@ -811,7 +680,7 @@ diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/ini
  extern void free_contig_mem (vm_page_t);
  extern void init_IRQ (void);
  extern void restore_IRQ (void);
-@@ -105,10 +103,8 @@
+@@ -105,10 +103,8 @@ extern int intnull ();
  extern void linux_sched_init (void);
  
  
@@ -824,7 +693,7 @@ diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/ini
  
  /*
   * Initialize Linux drivers.
-@@ -117,7 +113,7 @@
+@@ -117,7 +113,7 @@ void
  linux_init (void)
  {
    int addr;
@@ -833,7 +702,7 @@ diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/ini
    vm_page_t pages;
  
    /*
-@@ -142,40 +138,34 @@
+@@ -142,40 +138,34 @@ linux_init (void)
    memcpy ((char *) &drive_info + 16,
  	  (void *) ((addr & 0xffff) + ((addr >> 12) & 0xffff0)), 16);
  
@@ -893,7 +762,7 @@ diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/ini
  #ifdef CONFIG_INET
    linux_net_emulation_init ();
  #endif
-@@ -186,148 +176,6 @@
+@@ -186,148 +176,6 @@ linux_init (void)
    linux_auto_config = 0;
  }
  
@@ -1042,10 +911,9 @@ diff -ru gnumach-vanilla/linux/dev/init/main.c gnumach-vm_resident/linux/dev/ini
  /* This is the number of bits of precision for the loops_per_second.  Each
   * bit takes on average 1.5/HZ seconds.  This (like the original) is a little
   * better than 1%
-diff -ru gnumach-vanilla/vm/pmap.h gnumach-vm_resident/vm/pmap.h
---- gnumach-vanilla/vm/pmap.h	2001-04-05 08:39:21.000000000 +0200
-+++ gnumach-vm_resident/vm/pmap.h	2006-01-26 00:37:31.000000000 +0100
-@@ -174,6 +174,15 @@
+--- vm/pmap.h	2001-04-05 09:39:21.000000000 +0300
++++ vm/pmap.h	2006-04-02 16:00:16.000000000 +0300
+@@ -174,6 +174,15 @@ void pmap_clear_modify(vm_offset_t pa);
  /* Return modify bit */
  boolean_t pmap_is_modified(vm_offset_t pa);
  
@@ -1061,10 +929,9 @@ diff -ru gnumach-vanilla/vm/pmap.h gnumach-vm_resident/vm/pmap.h
  
  /*
   *	Statistics routines
-diff -ru gnumach-vanilla/vm/vm_page.h gnumach-vm_resident/vm/vm_page.h
---- gnumach-vanilla/vm/vm_page.h	1999-06-28 02:41:02.000000000 +0200
-+++ gnumach-vm_resident/vm/vm_page.h	2006-01-26 00:37:31.000000000 +0100
-@@ -152,22 +152,26 @@
+--- vm/vm_page.h	1999-06-28 03:41:02.000000000 +0300
++++ vm/vm_page.h	2006-04-02 16:00:16.000000000 +0300
+@@ -152,22 +152,26 @@ typedef struct vm_page	*vm_page_t;
   *		ordered, in LRU-like fashion.
   */
  
@@ -1097,7 +964,7 @@ diff -ru gnumach-vanilla/vm/vm_page.h gnumach-vm_resident/vm/vm_page.h
  extern
  int	vm_page_fictitious_count;/* How many fictitious pages are free? */
  extern
-@@ -220,11 +224,20 @@
+@@ -220,11 +224,20 @@ extern void		vm_page_create(
  extern vm_page_t	vm_page_lookup(
  	vm_object_t	object,
  	vm_offset_t	offset);
@@ -1118,10 +985,9 @@ diff -ru gnumach-vanilla/vm/vm_page.h gnumach-vm_resident/vm/vm_page.h
  extern void		vm_page_release(vm_page_t, boolean_t);
  extern void		vm_page_wait(void (*)(void));
  extern vm_page_t	vm_page_alloc(
-diff -ru gnumach-vanilla/vm/vm_pageout.c gnumach-vm_resident/vm/vm_pageout.c
---- gnumach-vanilla/vm/vm_pageout.c	2001-04-05 08:39:21.000000000 +0200
-+++ gnumach-vm_resident/vm/vm_pageout.c	2006-01-26 00:48:08.000000000 +0100
-@@ -559,6 +559,9 @@
+--- vm/vm_pageout.c	2006-03-25 19:36:13.000000000 +0200
++++ vm/vm_pageout.c	2006-04-02 16:00:16.000000000 +0300
+@@ -550,6 +550,9 @@ void vm_pageout_scan()
  	 */
  
      Restart:
@@ -1131,9 +997,8 @@ diff -ru gnumach-vanilla/vm/vm_pageout.c gnumach-vm_resident/vm/vm_pageout.c
  	stack_collect();
  	net_kmsg_collect();
  	consider_task_collect();
-diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
---- gnumach-vanilla/vm/vm_resident.c	1999-09-04 15:03:32.000000000 +0200
-+++ gnumach-vm_resident/vm/vm_resident.c	2006-01-26 00:37:31.000000000 +0100
+--- vm/vm_resident.c	2006-02-01 22:58:12.000000000 +0200
++++ vm/vm_resident.c	2006-04-02 16:00:16.000000000 +0300
 @@ -56,6 +56,9 @@
  #include <vm/vm_user.h>
  #endif
@@ -1144,7 +1009,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  /* in zalloc.c XXX */
  extern vm_offset_t	zdata;
  extern vm_size_t	zdata_size;
-@@ -105,14 +108,19 @@
+@@ -105,14 +108,19 @@ struct vm_page	vm_page_template;
   *	Resident pages that represent real memory
   *	are allocated from a free list.
   */
@@ -1165,7 +1030,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  unsigned int	vm_page_free_count_minimum;	/* debugging */
  
  /*
-@@ -174,6 +182,102 @@
+@@ -174,6 +182,102 @@ boolean_t vm_page_deactivate_behind = TR
  boolean_t vm_page_deactivate_hint = TRUE;
  
  /*
@@ -1268,7 +1133,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
   *	vm_page_bootstrap:
   *
   *	Initializes the resident memory module.
-@@ -229,7 +333,8 @@
+@@ -229,7 +333,8 @@ void vm_page_bootstrap(
  	simple_lock_init(&vm_page_queue_free_lock);
  	simple_lock_init(&vm_page_queue_lock);
  
@@ -1278,7 +1143,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	vm_page_queue_fictitious = VM_PAGE_NULL;
  	queue_init(&vm_page_queue_active);
  	queue_init(&vm_page_queue_inactive);
-@@ -279,6 +384,8 @@
+@@ -279,6 +384,8 @@ void vm_page_bootstrap(
  		simple_lock_init(&bucket->lock);
  	}
  
@@ -1287,7 +1152,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	/*
  	 *	Machine-dependent code allocates the resident page table.
  	 *	It uses vm_page_init to initialize the page frames.
-@@ -294,7 +401,6 @@
+@@ -294,7 +401,6 @@ void vm_page_bootstrap(
  	*startp = virtual_space_start;
  	*endp = virtual_space_end;
  
@@ -1295,7 +1160,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	vm_page_free_count_minimum = vm_page_free_count;
  }
  
-@@ -380,6 +486,8 @@
+@@ -380,6 +486,8 @@ void pmap_startup(
  
  	pages = (vm_page_t) pmap_steal_memory(npages * sizeof *pages);
  
@@ -1304,7 +1169,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	/*
  	 *	Initialize the page frames.
  	 */
-@@ -389,21 +497,12 @@
+@@ -389,21 +497,12 @@ void pmap_startup(
  			break;
  
  		vm_page_init(&pages[i], paddr);
@@ -1328,7 +1193,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	 *	We have to re-align virtual_space_start,
  	 *	because pmap_steal_memory has been using it.
  	 */
-@@ -421,7 +520,7 @@
+@@ -421,7 +520,7 @@ void pmap_startup(
   *		Second initialization pass, to be done after
   *		the basic VM system is ready.
   */
@@ -1337,7 +1202,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  {
  	vm_page_zone = zinit((vm_size_t) sizeof(struct vm_page),
  			     VM_MAX_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS,
-@@ -453,6 +552,7 @@
+@@ -453,6 +552,7 @@ void vm_page_create(
  			panic("vm_page_create");
  
  		vm_page_init(m, paddr);
@@ -1345,7 +1210,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  		vm_page_release(m, FALSE);
  	}
  }
-@@ -840,16 +940,16 @@
+@@ -840,16 +940,16 @@ boolean_t vm_page_convert(
  }
  
  /*
@@ -1368,7 +1233,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  
  	simple_lock(&vm_page_queue_free_lock);
  
-@@ -867,17 +967,70 @@
+@@ -867,17 +967,70 @@ vm_page_t vm_page_grab(
  		return VM_PAGE_NULL;
  	}
  
@@ -1448,7 +1313,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	simple_unlock(&vm_page_queue_free_lock);
  
  	/*
-@@ -897,6 +1050,26 @@
+@@ -897,6 +1050,26 @@ vm_page_t vm_page_grab(
  		thread_wakeup((event_t) &vm_page_free_wanted);
  
  	return mem;
@@ -1475,7 +1340,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  }
  
  vm_offset_t vm_page_grab_phys_addr()
-@@ -909,13 +1082,12 @@
+@@ -909,13 +1082,12 @@ vm_offset_t vm_page_grab_phys_addr()
  }
  
  /*
@@ -1493,7 +1358,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
   *	Returns KERN_RESOURCE_SHORTAGE if it could not.
   */
  
-@@ -924,44 +1096,32 @@
+@@ -924,44 +1096,32 @@ vm_offset_t vm_page_grab_phys_addr()
  vm_size_t	vm_page_big_pagenum = 0;	/* Set this before call! */
  
  kern_return_t
@@ -1556,7 +1421,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  
  	/*
  	 * A very large granularity call, its rare so that is ok
-@@ -972,32 +1132,16 @@
+@@ -972,32 +1132,16 @@ vm_page_grab_contiguous_pages(
  	 *	Do not dip into the reserved pool.
  	 */
  
@@ -1594,7 +1459,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	 *	contiguous bits.  That gives us, if any,
  	 *	the range of pages we will be grabbing off
  	 *	the free list.
-@@ -1007,9 +1151,13 @@
+@@ -1007,9 +1151,13 @@ vm_page_grab_contiguous_pages(
  
  		first_set = 0;
  
@@ -1610,7 +1475,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  		    register int	bitpos;
  
  		    /*
-@@ -1042,14 +1190,20 @@
+@@ -1042,14 +1190,20 @@ count_ones:
  			 */
  			bits_so_far = 0;
  count_zeroes:
@@ -1634,7 +1499,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  		    }
  		    /*
  		     * No luck
-@@ -1063,7 +1217,6 @@
+@@ -1063,7 +1217,6 @@ count_zeroes:
  	 */
  not_found_em:
  	simple_unlock(&vm_page_queue_free_lock);
@@ -1642,7 +1507,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	ret = KERN_RESOURCE_SHORTAGE;
  	goto out;
  
-@@ -1079,43 +1232,33 @@
+@@ -1079,43 +1232,33 @@ found_em:
  		vm_page_free_count_minimum = vm_page_free_count;
  	if (external)
  		vm_page_external_count += npages;
@@ -1709,7 +1574,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  	/*
  	 *	Decide if we should poke the pageout daemon.
  	 *	We do this if the free count is less than the low
-@@ -1134,8 +1277,74 @@
+@@ -1134,8 +1277,74 @@ found_em:
  
  	ret = KERN_SUCCESS;
  out:
@@ -1786,7 +1651,7 @@ diff -ru gnumach-vanilla/vm/vm_resident.c gnumach-vm_resident/vm/vm_resident.c
  
  	return ret;
  }
-@@ -1150,16 +1359,36 @@
+@@ -1150,16 +1359,36 @@ void vm_page_release(
  	register vm_page_t	mem,
  	boolean_t external)
  {

@@ -8,8 +8,8 @@ Regenerate with:
 
 
 --- i386/linux/configure	2006-02-01 22:58:08.000000000 +0200
-+++ i386/linux/configure	2006-02-02 04:55:10.000000000 +0200
-@@ -839,6 +839,7 @@
++++ i386/linux/configure	2006-04-02 16:09:45.000000000 +0300
+@@ -839,6 +839,7 @@ Optional Features:
    --enable-epic100        enable driver alias epic100 for epic
    --enable-floppy         enable driver floppy
    --enable-ide            enable driver ide
@@ -17,7 +17,7 @@ Regenerate with:
    --enable-advansys       enable driver advansys
    --enable-BusLogic       enable driver alias BusLogic for buslogic
    --enable-buslogic       enable driver buslogic
-@@ -920,6 +921,7 @@
+@@ -920,6 +921,7 @@ Optional Features:
    --enable-elplus         enable driver elplus
    --enable-de600          enable driver de600
    --enable-de620          enable driver de620
@@ -25,7 +25,7 @@ Regenerate with:
    --enable-sk_g16         enable driver alias sk_g16 for skg16
    --enable-skg16          enable driver skg16
    --enable-ni52           enable driver ni52
-@@ -2003,6 +2005,17 @@
+@@ -2003,6 +2005,17 @@ fi
  
  fi;
  
@@ -43,7 +43,7 @@ Regenerate with:
  
  
  
-@@ -3891,6 +3904,33 @@
+@@ -3891,6 +3904,33 @@ fi;
  
  
  
@@ -78,7 +78,7 @@ Regenerate with:
  # Check whether --enable-sk_g16 or --disable-sk_g16 was given.
  if test "${enable_sk_g16+set}" = set; then
 --- i386/linux/device-drivers.h.in	2006-02-01 22:58:08.000000000 +0200
-+++ i386/linux/device-drivers.h.in	2006-02-02 04:55:11.000000000 +0200
++++ i386/linux/device-drivers.h.in	2006-04-02 16:09:46.000000000 +0300
 @@ -18,6 +18,9 @@
  /* floppy */
  #undef CONFIG_BLK_DEV_FD
