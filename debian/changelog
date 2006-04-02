@@ -5,8 +5,8 @@ gnumach (1:20060201-1) UNRELEASED; urgency=low
     - debian/patches/17_net_gcc_4.0.patch: Likewise.
     - debian/patches/20_ide_disable_irqs.patch: Likewise.
     - debian/patches/31_tls_ldt.patch: Likewise.
-    - debian/patches/00_build_make_beta.patch: Sync.
-    - debian/patches/12_sis900.patch: Likewise.
+    - debian/patches/00_build_make_beta.patch: Removed, fixed upstream
+    - debian/patches/12_sis900.patch: Sync.
     - debian/patches/13_ide_dma.patch: Likewise.
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
     - debian/patches/41_io_unlock_ioremove.patch: Likewise.
@@ -28,6 +28,8 @@ gnumach (1:20060201-1) UNRELEASED; urgency=low
     - debian/patches/61_vm_resident-zoned.patch: New file.
     Thanks to Gianluca Guida <glguida@gmail.com>.
   * Build with -fno-strict-aliasing.
+  * Remove Build-Depend on the new POSIX compliant make, it should work on
+    old versions as well now.
 
  -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
 
