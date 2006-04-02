@@ -1,4 +1,4 @@
-gnumach (1:20060402.dfsg.1-1) UNRELEASED; urgency=low
+gnumach (1:20060402.dfsg.1-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
     - Remove GFDL license and the manual licensed with it.
@@ -37,7 +37,7 @@ gnumach (1:20060402.dfsg.1-1) UNRELEASED; urgency=low
   * Remove the no longer needed texinfo Buil-Depends, and comment out the
     mach.info from debian/gnumach.info.
 
- -- Guillem Jover <guillem@debian.org>  Wed,  1 Feb 2006 23:21:59 +0200
+ -- Guillem Jover <guillem@debian.org>  Sun,  2 Apr 2006 17:30:25 +0300
 
 gnumach (1:20050801-4) unstable; urgency=low
 
