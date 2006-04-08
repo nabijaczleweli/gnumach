@@ -1,3 +1,10 @@
+gnumach (1:20060408.dfsg.1-1) unstable; urgency=low
+
+  * New upstream CVS snapshot.
+    - Fix I/O problem with Hurd console and X.
+
+ -- Guillem Jover <guillem@debian.org>  Sat,  8 Apr 2006 19:35:22 +0300
+
 gnumach (1:20060402.dfsg.1-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
