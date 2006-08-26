@@ -1,5 +1,14 @@
-gnumach (1:20060408.dfsg.1-2) UNRELEASED; urgency=low
+gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
 
+  * New upstream CVS snapshot.
+    - debian/patches/05_halt_on_panic_flag.patch: Sync.
+    - debian/patches/10_cdromlock.patch: Likewise.
+    - debian/patches/12_sis900.patch: Likewise.
+    - debian/patches/13_ide_dma.patch: Likewise.
+    - debian/patches/61_vm_resident-zoned.patch: Likewise.
+    - debian/patches/90_autoconf_autogen.patch: Likewise.
+    - debian/patches/23_ps2_mouse.patch: Removed, integrated upstream.
+    - debian/patches/50_mem_limit.patch: Likewise.
   * Switch to quilt:
     - debian/control: Add quilt (>= 0.40) to Build-Depends.
     - debian/patches/series: New file.

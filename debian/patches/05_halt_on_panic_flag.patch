@@ -9,8 +9,10 @@
 	argument.
 
 
---- i386/i386at/model_dep.c	2004-11-29 06:34:51.000000000 +0100
-+++ i386/i386at/model_dep.c	2005-12-29 16:01:03.000000000 +0100
+Index: i386/i386at/model_dep.c
+===================================================================
+--- i386/i386at/model_dep.c.orig	2006-08-26 20:19:10.000000000 +0300
++++ i386/i386at/model_dep.c	2006-08-26 20:22:57.000000000 +0300
 @@ -94,6 +94,10 @@
  
  int		rebootflag = 0;	/* exported to kdintr */
@@ -22,7 +24,7 @@
  /* XX interrupt stack pointer and highwater mark, for locore.S.  */
  vm_offset_t int_stack_top, int_stack_high;
  
-@@ -347,6 +351,11 @@
+@@ -352,6 +356,11 @@
  		cninit();		/* need console for debugger */
  		Debugger();
  	}
@@ -34,8 +36,10 @@
  #endif	/* MACH_KDB */
  
  	machine_slot[0].is_cpu = TRUE;
---- kern/debug.c	2000-07-23 02:34:12.000000000 +0200
-+++ kern/debug.c	2005-12-29 15:21:46.000000000 +0100
+Index: kern/debug.c
+===================================================================
+--- kern/debug.c.orig	2006-08-26 20:19:10.000000000 +0300
++++ kern/debug.c	2006-08-26 20:22:57.000000000 +0300
 @@ -120,6 +120,10 @@
  	}
  }

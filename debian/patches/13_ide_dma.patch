@@ -6,10 +6,11 @@ supporting hardware.
 2004-09-17  Sergio Lopez  <koro@sinrega.org>
 
 
-diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
---- i386.orig/linux/configure.ac	2004-09-17 01:03:19.000000000 +0200
-+++ i386/linux/configure.ac	2004-09-17 01:01:49.000000000 +0200
-@@ -123,6 +123,11 @@
+Index: i386/linux/configure.ac
+===================================================================
+--- i386/linux/configure.ac.orig	2006-08-26 20:23:11.000000000 +0300
++++ i386/linux/configure.ac	2006-08-26 20:23:17.000000000 +0300
+@@ -128,6 +128,11 @@
  AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
    cmd640.o ide-cd.o ide.o rz1000.o triton.o])
  
@@ -21,9 +22,10 @@ diff -Naur i386.orig/linux/configure.ac i386/linux/configure.ac
  
  dnl SCSI Disk controllers
  
-diff -dur linux.orig/dev/drivers/block/ide.c linux/dev/drivers/block/ide.c
---- linux.orig/dev/drivers/block/ide.c	2001-06-28 10:55:02.000000000 +0200
-+++ linux/dev/drivers/block/ide.c	2004-09-16 21:30:40.000000000 +0200
+Index: linux/dev/drivers/block/ide.c
+===================================================================
+--- linux/dev/drivers/block/ide.c.orig	2006-08-26 20:19:09.000000000 +0300
++++ linux/dev/drivers/block/ide.c	2006-08-26 20:23:17.000000000 +0300
 @@ -3594,9 +3594,6 @@
  		hwif->ctl_port = io[tmp + 1] + 2;
  		hwif->noprobe = 0;
@@ -55,9 +57,10 @@ diff -dur linux.orig/dev/drivers/block/ide.c linux/dev/drivers/block/ide.c
  	probe_for_hwifs ();
  
  	/*
-diff -dur linux.orig/src/drivers/block/ide.h linux/src/drivers/block/ide.h
---- linux.orig/src/drivers/block/ide.h	1999-04-26 07:51:39.000000000 +0200
-+++ linux/src/drivers/block/ide.h	2004-08-15 16:29:29.000000000 +0200
+Index: linux/src/drivers/block/ide.h
+===================================================================
+--- linux/src/drivers/block/ide.h.orig	2006-08-26 20:19:09.000000000 +0300
++++ linux/src/drivers/block/ide.h	2006-08-26 20:23:17.000000000 +0300
 @@ -429,7 +429,8 @@
  typedef enum {	ide_unknown,	ide_generic,	ide_triton,
  		ide_cmd640,	ide_dtc2278,	ide_ali14xx,
@@ -68,9 +71,10 @@ diff -dur linux.orig/src/drivers/block/ide.h linux/src/drivers/block/ide.h
  	hwif_chipset_t;
  
  typedef struct hwif_s {
-diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
---- linux.orig/src/drivers/block/triton.c	1999-04-26 07:51:41.000000000 +0200
-+++ linux/src/drivers/block/triton.c	2004-09-16 20:39:52.000000000 +0200
+Index: linux/src/drivers/block/triton.c
+===================================================================
+--- linux/src/drivers/block/triton.c.orig	2006-08-26 20:19:09.000000000 +0300
++++ linux/src/drivers/block/triton.c	2006-08-26 20:23:17.000000000 +0300
 @@ -1,107 +1,20 @@
  /*
   *  linux/drivers/block/triton.c	Version 1.13  Aug 12, 1996
@@ -817,9 +821,6 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 -				if (hwif->io_base == 0x1f0) {
 -					s_clks = ~stime >> 6;
 -					r_clks = ~stime >> 4;
--				} else {
--					s_clks = ~stime >> 2;
--					r_clks = ~stime;
 +			s_clks = ((~time >> 12) & 3) + 2;
 +			r_clks = ((~time >>  8) & 3) + 1;
 +			printk("    %s timing: (0x%04x) sample_CLKs=%d, recovery_CLKs=%d\n",
@@ -839,19 +840,11 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 +					r_clks = (r_clks & 3) + 1;
 +					printk("                   slave: sample_CLKs=%d, recovery_CLKs=%d\n",
 +						s_clks, r_clks);
- 				}
--				s_clks = (s_clks & 3) + 2;
--				r_clks = (r_clks & 3) + 1;
--				printk("                   slave: sample_CLKs=%d, recovery_CLKs=%d\n",
--		 			s_clks, r_clks);
- 			}
--		}
--		print_triton_drive_flags (0, time & 0xf);
--		print_triton_drive_flags (1, (time >> 4) & 0xf);
++				}
++			}
 +			print_triton_drive_flags (0, time & 0xf);
 +			print_triton_drive_flags (1, (time >> 4) & 0xf);
- #endif /* DISPLAY_TRITON_TIMINGS */
--	}
++#endif /* DISPLAY_TRITON_TIMINGS */
 +		} else if (vendor == PCI_VENDOR_ID_SI) {
 +			pass_count++;
 +			if (hwif->io_base == 0x1f0) {
@@ -901,9 +894,7 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 +			byte ideic, inmir;
 +			byte irq_routing_table[] = { -1,  9, 3, 10, 4,  5, 7,  6,
 +						      1, 11, 0, 12, 0, 14, 0, 15 };
- 
--quit: if (rc) printk("ide: pcibios access failed - %s\n", pcibios_strerror(rc));
--}
++
 +			if (bridgeset) {
 +				pcibios_read_config_byte(bridgebus, bridgefn, 0x58, &ideic);
 +				ideic = ideic & 0x03;
@@ -954,7 +945,9 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 +				} else if (hpt34x_flag) {
 +					hwif->io_base	= channel ? (bmiba + 0x28) : (bmiba + 0x20);
 +					hwif->ctl_port	= channel ? (bmiba + 0x3e) : (bmiba + 0x36);
-+				} else {
+ 				} else {
+-					s_clks = ~stime >> 2;
+-					r_clks = ~stime;
 +					goto io_temps;
 +				}
 +			} else {
@@ -965,31 +958,11 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 +			}
 +			hwif->irq = irq;
 +			hwif->noprobe = 0;
- 
--void ide_init_promise (byte bus, byte fn, ide_hwif_t *hwif0, ide_hwif_t *hwif1, unsigned short dma)
--{
--	int rc;
--	unsigned short pcicmd;
--	unsigned int bmiba = 0;
++
 +			if (device == PCI_DEVICE_ID_ARTOP_ATP850UF) {
 +				hwif->serialized = 1;
 +			}
- 
--	printk("ide: Enabling DMA for Promise Technology IDE Ultra-DMA 33 on PCI bus %d function %d, port 0x%04x\n", bus, fn, dma);
--	if ((rc = pcibios_read_config_word(bus, fn, 0x04, &pcicmd)) || (pcicmd & 1) == 0 || (pcicmd & 4) == 0)
--		goto abort;
--	if ((rc = pcibios_read_config_dword(bus, fn, 0x20, &bmiba)))
--		goto abort;
--	bmiba &= 0xfff0;	/* extract port base address */
--	if (bmiba != dma || !bmiba)
--		goto abort;
--	hwif0->chipset = ide_promise_udma;
--	hwif1->chipset = ide_promise_udma;
--	init_triton_dma(hwif0, bmiba);
--	init_triton_dma(hwif1, bmiba + 0x08);
--	return;
--abort:
--	printk(KERN_WARNING "ide: Promise/33 not configured correctly (BIOS)\n");
++
 +			if ((vendor == PCI_VENDOR_ID_PROMISE) ||
 +			    (vendor == PCI_VENDOR_ID_TTI)) {
 +				set_promise_hpt343_extra(device, bmiba);
@@ -1008,16 +981,48 @@ diff -dur linux.orig/src/drivers/block/triton.c linux/src/drivers/block/triton.c
 +					step_count++;
 +				} else {
 +					continue;
-+				}
-+			}
-+		}
-+	}
-+
+ 				}
+-				s_clks = (s_clks & 3) + 2;
+-				r_clks = (r_clks & 3) + 1;
+-				printk("                   slave: sample_CLKs=%d, recovery_CLKs=%d\n",
+-		 			s_clks, r_clks);
+ 			}
+ 		}
+-		print_triton_drive_flags (0, time & 0xf);
+-		print_triton_drive_flags (1, (time >> 4) & 0xf);
+-#endif /* DISPLAY_TRITON_TIMINGS */
+ 	}
+ 
+-quit: if (rc) printk("ide: pcibios access failed - %s\n", pcibios_strerror(rc));
+-}
+-
+-void ide_init_promise (byte bus, byte fn, ide_hwif_t *hwif0, ide_hwif_t *hwif1, unsigned short dma)
+-{
+-	int rc;
+-	unsigned short pcicmd;
+-	unsigned int bmiba = 0;
+-
+-	printk("ide: Enabling DMA for Promise Technology IDE Ultra-DMA 33 on PCI bus %d function %d, port 0x%04x\n", bus, fn, dma);
+-	if ((rc = pcibios_read_config_word(bus, fn, 0x04, &pcicmd)) || (pcicmd & 1) == 0 || (pcicmd & 4) == 0)
+-		goto abort;
+-	if ((rc = pcibios_read_config_dword(bus, fn, 0x20, &bmiba)))
+-		goto abort;
+-	bmiba &= 0xfff0;	/* extract port base address */
+-	if (bmiba != dma || !bmiba)
+-		goto abort;
+-	hwif0->chipset = ide_promise_udma;
+-	hwif1->chipset = ide_promise_udma;
+-	init_triton_dma(hwif0, bmiba);
+-	init_triton_dma(hwif1, bmiba + 0x08);
+-	return;
+-abort:
+-	printk(KERN_WARNING "ide: Promise/33 not configured correctly (BIOS)\n");
 +	quit: if (rc) printk("ide: pcibios access failed - %s\n", pcibios_strerror(rc));
  }
-diff -dur linux.orig/src/include/linux/hdreg.h linux/src/include/linux/hdreg.h
---- linux.orig/src/include/linux/hdreg.h	1999-04-26 07:56:27.000000000 +0200
-+++ linux/src/include/linux/hdreg.h	2004-09-16 21:56:00.000000000 +0200
+Index: linux/src/include/linux/hdreg.h
+===================================================================
+--- linux/src/include/linux/hdreg.h.orig	2006-08-26 20:19:09.000000000 +0300
++++ linux/src/include/linux/hdreg.h	2006-08-26 20:23:17.000000000 +0300
 @@ -92,11 +92,12 @@
  #define HDIO_GETGEO		0x0301	/* get device geometry */
  #define HDIO_GET_UNMASKINTR	0x0302	/* get current unmask setting */

@@ -77,8 +77,10 @@
 	linux_kmem_collect.
 
 
---- i386/i386at/model_dep.c	2006-04-02 16:00:14.000000000 +0300
-+++ i386/i386at/model_dep.c	2006-04-02 16:03:32.000000000 +0300
+Index: i386/i386at/model_dep.c
+===================================================================
+--- i386/i386at/model_dep.c.orig	2006-08-26 20:27:09.000000000 +0300
++++ i386/i386at/model_dep.c	2006-08-26 20:27:35.000000000 +0300
 @@ -449,7 +449,6 @@ init_alloc_aligned(vm_size_t size, vm_of
  	vm_offset_t addr;
  	extern char start[], end[];
@@ -114,8 +116,10 @@
  		return FALSE;
  
  	/* Tentatively assign the current location to the caller.  */
---- i386/intel/pmap.c	2006-04-02 16:00:14.000000000 +0300
-+++ i386/intel/pmap.c	2006-04-02 16:00:16.000000000 +0300
+Index: i386/intel/pmap.c
+===================================================================
+--- i386/intel/pmap.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ i386/intel/pmap.c	2006-08-26 20:27:35.000000000 +0300
 @@ -584,6 +584,11 @@ vm_offset_t pmap_map_bd(virt, start, end
  	return(virt);
  }
@@ -182,8 +186,10 @@
  #if	NCPUS > 1
  /*
  *	    TLB Coherence Code (TLB "shootdown" code)
---- kern/startup.c	2006-03-25 19:36:11.000000000 +0200
-+++ kern/startup.c	2006-04-02 16:00:16.000000000 +0300
+Index: kern/startup.c
+===================================================================
+--- kern/startup.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ kern/startup.c	2006-08-26 20:27:35.000000000 +0300
 @@ -78,9 +78,6 @@ extern void	start_other_cpus();
  extern void	action_thread();
  #endif	/* NCPUS > 1 */
@@ -203,8 +209,10 @@
  	machine_info.avail_cpus = 0;
  	machine_info.major_version = KERNEL_MAJOR_VERSION;
  	machine_info.minor_version = KERNEL_MINOR_VERSION;
---- linux/dev/glue/kmem.c	1999-04-26 08:45:35.000000000 +0300
-+++ linux/dev/glue/kmem.c	2006-04-02 16:00:16.000000000 +0300
+Index: linux/dev/glue/kmem.c
+===================================================================
+--- linux/dev/glue/kmem.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ linux/dev/glue/kmem.c	2006-08-26 20:27:35.000000000 +0300
 @@ -25,6 +25,7 @@
  #include <sys/types.h>
  
@@ -668,8 +676,10 @@
 +  collect_kmalloc_pages_nml ();
 +  collect_kmalloc_pages_dma ();
 +}
---- linux/dev/init/main.c	1999-04-26 08:49:06.000000000 +0300
-+++ linux/dev/init/main.c	2006-04-02 16:00:16.000000000 +0300
+Index: linux/dev/init/main.c
+===================================================================
+--- linux/dev/init/main.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ linux/dev/init/main.c	2006-08-26 20:27:35.000000000 +0300
 @@ -82,9 +82,7 @@ struct drive_info_struct
  static void calibrate_delay (void);
  
@@ -680,8 +690,8 @@
  extern void free_contig_mem (vm_page_t);
  extern void init_IRQ (void);
  extern void restore_IRQ (void);
-@@ -105,10 +103,8 @@ extern int intnull ();
- extern void linux_sched_init (void);
+@@ -106,10 +104,8 @@ extern void linux_sched_init (void);
+ extern void pcmcia_init (void);
  
  
 -/*
@@ -693,7 +703,7 @@
  
  /*
   * Initialize Linux drivers.
-@@ -117,7 +113,7 @@ void
+@@ -118,7 +114,7 @@ void
  linux_init (void)
  {
    int addr;
@@ -702,7 +712,7 @@
    vm_page_t pages;
  
    /*
-@@ -142,40 +138,34 @@ linux_init (void)
+@@ -143,40 +139,34 @@ linux_init (void)
    memcpy ((char *) &drive_info + 16,
  	  (void *) ((addr & 0xffff) + ((addr >> 12) & 0xffff0)), 16);
  
@@ -762,7 +772,7 @@
  #ifdef CONFIG_INET
    linux_net_emulation_init ();
  #endif
-@@ -186,148 +176,6 @@ linux_init (void)
+@@ -196,148 +186,6 @@ linux_init (void)
    linux_auto_config = 0;
  }
  
@@ -911,8 +921,10 @@
  /* This is the number of bits of precision for the loops_per_second.  Each
   * bit takes on average 1.5/HZ seconds.  This (like the original) is a little
   * better than 1%
---- vm/pmap.h	2001-04-05 09:39:21.000000000 +0300
-+++ vm/pmap.h	2006-04-02 16:00:16.000000000 +0300
+Index: vm/pmap.h
+===================================================================
+--- vm/pmap.h.orig	2006-08-26 20:27:01.000000000 +0300
++++ vm/pmap.h	2006-08-26 20:27:35.000000000 +0300
 @@ -174,6 +174,15 @@ void pmap_clear_modify(vm_offset_t pa);
  /* Return modify bit */
  boolean_t pmap_is_modified(vm_offset_t pa);
@@ -929,8 +941,10 @@
  
  /*
   *	Statistics routines
---- vm/vm_page.h	1999-06-28 03:41:02.000000000 +0300
-+++ vm/vm_page.h	2006-04-02 16:00:16.000000000 +0300
+Index: vm/vm_page.h
+===================================================================
+--- vm/vm_page.h.orig	2006-08-26 20:27:01.000000000 +0300
++++ vm/vm_page.h	2006-08-26 20:27:35.000000000 +0300
 @@ -152,22 +152,26 @@ typedef struct vm_page	*vm_page_t;
   *		ordered, in LRU-like fashion.
   */
@@ -985,8 +999,10 @@
  extern void		vm_page_release(vm_page_t, boolean_t);
  extern void		vm_page_wait(void (*)(void));
  extern vm_page_t	vm_page_alloc(
---- vm/vm_pageout.c	2006-03-25 19:36:13.000000000 +0200
-+++ vm/vm_pageout.c	2006-04-02 16:00:16.000000000 +0300
+Index: vm/vm_pageout.c
+===================================================================
+--- vm/vm_pageout.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ vm/vm_pageout.c	2006-08-26 20:27:35.000000000 +0300
 @@ -550,6 +550,9 @@ void vm_pageout_scan()
  	 */
  
@@ -997,8 +1013,10 @@
  	stack_collect();
  	net_kmsg_collect();
  	consider_task_collect();
---- vm/vm_resident.c	2006-02-01 22:58:12.000000000 +0200
-+++ vm/vm_resident.c	2006-04-02 16:00:16.000000000 +0300
+Index: vm/vm_resident.c
+===================================================================
+--- vm/vm_resident.c.orig	2006-08-26 20:27:01.000000000 +0300
++++ vm/vm_resident.c	2006-08-26 20:27:35.000000000 +0300
 @@ -56,6 +56,9 @@
  #include <vm/vm_user.h>
  #endif
