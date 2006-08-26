@@ -22,7 +22,7 @@ endif
 
 include debian/rules.options
 
-include debian/patch.mk
+include /usr/share/quilt/quilt.make
 
 configure: patch stamp-configure
 stamp-configure:
@@ -59,7 +59,7 @@ build-gnumach-dbg: configure-dbg
 	
 	$(MAKE) -C build-dbg
 
-clean::
+clean: unpatch
 	dh_testdir
 	
 	-rm -f machine stamp-configure

@@ -1,3 +1,15 @@
+gnumach (1:20060408.dfsg.1-2) UNRELEASED; urgency=low
+
+  * Switch to quilt:
+    - debian/control: Add quilt (>= 0.40) to Build-Depends.
+    - debian/patches/series: New file.
+    - debian/patch.mk: Removed.
+    - debian/rules: Include '/usr/share/quilt/quilt.make' instead of
+      'debian/patch.mk'. Change clean to a single colon target and make it
+      depend on patch.
+
+ -- Guillem Jover <guillem@debian.org>  Sat, 26 Aug 2006 16:52:37 +0300
+
 gnumach (1:20060408.dfsg.1-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
