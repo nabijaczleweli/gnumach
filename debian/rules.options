@@ -1,6 +1,8 @@
 # disabled:
 #   ncr5380, ncr53c400, ncr53c406a
 #   hpj2577, hpj2573, hp27248b, hp2585, atp
+# FTBFS:
+#   wavelan
 
 drivers_block := \
 	--enable-floppy \
@@ -81,7 +83,6 @@ drivers_net := \
 	--enable-ewrk3 --enable-de203 --enable-de204 --enable-de205 \
 	--enable-apricot \
 	--enable-el1 --enable-3c501 \
-	--enable-wavelan \
 	--enable-el16 --enable-3c507 \
 	--enable-elplus --enable-3c505 \
 	--enable-de600 --enable-de620 \

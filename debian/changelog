@@ -1,6 +1,8 @@
 gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
 
   * New upstream CVS snapshot.
+    - Disable wavelan driver as it does not build anymore with the updated
+      Linux header files.
     - debian/patches/05_halt_on_panic_flag.patch: Sync.
     - debian/patches/10_cdromlock.patch: Likewise.
     - debian/patches/12_sis900.patch: Likewise.
