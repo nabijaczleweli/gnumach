@@ -12,6 +12,7 @@ Package: gnumach
 Section: base
 Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
+Conflicts: hurd (<= 20060825-1)
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
@@ -20,6 +21,7 @@ XC-Package-Type: udeb
 Section: debian-installer
 Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
+Conflicts: hurd-udeb (<= 20060825-1)
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
