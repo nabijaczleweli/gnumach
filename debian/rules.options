@@ -91,5 +91,18 @@ drivers_net := \
 	--enable-lance \
 	--enable-tlan
 
-drivers := $(drivers_block) $(drivers_scsi) $(drivers_net)
+drivers_pcmcia := \
+	--enable-pcmcia-isa \
+	--enable-i82365 \
+	--enable-3c574_cs \
+	--enable-3c589_cs \
+	--enable-axnet_cs \
+	--enable-fmvj18x_cs \
+	--enable-nmclan_cs \
+	--enable-pcnet_cs \
+	--enable-smc91c92_cs \
+	--enable-xirc2ps_cs \
+	--enable-orinoco_cs
+
+drivers := $(drivers_block) $(drivers_scsi) $(drivers_net) $(drivers_pcmcia)
 
