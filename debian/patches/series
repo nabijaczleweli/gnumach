@@ -14,5 +14,6 @@
 44_more_ports.patch -p1
 45_io_per_task.patch -p0
 46_io_device.patch -p1
+47_pcmcia_isa.patch -p0
 61_vm_resident-zoned.patch -p0
 90_autoconf_autogen.patch -p0

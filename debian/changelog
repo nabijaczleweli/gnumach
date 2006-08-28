@@ -25,6 +25,9 @@ gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
     descriptor initialization to do it partially.
     - debian/patches/01_gcc-4.1.patch: New file.
     Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
+  * Enable PCMCIA ISA support.
+    - debian/patches/47_pcmcia_isa.patch: New file.
+    Thanks to Stefan Siegl <stesie@brokenpipe.de>.
 
  -- Guillem Jover <guillem@debian.org>  Sat, 26 Aug 2006 16:52:37 +0300
 
