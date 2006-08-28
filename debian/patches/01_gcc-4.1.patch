@@ -1,0 +1,42 @@
+[gnumach]/Changelog
+2006-08-07  Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+	Fix against gcc 4.1's optimizations.
+
+	* i386/i386/seg.h (struct pseudo_descriptor): Reorder pad field,
+	pack structure.
+	(lgdt): Pass whole struct pseudo_descriptor to asm macro.
+	(lidt): Likewise.
+
+Index: i386/i386/seg.h
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386/Attic/seg.h,v
+retrieving revision 1.2
+diff -u -p -r1.2 seg.h
+--- i386/i386/seg.h	5 Apr 2001 06:39:20 -0000	1.2
++++ i386/i386/seg.h	7 Aug 2006 03:59:04 -0000
+@@ -121,20 +121,20 @@ struct real_gate {
+ /* Format of a "pseudo-descriptor", used for loading the IDT and GDT.  */
+ struct pseudo_descriptor
+ {
+-	short pad;
+ 	unsigned short limit;
+ 	unsigned long linear_base;
+-};
++	short pad;
++} __attribute__((packed));
+ 
+ 
+ /* Load the processor's IDT, GDT, or LDT pointers.  */
+ MACH_INLINE void lgdt(struct pseudo_descriptor *pdesc)
+ {
+-	__asm volatile("lgdt %0" : : "m" (pdesc->limit));
++	__asm volatile("lgdt %0" : : "m" (*pdesc));
+ }
+ MACH_INLINE void lidt(struct pseudo_descriptor *pdesc)
+ {
+-	__asm volatile("lidt %0" : : "m" (pdesc->limit));
++	__asm volatile("lidt %0" : : "m" (*pdesc));
+ }
+ MACH_INLINE void lldt(unsigned short ldt_selector)
+ {

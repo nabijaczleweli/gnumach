@@ -21,6 +21,10 @@ gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
       'debian/patch.mk'. Change clean to a single colon target and make it
       depend on patch.
   * Now using Standards-Version 3.7.2 (no changes needed).
+  * Fix an unused field optimization with gcc 4.1 which was causing the
+    descriptor initialization to do it partially.
+    - debian/patches/01_gcc-4.1.patch: New file.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
  -- Guillem Jover <guillem@debian.org>  Sat, 26 Aug 2006 16:52:37 +0300
 

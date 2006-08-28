@@ -1,4 +1,5 @@
 00_clean_gfdl.patch -p0
+01_gcc-4.1.patch -p0
 05_halt_on_panic_flag.patch -p0
 10_cdromlock.patch 
 12_sis900.patch -p0
