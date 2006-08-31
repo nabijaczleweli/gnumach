@@ -1,10 +1,10 @@
-gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
+gnumach (1:20060826.dfsg.1-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
     - Disable wavelan driver as it does not build anymore with the updated
       Linux header files.
-    - Make gnumach-dbg Depend on the exact same version gnumach version,
-      due to an interface change in the networking code, to drag it as well.
+    - Make gnumach-dbg Depend on gnumach with the exact same version, due
+      to an interface change in the networking code, to drag it as well.
     - debian/patches/05_halt_on_panic_flag.patch: Sync.
     - debian/patches/10_cdromlock.patch: Likewise.
     - debian/patches/12_sis900.patch: Likewise.
@@ -30,7 +30,7 @@ gnumach (1:20060826.dfsg.1-1) UNRELEASED; urgency=low
     Thanks to Stefan Siegl <stesie@brokenpipe.de>.
   * Enable all PCMCIA options.
 
- -- Guillem Jover <guillem@debian.org>  Sat, 26 Aug 2006 16:52:37 +0300
+ -- Guillem Jover <guillem@debian.org>  Thu, 31 Aug 2006 04:43:57 +0300
 
 gnumach (1:20060408.dfsg.1-1) unstable; urgency=low
 
