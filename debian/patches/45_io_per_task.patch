@@ -1,5 +1,3 @@
-#DPATCHLEVEL=0
-
 2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 	* i386/i386/iopb.c: IO ports permissions are now task-based.
@@ -33,9 +31,11 @@
 	(task): Add new machine member.
 
 
---- i386/i386/io_emulate.c	1997-02-25 23:27:09.000000000 +0200
-+++ i386/i386/io_emulate.c	2006-04-02 15:40:13.000000000 +0300
-@@ -102,7 +102,7 @@ emulate_io(regs, opcode, io_port)
+Index: i386/i386/io_emulate.c
+===================================================================
+--- i386/i386/io_emulate.c.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386/io_emulate.c	2006-10-26 00:17:32.000000000 +0300
+@@ -101,7 +101,7 @@ emulate_io(regs, opcode, io_port)
  	 * Make the thread use its IO_TSS to get the IO permissions;
  	 * it may not have had one before this.
  	 */
@@ -44,8 +44,10 @@
  
  	return EM_IO_RETRY;
  }
---- i386/i386/iopb.c	2006-04-02 15:40:09.000000000 +0300
-+++ i386/i386/iopb.c	2006-04-02 15:40:13.000000000 +0300
+Index: i386/i386/iopb.c
+===================================================================
+--- i386/i386/iopb.c.orig	2006-10-26 00:17:26.000000000 +0300
++++ i386/i386/iopb.c	2006-10-26 00:17:32.000000000 +0300
 @@ -65,8 +65,8 @@ queue_head_t	device_to_io_port_list;
  
  /*
@@ -287,9 +289,11 @@
  	simple_unlock(&iopb_lock);
  	return FALSE;
  }
---- i386/i386/pcb.c	1998-04-24 22:49:34.000000000 +0300
-+++ i386/i386/pcb.c	2006-04-02 15:40:13.000000000 +0300
-@@ -131,12 +131,13 @@ vm_offset_t stack_detach(thread)
+Index: i386/i386/pcb.c
+===================================================================
+--- i386/i386/pcb.c.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386/pcb.c	2006-10-26 00:17:32.000000000 +0300
+@@ -128,12 +128,13 @@ vm_offset_t stack_detach(thread)
  #define	gdt_desc_p(mycpu,sel) \
  	((struct real_descriptor *)&curr_gdt(mycpu)[sel_idx(sel)])
  
@@ -306,7 +310,7 @@
  	vm_offset_t		pcb_stack_top;
  
  	/*
-@@ -234,7 +235,7 @@ void stack_handoff(old, new)
+@@ -231,7 +232,7 @@ void stack_handoff(old, new)
  	/*
  	 *	Load the rest of the user state for the new thread
  	 */
@@ -315,7 +319,7 @@
  
  	/*
  	 *	Switch to new thread
-@@ -259,7 +260,7 @@ void stack_handoff(old, new)
+@@ -256,7 +257,7 @@ void stack_handoff(old, new)
  void load_context(new)
  	register thread_t	new;
  {
@@ -324,7 +328,7 @@
  	Load_context(new);
  }
  
-@@ -296,7 +297,7 @@ thread_t switch_context(old, continuatio
+@@ -293,7 +294,7 @@ thread_t switch_context(old, continuatio
  	/*
  	 *	Load the rest of the user state for the new thread
  	 */
@@ -333,7 +337,7 @@
  
  	return Switch_context(old, continuation, new);
  }
-@@ -309,7 +310,6 @@ void pcb_module_init()
+@@ -306,7 +307,6 @@ void pcb_module_init()
  			 0, "i386 pcb state");
  
  	fpu_module_init();
@@ -341,7 +345,7 @@
  }
  
  void pcb_init(thread)
-@@ -353,8 +353,6 @@ void pcb_terminate(thread)
+@@ -350,8 +350,6 @@ void pcb_terminate(thread)
  	counter(if (--c_threads_current < c_threads_min)
  			c_threads_min = c_threads_current);
  
@@ -350,7 +354,7 @@
  	if (pcb->ims.ifps != 0)
  		fp_free(pcb->ims.ifps);
  	if (pcb->ims.ldt != 0)
-@@ -374,6 +372,30 @@ void pcb_collect(thread)
+@@ -371,6 +369,30 @@ void pcb_collect(thread)
  {
  }
  
@@ -381,7 +385,7 @@
  
  /*
   *	thread_setstatus:
-@@ -508,28 +530,40 @@ kern_return_t thread_setstatus(thread, f
+@@ -505,28 +527,40 @@ kern_return_t thread_setstatus(thread, f
  	     */
  	    case i386_ISA_PORT_MAP_STATE: {
  		register struct i386_isa_port_map_state *state;
@@ -427,7 +431,7 @@
  		break;
  	    }
  
-@@ -666,16 +700,21 @@ kern_return_t thread_getstatus(thread, f
+@@ -663,16 +697,21 @@ kern_return_t thread_getstatus(thread, f
  	    case i386_ISA_PORT_MAP_STATE: {
  		register struct i386_isa_port_map_state *state;
  		register iopb_tss_t tss;
@@ -450,7 +454,7 @@
  		    /*
  		     *	The thread has no ktss, so no IO permissions.
  		     */
-@@ -690,6 +729,7 @@ kern_return_t thread_getstatus(thread, f
+@@ -687,6 +726,7 @@ kern_return_t thread_getstatus(thread, f
  		    bcopy((char *) tss->bitmap,
  			  (char *) state->pm,
  			  sizeof state->pm);
@@ -458,8 +462,10 @@
  		}
  
  		*count = i386_ISA_PORT_MAP_STATE_COUNT;
---- i386/i386/thread.h	2001-04-05 09:39:20.000000000 +0300
-+++ i386/i386/thread.h	2006-04-02 15:40:13.000000000 +0300
+Index: i386/i386/thread.h
+===================================================================
+--- i386/i386/thread.h.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386/thread.h	2006-10-26 00:17:32.000000000 +0300
 @@ -157,12 +157,15 @@ struct i386_interrupt_state {
   */
  
@@ -477,8 +483,10 @@
  typedef struct pcb {
  	struct i386_interrupt_state iis[2];	/* interrupt and NMI */
  	struct i386_saved_state iss;
---- i386/i386/user_ldt.c	2006-02-01 22:58:07.000000000 +0200
-+++ i386/i386/user_ldt.c	2006-04-02 15:40:13.000000000 +0300
+Index: i386/i386/user_ldt.c
+===================================================================
+--- i386/i386/user_ldt.c.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386/user_ldt.c	2006-10-26 00:17:32.000000000 +0300
 @@ -247,7 +247,7 @@ i386_set_ldt(thread, first_selector, des
  	     * make sure it is properly set.
  	     */
@@ -488,8 +496,10 @@
  	}
  
  	/*
---- i386/i386at/iopl.c	2006-04-02 15:40:11.000000000 +0300
-+++ i386/i386at/iopl.c	2006-04-02 15:40:13.000000000 +0300
+Index: i386/i386at/iopl.c
+===================================================================
+--- i386/i386at/iopl.c.orig	2006-10-26 00:17:28.000000000 +0300
++++ i386/i386at/iopl.c	2006-10-26 00:17:32.000000000 +0300
 @@ -217,10 +217,15 @@ iopl_emulate(regs, opcode, io_port)
  	int	io_port;
  {
@@ -523,9 +533,11 @@
  
  	/*
  	 * If the thread has the IOPL device mapped, and
---- kern/task.c	2006-03-25 19:36:11.000000000 +0200
-+++ kern/task.c	2006-04-02 15:41:54.000000000 +0300
-@@ -68,6 +68,7 @@ void task_init(void)
+Index: kern/task.c
+===================================================================
+--- kern/task.c.orig	2006-10-26 00:16:49.000000000 +0300
++++ kern/task.c	2006-10-26 00:17:32.000000000 +0300
+@@ -64,6 +64,7 @@ void task_init(void)
  			0, "tasks");
  
  	eml_init();
@@ -533,7 +545,7 @@
  
  	/*
  	 * Create the kernel task as the first task.
-@@ -146,6 +147,7 @@ kern_return_t task_create(
+@@ -142,6 +143,7 @@ kern_return_t task_create(
  	eml_task_reference(new_task, parent_task);
  
  	ipc_task_init(new_task, parent_task);
@@ -541,7 +553,7 @@
  
  	new_task->total_user_time.seconds = 0;
  	new_task->total_user_time.microseconds = 0;
-@@ -221,6 +223,8 @@ void task_deallocate(
+@@ -217,6 +219,8 @@ void task_deallocate(
  	if (c != 0)
  		return;
  
@@ -550,7 +562,7 @@
  	eml_task_deallocate(task);
  
  	pset = task->processor_set;
-@@ -1093,6 +1097,7 @@ void task_collect_scan(void)
+@@ -1089,6 +1093,7 @@ void task_collect_scan(void)
  			pset_unlock(pset);
  			simple_unlock(&all_psets_lock);
  
@@ -558,9 +570,11 @@
  			pmap_collect(task->map->pmap);
  
  			if (prev_task != TASK_NULL)
---- kern/task.h	2006-03-25 19:36:11.000000000 +0200
-+++ kern/task.h	2006-04-02 15:42:37.000000000 +0300
-@@ -47,6 +47,7 @@
+Index: kern/task.h
+===================================================================
+--- kern/task.h.orig	2006-10-26 00:16:50.000000000 +0300
++++ kern/task.h	2006-10-26 00:17:32.000000000 +0300
+@@ -45,6 +45,7 @@
  #include <kern/pc_sample.h>
  #include <kern/processor.h>
  #include <kern/syscall_emulation.h>
@@ -568,7 +582,7 @@
  #include <vm/vm_map.h>
  
  struct task {
-@@ -100,6 +101,9 @@ struct task {
+@@ -98,6 +99,9 @@ struct task {
  	vm_offset_t	fast_tas_base[TASK_FAST_TAS_NRAS];
  	vm_offset_t	fast_tas_end[TASK_FAST_TAS_NRAS];
  #endif	/* FAST_TAS */

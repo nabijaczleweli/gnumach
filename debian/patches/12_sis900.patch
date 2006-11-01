@@ -1,5 +1,3 @@
-#DPATCHLEVEL=0
-
 2005-05-01  Andreas B. Mundt  <andi.mundt@web.de>
 
 	* i386/README-Drivers: Likewise.
@@ -11,50 +9,25 @@
 	* linux/src/drivers/net/sis900.h: Likewise.
 
 
-Index: i386/linux/configure.ac
-===================================================================
---- i386/linux/configure.ac.orig	2006-08-20 07:29:24.000000000 +0300
-+++ i386/linux/configure.ac	2006-08-26 19:54:37.000000000 +0300
-@@ -212,6 +212,7 @@
- linux_DRIVER([elplus], [ELPLUS], [3c505], [net])
- linux_DRIVER([de600], [DE600], [de600], [net])
- linux_DRIVER([de620], [DE620], [de620], [net])
-+linux_DRIVER([sis900], [SIS900], [sis900], [net])
- linux_DRIVER([skg16], [SK_G16], [sk_g16], [net])
- linux_DRIVER([ni52], [NI52], [ni52], [net])
- linux_DRIVER([ni65], [NI65], [ni65], [net])
-Index: i386/linux/Makefile.in
-===================================================================
---- i386/linux/Makefile.in.orig	2006-08-20 07:29:24.000000000 +0300
-+++ i386/linux/Makefile.in	2006-08-26 19:54:37.000000000 +0300
-@@ -90,7 +90,7 @@
- 	eexpress.c epic100.c eth16i.c ewrk3.c fmv18x.c hp-plus.c hp.c hp100.c \
- 	lance.c ne.c ne2k-pci.c net_init.c ni52.c ni65.c pcnet32.c rtl8139.c \
- 	seeq8005.c sk_g16.c smc-ultra.c smc-ultra32.c tlan.c tulip.c \
--	via-rhine.c wavelan.c wd.c yellowfin.c znet.c \
-+	via-rhine.c sis900.c wavelan.c wd.c yellowfin.c znet.c \
- 	cb_shim.c hamachi.c intel-gige.c myson803.c natsemi.c ns820.c \
- 	starfire.c sundance.c winbond-840.c \
- 	pci-scan.c \
 Index: i386/README-Drivers
 ===================================================================
---- i386/README-Drivers.orig	2006-08-20 07:29:21.000000000 +0300
-+++ i386/README-Drivers	2006-08-26 19:55:48.000000000 +0300
-@@ -396,6 +396,9 @@
+--- i386/README-Drivers.orig	2006-10-15 20:39:23.000000000 +0300
++++ i386/README-Drivers	2006-10-25 23:55:33.000000000 +0300
+@@ -365,6 +365,9 @@ Sundance ST201 "Alta" PCI Ethernet
  Winbond W89c840 PCI Ethernet
-   --enable-winbond-840			net/winbond-840.c
+   --disable-winbond-840			net/winbond-840.c
  
 +SiS 900
 +  --enable-sis900			net/sis900.c
 +
  *** pcmcia bridge drivers
- All source files are relative to .../gnumach/linux/pcmcia-cs.
  
+ All source files are relative to [GNU Mach]/linux/pcmcia-cs.
 Index: linux/dev/drivers/net/Space.c
 ===================================================================
 --- linux/dev/drivers/net/Space.c.orig	2006-02-01 22:58:10.000000000 +0200
-+++ linux/dev/drivers/net/Space.c	2006-08-26 19:54:37.000000000 +0300
-@@ -93,6 +93,7 @@
++++ linux/dev/drivers/net/Space.c	2006-10-25 23:55:33.000000000 +0300
+@@ -93,6 +93,7 @@ extern int yellowfin_probe(struct device
  extern int eepro100_probe(struct device *);
  extern int epic100_probe(struct device *);
  extern int rtl8139_probe(struct device *);
@@ -62,7 +35,7 @@ Index: linux/dev/drivers/net/Space.c
  extern int tlan_probe(struct device *);
  extern int isa515_probe(struct device *);
  extern int pcnet32_probe(struct device *);
-@@ -137,6 +138,9 @@
+@@ -137,6 +138,9 @@ ethif_probe(struct device *dev)
  #ifdef CONFIG_RTL8139
  	&& rtl8139_probe(dev)
  #endif
@@ -75,7 +48,7 @@ Index: linux/dev/drivers/net/Space.c
 Index: linux/src/drivers/net/sis900.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux/src/drivers/net/sis900.c	2006-08-26 19:54:37.000000000 +0300
++++ linux/src/drivers/net/sis900.c	2006-10-25 23:55:33.000000000 +0300
 @@ -0,0 +1,1803 @@
 +/* sis900.c: A SiS 900/7016 PCI Fast Ethernet driver for Linux.
 +   Copyright 1999 Silicon Integrated System Corporation
@@ -1883,7 +1856,7 @@ Index: linux/src/drivers/net/sis900.c
 Index: linux/src/drivers/net/sis900.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux/src/drivers/net/sis900.h	2006-08-26 19:54:37.000000000 +0300
++++ linux/src/drivers/net/sis900.h	2006-10-25 23:55:33.000000000 +0300
 @@ -0,0 +1,284 @@
 +/* sis900.h Definitions for SiS ethernet controllers including 7014/7016 and 900
 + * Copyright 1999 Silicon Integrated System Corporation
@@ -2169,3 +2142,34 @@ Index: linux/src/drivers/net/sis900.h
 +#define SIOCGMIIPHY (SIOCDEVPRIVATE)		/* Get the PHY in use. */
 +#define SIOCGMIIREG (SIOCDEVPRIVATE+1)		/* Read a PHY register. */
 +#define SIOCSMIIREG (SIOCDEVPRIVATE+2)		/* Write a PHY register */
+Index: linux/configfrag.ac
+===================================================================
+--- linux/configfrag.ac.orig	2006-10-25 23:57:48.000000000 +0300
++++ linux/configfrag.ac	2006-10-25 23:59:16.000000000 +0300
+@@ -423,6 +423,10 @@ AC_Linux_DRIVER([seeq8005],
+   [Ethernet controller Seeq8005],
+   [CONFIG_SEEQ8005],
+   [net])
++AC_Linux_DRIVER([sis900],
++  [Ethernet controller SiS 900],
++  [CONFIG_SIS900],
++  [net])
+ AC_Linux_DRIVER([sk_g16],
+   [Ethernet controller Schneider & Koch G16],
+   [CONFIG_SK_G16],
+Index: linux/Makefrag.am
+===================================================================
+--- linux/Makefrag.am.orig	2006-10-25 23:59:36.000000000 +0300
++++ linux/Makefrag.am	2006-10-26 00:00:48.000000000 +0300
+@@ -449,6 +449,11 @@ liblinux_a_SOURCES += \
+ 	linux/src/drivers/net/seeq8005.c
+ endif
+ 
++if device_driver_sis900
++liblinux_a_SOURCES += \
++	linux/src/drivers/net/sis900.c
++endif
++
+ if device_driver_sk_g16
+ liblinux_a_SOURCES += \
+ 	linux/src/drivers/net/sk_g16.c

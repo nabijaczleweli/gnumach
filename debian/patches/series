@@ -1,19 +1,16 @@
 00_clean_gfdl.patch -p0
-01_gcc-4.1.patch -p0
 05_halt_on_panic_flag.patch -p0
-10_cdromlock.patch 
+10_cdromlock.patch -p0
 12_sis900.patch -p0
 13_ide_dma.patch -p0
 14_alloc_params.patch -p0
-15_mem_obj_proxy.patch -p1
+15_mem_obj_proxy.patch -p0
 22_scsi_inf_loop.patch -p1
 24_pci_irq_fix.patch -p1
 41_io_unlock_ioremove.patch -p0
 42_disable_ioperm.patch -p0
 43_debvice_port_fix.patch -p1
-44_more_ports.patch -p1
+44_more_ports.patch -p0
 45_io_per_task.patch -p0
-46_io_device.patch -p1
-47_pcmcia_isa.patch -p0
-61_vm_resident-zoned.patch -p0
+46_io_device.patch -p0
 90_autoconf_autogen.patch -p0

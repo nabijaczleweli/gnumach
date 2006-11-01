@@ -1,5 +1,3 @@
-#DPATCHLEVEL=0
-
 2005-05-11  Neal H. Walfield  <neal@cs.uml.edu>
 
 	* kern/mach_param.h (THREAD_MAX, TASK_MAX, ACT_MAX,
@@ -9,11 +7,8 @@
 
 Index: kern/mach_param.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/kern/mach_param.h,v
-retrieving revision 1.2
-diff -u -r1.2 mach_param.h
---- kern/mach_param.h	5 Apr 2001 06:39:20 -0000	1.2
-+++ kern/mach_param.h	3 May 2005 10:06:19 -0000
+--- kern/mach_param.h.orig	2006-10-26 00:16:51.000000000 +0300
++++ kern/mach_param.h	2006-10-26 00:17:13.000000000 +0300
 @@ -38,16 +38,16 @@
  #ifndef	_KERN_MACH_PARAM_H_
  #define _KERN_MACH_PARAM_H_
@@ -35,14 +30,11 @@ diff -u -r1.2 mach_param.h
  #define ACTPOOL_CHUNK	64
  
  #define PORT_MAX	((TASK_MAX * 3 + THREAD_MAX)	/* kernel */ \
-Index: zalloc.c
+Index: kern/zalloc.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/kern/zalloc.c,v
-retrieving revision 1.3
-diff -u -p -r1.3 zalloc.c
---- kern/zalloc.c	5 Apr 2001 06:39:20 -0000	1.3
-+++ kern/zalloc.c	11 May 2005 09:35:43 -0000
-@@ -99,7 +99,7 @@ zone_t		zone_zone;	/* this is the zone c
+--- kern/zalloc.c.orig	2006-10-26 00:16:52.000000000 +0300
++++ kern/zalloc.c	2006-10-26 00:17:13.000000000 +0300
+@@ -98,7 +98,7 @@ zone_t		zone_zone;	/* this is the zone c
  boolean_t	zone_ignore_overflow = TRUE;
  
  vm_map_t	zone_map = VM_MAP_NULL;

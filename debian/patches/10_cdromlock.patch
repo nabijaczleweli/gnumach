@@ -1,10 +1,8 @@
-#DPATCHLEVEL=1
-
-Index: gnumach-20060826/linux/dev/glue/block.c
+Index: linux/dev/glue/block.c
 ===================================================================
---- gnumach-20060826.orig/linux/dev/glue/block.c	2006-08-26 20:19:10.000000000 +0300
-+++ gnumach-20060826/linux/dev/glue/block.c	2006-08-26 20:23:05.000000000 +0300
-@@ -789,6 +789,7 @@
+--- linux/dev/glue/block.c.orig	2006-10-26 00:16:52.000000000 +0300
++++ linux/dev/glue/block.c	2006-10-26 00:17:05.000000000 +0300
+@@ -789,6 +789,7 @@ static struct block_data *open_list;
  extern struct device_emulation_ops linux_block_emulation_ops;
  
  static io_return_t device_close (void *);
@@ -12,7 +10,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
  
  /* Return a send right for block device BD.  */
  static ipc_port_t
-@@ -1164,6 +1165,7 @@
+@@ -1164,6 +1165,7 @@ out:
  	    {
  	      ipc_kobject_set (bd->port, IKO_NULL, IKOT_NONE);
  	      ipc_port_dealloc_kernel (bd->port);
@@ -20,7 +18,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
  	    }
  	  kfree ((vm_offset_t) bd, sizeof (struct block_data));
  	  bd = NULL;
-@@ -1174,18 +1176,16 @@
+@@ -1174,18 +1176,16 @@ out:
        bd->open_count = 1;
        bd->next = open_list;
        open_list = bd;
@@ -43,7 +41,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
  {
    struct block_data *bd = d, *bdp, **prev;
    struct device_struct *ds = bd->ds;
-@@ -1202,7 +1202,7 @@
+@@ -1202,7 +1202,7 @@ device_close (void *d)
      }
    ds->busy = 1;
  
@@ -52,7 +50,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
      {
        /* Wait for pending I/O to complete.  */
        while (bd->iocount > 0)
-@@ -1245,6 +1245,13 @@
+@@ -1245,6 +1245,13 @@ device_close (void *d)
    return D_SUCCESS;
  }
  
@@ -66,7 +64,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
  #define MAX_COPY	(VM_MAP_COPY_PAGE_LIST_MAX << PAGE_SHIFT)
  
  /* Check block BN and size COUNT for I/O validity
-@@ -1704,6 +1711,16 @@
+@@ -1704,6 +1711,16 @@ device_get_status (void *d, dev_flavor_t
    return D_SUCCESS;
  }
  
@@ -83,7 +81,7 @@ Index: gnumach-20060826/linux/dev/glue/block.c
  struct device_emulation_ops linux_block_emulation_ops =
  {
    NULL,
-@@ -1719,7 +1736,7 @@
+@@ -1719,7 +1736,7 @@ struct device_emulation_ops linux_block_
    device_get_status,
    NULL,
    NULL,
@@ -92,11 +90,11 @@ Index: gnumach-20060826/linux/dev/glue/block.c
    NULL,
    NULL
  };
-Index: gnumach-20060826/i386/i386at/i386at_ds_routines.c
+Index: i386/i386at/i386at_ds_routines.c
 ===================================================================
---- gnumach-20060826.orig/i386/i386at/i386at_ds_routines.c	2006-08-26 20:19:10.000000000 +0300
-+++ gnumach-20060826/i386/i386at/i386at_ds_routines.c	2006-08-26 20:23:05.000000000 +0300
-@@ -235,7 +235,8 @@
+--- i386/i386at/i386at_ds_routines.c.orig	2006-10-26 00:16:52.000000000 +0300
++++ i386/i386at/i386at_ds_routines.c	2006-10-26 00:17:05.000000000 +0300
+@@ -231,7 +231,8 @@ ds_notify (mach_msg_header_t *msg)
        mach_no_senders_notification_t *ns;
  
        ns = (mach_no_senders_notification_t *) msg;

@@ -1,5 +1,3 @@
-#DPATCHLEVEL=1
-
 2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 	* i386/i386at/iopl.c (iopl_port_list): Add timer controler port.
@@ -7,10 +5,11 @@
 	(kd_port_list): ... this. Add timer and speaker ports.
 
 
-diff -urp gnumach-mine-3-device_port_fix/i386/i386at/iopl.c gnumach-mine-4-more_ports/i386/i386at/iopl.c
---- gnumach-mine-3-device_port_fix/i386/i386at/iopl.c	2006-01-02 18:43:09.000000000 +0100
-+++ gnumach-mine-4-more_ports/i386/i386at/iopl.c	2006-01-02 18:45:17.000000000 +0100
-@@ -47,7 +47,7 @@
+Index: i386/i386at/iopl.c
+===================================================================
+--- i386/i386at/iopl.c.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386at/iopl.c	2006-10-26 00:17:28.000000000 +0300
+@@ -47,7 +47,7 @@ mach_device_t	iopl_device = 0;
   */
  io_reg_t iopl_port_list[] = {
  	/* timer 2 */
@@ -19,16 +18,11 @@ diff -urp gnumach-mine-3-device_port_fix/i386/i386at/iopl.c gnumach-mine-4-more_
  	/* speaker output */
  	0x61,
  	/* ATI - savage */
-
-2006-01-02  Samuel Thibault <samuel.thibault@ens-lyon.org>
-
-        * kd.c(vga_port_list): Rename to...
-	(kd_port_list): this, set static, add timer and speaker ports.
-
-diff -urp gnumach-mine-3-device_port_fix/i386/i386at/kd.c gnumach-mine-4-more_ports/i386/i386at/kd.c
---- gnumach-mine-3-device_port_fix/i386/i386at/kd.c	2006-01-02 18:43:12.000000000 +0100
-+++ gnumach-mine-4-more_ports/i386/i386at/kd.c	2006-01-02 19:14:48.000000000 +0100
-@@ -333,7 +333,9 @@
+Index: i386/i386at/kd.c
+===================================================================
+--- i386/i386at/kd.c.orig	2006-10-26 00:16:50.000000000 +0300
++++ i386/i386at/kd.c	2006-10-26 00:17:28.000000000 +0300
+@@ -331,7 +331,9 @@ short	kd_io_reg	= EGA_IO_REG;
  /*
   * IO port sets for different controllers.
   */
@@ -39,7 +33,7 @@ diff -urp gnumach-mine-3-device_port_fix/i386/i386at/kd.c gnumach-mine-4-more_po
  	0x3b4, 0x3b5, 0x3b8, 0x3b9, 0x3ba,	/* MDA/EGA */
  	0x3d4, 0x3d5, 0x3d8, 0x3d9, 0x3da,	/* CGA/EGA */
  	0x3c0, 0x3c1, 0x3c2, 0x3c3, 0x3c4, 0x3c5, 0x3c6, 0x3c7,
-@@ -347,7 +349,7 @@ kd_io_map_open(device)
+@@ -345,7 +347,7 @@ kd_io_map_open(device)
  	mach_device_t	device;
  {
  	kd_io_device = device;

@@ -1,5 +1,3 @@
-#DPATCHLEVEL=0
-
 2005-12-29  Soeren D. Schulze  <soeren.d.schulze@gmx.de>
 
 	* i386/i386at/model_dep.c (reboot_on_panic) [!MACH_KBD]: New variable.
@@ -11,9 +9,9 @@
 
 Index: i386/i386at/model_dep.c
 ===================================================================
---- i386/i386at/model_dep.c.orig	2006-08-26 20:19:10.000000000 +0300
-+++ i386/i386at/model_dep.c	2006-08-26 20:22:57.000000000 +0300
-@@ -94,6 +94,10 @@
+--- i386/i386at/model_dep.c.orig	2006-10-26 00:16:53.000000000 +0300
++++ i386/i386at/model_dep.c	2006-10-26 00:16:58.000000000 +0300
+@@ -91,6 +91,10 @@ void		inittodr();	/* forward */
  
  int		rebootflag = 0;	/* exported to kdintr */
  
@@ -24,7 +22,7 @@ Index: i386/i386at/model_dep.c
  /* XX interrupt stack pointer and highwater mark, for locore.S.  */
  vm_offset_t int_stack_top, int_stack_high;
  
-@@ -352,6 +356,11 @@
+@@ -349,6 +353,11 @@ void c_boot_entry(vm_offset_t bi)
  		cninit();		/* need console for debugger */
  		Debugger();
  	}
@@ -38,9 +36,9 @@ Index: i386/i386at/model_dep.c
  	machine_slot[0].is_cpu = TRUE;
 Index: kern/debug.c
 ===================================================================
---- kern/debug.c.orig	2006-08-26 20:19:10.000000000 +0300
-+++ kern/debug.c	2006-08-26 20:22:57.000000000 +0300
-@@ -120,6 +120,10 @@
+--- kern/debug.c.orig	2006-10-26 00:16:53.000000000 +0300
++++ kern/debug.c	2006-10-26 00:16:58.000000000 +0300
+@@ -117,6 +117,10 @@ panic_init()
  	}
  }
  
@@ -51,7 +49,7 @@ Index: kern/debug.c
  /*VARARGS1*/
  void
  panic(const char *s, ...)
-@@ -161,7 +165,7 @@
+@@ -158,7 +162,7 @@ panic(const char *s, ...)
  #if	MACH_KDB
  	Debugger("panic");
  #else

@@ -1,32 +1,14 @@
-#DPATCHLEVEL=0
-
 Do not --enable-ide-forcedma by default, it's too dangerous on non-DMA
 supporting hardware.
 
 2004-09-17  Sergio Lopez  <koro@sinrega.org>
 
 
-Index: i386/linux/configure.ac
+Index: linux/src/drivers/block/ide.c
 ===================================================================
---- i386/linux/configure.ac.orig	2006-08-26 20:23:11.000000000 +0300
-+++ i386/linux/configure.ac	2006-08-26 20:23:17.000000000 +0300
-@@ -128,6 +128,11 @@
- AC_DRIVER([ide], [CONFIG_BLK_DEV_IDE], [ \
-   cmd640.o ide-cd.o ide.o rz1000.o triton.o])
- 
-+AC_ARG_ENABLE([ide-forcedma],
-+  AS_HELP_STRING([--enable-ide-forcedma], [enable forced use of DMA on IDE]),
-+  [test x"$enableval" = xno ||
-+   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [1], [Force DMA on IDE block devices])])
-+
- 
- dnl SCSI Disk controllers
- 
-Index: linux/dev/drivers/block/ide.c
-===================================================================
---- linux/dev/drivers/block/ide.c.orig	2006-08-26 20:19:09.000000000 +0300
-+++ linux/dev/drivers/block/ide.c	2006-08-26 20:23:17.000000000 +0300
-@@ -3594,9 +3594,6 @@
+--- linux/src/drivers/block/ide.c.orig	2006-10-15 20:39:24.000000000 +0300
++++ linux/src/drivers/block/ide.c	2006-10-26 00:03:24.000000000 +0300
+@@ -3594,9 +3594,6 @@ static void ide_probe_promise_20246(void
  		hwif->ctl_port = io[tmp + 1] + 2;
  		hwif->noprobe = 0;
  	}
@@ -36,7 +18,7 @@ Index: linux/dev/drivers/block/ide.c
  }
  
  #endif /* CONFIG_PCI */
-@@ -3629,6 +3626,9 @@
+@@ -3629,6 +3626,9 @@ static void probe_for_hwifs (void)
  		ide_probe_pci (PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371_0, &ide_init_triton, 1);
  		ide_probe_pci (PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371SB_1, &ide_init_triton, 0);
  		ide_probe_pci (PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82371AB, &ide_init_triton, 0);
@@ -46,7 +28,7 @@ Index: linux/dev/drivers/block/ide.c
  #endif /* CONFIG_BLK_DEV_TRITON */
  		ide_probe_promise_20246();
  	}
-@@ -3703,8 +3703,9 @@
+@@ -3703,8 +3703,9 @@ int ide_init (void)
  
  	init_ide_data ();
  	/*
@@ -59,9 +41,9 @@ Index: linux/dev/drivers/block/ide.c
  	/*
 Index: linux/src/drivers/block/ide.h
 ===================================================================
---- linux/src/drivers/block/ide.h.orig	2006-08-26 20:19:09.000000000 +0300
-+++ linux/src/drivers/block/ide.h	2006-08-26 20:23:17.000000000 +0300
-@@ -429,7 +429,8 @@
+--- linux/src/drivers/block/ide.h.orig	1999-04-26 08:51:39.000000000 +0300
++++ linux/src/drivers/block/ide.h	2006-10-26 00:03:24.000000000 +0300
+@@ -429,7 +429,8 @@ typedef void (ide_selectproc_t) (ide_dri
  typedef enum {	ide_unknown,	ide_generic,	ide_triton,
  		ide_cmd640,	ide_dtc2278,	ide_ali14xx,
  		ide_qd6580,	ide_umc8672,	ide_ht6560b,
@@ -73,8 +55,8 @@ Index: linux/src/drivers/block/ide.h
  typedef struct hwif_s {
 Index: linux/src/drivers/block/triton.c
 ===================================================================
---- linux/src/drivers/block/triton.c.orig	2006-08-26 20:19:09.000000000 +0300
-+++ linux/src/drivers/block/triton.c	2006-08-26 20:23:17.000000000 +0300
+--- linux/src/drivers/block/triton.c.orig	1999-04-26 08:51:41.000000000 +0300
++++ linux/src/drivers/block/triton.c	2006-10-26 00:03:24.000000000 +0300
 @@ -1,107 +1,20 @@
  /*
   *  linux/drivers/block/triton.c	Version 1.13  Aug 12, 1996
@@ -216,7 +198,7 @@ Index: linux/src/drivers/block/triton.c
  
  /*
   * good_dma_drives() lists the model names (from "hdparm -i")
-@@ -132,6 +59,27 @@
+@@ -132,6 +59,27 @@ const char *good_dma_drives[] = {"Microp
  				 NULL};
  
  /*
@@ -244,7 +226,7 @@ Index: linux/src/drivers/block/triton.c
   * Our Physical Region Descriptor (PRD) table should be large enough
   * to handle the biggest I/O request we are likely to see.  Since requests
   * can have no more than 256 sectors, and since the typical blocksize is
-@@ -150,6 +98,8 @@
+@@ -150,6 +98,8 @@ const char *good_dma_drives[] = {"Microp
  #define PRD_BYTES	8
  #define PRD_ENTRIES	(PAGE_SIZE / (2 * PRD_BYTES))
  #define DEFAULT_BMIBA	0xe800	/* in case BIOS did not init it */
@@ -253,7 +235,7 @@ Index: linux/src/drivers/block/triton.c
  
  /*
   * dma_intr() is the handler for disk read/write DMA interrupts
-@@ -161,8 +111,8 @@
+@@ -161,8 +111,8 @@ static void dma_intr (ide_drive_t *drive
  	struct request *rq = HWGROUP(drive)->rq;
  	unsigned short dma_base = HWIF(drive)->dma_base;
  
@@ -263,7 +245,7 @@ Index: linux/src/drivers/block/triton.c
  	stat = GET_STAT();			/* get drive status */
  	if (OK_STAT(stat,DRIVE_READY,drive->bad_wstat|DRQ_STAT)) {
  		if ((dma_stat & 7) == 4) {	/* verify good DMA status */
-@@ -244,23 +194,57 @@
+@@ -244,23 +194,57 @@ static int build_dmatable (ide_drive_t *
  	return 1;	/* let the PIO routines handle this weirdness */
  }
  
@@ -328,7 +310,7 @@ Index: linux/src/drivers/block/triton.c
  			}
  		/* Consult the list of known "good" drives */
  		list = good_dma_drives;
-@@ -272,6 +256,7 @@
+@@ -272,6 +256,7 @@ static int config_drive_for_dma (ide_dri
  		}
  	}
  	return 1;	/* DMA not enabled */
@@ -336,7 +318,7 @@ Index: linux/src/drivers/block/triton.c
  }
  
  /*
-@@ -387,22 +372,260 @@
+@@ -387,22 +372,260 @@ static void init_triton_dma (ide_hwif_t 
  }
  
  /*
@@ -604,7 +586,7 @@ Index: linux/src/drivers/block/triton.c
  		goto quit;
  	if ((pcicmd & 1) == 0)  {
  		printk("ide: ports are not enabled (BIOS)\n");
-@@ -416,21 +639,29 @@
+@@ -416,21 +639,29 @@ void ide_init_triton (byte bus, byte fn)
  		 */
  		int try_again = 1;
  		do {
@@ -641,7 +623,7 @@ Index: linux/src/drivers/block/triton.c
  					goto quit;
  			}
  		} while (try_again--);
-@@ -439,89 +670,308 @@
+@@ -439,89 +670,308 @@ void ide_init_triton (byte bus, byte fn)
  	/*
  	 * See if ide port(s) are enabled
  	 */
@@ -1021,9 +1003,9 @@ Index: linux/src/drivers/block/triton.c
  }
 Index: linux/src/include/linux/hdreg.h
 ===================================================================
---- linux/src/include/linux/hdreg.h.orig	2006-08-26 20:19:09.000000000 +0300
-+++ linux/src/include/linux/hdreg.h	2006-08-26 20:23:17.000000000 +0300
-@@ -92,11 +92,12 @@
+--- linux/src/include/linux/hdreg.h.orig	1999-04-26 08:56:27.000000000 +0300
++++ linux/src/include/linux/hdreg.h	2006-10-26 00:03:24.000000000 +0300
+@@ -92,11 +92,12 @@ struct hd_geometry {
  #define HDIO_GETGEO		0x0301	/* get device geometry */
  #define HDIO_GET_UNMASKINTR	0x0302	/* get current unmask setting */
  #define HDIO_GET_MULTCOUNT	0x0304	/* get current IDE blockmode setting */
@@ -1037,7 +1019,7 @@ Index: linux/src/include/linux/hdreg.h
  #define HDIO_DRIVE_CMD		0x031f	/* execute a special drive command */
  
  /* hd/ide ctl's that pass (arg) non-ptr values are numbered 0x032n/0x033n */
-@@ -166,14 +167,54 @@
+@@ -166,14 +167,54 @@ struct hd_driveid {
  	unsigned short  word79;
  	unsigned short  word80;
  	unsigned short  word81;
@@ -1095,3 +1077,19 @@ Index: linux/src/include/linux/hdreg.h
  };
  
  #ifdef __KERNEL__
+Index: linux/configfrag.ac
+===================================================================
+--- linux/configfrag.ac.orig	2006-10-26 00:06:29.000000000 +0300
++++ linux/configfrag.ac	2006-10-26 00:05:59.000000000 +0300
+@@ -132,6 +132,11 @@ AC_Linux_DRIVER([ide],
+   [IDE disk controllers],
+   [CONFIG_BLK_DEV_IDE])
+ 
++AC_ARG_ENABLE([ide-forcedma],
++  AS_HELP_STRING([--enable-ide-forcedma], [enable forced use of DMA on IDE]),
++  [test x"$enableval" = xno ||
++   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [1], [Force DMA on IDE block devices])])
++
+ dnl SCSI controllers.
+ 
+ AC_Linux_DRIVER([53c78xx],
