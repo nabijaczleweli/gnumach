@@ -64,9 +64,6 @@ clean: unpatch
 	
 	-rm -f machine stamp-configure stamp-configure-dbg
 	-rm -rf build build-dbg
-	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
-	  -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \
-	  -o -name '.*.rej' -o -name '.SUMS' -o -size 0 \) -print`
 	
 	dh_clean
 
