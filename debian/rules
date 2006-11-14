@@ -62,7 +62,7 @@ build-gnumach-dbg: configure-dbg
 clean: unpatch
 	dh_testdir
 	
-	-rm -f machine stamp-configure
+	-rm -f machine stamp-configure stamp-configure-dbg
 	-rm -rf build build-dbg
 	-rm -f core `find . \( -name '*.orig' -o -name '*.rej' -o -name '*~' \
 	  -o -name '*.bak' -o -name '#*#' -o -name '.*.orig' \

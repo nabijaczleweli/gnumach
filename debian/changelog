@@ -21,6 +21,7 @@ gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
     - debian/patches/61_vm_resident-zoned.patch: Disable for now, it's
       causing problems with current applied patches in CVS.
   * Document the removal of the non-free GFDL manual in debian/copyright.
+  * Remove the stamp file for the -dbg build.
 
  -- Guillem Jover <guillem@debian.org>  Sun, 15 Oct 2006 20:58:31 +0300
 
