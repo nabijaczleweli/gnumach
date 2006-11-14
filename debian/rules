@@ -52,7 +52,6 @@ build-gnumach: configure
 	dh_testdir
 	
 	$(MAKE) -C build
-	$(MAKE) -C build/doc
 
 build-gnumach-dbg: configure-dbg
 	dh_testdir
