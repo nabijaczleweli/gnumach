@@ -1,4 +1,4 @@
-gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.1-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
     - debian/patches/01_gcc-4.1.patch: Removed, merged upstream.
@@ -24,24 +24,25 @@ gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
       options, except for '--enable-sis900' which is not enabled by default.
     - Pass --prefix and --exec-prefix to configure.
     - Use DESTDIR instead of passing the prefix and exec_prefix variables.
-    - Merge the install-gnumach-dbg and install-gnumach targets into install.
     - Call install instead of install-kernel and install-headers for the
       default build.
     - Call install-exec instead of install-kernel for the -dbg build.
     - Use dh_install to install files from D and D_DBG into the proper
       package dirs.
-    - Disable dh_installinfo.
     - debian/gnumach-dbg.install: New file.
     - debian/gnumach-dev.install: Likewise.
     - debian/gnumach.install: Likewise.
     - debian/gnumach-udeb.install: Likewise.
-  * Document the removal of the non-free GFDL manual in debian/copyright.
-  * Remove the stamp file for the -dbg build.
+  * Completely removed the doc/ directory.
+    - Document the removal of the non-free GFDL manual in debian/copyright.
+    - Do not try to build the now non-existent doc/ directory.
+    - Disable dh_installinfo.
   * Cleanup debian/rules file:
     - Remove the manual cruft-removal line from the clean target.
-    - Do not try to build the doc/ directory.
+    - Remove the stamp file for the -dbg build.
+    - Merge the install-gnumach-dbg and install-gnumach targets into install.
 
- -- Guillem Jover <guillem@debian.org>  Sun, 15 Oct 2006 20:58:31 +0300
+ -- Guillem Jover <guillem@debian.org>  Tue, 14 Nov 2006 05:11:48 +0200
 
 gnumach (1:20060826.dfsg.1-1) unstable; urgency=low
 
