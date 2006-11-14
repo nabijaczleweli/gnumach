@@ -1,8 +1,6 @@
 gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
 
   * New upstream CVS snapshot.
-    - Remove debian/rules.options, now unneeded with the default configure
-      options.
     - debian/patches/01_gcc-4.1.patch: Removed, merged upstream.
     - debian/patches/00_clean_gfdl.patch: Sync.
     - debian/patches/05_halt_on_panic_flag.patch: Likewise.
@@ -20,6 +18,23 @@ gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
     - debian/patches/90_autoconf_autogen.patch: Regenerated.
     - debian/patches/61_vm_resident-zoned.patch: Disable for now, it's
       causing problems with current applied patches in CVS.
+  * Adapt to the new automakified build system:
+    - New D and D_DBG variables pointing to the package destination dirs.
+    - Remove debian/rules.options, now unneeded with the default configure
+      options, except for '--enable-sis900' which is not enabled by default.
+    - Pass --prefix and --exec-prefix to configure.
+    - Use DESTDIR instead of passing the prefix and exec_prefix variables.
+    - Merge the install-gnumach-dbg and install-gnumach targets into install.
+    - Call install instead of install-kernel and install-headers for the
+      default build.
+    - Call install-exec instead of install-kernel for the -dbg build.
+    - Use dh_install to install files from D and D_DBG into the proper
+      package dirs.
+    - Disable dh_installinfo.
+    - debian/gnumach-dbg.install: New file.
+    - debian/gnumach-dev.install: Likewise.
+    - debian/gnumach.install: Likewise.
+    - debian/gnumach-udeb.install: Likewise.
   * Document the removal of the non-free GFDL manual in debian/copyright.
   * Remove the stamp file for the -dbg build.
   * Cleanup debian/rules file:

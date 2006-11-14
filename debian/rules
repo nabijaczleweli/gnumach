@@ -9,6 +9,9 @@ pkg_udeb := gnumach-udeb
 pkg_dbg := gnumach-dbg
 pkg_dev := gnumach-dev
 
+D := $(CURDIR)/debian/tmp
+D_DBG := $(D)-dbg
+
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
@@ -32,7 +35,9 @@ stamp-configure:
 	-mkdir build
 	cd build && ../configure $(drivers) \
 		CFLAGS="$(CFLAGS)" \
-		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
+		--prefix=/usr \
+		--exec-prefix=/
 	
 	touch stamp-configure
 
@@ -43,7 +48,8 @@ stamp-configure-dbg:
 	-mkdir build-dbg
 	cd build-dbg && ../configure --enable-kdb $(drivers) \
 		CFLAGS="$(CFLAGS)" \
-		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
+		--exec-prefix=/
 	
 	touch stamp-configure-dbg
 
@@ -67,44 +73,36 @@ clean: unpatch
 	
 	dh_clean
 
-install-gnumach: build-gnumach
+install: build-gnumach build-gnumach-dbg
 	dh_testdir
 	dh_testroot
-	dh_clean -N$(pkg_dbg) -k
-	dh_installdirs -N$(pkg_dbg)
+	dh_clean -a -k
+	-rm -rf $(D_DBG)
+	dh_installdirs -a
 	
-	$(MAKE) -C build install-kernel \
-		exec_prefix=$(CURDIR)/debian/$(pkg)
+	$(MAKE) -C build install \
+		DESTDIR=$(D)
 	
-	$(MAKE) -C build install-kernel \
-		exec_prefix=$(CURDIR)/debian/$(pkg_udeb)
+	$(MAKE) -C build-dbg install-exec \
+		DESTDIR=$(D_DBG) \
 	
-	$(MAKE) -C build install-headers \
-		prefix=$(CURDIR)/debian/$(pkg_dev)/usr \
-		exec_prefix=$(CURDIR)/debian/$(pkg_dev) \
-		includedir=\$${prefix}/include
-
-install-gnumach-dbg: build-gnumach-dbg
-	dh_testdir
-	dh_testroot
-	dh_clean -p$(pkg_dbg) -k
-	dh_installdirs -p$(pkg_dbg)
-	
-	$(MAKE) -C build-dbg install-kernel \
-		prefix=$(CURDIR)/debian/$(pkg_dbg)/usr \
-		exec_prefix=$(CURDIR)/debian/$(pkg_dbg)
-	mv debian/$(pkg_dbg)/boot/gnumach debian/$(pkg_dbg)/boot/gnumach-dbg
+	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-dbg
 
 binary: binary-indep binary-arch
 
 binary-indep:
 
-binary-arch: install-gnumach install-gnumach-dbg
+binary-arch: install
 	dh_testdir
 	dh_testroot
+	
+	dh_install -a -N$(pkg_dbg) --sourcedir=$(D)
+	dh_install -p$(pkg_dbg) --sourcedir=$(D_DBG)
+	
 	dh_installdocs -a
 	dh_installchangelogs -a -k ChangeLog
-	dh_installinfo -a
+#	dh_installinfo -a
+	
 	dh_link -a
 	dh_strip -a -N$(pkg_dbg)
 	dh_compress -p$(pkg) -p$(pkg_udeb) -A boot/gnumach
