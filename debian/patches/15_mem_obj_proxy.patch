@@ -18,7 +18,7 @@
 Index: i386/include/mach/i386/vm_types.h
 ===================================================================
 --- i386/include/mach/i386/vm_types.h.orig	2006-10-15 20:39:24.000000000 +0300
-+++ i386/include/mach/i386/vm_types.h	2006-10-26 00:07:22.000000000 +0300
++++ i386/include/mach/i386/vm_types.h	2006-11-14 04:15:32.000000000 +0200
 @@ -74,6 +74,7 @@ typedef unsigned int	uint32;
   * e.g. an offset into a virtual memory space.
   */
@@ -30,7 +30,7 @@ Index: i386/include/mach/i386/vm_types.h
 Index: include/mach/mach4.defs
 ===================================================================
 --- include/mach/mach4.defs.orig	1997-02-25 23:26:51.000000000 +0200
-+++ include/mach/mach4.defs	2006-10-26 00:07:22.000000000 +0300
++++ include/mach/mach4.defs	2006-11-14 04:15:32.000000000 +0200
 @@ -79,4 +79,34 @@ skip	/* pc_sampling reserved 1*/;
  skip	/* pc_sampling reserved 2*/;
  skip	/* pc_sampling reserved 3*/;
@@ -69,7 +69,7 @@ Index: include/mach/mach4.defs
 Index: include/mach/memory_object.h
 ===================================================================
 --- include/mach/memory_object.h.orig	1997-02-25 23:26:52.000000000 +0200
-+++ include/mach/memory_object.h	2006-10-26 00:07:22.000000000 +0300
++++ include/mach/memory_object.h	2006-11-14 04:15:32.000000000 +0200
 @@ -46,6 +46,9 @@ typedef	mach_port_t	memory_object_t;
  					/*  the object to map; used by the */
  					/*  kernel to retrieve or store data */
@@ -82,9 +82,9 @@ Index: include/mach/memory_object.h
  					/*  used to control a memory object */
 Index: kern/ipc_kobject.c
 ===================================================================
---- kern/ipc_kobject.c.orig	2006-10-15 20:39:24.000000000 +0300
-+++ kern/ipc_kobject.c	2006-10-26 00:07:22.000000000 +0300
-@@ -351,6 +351,9 @@ ipc_kobject_notify(request_header, reply
+--- kern/ipc_kobject.c.orig	2006-11-14 03:58:57.000000000 +0200
++++ kern/ipc_kobject.c	2006-11-14 04:15:32.000000000 +0200
+@@ -353,6 +353,9 @@ ipc_kobject_notify(request_header, reply
  		case IKOT_DEVICE:
  		return ds_notify(request_header);
  
@@ -97,7 +97,7 @@ Index: kern/ipc_kobject.c
 Index: kern/ipc_kobject.h
 ===================================================================
 --- kern/ipc_kobject.h.orig	1997-02-25 23:28:22.000000000 +0200
-+++ kern/ipc_kobject.h	2006-10-26 00:07:22.000000000 +0300
++++ kern/ipc_kobject.h	2006-11-14 04:15:32.000000000 +0200
 @@ -77,9 +77,10 @@ typedef unsigned int ipc_kobject_type_t;
  #define IKOT_LOCK_SET		24
  #define IKOT_CLOCK		25
@@ -114,7 +114,7 @@ Index: kern/ipc_kobject.h
 Index: vm/memory_object_proxy.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ vm/memory_object_proxy.c	2006-10-26 00:07:22.000000000 +0300
++++ vm/memory_object_proxy.c	2006-11-14 04:15:32.000000000 +0200
 @@ -0,0 +1,200 @@
 +/* memory_object_proxy.c - Proxy memory objects for Mach.
 +   Copyright (C) 2005 Free Software Foundation, Inc.
@@ -319,7 +319,7 @@ Index: vm/memory_object_proxy.c
 Index: vm/vm_init.c
 ===================================================================
 --- vm/vm_init.c.orig	1997-02-25 23:28:36.000000000 +0200
-+++ vm/vm_init.c	2006-10-26 00:07:22.000000000 +0300
++++ vm/vm_init.c	2006-11-14 04:15:32.000000000 +0200
 @@ -81,4 +81,5 @@ void vm_mem_bootstrap()
  void vm_mem_init()
  {
@@ -329,7 +329,7 @@ Index: vm/vm_init.c
 Index: vm/vm_user.c
 ===================================================================
 --- vm/vm_user.c.orig	1997-02-25 23:28:37.000000000 +0200
-+++ vm/vm_user.c	2006-10-26 00:07:22.000000000 +0300
++++ vm/vm_user.c	2006-11-14 04:15:32.000000000 +0200
 @@ -275,6 +275,12 @@ kern_return_t vm_copy(map, source_addres
  	return KERN_SUCCESS;
  }
@@ -369,8 +369,8 @@ Index: vm/vm_user.c
  	 *	Perform the copy if requested
 Index: Makefrag.am
 ===================================================================
---- Makefrag.am.orig	2006-10-26 00:08:15.000000000 +0300
-+++ Makefrag.am	2006-10-26 00:08:47.000000000 +0300
+--- Makefrag.am.orig	2006-11-14 03:58:55.000000000 +0200
++++ Makefrag.am	2006-11-14 04:15:32.000000000 +0200
 @@ -123,6 +123,7 @@ libkernel_a_SOURCES += \
  	vm/vm_pageout.c \
  	vm/vm_resident.c \

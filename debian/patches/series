@@ -9,7 +9,7 @@
 24_pci_irq_fix.patch -p1
 41_io_unlock_ioremove.patch -p0
 42_disable_ioperm.patch -p0
-43_debvice_port_fix.patch -p1
+43_debvice_port_fix.patch -p0
 44_more_ports.patch -p0
 45_io_per_task.patch -p0
 46_io_device.patch -p0

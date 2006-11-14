@@ -7,9 +7,9 @@
 
 Index: i386/i386at/iopl.c
 ===================================================================
---- i386/i386at/iopl.c.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386at/iopl.c	2006-10-26 00:17:28.000000000 +0300
-@@ -47,7 +47,7 @@ mach_device_t	iopl_device = 0;
+--- i386/i386at/iopl.c.orig	2006-11-14 03:58:56.000000000 +0200
++++ i386/i386at/iopl.c	2006-11-14 04:16:08.000000000 +0200
+@@ -48,7 +48,7 @@ mach_device_t	iopl_device = 0;
   */
  io_reg_t iopl_port_list[] = {
  	/* timer 2 */
@@ -20,9 +20,9 @@ Index: i386/i386at/iopl.c
  	/* ATI - savage */
 Index: i386/i386at/kd.c
 ===================================================================
---- i386/i386at/kd.c.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386at/kd.c	2006-10-26 00:17:28.000000000 +0300
-@@ -331,7 +331,9 @@ short	kd_io_reg	= EGA_IO_REG;
+--- i386/i386at/kd.c.orig	2006-11-14 03:58:57.000000000 +0200
++++ i386/i386at/kd.c	2006-11-14 04:16:08.000000000 +0200
+@@ -336,7 +336,9 @@ short	kd_io_reg	= EGA_IO_REG;
  /*
   * IO port sets for different controllers.
   */
@@ -33,7 +33,7 @@ Index: i386/i386at/kd.c
  	0x3b4, 0x3b5, 0x3b8, 0x3b9, 0x3ba,	/* MDA/EGA */
  	0x3d4, 0x3d5, 0x3d8, 0x3d9, 0x3da,	/* CGA/EGA */
  	0x3c0, 0x3c1, 0x3c2, 0x3c3, 0x3c4, 0x3c5, 0x3c6, 0x3c7,
-@@ -345,7 +347,7 @@ kd_io_map_open(device)
+@@ -351,7 +353,7 @@ kd_io_map_open(device)
  	mach_device_t	device;
  {
  	kd_io_device = device;
@@ -41,4 +41,4 @@ Index: i386/i386at/kd.c
 +	io_port_create(device, kd_port_list);
  }
  
- kd_io_map_close()
+ void

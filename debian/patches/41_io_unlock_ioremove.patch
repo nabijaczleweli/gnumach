@@ -8,12 +8,9 @@
 
 Index: i386/i386/iopb.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/i386/Attic/iopb.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 iopb.c
---- i386/i386/iopb.c	25 Feb 1997 21:27:09 -0000	1.1.1.1
-+++ i386/i386/iopb.c	28 Dec 2005 16:18:40 -0000
-@@ -469,6 +469,10 @@
+--- i386/i386/iopb.c.orig	2006-11-14 03:58:56.000000000 +0200
++++ i386/i386/iopb.c	2006-11-14 04:15:49.000000000 +0200
+@@ -471,6 +471,10 @@ i386_io_port_remove(thread, device)
  	/*
  	 * No mapping.
  	 */

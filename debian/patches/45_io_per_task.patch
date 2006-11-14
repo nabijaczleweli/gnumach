@@ -33,8 +33,8 @@
 
 Index: i386/i386/io_emulate.c
 ===================================================================
---- i386/i386/io_emulate.c.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386/io_emulate.c	2006-10-26 00:17:32.000000000 +0300
+--- i386/i386/io_emulate.c.orig	2006-10-15 20:39:23.000000000 +0300
++++ i386/i386/io_emulate.c	2006-11-14 04:16:29.000000000 +0200
 @@ -101,7 +101,7 @@ emulate_io(regs, opcode, io_port)
  	 * Make the thread use its IO_TSS to get the IO permissions;
  	 * it may not have had one before this.
@@ -46,9 +46,9 @@ Index: i386/i386/io_emulate.c
  }
 Index: i386/i386/iopb.c
 ===================================================================
---- i386/i386/iopb.c.orig	2006-10-26 00:17:26.000000000 +0300
-+++ i386/i386/iopb.c	2006-10-26 00:17:32.000000000 +0300
-@@ -65,8 +65,8 @@ queue_head_t	device_to_io_port_list;
+--- i386/i386/iopb.c.orig	2006-11-14 04:16:04.000000000 +0200
++++ i386/i386/iopb.c	2006-11-14 04:16:29.000000000 +0200
+@@ -67,8 +67,8 @@ queue_head_t	device_to_io_port_list;
  
  /*
   * Cross-reference:
@@ -59,7 +59,7 @@ Index: i386/i386/iopb.c
   */
  struct io_use {
  	queue_chain_t	psq;	/* Links from port set */
-@@ -306,7 +306,7 @@ iopb_destroy(
+@@ -308,7 +308,7 @@ iopb_destroy(
  }
  
  /*
@@ -68,7 +68,7 @@ Index: i386/i386/iopb.c
   */
  #ifdef i386
  kern_return_t
-@@ -320,7 +320,7 @@ i386_io_port_add(
+@@ -322,7 +322,7 @@ i386_io_port_add(
  	mach_device_t	device)
  #endif
  {
@@ -77,7 +77,7 @@ Index: i386/i386/iopb.c
  #ifdef i386
  	mach_device_t	device = d->emul_data;
  #endif
-@@ -332,7 +332,7 @@ i386_io_port_add(
+@@ -334,7 +334,7 @@ i386_io_port_add(
  	 || device == DEVICE_NULL)
  	    return KERN_INVALID_ARGUMENT;
  
@@ -86,7 +86,7 @@ Index: i386/i386/iopb.c
  
  	new_io_tss = 0;
  	iu = (io_use_t) kalloc(sizeof(struct io_use));
-@@ -355,16 +355,16 @@ i386_io_port_add(
+@@ -357,16 +357,16 @@ i386_io_port_add(
  
  	/* Have the IO port. */
  
@@ -107,7 +107,7 @@ Index: i386/i386/iopb.c
  		simple_unlock(&iopb_lock);
  
  		new_io_tss = (iopb_tss_t) kalloc(sizeof(struct iopb_tss));
-@@ -373,7 +373,12 @@ i386_io_port_add(
+@@ -375,7 +375,12 @@ i386_io_port_add(
  		goto Retry;
  	    }
  	    io_tss = new_io_tss;
@@ -121,7 +121,7 @@ Index: i386/i386/iopb.c
  	    new_io_tss = 0;
  	}
  
-@@ -386,7 +391,7 @@ i386_io_port_add(
+@@ -388,7 +393,7 @@ i386_io_port_add(
  		/*
  		 * Already mapped.
  		 */
@@ -130,7 +130,7 @@ Index: i386/i386/iopb.c
  		simple_unlock(&iopb_lock);
  
  		kfree((vm_offset_t)iu, sizeof(struct io_use));
-@@ -405,7 +410,7 @@ i386_io_port_add(
+@@ -407,7 +412,7 @@ i386_io_port_add(
  	queue_enter(&io_tss->io_port_list, iu, io_use_t, tsq);
  	io_bitmap_set(io_tss->bitmap, io_port->io_port_list);
  
@@ -139,7 +139,7 @@ Index: i386/i386/iopb.c
  	simple_unlock(&iopb_lock);
  
  	if (new_io_tss)
-@@ -415,7 +420,7 @@ i386_io_port_add(
+@@ -417,7 +422,7 @@ i386_io_port_add(
  }
  
  /*
@@ -148,7 +148,7 @@ Index: i386/i386/iopb.c
   */
  #ifdef i386
  kern_return_t
-@@ -429,7 +434,7 @@ i386_io_port_remove(thread, device)
+@@ -431,7 +436,7 @@ i386_io_port_remove(thread, device)
  	mach_device_t	device;
  #endif
  {
@@ -157,7 +157,7 @@ Index: i386/i386/iopb.c
  #ifdef i386
  	mach_device_t	device = d->emul_data;
  #endif
-@@ -441,7 +446,7 @@ i386_io_port_remove(thread, device)
+@@ -443,7 +448,7 @@ i386_io_port_remove(thread, device)
  	 || device == DEVICE_NULL)
  	    return KERN_INVALID_ARGUMENT;
  
@@ -166,7 +166,7 @@ Index: i386/i386/iopb.c
  
  	simple_lock(&iopb_lock);
  
-@@ -456,10 +461,10 @@ i386_io_port_remove(thread, device)
+@@ -458,10 +463,10 @@ i386_io_port_remove(thread, device)
  	    return KERN_INVALID_ARGUMENT;
  	}
  
@@ -180,7 +180,7 @@ Index: i386/i386/iopb.c
  	    simple_unlock(&iopb_lock);
  	    return KERN_INVALID_ARGUMENT;	/* not mapped */
  	}
-@@ -477,7 +482,7 @@ i386_io_port_remove(thread, device)
+@@ -479,7 +484,7 @@ i386_io_port_remove(thread, device)
  		queue_remove(&io_port->io_use_list, iu, io_use_t, psq);
  		queue_remove(&io_tss->io_port_list, iu, io_use_t, tsq);
  
@@ -189,7 +189,7 @@ Index: i386/i386/iopb.c
  		simple_unlock(&iopb_lock);
  
  		kfree((vm_offset_t)iu, sizeof(struct io_use));
-@@ -486,6 +491,9 @@ i386_io_port_remove(thread, device)
+@@ -488,6 +493,9 @@ i386_io_port_remove(thread, device)
  	    }
  	}
  
@@ -199,7 +199,7 @@ Index: i386/i386/iopb.c
  	/*
  	 * No mapping.
  	 */
-@@ -497,7 +505,7 @@ i386_io_port_remove(thread, device)
+@@ -499,7 +507,7 @@ i386_io_port_remove(thread, device)
  }
  
  /*
@@ -208,7 +208,7 @@ Index: i386/i386/iopb.c
   */
  extern ipc_port_t	mach_convert_device_to_port(/* device_t */);
  
-@@ -507,7 +515,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -509,7 +517,7 @@ i386_io_port_list(thread, list, list_cou
  	mach_device_t	**list;
  	unsigned int	*list_count;
  {
@@ -217,7 +217,7 @@ Index: i386/i386/iopb.c
  	register iopb_tss_t io_tss;
  	unsigned int	count, alloc_count;
  	mach_device_t	*devices;
-@@ -518,7 +526,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -520,7 +528,7 @@ i386_io_port_list(thread, list, list_cou
  	if (thread == THREAD_NULL)
  	    return KERN_INVALID_ARGUMENT;
  
@@ -226,7 +226,7 @@ Index: i386/i386/iopb.c
  
  	alloc_count = 16;		/* a guess */
  
-@@ -541,8 +549,8 @@ i386_io_port_list(thread, list, list_cou
+@@ -543,8 +551,8 @@ i386_io_port_list(thread, list, list_cou
  	    count = 0;
  
  	    simple_lock(&iopb_lock);
@@ -237,7 +237,7 @@ Index: i386/i386/iopb.c
  	    if (io_tss != 0) {
  		register io_use_t iu;
  
-@@ -554,7 +562,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -556,7 +564,7 @@ i386_io_port_list(thread, list, list_cou
  		    }
  		}
  	    }
@@ -246,7 +246,7 @@ Index: i386/i386/iopb.c
  	    simple_unlock(&iopb_lock);
  	} while (count > alloc_count);
  
-@@ -600,7 +608,7 @@ i386_io_port_list(thread, list, list_cou
+@@ -602,7 +610,7 @@ i386_io_port_list(thread, list, list_cou
  }
  
  /*
@@ -255,7 +255,7 @@ Index: i386/i386/iopb.c
   * Used to support the 'iopl' device automatic mapping.
   */
  boolean_t
-@@ -608,11 +616,11 @@ iopb_check_mapping(thread, device)
+@@ -610,11 +618,11 @@ iopb_check_mapping(thread, device)
  	thread_t	thread;
  	mach_device_t	device;
  {
@@ -269,7 +269,7 @@ Index: i386/i386/iopb.c
  
  	simple_lock(&iopb_lock);
  
-@@ -626,15 +634,18 @@ iopb_check_mapping(thread, device)
+@@ -628,15 +636,18 @@ iopb_check_mapping(thread, device)
  
  	/* Look up the mapping in the device`s mapping list. */
  
@@ -291,9 +291,9 @@ Index: i386/i386/iopb.c
  }
 Index: i386/i386/pcb.c
 ===================================================================
---- i386/i386/pcb.c.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386/pcb.c	2006-10-26 00:17:32.000000000 +0300
-@@ -128,12 +128,13 @@ vm_offset_t stack_detach(thread)
+--- i386/i386/pcb.c.orig	2006-11-14 03:58:56.000000000 +0200
++++ i386/i386/pcb.c	2006-11-14 04:20:29.000000000 +0200
+@@ -132,12 +132,13 @@ vm_offset_t stack_detach(thread)
  #define	gdt_desc_p(mycpu,sel) \
  	((struct real_descriptor *)&curr_gdt(mycpu)[sel_idx(sel)])
  
@@ -310,7 +310,7 @@ Index: i386/i386/pcb.c
  	vm_offset_t		pcb_stack_top;
  
  	/*
-@@ -231,7 +232,7 @@ void stack_handoff(old, new)
+@@ -242,7 +243,7 @@ void stack_handoff(old, new)
  	/*
  	 *	Load the rest of the user state for the new thread
  	 */
@@ -319,7 +319,7 @@ Index: i386/i386/pcb.c
  
  	/*
  	 *	Switch to new thread
-@@ -256,7 +257,7 @@ void stack_handoff(old, new)
+@@ -267,7 +268,7 @@ void stack_handoff(old, new)
  void load_context(new)
  	register thread_t	new;
  {
@@ -328,7 +328,7 @@ Index: i386/i386/pcb.c
  	Load_context(new);
  }
  
-@@ -293,7 +294,7 @@ thread_t switch_context(old, continuatio
+@@ -304,7 +305,7 @@ thread_t switch_context(old, continuatio
  	/*
  	 *	Load the rest of the user state for the new thread
  	 */
@@ -337,7 +337,7 @@ Index: i386/i386/pcb.c
  
  	return Switch_context(old, continuation, new);
  }
-@@ -306,7 +307,6 @@ void pcb_module_init()
+@@ -317,7 +318,6 @@ void pcb_module_init()
  			 0, "i386 pcb state");
  
  	fpu_module_init();
@@ -345,7 +345,7 @@ Index: i386/i386/pcb.c
  }
  
  void pcb_init(thread)
-@@ -350,8 +350,6 @@ void pcb_terminate(thread)
+@@ -361,8 +361,6 @@ void pcb_terminate(thread)
  	counter(if (--c_threads_current < c_threads_min)
  			c_threads_min = c_threads_current);
  
@@ -354,7 +354,7 @@ Index: i386/i386/pcb.c
  	if (pcb->ims.ifps != 0)
  		fp_free(pcb->ims.ifps);
  	if (pcb->ims.ldt != 0)
-@@ -371,6 +369,30 @@ void pcb_collect(thread)
+@@ -382,6 +380,30 @@ void pcb_collect(thread)
  {
  }
  
@@ -385,7 +385,7 @@ Index: i386/i386/pcb.c
  
  /*
   *	thread_setstatus:
-@@ -505,28 +527,40 @@ kern_return_t thread_setstatus(thread, f
+@@ -516,28 +538,40 @@ kern_return_t thread_setstatus(thread, f
  	     */
  	    case i386_ISA_PORT_MAP_STATE: {
  		register struct i386_isa_port_map_state *state;
@@ -423,15 +423,15 @@ Index: i386/i386/pcb.c
 +			}
  		}
  
- 		bcopy((char *) state->pm,
- 		      (char *) tss->bitmap,
- 		      sizeof state->pm);
+ 		memcpy(tss->bitmap,
+ 		       state->pm,
+ 		       sizeof state->pm);
 -#endif
 +		task_unlock(task);
  		break;
  	    }
  
-@@ -663,16 +697,21 @@ kern_return_t thread_getstatus(thread, f
+@@ -674,16 +708,21 @@ kern_return_t thread_getstatus(thread, f
  	    case i386_ISA_PORT_MAP_STATE: {
  		register struct i386_isa_port_map_state *state;
  		register iopb_tss_t tss;
@@ -454,19 +454,19 @@ Index: i386/i386/pcb.c
  		    /*
  		     *	The thread has no ktss, so no IO permissions.
  		     */
-@@ -687,6 +726,7 @@ kern_return_t thread_getstatus(thread, f
- 		    bcopy((char *) tss->bitmap,
- 			  (char *) state->pm,
- 			  sizeof state->pm);
+@@ -698,6 +737,7 @@ kern_return_t thread_getstatus(thread, f
+ 		    memcpy(state->pm,
+ 			   tss->bitmap,
+ 			   sizeof state->pm);
 +		    task_unlock(task);
  		}
  
  		*count = i386_ISA_PORT_MAP_STATE_COUNT;
 Index: i386/i386/thread.h
 ===================================================================
---- i386/i386/thread.h.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386/thread.h	2006-10-26 00:17:32.000000000 +0300
-@@ -157,12 +157,15 @@ struct i386_interrupt_state {
+--- i386/i386/thread.h.orig	2006-11-14 03:58:56.000000000 +0200
++++ i386/i386/thread.h	2006-11-14 04:21:24.000000000 +0200
+@@ -158,13 +158,16 @@ struct i386_interrupt_state {
   */
  
  struct i386_machine_state {
@@ -474,6 +474,7 @@ Index: i386/i386/thread.h
  	struct user_ldt	*	ldt;
  	struct i386_fpsave_state *ifps;
  	struct v86_assist_state	v86s;
+ 	struct real_descriptor user_gdt[USER_GDT_SLOTS];
  };
  
 +typedef struct machine_task {
@@ -485,9 +486,9 @@ Index: i386/i386/thread.h
  	struct i386_saved_state iss;
 Index: i386/i386/user_ldt.c
 ===================================================================
---- i386/i386/user_ldt.c.orig	2006-10-26 00:16:50.000000000 +0300
-+++ i386/i386/user_ldt.c	2006-10-26 00:17:32.000000000 +0300
-@@ -247,7 +247,7 @@ i386_set_ldt(thread, first_selector, des
+--- i386/i386/user_ldt.c.orig	2006-11-14 03:58:56.000000000 +0200
++++ i386/i386/user_ldt.c	2006-11-14 04:16:29.000000000 +0200
+@@ -249,7 +249,7 @@ i386_set_ldt(thread, first_selector, des
  	     * make sure it is properly set.
  	     */
  	    if (thread == current_thread())
@@ -498,9 +499,9 @@ Index: i386/i386/user_ldt.c
  	/*
 Index: i386/i386at/iopl.c
 ===================================================================
---- i386/i386at/iopl.c.orig	2006-10-26 00:17:28.000000000 +0300
-+++ i386/i386at/iopl.c	2006-10-26 00:17:32.000000000 +0300
-@@ -217,10 +217,15 @@ iopl_emulate(regs, opcode, io_port)
+--- i386/i386at/iopl.c.orig	2006-11-14 04:16:08.000000000 +0200
++++ i386/i386at/iopl.c	2006-11-14 04:16:29.000000000 +0200
+@@ -220,10 +220,15 @@ iopl_emulate(regs, opcode, io_port)
  	int	io_port;
  {
  	iopb_tss_t	iopb;
@@ -518,7 +519,7 @@ Index: i386/i386at/iopl.c
  
  	/*
  	 * Handle outb to the timer control port,
-@@ -235,11 +240,14 @@ iopl_emulate(regs, opcode, io_port)
+@@ -238,11 +243,14 @@ iopl_emulate(regs, opcode, io_port)
  	     && (opcode == 0xe6 || opcode == 0xee)	/* outb */
  	     && (io_byte & 0xc0) == 0x80)		/* timer 2 */
  	    {
@@ -535,9 +536,9 @@ Index: i386/i386at/iopl.c
  	 * If the thread has the IOPL device mapped, and
 Index: kern/task.c
 ===================================================================
---- kern/task.c.orig	2006-10-26 00:16:49.000000000 +0300
-+++ kern/task.c	2006-10-26 00:17:32.000000000 +0300
-@@ -64,6 +64,7 @@ void task_init(void)
+--- kern/task.c.orig	2006-11-14 03:58:57.000000000 +0200
++++ kern/task.c	2006-11-14 04:16:29.000000000 +0200
+@@ -67,6 +67,7 @@ void task_init(void)
  			0, "tasks");
  
  	eml_init();
@@ -545,7 +546,7 @@ Index: kern/task.c
  
  	/*
  	 * Create the kernel task as the first task.
-@@ -142,6 +143,7 @@ kern_return_t task_create(
+@@ -145,6 +146,7 @@ kern_return_t task_create(
  	eml_task_reference(new_task, parent_task);
  
  	ipc_task_init(new_task, parent_task);
@@ -553,7 +554,7 @@ Index: kern/task.c
  
  	new_task->total_user_time.seconds = 0;
  	new_task->total_user_time.microseconds = 0;
-@@ -217,6 +219,8 @@ void task_deallocate(
+@@ -220,6 +222,8 @@ void task_deallocate(
  	if (c != 0)
  		return;
  
@@ -562,7 +563,7 @@ Index: kern/task.c
  	eml_task_deallocate(task);
  
  	pset = task->processor_set;
-@@ -1089,6 +1093,7 @@ void task_collect_scan(void)
+@@ -1092,6 +1096,7 @@ void task_collect_scan(void)
  			pset_unlock(pset);
  			simple_unlock(&all_psets_lock);
  
@@ -572,8 +573,8 @@ Index: kern/task.c
  			if (prev_task != TASK_NULL)
 Index: kern/task.h
 ===================================================================
---- kern/task.h.orig	2006-10-26 00:16:50.000000000 +0300
-+++ kern/task.h	2006-10-26 00:17:32.000000000 +0300
+--- kern/task.h.orig	2006-10-15 20:39:24.000000000 +0300
++++ kern/task.h	2006-11-14 04:16:29.000000000 +0200
 @@ -45,6 +45,7 @@
  #include <kern/pc_sample.h>
  #include <kern/processor.h>

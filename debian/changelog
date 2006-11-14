@@ -11,6 +11,9 @@ gnumach (2:1.3.99.dfsg.1-1) UNRELEASED; urgency=low
     - debian/patches/13_ide_dma.patch: Likewise.
     - debian/patches/14_alloc_params.patch: Likewise.
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
+    - debian/patches/41_io_unlock_ioremove.patch
+    - debian/patches/42_disable_ioperm.patch
+    - debian/patches/43_debvice_port_fix.patch
     - debian/patches/44_more_ports.patch: Likewise.
     - debian/patches/45_io_per_task.patch: Likewise.
     - debian/patches/46_io_device.patch: Likewise.
