@@ -7,6 +7,9 @@ gnumach (2:1.3.99+cvs20070211.dfsg.1-1) UNRELEASED; urgency=low
     - debian/patches/12_sis900.patch: Likewise.
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
     - debian/patches/90_autoconf_autogen.patch: Regenerated.
+  * Add MMX register support.
+    - debian/patches/20_mmx_support.patch: New file.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>
 
  -- Guillem Jover <guillem@debian.org>  Sun, 11 Feb 2007 15:01:19 +0200
 
