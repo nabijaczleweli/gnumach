@@ -9,12 +9,13 @@ gnumach (2:1.3.99.dfsg.1-1) unstable; urgency=low
     - debian/patches/13_ide_dma.patch: Likewise.
     - debian/patches/14_alloc_params.patch: Likewise.
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
-    - debian/patches/41_io_unlock_ioremove.patch
-    - debian/patches/42_disable_ioperm.patch
-    - debian/patches/43_debvice_port_fix.patch
+    - debian/patches/41_io_unlock_ioremove.patch: Likewise.
+    - debian/patches/42_disable_ioperm.patch: Likewise.
+    - debian/patches/43_debvice_port_fix.patch: Likewise.
     - debian/patches/44_more_ports.patch: Likewise.
     - debian/patches/45_io_per_task.patch: Likewise.
     - debian/patches/46_io_device.patch: Likewise.
+    - debian/patches/47_pcmcia_isa.patch: Disabled, merged upstream.
     - debian/patches/90_autoconf_autogen.patch: Regenerated.
     - debian/patches/61_vm_resident-zoned.patch: Disable for now, it's
       causing problems with current applied patches in CVS.
