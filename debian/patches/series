@@ -5,7 +5,6 @@
 13_ide_dma.patch -p0
 14_alloc_params.patch -p0
 15_mem_obj_proxy.patch -p0
-22_scsi_inf_loop.patch -p1
 24_pci_irq_fix.patch -p1
 41_io_unlock_ioremove.patch -p0
 42_disable_ioperm.patch -p0
