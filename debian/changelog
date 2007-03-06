@@ -61,8 +61,8 @@ gnumach (2:1.3.99.dfsg.1-1) unstable; urgency=low
       package dirs.
     - debian/gnumach-dbg.install: New file.
     - debian/gnumach-dev.install: Likewise.
-    - debian/gnumach.install: Likewise.
     - debian/gnumach-udeb.install: Likewise.
+    - debian/gnumach.install: Likewise. Install the msgids. (Closes: #365828)
   * Completely removed the doc/ directory.
     - Document the removal of the non-free GFDL manual in debian/copyright.
     - Do not try to build the now non-existent doc/ directory.
