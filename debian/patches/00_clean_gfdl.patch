@@ -1,13 +1,13 @@
 Index: Makefile.am
 ===================================================================
---- Makefile.am.orig	2006-10-25 23:53:19.000000000 +0300
-+++ Makefile.am	2006-10-25 23:53:38.000000000 +0300
-@@ -99,7 +99,7 @@ include Makefrag.am
+--- Makefile.am.orig	2007-03-06 06:37:41.000000000 +0200
++++ Makefile.am	2007-03-06 07:05:51.000000000 +0200
+@@ -110,7 +110,7 @@ include Makefrag.am
  include tests/Makefrag.am
  
  # Documentation.
 -include doc/Makefrag.am
 +#include doc/Makefrag.am
- 
- # Linux device drivers and the glue code.
- include linux/Makefrag.am
+ 
+ #
+ # Kernel Image

@@ -5,8 +5,8 @@ Regenerate with:
        find -name autom4te.cache | xargs rm -rf
 
 
---- config.h.in	2007-02-11 15:15:11.000000000 +0200
-+++ config.h.in	2007-02-11 15:19:31.000000000 +0200
+--- config.h.in	2007-03-06 06:42:34.000000000 +0200
++++ config.h.in	2007-03-06 07:08:00.000000000 +0200
 @@ -43,6 +43,9 @@
  /* option floppy: Linux device driver for PC floppy */
  #undef CONFIG_BLK_DEV_FD
@@ -27,9 +27,520 @@ Regenerate with:
  /* option sk_g16: Linux device driver for Ethernet controller Schneider & Koch
     G16 */
  #undef CONFIG_SK_G16
---- configure	2007-02-11 15:15:08.000000000 +0200
-+++ configure	2007-02-11 15:19:27.000000000 +0200
-@@ -819,6 +819,8 @@ device_driver_rtl8139_TRUE
+--- config.h.in~	1970-01-01 02:00:00.000000000 +0200
++++ config.h.in~	2007-03-06 06:42:34.000000000 +0200
+@@ -0,0 +1,508 @@
++/* config.h.in.  Generated from configure.ac by autoheader.  */
++
++/* AT386 */
++#undef AT386
++
++/* BOOTSTRAP_SYMBOLS */
++#undef BOOTSTRAP_SYMBOLS
++
++/* CMU */
++#undef CMU
++
++/* option 3c515: Linux device driver for Ethernet controller 3Com 515 ISA Fast
++   EtherLink */
++#undef CONFIG_3C515
++
++/* option 3c574_cs: Linux device driver for 3Com 3c574 ``RoadRunner'' PCMCIA
++   Ethernet */
++#undef CONFIG_3C574_CS
++
++/* option 3c589_cs: Linux device driver for 3Com 3c589 PCMCIA Ethernet card */
++#undef CONFIG_3C589_CS
++
++/* option ac3200: Linux device driver for Ethernet controller Ansel
++   Communications EISA 3200 */
++#undef CONFIG_AC3200
++
++/* option apricot: Linux device driver for Ethernet controller Apricot XEN-II
++   on board ethernet */
++#undef CONFIG_APRICOT
++
++/* option at1700: Linux device driver for Ethernet controller AT1700 (Fujitsu
++   86965) */
++#undef CONFIG_AT1700
++
++/* option atp: Linux device driver for Ethernet controller AT-LAN-TEC/RealTek
++   pocket adaptor */
++#undef CONFIG_ATP
++
++/* option axnet_cs: Linux device driver for Asix AX88190-based PCMCIA Ethernet
++   adapters */
++#undef CONFIG_AXNET_CS
++
++/* option floppy: Linux device driver for PC floppy */
++#undef CONFIG_BLK_DEV_FD
++
++/* option ide: Linux device driver for IDE disk controllers */
++#undef CONFIG_BLK_DEV_IDE
++
++/* option de4x5: Linux device driver for Ethernet controller DE4x5 (de4x5,
++   de425, de434, de435, de450, de500) */
++#undef CONFIG_DE4X5
++
++/* option de600: Linux device driver for Ethernet controller D-Link DE-600 */
++#undef CONFIG_DE600
++
++/* option de620: Linux device driver for Ethernet controller D-Link DE-620 */
++#undef CONFIG_DE620
++
++/* option tulip: Linux device driver for Ethernet controller DECchip Tulip
++   (dc21x4x) PCI (elcp, tulip) */
++#undef CONFIG_DEC_ELCP
++
++/* option depca: Linux device driver for Ethernet controller DEPCA (de100,
++   de101, de200, de201, de202, de210, de422) */
++#undef CONFIG_DEPCA
++
++/* option e2100: Linux device driver for Ethernet controller Cabletron E21xx
++   */
++#undef CONFIG_E2100
++
++/* option eexpress: Linux device driver for Ethernet controller EtherExpress
++   16 */
++#undef CONFIG_EEXPRESS
++
++/* option eepro: Linux device driver for Ethernet controller EtherExpressPro
++   */
++#undef CONFIG_EEXPRESS_PRO
++
++/* option eepro100: Linux device driver for Ethernet controller Intel
++   EtherExpressPro PCI 10+/100B/100+ */
++#undef CONFIG_EEXPRESS_PRO100B
++
++/* option 3c501: Linux device driver for Ethernet controller 3COM 501 (3c501)
++   / Etherlink I */
++#undef CONFIG_EL1
++
++/* option 3c507: Linux device driver for Ethernet controller 3Com 507 (3c507,
++   el16) */
++#undef CONFIG_EL16
++
++/* option 3c503: Linux device driver for Ethernet controller 3Com 503 (3c503)
++   / Etherlink II */
++#undef CONFIG_EL2
++
++/* option 3c509: Linux device driver for Ethernet controller 3Com 509/579
++   (3c509, 3c579) / Etherlink III */
++#undef CONFIG_EL3
++
++/* option 3c505: Linux device driver for Ethernet controller 3Com 505 (3c505,
++   elplus) */
++#undef CONFIG_ELPLUS
++
++/* option epic100: Linux device driver for Ethernet controller SMC 83c170/175
++   EPIC/100 (epic, epic100) / EtherPower II */
++#undef CONFIG_EPIC
++
++/* option eth16i: Linux device driver for Ethernet controller ICL EtherTeam
++   16i/32 (eth16i, eth32) */
++#undef CONFIG_ETH16I
++
++/* option ewrk3: Linux device driver for Ethernet controller EtherWORKS 3
++   (ewrk3, de203, de204, de205) */
++#undef CONFIG_EWRK3
++
++/* option fmv18x: Linux device driver for Ethernet controller
++   FMV-181/182/183/184 */
++#undef CONFIG_FMV18X
++
++/* option fmvj18x_cs: Linux device driver for fmvj18x chipset based PCMCIA
++   Ethernet cards */
++#undef CONFIG_FMVJ18X_CS
++
++/* option hamachi: Linux device driver for Ethernet controller Packet Engines
++   "Hamachi" GNIC-2 Gigabit Ethernet */
++#undef CONFIG_HAMACHI
++
++/* option hp100: Linux device driver for Ethernet controller HP 10/100VG PCLAN
++   (ISA, EISA, PCI) (hp100, hpj2577, hpj2573, hpj2585, hp27248b) */
++#undef CONFIG_HP100
++
++/* option hp: Linux device driver for Ethernet controller HP PCLAN (27245 and
++   other 27xxx series) */
++#undef CONFIG_HPLAN
++
++/* option hp-plus: Linux device driver for Ethernet controller HP PCLAN+
++   (27247B and 27252A) */
++#undef CONFIG_HPLAN_PLUS
++
++/* option i82365: Linux device driver for Intel 82365 PC Card controller */
++#undef CONFIG_I82365
++
++/* CONFIG_INET */
++#undef CONFIG_INET
++
++/* option intel-gige: Linux device driver for Ethernet controller Intel PCI
++   Gigabit Ethernet */
++#undef CONFIG_INTEL_GIGE
++
++/* option pcmcia-isa: isa bus support in the pcmcia core */
++#undef CONFIG_ISA
++
++/* option lance: Linux device driver for Ethernet controller AMD LANCE and
++   PCnet (at1500, ne2100) */
++#undef CONFIG_LANCE
++
++/* 386 */
++#undef CONFIG_M386
++
++/* 486 */
++#undef CONFIG_M486
++
++/* 586 */
++#undef CONFIG_M586
++
++/* 686 */
++#undef CONFIG_M686
++
++/* option myson803: Linux device driver for Ethernet controller Myson MTD803
++   Ethernet adapter series */
++#undef CONFIG_MYSON803
++
++/* option natsemi: Linux device driver for Ethernet controller National
++   Semiconductor DP8381x series PCI Ethernet */
++#undef CONFIG_NATSEMI
++
++/* option ne: Linux device driver for Ethernet controller NE2000/NE1000 ISA
++   (ne, ne1000, ne2000) */
++#undef CONFIG_NE2000
++
++/* option ne2k-pci: Linux device driver for Ethernet controller PCI NE2000 */
++#undef CONFIG_NE2K_PCI
++
++/* option ni52: Linux device driver for Ethernet controller NI5210 */
++#undef CONFIG_NI52
++
++/* option ni65: Linux device driver for Ethernet controller NI6510 */
++#undef CONFIG_NI65
++
++/* option nmclan_cs: Linux device driver for New Media Ethernet LAN PCMCIA
++   cards */
++#undef CONFIG_NMCLAN_CS
++
++/* option ns820: Linux device driver for Ethernet controller National
++   Semiconductor DP8382x series PCI Ethernet */
++#undef CONFIG_NS820
++
++/* option orinoco_cs: Linux device driver for Hermes or Prism 2 PCMCIA
++   Wireless adapters (Orinoco) */
++#undef CONFIG_ORINOCO_CS
++
++/* CONFIG_PCMCIA */
++#undef CONFIG_PCMCIA
++
++/* option pcnet32: Linux device driver for Ethernet controller AMD PCI PCnet32
++   (PCI bus NE2100 cards) */
++#undef CONFIG_PCNET32
++
++/* option pcnet_cs: Linux device driver for NS8390-based PCMCIA cards */
++#undef CONFIG_PCNET_CS
++
++/* option rtl8139: Linux device driver for Ethernet controller RealTek
++   8129/8139 (rtl8129, rtl8139) (not 8019/8029!) */
++#undef CONFIG_RTL8139
++
++/* CONFIG_SCSI */
++#undef CONFIG_SCSI
++
++/* option wd7000: Linux device driver for SCSI controller WD 7000 */
++#undef CONFIG_SCSI_7000FASST
++
++/* option advansys: Linux device driver for SCSI controller AdvanSys */
++#undef CONFIG_SCSI_ADVANSYS
++
++/* option aha152x: Linux device driver for SCSI controller Adaptec
++   AHA-152x/2825 (aha152x, aha2825) */
++#undef CONFIG_SCSI_AHA152X
++
++/* option aha1542: Linux device driver for SCSI controller Adaptec AHA-1542 */
++#undef CONFIG_SCSI_AHA1542
++
++/* option aha1740: Linux device driver for SCSI controller Adaptec AHA-1740 */
++#undef CONFIG_SCSI_AHA1740
++
++/* option aic7xxx: Linux device driver for SCSI controller Adaptec AIC7xxx */
++#undef CONFIG_SCSI_AIC7XXX
++
++/* option AM53C974: Linux device driver for SCSI controller AM53/79C974
++   (am53c974, am79c974) */
++#undef CONFIG_SCSI_AM53C974
++
++/* option BusLogic: Linux device driver for SCSI controller BusLogic */
++#undef CONFIG_SCSI_BUSLOGIC
++
++/* option tmscsim: Linux device driver for SCSI controller Tekram DC-390(T)
++   (dc390, dc390t) */
++#undef CONFIG_SCSI_DC390T
++
++/* option dtc: Linux device driver for SCSI controller DTC3180/3280 (dtc3180,
++   dtc3280) */
++#undef CONFIG_SCSI_DTC3280
++
++/* option eata: Linux device driver for SCSI controller EATA ISA/EISA/PCI (DPT
++   and generic EATA/DMA-compliant boards) */
++#undef CONFIG_SCSI_EATA
++
++/* option eata_dma: Linux device driver for SCSI controller EATA-DMA (DPT,
++   NEC, AT&T, SNI, AST, Olivetti, Alphatronix) */
++#undef CONFIG_SCSI_EATA_DMA
++
++/* option eata_pio: Linux device driver for SCSI controller EATA-PIO (old DPT
++   PM2001, PM2012A) */
++#undef CONFIG_SCSI_EATA_PIO
++
++/* option fdomain: Linux device driver for SCSI controller Future Domain 16xx
++   */
++#undef CONFIG_SCSI_FUTURE_DOMAIN
++
++/* option gdth: Linux device driver for GDT SCSI Disk Array Controller */
++#undef CONFIG_SCSI_GDTH
++
++/* option g_NCR5380: Linux device driver for SCSI controller Generic
++   NCR5380/53c400 (ncr5380, ncr53c400) */
++#undef CONFIG_SCSI_GENERIC_NCR5380
++
++/* option in2000: Linux device driver for SCSI controller Always IN 2000 */
++#undef CONFIG_SCSI_IN2000
++
++/* option NCR53c406a: Linux device driver for SCSI controller NCR53c406a chip
++   */
++#undef CONFIG_SCSI_NCR53C406A
++
++/* option 53c78xx: Linux device driver for SCSI controller NCR 53C7,8xx */
++#undef CONFIG_SCSI_NCR53C7xx
++
++/* option ncr53c8xx: Linux device driver for SCSI controller NCR53C8XX
++   (ncr53c8xx, dc390f, dc390u, dc390w) */
++#undef CONFIG_SCSI_NCR53C8XX
++
++/* scsi omit flashpoint */
++#undef CONFIG_SCSI_OMIT_FLASHPOINT
++
++/* option pas16: Linux device driver for SCSI controller PAS16 */
++#undef CONFIG_SCSI_PASS16
++
++/* option ppa: Linux device driver for IOMEGA Parallel Port ZIP drive */
++#undef CONFIG_SCSI_PPA
++
++/* option qlogicfas: Linux device driver for SCSI controller Qlogic FAS */
++#undef CONFIG_SCSI_QLOGIC_FAS
++
++/* option qlogicisp: Linux device driver for SCSI controller Qlogic ISP */
++#undef CONFIG_SCSI_QLOGIC_ISP
++
++/* option seagate: Linux device driver for SCSI controller Seagate ST02,
++   Future Domain TMC-8xx */
++#undef CONFIG_SCSI_SEAGATE
++
++/* option t128: Linux device driver for SCSI controller Trantor
++   T128/T128F/T228 (t128, t128f, t228) */
++#undef CONFIG_SCSI_T128
++
++/* option u14-34f: Linux device driver for SCSI controller UltraStor 14F/34F
++   */
++#undef CONFIG_SCSI_U14_34F
++
++/* option ultrastor: Linux device driver for SCSI controller UltraStor */
++#undef CONFIG_SCSI_ULTRASTOR
++
++/* option seeq8005: Linux device driver for Ethernet controller Seeq8005 */
++#undef CONFIG_SEEQ8005
++
++/* option sk_g16: Linux device driver for Ethernet controller Schneider & Koch
++   G16 */
++#undef CONFIG_SK_G16
++
++/* option smc91c92_cs: Linux device driver for SMC91c92-based PCMCIA cards */
++#undef CONFIG_SMC91C92_CS
++
++/* option starfire: Linux device driver for Ethernet controller Adaptec
++   Starfire network adapter */
++#undef CONFIG_STARFIRE
++
++/* option sundance: Linux device driver for Ethernet controller Sundance ST201
++   "Alta" PCI Ethernet */
++#undef CONFIG_SUNDANCE
++
++/* option tlan: Linux device driver for Ethernet controller TI ThunderLAN */
++#undef CONFIG_TLAN
++
++/* option smc-ultra: Linux device driver for Ethernet controller SMC Ultra */
++#undef CONFIG_ULTRA
++
++/* option smc-ultra32: Linux device driver for Ethernet controller SMC Ultra32
++   */
++#undef CONFIG_ULTRA32
++
++/* option via-rhine: Linux device driver for Ethernet controller VIA Rhine */
++#undef CONFIG_VIA_RHINE
++
++/* option 3c59x: Linux device driver for Ethernet controller 3Com 59x/90x
++   (3c59x, 3c590, 3c592, 3c595, 3c597, 3c90x, 3c900, 3c905) "Vortex/Boomerang"
++   */
++#undef CONFIG_VORTEX
++
++/* option wavelan: Linux device driver for Ethernet controller AT&T WaveLAN &
++   DEC RoamAbout DS */
++#undef CONFIG_WAVELAN
++
++/* option wd: Linux device driver for Ethernet controller WD80x3 */
++#undef CONFIG_WD80x3
++
++/* option winbond-840: Linux device driver for Ethernet controller Winbond
++   W89c840 PCI Ethernet */
++#undef CONFIG_WINBOND840
++
++/* CONFIG_WIRELESS */
++#undef CONFIG_WIRELESS
++
++/* option xirc2ps_cs: Linux device driver for Xircom CreditCard and Realport
++   PCMCIA ethernet */
++#undef CONFIG_XIRC2PS_CS
++
++/* option yellowfin: Linux device driver for Ethernet controller Packet
++   Engines Yellowfin Gigabit-NIC */
++#undef CONFIG_YELLOWFIN
++
++/* option znet: Linux device driver for Ethernet controller Zenith Z-Note
++   (znet, znote) */
++#undef CONFIG_ZNET
++
++/* CPU */
++#undef CPU
++
++/* FAST_TAS */
++#undef FAST_TAS
++
++/* HW_FOOTPRINT */
++#undef HW_FOOTPRINT
++
++/* KERNEL */
++#undef KERNEL
++
++/* Linux device drivers. */
++#undef LINUX_DEV
++
++/* MACH */
++#undef MACH
++
++/* MACH_COUNTERS */
++#undef MACH_COUNTERS
++
++/* MACH_DEBUG */
++#undef MACH_DEBUG
++
++/* MACH_FIXPRI */
++#undef MACH_FIXPRI
++
++/* MACH_HOST */
++#undef MACH_HOST
++
++/* MACH_IPC_DEBUG */
++#undef MACH_IPC_DEBUG
++
++/* MACH_IPC_TEST */
++#undef MACH_IPC_TEST
++
++/* Use the in-kernel debugger? */
++#undef MACH_KDB
++
++/* Standalone MACH kernel */
++#undef MACH_KERNEL
++
++/* enable use of kmsg device */
++#undef MACH_KMSG
++
++/* MACH_LDEBUG */
++#undef MACH_LDEBUG
++
++/* MACH_LOCK_MON */
++#undef MACH_LOCK_MON
++
++/* lpr device */
++#undef MACH_LPR
++
++/* MACH_MACHINE_ROUTINES */
++#undef MACH_MACHINE_ROUTINES
++
++/* MACH_MP_DEBUG */
++#undef MACH_MP_DEBUG
++
++/* MACH_PAGEMAP */
++#undef MACH_PAGEMAP
++
++/* MACH_PCSAMPLE */
++#undef MACH_PCSAMPLE
++
++/* MACH_TTD */
++#undef MACH_TTD
++
++/* MACH_VM_DEBUG */
++#undef MACH_VM_DEBUG
++
++/* set things up for a uniprocessor */
++#undef MULTIPROCESSOR
++
++/* NCOM */
++#undef NCOM
++
++/* set things up for a uniprocessor */
++#undef NCPUS
++
++/* NLPR */
++#undef NLPR
++
++/* Define to 1 if your C compiler doesn't accept -c and -o together. */
++#undef NO_MINUS_C_MINUS_O
++
++/* Define to the address where bug reports for this package should be sent. */
++#undef PACKAGE_BUGREPORT
++
++/* Define to the full name of this package. */
++#undef PACKAGE_NAME
++
++/* Define to the full name and version of this package. */
++#undef PACKAGE_STRING
++
++/* Define to the one symbol short name of this package. */
++#undef PACKAGE_TARNAME
++
++/* Define to the version of this package. */
++#undef PACKAGE_VERSION
++
++/* POWER_SAVE */
++#undef POWER_SAVE
++
++/* where is the com port for the remote console */
++#undef RCADDR
++
++/* com port for the remote console */
++#undef RCLINE
++
++/* SIMPLE_CLOCK */
++#undef SIMPLE_CLOCK
++
++/* STAT_TIME */
++#undef STAT_TIME
++
++/* XPR_DEBUG */
++#undef XPR_DEBUG
++
++/* __ELF__ */
++#undef __ELF__
++
++/* __KERNEL__ */
++#undef __KERNEL__
++
++/* i386 */
++#undef i386
+--- configure	2007-03-06 06:42:29.000000000 +0200
++++ configure	2007-03-06 07:07:56.000000000 +0200
+@@ -821,6 +821,8 @@ device_driver_rtl8139_TRUE
  device_driver_rtl8139_FALSE
  device_driver_seeq8005_TRUE
  device_driver_seeq8005_FALSE
@@ -38,24 +549,24 @@ Regenerate with:
  device_driver_sk_g16_TRUE
  device_driver_sk_g16_FALSE
  device_driver_smc_ultra_TRUE
-@@ -1480,6 +1482,7 @@ Optional Features:
-   --disable-lpr           disable use of lpr device
-   --disable-floppy        disable Linux device driver for PC floppy
-   --disable-ide           disable Linux device driver for IDE disk controllers
+@@ -1489,6 +1491,7 @@ Optional Features:
+                           default for ix86-at
+   --enable-ide            Linux device driver for IDE disk controllers;
+                           enabled by default for ix86-at
 +  --enable-ide-forcedma   enable forced use of DMA on IDE
-   --disable-53c78xx       disable Linux device driver for SCSI controller NCR
-                           53C7,8xx
-   --disable-AM53C974      disable Linux device driver for SCSI controller
-@@ -1622,6 +1625,8 @@ Optional Features:
-                           8019/8029!)
-   --disable-seeq8005      disable Linux device driver for Ethernet controller
-                           Seeq8005
-+  --disable-sis900        disable Linux device driver for Ethernet controller
-+                          SiS 900
-   --disable-sk_g16        disable Linux device driver for Ethernet controller
-                           Schneider & Koch G16
-   --disable-smc-ultra     disable Linux device driver for Ethernet controller
-@@ -6407,6 +6412,17 @@ _ACEOF
+   --enable-53c78xx        Linux device driver for SCSI controller NCR
+                           53C7,8xx; enabled by default for ix86-at
+   --enable-AM53C974       Linux device driver for SCSI controller AM53/79C974
+@@ -1656,6 +1659,8 @@ Optional Features:
+                           enabled by default for ix86-at
+   --enable-seeq8005       Linux device driver for Ethernet controller
+                           Seeq8005; enabled by default for ix86-at
++  --enable-sis900         Linux device driver for Ethernet controller SiS 900;
++                          enabled by default for ix86-at
+   --enable-sk_g16         Linux device driver for Ethernet controller
+                           Schneider & Koch G16; enabled by default for ix86-at
+   --enable-smc-ultra      Linux device driver for Ethernet controller SMC
+@@ -6408,6 +6413,17 @@ _ACEOF
  fi
  
  
@@ -73,7 +584,7 @@ Regenerate with:
  
  
  
-@@ -8300,6 +8316,34 @@ fi
+@@ -9109,6 +9125,46 @@ fi
  
  
  unset enableval
@@ -82,10 +593,21 @@ Regenerate with:
 +  enableval=$enable_sis900;
 +fi
 +
-+enableval=${enableval-$enable_default_device_drivers}
++#TODO.
++case $host_platform:$host_cpu in
++  at:i?86)
++    enableval=${enableval-$enable_default_device_drivers};;
++  *)
++    if [ x"$enableval" = xyes ]; then
++      # TODO.  That might not always be true.
++      { { echo "$as_me:$LINENO: error: cannot enable \`sis900' in this configuration." >&5
++echo "$as_me: error: cannot enable \`sis900' in this configuration." >&2;}
++   { (exit 1); exit 1; }; }
++    fi;;
++esac
 +
 +
-+if test x"$enableval" = xyes; then
++if [ x"$enableval" = xyes ]; then
 +  device_driver_sis900_TRUE=
 +  device_driver_sis900_FALSE='#'
 +else
@@ -93,7 +615,8 @@ Regenerate with:
 +  device_driver_sis900_FALSE=
 +fi
 +
-+if test x"$enableval" = xyes; then
++if [ x"$enableval" = xyes ]; then
++  have_linux_code=yes
 +
 +cat >>confdefs.h <<\_ACEOF
 +#define CONFIG_SIS900 1
@@ -108,7 +631,7 @@ Regenerate with:
  # Check whether --enable-sk_g16 was given.
  if test "${enable_sk_g16+set}" = set; then
    enableval=$enable_sk_g16;
-@@ -9860,6 +9904,13 @@ echo "$as_me: error: conditional \"devic
+@@ -11076,6 +11132,13 @@ echo "$as_me: error: conditional \"devic
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -122,7 +645,7 @@ Regenerate with:
  if test -z "${device_driver_sk_g16_TRUE}" && test -z "${device_driver_sk_g16_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"device_driver_sk_g16\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -10949,6 +11000,8 @@ device_driver_rtl8139_TRUE!$device_drive
+@@ -12181,6 +12244,8 @@ device_driver_rtl8139_TRUE!$device_drive
  device_driver_rtl8139_FALSE!$device_driver_rtl8139_FALSE$ac_delim
  device_driver_seeq8005_TRUE!$device_driver_seeq8005_TRUE$ac_delim
  device_driver_seeq8005_FALSE!$device_driver_seeq8005_FALSE$ac_delim
@@ -131,64 +654,64 @@ Regenerate with:
  device_driver_sk_g16_TRUE!$device_driver_sk_g16_TRUE$ac_delim
  device_driver_sk_g16_FALSE!$device_driver_sk_g16_FALSE$ac_delim
  device_driver_smc_ultra_TRUE!$device_driver_smc_ultra_TRUE$ac_delim
-@@ -10998,8 +11051,6 @@ device_driver_xirc2ps_cs_FALSE!$device_d
+@@ -12228,8 +12293,6 @@ device_driver_smc91c92_cs_FALSE!$device_
+ device_driver_xirc2ps_cs_TRUE!$device_driver_xirc2ps_cs_TRUE$ac_delim
+ device_driver_xirc2ps_cs_FALSE!$device_driver_xirc2ps_cs_FALSE$ac_delim
  device_driver_orinoco_cs_TRUE!$device_driver_orinoco_cs_TRUE$ac_delim
- device_driver_orinoco_cs_FALSE!$device_driver_orinoco_cs_FALSE$ac_delim
- device_driver_group_net_TRUE!$device_driver_group_net_TRUE$ac_delim
--device_driver_group_net_FALSE!$device_driver_group_net_FALSE$ac_delim
--device_driver_group_pcmcia_TRUE!$device_driver_group_pcmcia_TRUE$ac_delim
+-device_driver_orinoco_cs_FALSE!$device_driver_orinoco_cs_FALSE$ac_delim
+-device_driver_group_net_TRUE!$device_driver_group_net_TRUE$ac_delim
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -11041,6 +11092,8 @@ _ACEOF
+@@ -12271,6 +12334,8 @@ _ACEOF
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
-+device_driver_group_net_FALSE!$device_driver_group_net_FALSE$ac_delim
-+device_driver_group_pcmcia_TRUE!$device_driver_group_pcmcia_TRUE$ac_delim
++device_driver_orinoco_cs_FALSE!$device_driver_orinoco_cs_FALSE$ac_delim
++device_driver_group_net_TRUE!$device_driver_group_net_TRUE$ac_delim
+ device_driver_group_net_FALSE!$device_driver_group_net_FALSE$ac_delim
+ device_driver_group_pcmcia_TRUE!$device_driver_group_pcmcia_TRUE$ac_delim
  device_driver_group_pcmcia_FALSE!$device_driver_group_pcmcia_FALSE$ac_delim
- device_driver_group_scsi_TRUE!$device_driver_group_scsi_TRUE$ac_delim
- device_driver_group_scsi_FALSE!$device_driver_group_scsi_FALSE$ac_delim
-@@ -11050,7 +11103,7 @@ LIBOBJS!$LIBOBJS$ac_delim
+@@ -12284,7 +12349,7 @@ LIBOBJS!$LIBOBJS$ac_delim
  LTLIBOBJS!$LTLIBOBJS$ac_delim
  _ACEOF
  
--  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
-+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 9; then
+-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 11; then
++  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 13; then
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
---- Makefile.in	2007-02-11 15:15:18.000000000 +0200
-+++ Makefile.in	2007-02-11 15:19:38.000000000 +0200
-@@ -117,28 +117,6 @@
+--- Makefile.in	2007-03-06 06:42:41.000000000 +0200
++++ Makefile.in	2007-03-06 07:08:08.000000000 +0200
+@@ -161,28 +161,6 @@
  # Tests.
  #
  
 -# Makefile fragment for the documentation.
 -
--# Copyright (C) 2006 Free Software Foundation, Inc.
+-# Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 -
--# This program is free software; you can redistribute it and/or
--# modify it under the terms of the GNU General Public License as
--# published by the Free Software Foundation; either version 2, or (at
--# your option) any later version.
--#
+-# This program is free software; you can redistribute it and/or modify it
+-# under the terms of the GNU General Public License as published by the
+-# Free Software Foundation; either version 2, or (at your option) any later
+-# version.
+-# 
 -# This program is distributed in the hope that it will be useful, but
--# WITHOUT ANY WARRANTY; without even the implied warranty of
--# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
--# General Public License for more details.
--#
--# You should have received a copy of the GNU General Public License
--# along with this program; if not, write to the Free Software
--# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+-# for more details.
+-# 
+-# You should have received a copy of the GNU General Public License along
+-# with this program; if not, write to the Free Software Foundation, Inc.,
+-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 -
 -#
 -# The GNU Mach Reference Manual.
 -#
 -
- # Makefile fragment for Linux device drivers and the glue code.
  
- # Copyright (C) 2006 Free Software Foundation, Inc.
+ 
+ 
 @@ -221,15 +199,13 @@ DIST_COMMON = README $(am__configure_dep
  	$(include_mach_eXec_HEADERS) $(srcdir)/Makefile.am \
  	$(srcdir)/Makefile.in $(srcdir)/Makefrag.am \
@@ -212,145 +735,208 @@ Regenerate with:
  
  # Do we want the icky kernel debugger?
  @enable_kdb_TRUE@am__append_2 = \
-@@ -764,54 +740,57 @@ DIST_COMMON = README $(am__configure_dep
+@@ -607,62 +583,65 @@ DIST_COMMON = README $(am__configure_dep
  @device_driver_seeq8005_TRUE@	linux/src/drivers/net/seeq8005.c \
  @device_driver_seeq8005_TRUE@	linux/src/drivers/net/seeq8005.h
  
--@device_driver_sk_g16_TRUE@am__append_89 = \
-+@device_driver_sis900_TRUE@am__append_89 = \
+-@device_driver_sk_g16_TRUE@am__append_83 = \
++@device_driver_sis900_TRUE@am__append_83 = \
 +@device_driver_sis900_TRUE@	linux/src/drivers/net/sis900.c
 +
-+@device_driver_sk_g16_TRUE@am__append_90 = \
++@device_driver_sk_g16_TRUE@am__append_84 = \
  @device_driver_sk_g16_TRUE@	linux/src/drivers/net/sk_g16.c \
  @device_driver_sk_g16_TRUE@	linux/src/drivers/net/sk_g16.h
  
--@device_driver_smc_ultra_TRUE@am__append_90 = \
-+@device_driver_smc_ultra_TRUE@am__append_91 = \
+-@device_driver_smc_ultra_TRUE@am__append_84 = \
++@device_driver_smc_ultra_TRUE@am__append_85 = \
  @device_driver_smc_ultra_TRUE@	linux/src/drivers/net/smc-ultra.c \
  @device_driver_smc_ultra_TRUE@	linux/src/drivers/net/8390.c
  
--@device_driver_smc_ultra32_TRUE@am__append_91 = \
-+@device_driver_smc_ultra32_TRUE@am__append_92 = \
+-@device_driver_smc_ultra32_TRUE@am__append_85 = \
++@device_driver_smc_ultra32_TRUE@am__append_86 = \
  @device_driver_smc_ultra32_TRUE@	linux/src/drivers/net/smc-ultra32.c \
  @device_driver_smc_ultra32_TRUE@	linux/src/drivers/net/8390.c
  
--@device_driver_starfire_TRUE@am__append_92 = \
-+@device_driver_starfire_TRUE@am__append_93 = \
+-@device_driver_starfire_TRUE@am__append_86 = \
++@device_driver_starfire_TRUE@am__append_87 = \
  @device_driver_starfire_TRUE@	linux/src/drivers/net/starfire.c
  
--@device_driver_sundance_TRUE@am__append_93 = \
-+@device_driver_sundance_TRUE@am__append_94 = \
+-@device_driver_sundance_TRUE@am__append_87 = \
++@device_driver_sundance_TRUE@am__append_88 = \
  @device_driver_sundance_TRUE@	linux/src/drivers/net/sundance.c
  
--@device_driver_tlan_TRUE@am__append_94 = \
-+@device_driver_tlan_TRUE@am__append_95 = \
+-@device_driver_tlan_TRUE@am__append_88 = \
++@device_driver_tlan_TRUE@am__append_89 = \
  @device_driver_tlan_TRUE@	linux/src/drivers/net/tlan.c \
  @device_driver_tlan_TRUE@	linux/src/drivers/net/tlan.h
  
--@device_driver_tulip_TRUE@am__append_95 = \
-+@device_driver_tulip_TRUE@am__append_96 = \
+-@device_driver_tulip_TRUE@am__append_89 = \
++@device_driver_tulip_TRUE@am__append_90 = \
  @device_driver_tulip_TRUE@	linux/src/drivers/net/tulip.c
  
--@device_driver_via_rhine_TRUE@am__append_96 = \
-+@device_driver_via_rhine_TRUE@am__append_97 = \
+-@device_driver_via_rhine_TRUE@am__append_90 = \
++@device_driver_via_rhine_TRUE@am__append_91 = \
  @device_driver_via_rhine_TRUE@	linux/src/drivers/net/via-rhine.c
  
--@device_driver_wavelan_TRUE@am__append_97 = \
-+@device_driver_wavelan_TRUE@am__append_98 = \
+-@device_driver_wavelan_TRUE@am__append_91 = \
++@device_driver_wavelan_TRUE@am__append_92 = \
  @device_driver_wavelan_TRUE@	linux/src/drivers/net/i82586.h \
  @device_driver_wavelan_TRUE@	linux/src/drivers/net/wavelan.c \
  @device_driver_wavelan_TRUE@	linux/src/drivers/net/wavelan.h \
  @device_driver_wavelan_TRUE@	linux/dev/drivers/net/wavelan.p.h
  
--@device_driver_wd_TRUE@am__append_98 = \
-+@device_driver_wd_TRUE@am__append_99 = \
+-@device_driver_wd_TRUE@am__append_92 = \
++@device_driver_wd_TRUE@am__append_93 = \
  @device_driver_wd_TRUE@	linux/src/drivers/net/wd.c
  
--@device_driver_winbond_840_TRUE@am__append_99 = \
-+@device_driver_winbond_840_TRUE@am__append_100 = \
+-@device_driver_winbond_840_TRUE@am__append_93 = \
++@device_driver_winbond_840_TRUE@am__append_94 = \
  @device_driver_winbond_840_TRUE@	linux/src/drivers/net/winbond-840.c \
  @device_driver_winbond_840_TRUE@	linux/src/drivers/net/8390.c
  
--@device_driver_yellowfin_TRUE@am__append_100 = \
-+@device_driver_yellowfin_TRUE@am__append_101 = \
+-@device_driver_yellowfin_TRUE@am__append_94 = \
++@device_driver_yellowfin_TRUE@am__append_95 = \
  @device_driver_yellowfin_TRUE@	linux/src/drivers/net/yellowfin.c
  
--@device_driver_znet_TRUE@am__append_101 = \
-+@device_driver_znet_TRUE@am__append_102 = \
+-@device_driver_znet_TRUE@am__append_95 = \
++@device_driver_znet_TRUE@am__append_96 = \
  @device_driver_znet_TRUE@	linux/src/drivers/net/znet.c
  
--@device_driver_group_pcmcia_TRUE@am__append_102 = \
-+@device_driver_group_pcmcia_TRUE@am__append_103 = \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/glue/pcmcia.c \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/glue/pcmcia_glue.h \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/cs.c \
-@@ -822,10 +801,10 @@ DIST_COMMON = README $(am__configure_dep
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/cistpl.c \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/pci_fixup.c
- 
--@device_driver_group_pcmcia_TRUE@am__append_103 = \
-+@device_driver_group_pcmcia_TRUE@am__append_104 = \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/glue/ds.c
- 
--@device_driver_i82365_TRUE@am__append_104 = \
-+@device_driver_i82365_TRUE@am__append_105 = \
+-@device_driver_group_pcmcia_TRUE@am__append_96 =  \
++@device_driver_group_pcmcia_TRUE@am__append_97 =  \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_modules.a \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_clients.a \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_wireless.a
+-@device_driver_group_pcmcia_TRUE@am__append_97 =  \
++@device_driver_group_pcmcia_TRUE@am__append_98 =  \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_modules.a \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_clients.a \
+ @device_driver_group_pcmcia_TRUE@	liblinux_pcmcia_cs_wireless.a
+-@device_driver_i82365_TRUE@am__append_98 = \
++@device_driver_i82365_TRUE@am__append_99 = \
  @device_driver_i82365_TRUE@	linux/pcmcia-cs/modules/cirrus.h \
  @device_driver_i82365_TRUE@	linux/pcmcia-cs/modules/ene.h \
  @device_driver_i82365_TRUE@	linux/pcmcia-cs/modules/i82365.c \
-@@ -838,34 +817,34 @@ DIST_COMMON = README $(am__configure_dep
+@@ -675,34 +654,34 @@ DIST_COMMON = README $(am__configure_dep
  @device_driver_i82365_TRUE@	linux/pcmcia-cs/modules/vg468.h \
  @device_driver_i82365_TRUE@	linux/pcmcia-cs/modules/yenta.h
  
--@device_driver_3c574_cs_TRUE@am__append_105 = \
-+@device_driver_3c574_cs_TRUE@am__append_106 = \
+-@device_driver_3c574_cs_TRUE@am__append_99 = \
++@device_driver_3c574_cs_TRUE@am__append_100 = \
  @device_driver_3c574_cs_TRUE@	linux/pcmcia-cs/clients/3c574_cs.c
  
--@device_driver_3c589_cs_TRUE@am__append_106 = \
-+@device_driver_3c589_cs_TRUE@am__append_107 = \
+-@device_driver_3c589_cs_TRUE@am__append_100 = \
++@device_driver_3c589_cs_TRUE@am__append_101 = \
  @device_driver_3c589_cs_TRUE@	linux/pcmcia-cs/clients/3c589_cs.c
  
--@device_driver_axnet_cs_TRUE@am__append_107 = \
-+@device_driver_axnet_cs_TRUE@am__append_108 = \
+-@device_driver_axnet_cs_TRUE@am__append_101 = \
++@device_driver_axnet_cs_TRUE@am__append_102 = \
  @device_driver_axnet_cs_TRUE@	linux/pcmcia-cs/clients/ax8390.h \
  @device_driver_axnet_cs_TRUE@	linux/pcmcia-cs/clients/axnet_cs.c
  
--@device_driver_fmvj18x_cs_TRUE@am__append_108 = \
-+@device_driver_fmvj18x_cs_TRUE@am__append_109 = \
+-@device_driver_fmvj18x_cs_TRUE@am__append_102 = \
++@device_driver_fmvj18x_cs_TRUE@am__append_103 = \
  @device_driver_fmvj18x_cs_TRUE@	linux/pcmcia-cs/clients/fmvj18x_cs.c
  
--@device_driver_nmclan_cs_TRUE@am__append_109 = \
-+@device_driver_nmclan_cs_TRUE@am__append_110 = \
+-@device_driver_nmclan_cs_TRUE@am__append_103 = \
++@device_driver_nmclan_cs_TRUE@am__append_104 = \
  @device_driver_nmclan_cs_TRUE@	linux/pcmcia-cs/clients/nmclan_cs.c
  
--@device_driver_pcnet_cs_TRUE@am__append_110 = \
-+@device_driver_pcnet_cs_TRUE@am__append_111 = \
+-@device_driver_pcnet_cs_TRUE@am__append_104 = \
++@device_driver_pcnet_cs_TRUE@am__append_105 = \
  @device_driver_pcnet_cs_TRUE@	linux/pcmcia-cs/clients/pcnet_cs.c \
  @device_driver_pcnet_cs_TRUE@	linux/src/drivers/net/8390.c
  
--@device_driver_smc91c92_cs_TRUE@am__append_111 = \
-+@device_driver_smc91c92_cs_TRUE@am__append_112 = \
+-@device_driver_smc91c92_cs_TRUE@am__append_105 = \
++@device_driver_smc91c92_cs_TRUE@am__append_106 = \
  @device_driver_smc91c92_cs_TRUE@	linux/pcmcia-cs/clients/ositech.h \
  @device_driver_smc91c92_cs_TRUE@	linux/pcmcia-cs/clients/smc91c92_cs.c
  
--@device_driver_xirc2ps_cs_TRUE@am__append_112 = \
-+@device_driver_xirc2ps_cs_TRUE@am__append_113 = \
+-@device_driver_xirc2ps_cs_TRUE@am__append_106 = \
++@device_driver_xirc2ps_cs_TRUE@am__append_107 = \
  @device_driver_xirc2ps_cs_TRUE@	linux/pcmcia-cs/clients/xirc2ps_cs.c
  
--@device_driver_orinoco_cs_TRUE@am__append_113 = \
-+@device_driver_orinoco_cs_TRUE@am__append_114 = \
+-@device_driver_orinoco_cs_TRUE@am__append_107 = \
++@device_driver_orinoco_cs_TRUE@am__append_108 = \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/glue/wireless_glue.h \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/hermes.c \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/hermes.h \
-@@ -875,7 +854,7 @@ DIST_COMMON = README $(am__configure_dep
+@@ -712,12 +691,12 @@ DIST_COMMON = README $(am__configure_dep
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/orinoco.h \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/orinoco_cs.c
  
--@HOST_i386_TRUE@am__append_114 = \
-+@HOST_i386_TRUE@am__append_115 = \
- @HOST_i386_TRUE@	i386/linux/dev/include/linux/autoconf.h \
- @HOST_i386_TRUE@	i386/linux/dev/include/linux_emul.h \
- @HOST_i386_TRUE@	linux/src/arch/i386/lib/semaphore.S
-@@ -962,10 +941,10 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
+-@HOST_ix86_TRUE@am__append_108 = \
++@HOST_ix86_TRUE@am__append_109 = \
+ @HOST_ix86_TRUE@	i386/linux/dev/include/linux/autoconf.h \
+ @HOST_ix86_TRUE@	i386/linux/dev/include/linux_emul.h \
+ @HOST_ix86_TRUE@	linux/src/arch/i386/lib/semaphore.S
+ 
+-@HOST_ix86_TRUE@am__append_109 = \
++@HOST_ix86_TRUE@am__append_110 = \
+ @HOST_ix86_TRUE@	i386/i386at/autoconf.c \
+ @HOST_ix86_TRUE@	i386/i386at/boothdr.S \
+ @HOST_ix86_TRUE@	i386/i386at/com.c \
+@@ -755,7 +734,7 @@ DIST_COMMON = README $(am__configure_dep
+ #
+ # `lpr' device support.
+ #
+-@HOST_ix86_TRUE@@enable_lpr_TRUE@am__append_110 = \
++@HOST_ix86_TRUE@@enable_lpr_TRUE@am__append_111 = \
+ @HOST_ix86_TRUE@@enable_lpr_TRUE@	i386/i386at/lpr.c \
+ @HOST_ix86_TRUE@@enable_lpr_TRUE@	i386/i386at/lprreg.h
+ 
+@@ -763,7 +742,7 @@ DIST_COMMON = README $(am__configure_dep
+ #
+ # Further source files for any i386 kernel.
+ #
+-@HOST_ix86_TRUE@am__append_111 = \
++@HOST_ix86_TRUE@am__append_112 = \
+ @HOST_ix86_TRUE@	i386/i386/ast.h \
+ @HOST_ix86_TRUE@	i386/i386/ast_check.c \
+ @HOST_ix86_TRUE@	i386/i386/ast_types.h \
+@@ -849,21 +828,21 @@ DIST_COMMON = README $(am__configure_dep
+ #
+ 
+ # Instead of listing each file individually...
+-@HOST_ix86_TRUE@am__append_112 = i386/i386/mach_i386.srv \
++@HOST_ix86_TRUE@am__append_113 = i386/i386/mach_i386.srv \
+ @HOST_ix86_TRUE@	i386/i386/i386asm.sym i386/ldscript \
+ @HOST_ix86_TRUE@	i386/README-Drivers i386/include
+ 
+ #
+ # KDB support.
+ #
+-@HOST_ix86_TRUE@@enable_kdb_TRUE@am__append_113 = \
++@HOST_ix86_TRUE@@enable_kdb_TRUE@am__append_114 = \
+ @HOST_ix86_TRUE@@enable_kdb_TRUE@	i386/i386/_setjmp.S
+ 
+ 
+ #
+ # Files from the generic sources that we want.
+ #
+-@HOST_ix86_TRUE@am__append_114 = \
++@HOST_ix86_TRUE@am__append_115 = \
+ @HOST_ix86_TRUE@	chips/busses.c \
+ @HOST_ix86_TRUE@	chips/busses.h \
+ @HOST_ix86_TRUE@	device/cirbuf.c
+@@ -874,13 +853,13 @@ DIST_COMMON = README $(am__configure_dep
+ #
+ 
+ # See Makefrag.am about lib_dep_tr_for_defs.a.
+-@HOST_ix86_TRUE@am__append_115 = \
++@HOST_ix86_TRUE@am__append_116 = \
+ @HOST_ix86_TRUE@	i386/i386/mach_i386.server.defs.c
+ 
+-@HOST_ix86_TRUE@am__append_116 = i386/i386/mach_i386.server.h \
++@HOST_ix86_TRUE@am__append_117 = i386/i386/mach_i386.server.h \
+ @HOST_ix86_TRUE@	i386/i386/mach_i386.server.c \
+ @HOST_ix86_TRUE@	i386/i386/i386asm.h
+-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@am__append_117 = \
++@HOST_ix86_TRUE@@PLATFORM_at_TRUE@am__append_118 = \
+ @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START=0x100000 \
+ @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	-T '$(srcdir)'/i386/ldscript
+ 
+@@ -966,10 +945,10 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
  	kern/time_out.h kern/time_stamp.c kern/time_stamp.h \
  	kern/timer.c kern/timer.h kern/xpr.c kern/xpr.h kern/zalloc.c \
  	kern/zalloc.h kern/elf-load.c kern/boot_script.c \
@@ -365,7 +951,7 @@ Regenerate with:
  	vm/vm_object.c vm/vm_object.h vm/vm_page.h vm/vm_pageout.c \
  	vm/vm_pageout.h vm/vm_resident.c vm/vm_user.c vm/vm_user.h \
  	device/blkio.c device/buf.h device/chario.c device/cirbuf.h \
-@@ -1124,9 +1103,10 @@ am_libkernel_a_OBJECTS = $(am__objects_2
+@@ -1128,9 +1107,10 @@ am_libkernel_a_OBJECTS = $(am__objects_2
  	kern/xpr.$(OBJEXT) kern/zalloc.$(OBJEXT) \
  	kern/elf-load.$(OBJEXT) kern/boot_script.$(OBJEXT) \
  	util/putchar.$(OBJEXT) util/puts.$(OBJEXT) \
@@ -379,7 +965,7 @@ Regenerate with:
  	vm/vm_object.$(OBJEXT) vm/vm_pageout.$(OBJEXT) \
  	vm/vm_resident.$(OBJEXT) vm/vm_user.$(OBJEXT) \
  	device/blkio.$(OBJEXT) device/chario.$(OBJEXT) \
-@@ -1271,7 +1251,8 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
+@@ -1275,7 +1255,8 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
  	linux/src/drivers/net/rtl8139.c \
  	linux/src/drivers/net/seeq8005.c \
  	linux/src/drivers/net/seeq8005.h \
@@ -389,7 +975,7 @@ Regenerate with:
  	linux/src/drivers/net/smc-ultra.c \
  	linux/src/drivers/net/smc-ultra32.c \
  	linux/src/drivers/net/starfire.c \
-@@ -1382,23 +1363,24 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
+@@ -1386,23 +1367,24 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
  @device_driver_pcnet32_TRUE@am__objects_78 = linux/src/drivers/net/liblinux_a-pcnet32.$(OBJEXT)
  @device_driver_rtl8139_TRUE@am__objects_79 = linux/src/drivers/net/liblinux_a-rtl8139.$(OBJEXT)
  @device_driver_seeq8005_TRUE@am__objects_80 = linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT)
@@ -421,14 +1007,14 @@ Regenerate with:
  @device_driver_winbond_840_TRUE@	linux/src/drivers/net/liblinux_a-8390.$(OBJEXT)
 -@device_driver_yellowfin_TRUE@am__objects_92 = linux/src/drivers/net/liblinux_a-yellowfin.$(OBJEXT)
 -@device_driver_znet_TRUE@am__objects_93 = linux/src/drivers/net/liblinux_a-znet.$(OBJEXT)
--@HOST_i386_TRUE@am__objects_94 = linux/src/arch/i386/lib/liblinux_a-semaphore.$(OBJEXT)
+-@HOST_ix86_TRUE@am__objects_94 = linux/src/arch/i386/lib/liblinux_a-semaphore.$(OBJEXT)
 +@device_driver_yellowfin_TRUE@am__objects_93 = linux/src/drivers/net/liblinux_a-yellowfin.$(OBJEXT)
 +@device_driver_znet_TRUE@am__objects_94 = linux/src/drivers/net/liblinux_a-znet.$(OBJEXT)
-+@HOST_i386_TRUE@am__objects_95 = linux/src/arch/i386/lib/liblinux_a-semaphore.$(OBJEXT)
++@HOST_ix86_TRUE@am__objects_95 = linux/src/arch/i386/lib/liblinux_a-semaphore.$(OBJEXT)
  am_liblinux_a_OBJECTS = linux/dev/init/liblinux_a-version.$(OBJEXT) \
  	linux/dev/kernel/liblinux_a-softirq.$(OBJEXT) \
  	linux/src/arch/i386/lib/liblinux_a-delay.$(OBJEXT) \
-@@ -1445,7 +1427,7 @@ am_liblinux_a_OBJECTS = linux/dev/init/l
+@@ -1449,7 +1431,7 @@ am_liblinux_a_OBJECTS = linux/dev/init/l
  	$(am__objects_85) $(am__objects_86) $(am__objects_87) \
  	$(am__objects_88) $(am__objects_89) $(am__objects_90) \
  	$(am__objects_91) $(am__objects_92) $(am__objects_93) \
@@ -437,7 +1023,7 @@ Regenerate with:
  liblinux_a_OBJECTS = $(am_liblinux_a_OBJECTS)
  liblinux_pcmcia_cs_clients_a_AR = $(AR) $(ARFLAGS)
  liblinux_pcmcia_cs_clients_a_LIBADD =
-@@ -1460,19 +1442,19 @@ am__liblinux_pcmcia_cs_clients_a_SOURCES
+@@ -1464,19 +1446,19 @@ am__liblinux_pcmcia_cs_clients_a_SOURCES
  	linux/src/drivers/net/8390.c linux/pcmcia-cs/clients/ositech.h \
  	linux/pcmcia-cs/clients/smc91c92_cs.c \
  	linux/pcmcia-cs/clients/xirc2ps_cs.c
@@ -469,41 +1055,38 @@ Regenerate with:
  liblinux_pcmcia_cs_clients_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_clients_a_OBJECTS)
  liblinux_pcmcia_cs_modules_a_AR = $(AR) $(ARFLAGS)
-@@ -1497,16 +1479,16 @@ am__liblinux_pcmcia_cs_modules_a_SOURCES
+@@ -1501,7 +1483,7 @@ am__liblinux_pcmcia_cs_modules_a_SOURCES
  	linux/pcmcia-cs/modules/topic.h \
  	linux/pcmcia-cs/modules/vg468.h \
  	linux/pcmcia-cs/modules/yenta.h
--@device_driver_group_pcmcia_TRUE@am__objects_103 = linux/pcmcia-cs/glue/liblinux_pcmcia_cs_modules_a-pcmcia.$(OBJEXT) \
-+@device_driver_group_pcmcia_TRUE@am__objects_104 = linux/pcmcia-cs/glue/liblinux_pcmcia_cs_modules_a-pcmcia.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cs.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-ds.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-rsrc_mgr.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-bulkmem.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cistpl.$(OBJEXT) \
- @device_driver_group_pcmcia_TRUE@	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-pci_fixup.$(OBJEXT)
--@device_driver_i82365_TRUE@am__objects_104 = linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-i82365.$(OBJEXT)
--am_liblinux_pcmcia_cs_modules_a_OBJECTS = $(am__objects_103) \
--	$(am__objects_104)
-+@device_driver_i82365_TRUE@am__objects_105 = linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-i82365.$(OBJEXT)
-+am_liblinux_pcmcia_cs_modules_a_OBJECTS = $(am__objects_104) \
-+	$(am__objects_105)
+-@device_driver_i82365_TRUE@am__objects_103 = linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-i82365.$(OBJEXT)
++@device_driver_i82365_TRUE@am__objects_104 = linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-i82365.$(OBJEXT)
+ am_liblinux_pcmcia_cs_modules_a_OBJECTS = linux/pcmcia-cs/glue/liblinux_pcmcia_cs_modules_a-pcmcia.$(OBJEXT) \
+ 	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cs.$(OBJEXT) \
+ 	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-ds.$(OBJEXT) \
+@@ -1509,7 +1491,7 @@ am_liblinux_pcmcia_cs_modules_a_OBJECTS 
+ 	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-bulkmem.$(OBJEXT) \
+ 	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cistpl.$(OBJEXT) \
+ 	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-pci_fixup.$(OBJEXT) \
+-	$(am__objects_103)
++	$(am__objects_104)
  liblinux_pcmcia_cs_modules_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_modules_a_OBJECTS)
  liblinux_pcmcia_cs_wireless_a_AR = $(AR) $(ARFLAGS)
-@@ -1520,10 +1502,10 @@ am__liblinux_pcmcia_cs_wireless_a_SOURCE
+@@ -1523,10 +1505,10 @@ am__liblinux_pcmcia_cs_wireless_a_SOURCE
  	linux/pcmcia-cs/wireless/orinoco.c \
  	linux/pcmcia-cs/wireless/orinoco.h \
  	linux/pcmcia-cs/wireless/orinoco_cs.c
--@device_driver_orinoco_cs_TRUE@am__objects_105 = linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-hermes.$(OBJEXT) \
-+@device_driver_orinoco_cs_TRUE@am__objects_106 = linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-hermes.$(OBJEXT) \
+-@device_driver_orinoco_cs_TRUE@am__objects_104 = linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-hermes.$(OBJEXT) \
++@device_driver_orinoco_cs_TRUE@am__objects_105 = linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-hermes.$(OBJEXT) \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco.$(OBJEXT) \
  @device_driver_orinoco_cs_TRUE@	linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco_cs.$(OBJEXT)
--am_liblinux_pcmcia_cs_wireless_a_OBJECTS = $(am__objects_105)
-+am_liblinux_pcmcia_cs_wireless_a_OBJECTS = $(am__objects_106)
+-am_liblinux_pcmcia_cs_wireless_a_OBJECTS = $(am__objects_104)
++am_liblinux_pcmcia_cs_wireless_a_OBJECTS = $(am__objects_105)
  liblinux_pcmcia_cs_wireless_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_wireless_a_OBJECTS)
  am__installdirs = "$(DESTDIR)$(exec_bootdir)" "$(DESTDIR)$(infodir)" \
-@@ -1561,14 +1543,13 @@ DIST_SOURCES = $(am__libkernel_a_SOURCES
+@@ -1568,14 +1550,13 @@ DIST_SOURCES = $(am__libkernel_a_SOURCES
  	$(am__liblinux_pcmcia_cs_modules_a_SOURCES_DIST) \
  	$(am__liblinux_pcmcia_cs_wireless_a_SOURCES_DIST) \
  	$(gnumach_SOURCES) $(gnumach_o_SOURCES)
@@ -523,7 +1106,7 @@ Regenerate with:
  TEXI2DVI = texi2dvi
  TEXI2PDF = $(TEXI2DVI) --pdf --batch
  MAKEINFOHTML = $(MAKEINFO) --html
-@@ -1847,6 +1828,8 @@ device_driver_seagate_FALSE = @device_dr
+@@ -1857,6 +1838,8 @@ device_driver_seagate_FALSE = @device_dr
  device_driver_seagate_TRUE = @device_driver_seagate_TRUE@
  device_driver_seeq8005_FALSE = @device_driver_seeq8005_FALSE@
  device_driver_seeq8005_TRUE = @device_driver_seeq8005_TRUE@
@@ -532,33 +1115,29 @@ Regenerate with:
  device_driver_sk_g16_FALSE = @device_driver_sk_g16_FALSE@
  device_driver_sk_g16_TRUE = @device_driver_sk_g16_TRUE@
  device_driver_smc91c92_cs_FALSE = @device_driver_smc91c92_cs_FALSE@
-@@ -1942,12 +1925,11 @@ EXTRA_DIST = gensym.awk ipc/mach_port.sr
- 	vm/memory_object_default.cli vm/memory_object_user.cli \
- 	device/device.srv device/device_pager.srv \
- 	device/device_reply.cli device/memory_object_reply.cli include \
--	$(am__append_7) $(mach_TEXINFOS) $(am__append_18) \
--	$(am__append_25) $(am__append_29) $(am__append_31) \
--	$(am__append_35) $(am__append_45) \
--	linux/src/drivers/scsi/NCR5380.c \
-+	$(am__append_7) $(am__append_18) $(am__append_25) \
-+	$(am__append_29) $(am__append_31) $(am__append_35) \
-+	$(am__append_45) linux/src/drivers/scsi/NCR5380.c \
+@@ -1959,8 +1942,7 @@ EXTRA_DIST = gensym.awk ipc/mach_port.sr
  	linux/src/drivers/scsi/NCR5380.h linux/src/drivers/net/8390.h \
--	linux/src/drivers/net/kern_compat.h $(am__append_103) \
-+	linux/src/drivers/net/kern_compat.h $(am__append_104) \
+ 	linux/src/drivers/net/kern_compat.h linux/pcmcia-cs/glue/ds.c \
  	linux/dev/README linux/src/COPYING linux/dev/include \
- 	linux/src/include linux/pcmcia-cs/include \
+-	linux/src/include linux/pcmcia-cs/include $(am__append_112) \
+-	$(mach_TEXINFOS) \
++	linux/src/include linux/pcmcia-cs/include $(am__append_113) \
  	Makefile.correct_output_files_for_.S_files.patch \
-@@ -1975,7 +1957,7 @@ noinst_LIBRARIES = libkernel.a lib_dep_t
- 	liblinux_pcmcia_cs_modules.a liblinux_pcmcia_cs_clients.a \
- 	liblinux_pcmcia_cs_wireless.a
+ 	config.status.dep.patch ChangeLog.0 ChangeLog.00 DEVELOPMENT
+ 
+@@ -1983,9 +1965,9 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-kdb
+ # <http://lists.gnu.org/archive/html/automake/2006-10/msg00039.html> about what
+ # we really want to do.
+ noinst_LIBRARIES = libkernel.a lib_dep_tr_for_defs.a $(am__append_4) \
+-	$(am__append_96)
++	$(am__append_97)
  TESTS = tests/test-mbchk
 -info_TEXINFOS = doc/mach.texi
 +info_TEXINFOS = 
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/mach_debug.server.defs
-@@ -2072,10 +2054,10 @@ libkernel_a_SOURCES = $(am__append_2) ip
+@@ -2082,10 +2064,10 @@ libkernel_a_SOURCES = $(am__append_2) ip
  	kern/time_out.h kern/time_stamp.c kern/time_stamp.h \
  	kern/timer.c kern/timer.h kern/xpr.c kern/xpr.h kern/zalloc.c \
  	kern/zalloc.h kern/elf-load.c kern/boot_script.c \
@@ -573,9 +1152,84 @@ Regenerate with:
  	vm/vm_object.c vm/vm_object.h vm/vm_page.h vm/vm_pageout.c \
  	vm/vm_pageout.h vm/vm_resident.c vm/vm_user.c vm/vm_user.h \
  	device/blkio.c device/buf.h device/chario.c device/cirbuf.h \
-@@ -2245,14 +2227,6 @@ exec_msgids_DATA = gnumach.msgids
- @HOST_i386_TRUE@	i386/include/mach/i386/vm_param.h \
- @HOST_i386_TRUE@	i386/include/mach/i386/vm_types.h
+@@ -2096,8 +2078,8 @@ libkernel_a_SOURCES = $(am__append_2) ip
+ 	device/ds_routines.h device/errno.h device/if_ether.h \
+ 	device/if_hdr.h device/io_req.h device/kmsg.h device/net_io.c \
+ 	device/net_io.h device/param.h device/subrs.c device/tty.h \
+-	$(am__append_3) $(am__append_109) $(am__append_110) \
+-	$(am__append_111) $(am__append_113) $(am__append_114)
++	$(am__append_3) $(am__append_110) $(am__append_111) \
++	$(am__append_112) $(am__append_114) $(am__append_115)
+ 
+ #
+ # Version number.
+@@ -2113,10 +2095,10 @@ nodist_libkernel_a_SOURCES = version.c v
+ 	kern/mach4.server.h kern/mach4.server.c \
+ 	kern/mach_debug.server.h kern/mach_debug.server.c \
+ 	kern/mach_host.server.h kern/mach_host.server.c \
+-	$(am__append_116)
+-gnumach_o_LDADD = libkernel.a $(am__append_5) $(am__append_97)
++	$(am__append_117)
++gnumach_o_LDADD = libkernel.a $(am__append_5) $(am__append_98)
+ gnumach_SOURCES = 
+-gnumach_LINKFLAGS = $(am__append_117)
++gnumach_LINKFLAGS = $(am__append_118)
+ 
+ #
+ # Installation.
+@@ -2219,7 +2201,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  
+ 	device/device.server.defs.c device/device_pager.server.defs.c \
+ 	ipc/mach_port.server.defs.c kern/mach.server.defs.c \
+ 	kern/mach4.server.defs.c kern/mach_debug.server.defs.c \
+-	kern/mach_host.server.defs.c $(am__append_115)
++	kern/mach_host.server.defs.c $(am__append_116)
+ # Preprocess only.
+ lib_dep_tr_for_defs_a_CPPFLAGS = $(AM_CPPFLAGS) \
+ 	-E
+@@ -2280,7 +2262,8 @@ liblinux_a_SOURCES = linux/dev/init/vers
+ 	$(am__append_85) $(am__append_86) $(am__append_87) \
+ 	$(am__append_88) $(am__append_89) $(am__append_90) \
+ 	$(am__append_91) $(am__append_92) $(am__append_93) \
+-	$(am__append_94) $(am__append_95) $(am__append_108)
++	$(am__append_94) $(am__append_95) $(am__append_96) \
++	$(am__append_109)
+ 
+ # pcmcia-cs.
+ liblinux_pcmcia_cs_modules_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
+@@ -2297,24 +2280,24 @@ liblinux_pcmcia_cs_modules_a_SOURCES = l
+ 	linux/pcmcia-cs/modules/rsrc_mgr.c \
+ 	linux/pcmcia-cs/modules/bulkmem.c \
+ 	linux/pcmcia-cs/modules/cistpl.c \
+-	linux/pcmcia-cs/modules/pci_fixup.c $(am__append_98)
++	linux/pcmcia-cs/modules/pci_fixup.c $(am__append_99)
+ liblinux_pcmcia_cs_clients_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
+ 	-DPCMCIA_CLIENT -I$(srcdir)/linux/pcmcia-cs/include
+ 
+ liblinux_pcmcia_cs_clients_a_CFLAGS = $(liblinux_a_CFLAGS) \
+ 	-include $(srcdir)/linux/pcmcia-cs/glue/pcmcia_glue.h
+ 
+-liblinux_pcmcia_cs_clients_a_SOURCES = $(am__append_99) \
+-	$(am__append_100) $(am__append_101) $(am__append_102) \
+-	$(am__append_103) $(am__append_104) $(am__append_105) \
+-	$(am__append_106)
++liblinux_pcmcia_cs_clients_a_SOURCES = $(am__append_100) \
++	$(am__append_101) $(am__append_102) $(am__append_103) \
++	$(am__append_104) $(am__append_105) $(am__append_106) \
++	$(am__append_107)
+ liblinux_pcmcia_cs_wireless_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
+ 	-I$(srcdir)/linux/pcmcia-cs/include
+ 
+ liblinux_pcmcia_cs_wireless_a_CFLAGS = $(liblinux_a_CFLAGS) \
+ 	-include $(srcdir)/linux/pcmcia-cs/glue/wireless_glue.h
+ 
+-liblinux_pcmcia_cs_wireless_a_SOURCES = $(am__append_107)
++liblinux_pcmcia_cs_wireless_a_SOURCES = $(am__append_108)
+ 
+ #
+ # Installation.
+@@ -2340,14 +2323,6 @@ liblinux_pcmcia_cs_wireless_a_SOURCES = 
+ @HOST_ix86_TRUE@	i386/include/mach/i386/vm_param.h \
+ @HOST_ix86_TRUE@	i386/include/mach/i386/vm_types.h
  
 -mach_TEXINFOS = \
 -	doc/fdl.texi doc/gpl.texi
@@ -585,70 +1239,27 @@ Regenerate with:
 -# Web pages of the GNU Mach Reference Manual.
 -#
 -web = doc/web
- liblinux_a_CPPFLAGS = $(AM_CPPFLAGS) \
- 	-I$(srcdir)/$(systype)/linux/dev/include \
- 	-I$(top_builddir)/linux/dev/include \
-@@ -2305,7 +2279,8 @@ liblinux_a_SOURCES = linux/dev/init/vers
- 	$(am__append_91) $(am__append_92) $(am__append_93) \
- 	$(am__append_94) $(am__append_95) $(am__append_96) \
- 	$(am__append_97) $(am__append_98) $(am__append_99) \
--	$(am__append_100) $(am__append_101) $(am__append_114)
-+	$(am__append_100) $(am__append_101) $(am__append_102) \
-+	$(am__append_115)
- 
- # pcmcia-cs.
- liblinux_pcmcia_cs_modules_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
-@@ -2314,25 +2289,25 @@ liblinux_pcmcia_cs_modules_a_CPPFLAGS = 
- liblinux_pcmcia_cs_modules_a_CFLAGS = $(liblinux_a_CFLAGS) \
- 	-include $(srcdir)/linux/pcmcia-cs/glue/pcmcia_glue.h
- 
--liblinux_pcmcia_cs_modules_a_SOURCES = $(am__append_102) \
--	$(am__append_104)
-+liblinux_pcmcia_cs_modules_a_SOURCES = $(am__append_103) \
-+	$(am__append_105)
- liblinux_pcmcia_cs_clients_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
- 	-DPCMCIA_CLIENT -I$(srcdir)/linux/pcmcia-cs/include
- 
- liblinux_pcmcia_cs_clients_a_CFLAGS = $(liblinux_a_CFLAGS) \
- 	-include $(srcdir)/linux/pcmcia-cs/glue/pcmcia_glue.h
- 
--liblinux_pcmcia_cs_clients_a_SOURCES = $(am__append_105) \
--	$(am__append_106) $(am__append_107) $(am__append_108) \
--	$(am__append_109) $(am__append_110) $(am__append_111) \
--	$(am__append_112)
-+liblinux_pcmcia_cs_clients_a_SOURCES = $(am__append_106) \
-+	$(am__append_107) $(am__append_108) $(am__append_109) \
-+	$(am__append_110) $(am__append_111) $(am__append_112) \
-+	$(am__append_113)
- liblinux_pcmcia_cs_wireless_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
- 	-I$(srcdir)/linux/pcmcia-cs/include
- 
- liblinux_pcmcia_cs_wireless_a_CFLAGS = $(liblinux_a_CFLAGS) \
- 	-include $(srcdir)/linux/pcmcia-cs/glue/wireless_glue.h
- 
--liblinux_pcmcia_cs_wireless_a_SOURCES = $(am__append_113)
-+liblinux_pcmcia_cs_wireless_a_SOURCES = $(am__append_114)
  
  # Makerules: how to do some things.
  
-@@ -2341,6 +2316,7 @@ liblinux_pcmcia_cs_wireless_a_SOURCES = 
+@@ -2356,6 +2331,7 @@ web = doc/web
  # Test suite.
  
  # Documentation.
 +#include doc/Makefrag.am
  
- # Linux device drivers and the glue code.
- 
-@@ -2378,7 +2354,7 @@ all: config.h
+ #
+ # Kernel Image
+@@ -2390,7 +2366,7 @@ all: config.h
  .SUFFIXES: .S .c .dvi .o .obj .ps
  am--refresh:
  	@:
--$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makerules.am $(srcdir)/Makefrag.am $(srcdir)/i386/Makefrag.am $(srcdir)/tests/Makefrag.am $(srcdir)/doc/Makefrag.am $(srcdir)/linux/Makefrag.am $(srcdir)/i386/linux/Makefrag.am $(am__configure_deps)
-+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makerules.am $(srcdir)/Makefrag.am $(srcdir)/i386/Makefrag.am $(srcdir)/tests/Makefrag.am $(srcdir)/linux/Makefrag.am $(srcdir)/i386/linux/Makefrag.am $(am__configure_deps)
+-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makerules.am $(srcdir)/Makefrag.am $(srcdir)/linux/Makefrag.am $(srcdir)/i386/linux/Makefrag.am $(srcdir)/i386/Makefrag.am $(srcdir)/tests/Makefrag.am $(srcdir)/doc/Makefrag.am $(am__configure_deps)
++$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makerules.am $(srcdir)/Makefrag.am $(srcdir)/linux/Makefrag.am $(srcdir)/i386/linux/Makefrag.am $(srcdir)/i386/Makefrag.am $(srcdir)/tests/Makefrag.am $(am__configure_deps)
  	@for dep in $?; do \
  	  case '$(am__configure_deps)' in \
  	    *$$dep*) \
-@@ -2668,6 +2644,8 @@ util/putchar.$(OBJEXT): util/$(am__dirst
+@@ -2680,6 +2656,8 @@ util/putchar.$(OBJEXT): util/$(am__dirst
  	util/$(DEPDIR)/$(am__dirstamp)
  util/puts.$(OBJEXT): util/$(am__dirstamp) \
  	util/$(DEPDIR)/$(am__dirstamp)
@@ -657,7 +1268,7 @@ Regenerate with:
  vm/memory_object.$(OBJEXT): vm/$(am__dirstamp) \
  	vm/$(DEPDIR)/$(am__dirstamp)
  vm/vm_debug.$(OBJEXT): vm/$(am__dirstamp) vm/$(DEPDIR)/$(am__dirstamp)
-@@ -3278,6 +3256,9 @@ linux/src/drivers/net/liblinux_a-rtl8139
+@@ -3290,6 +3268,9 @@ linux/src/drivers/net/liblinux_a-rtl8139
  linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT):  \
  	linux/src/drivers/net/$(am__dirstamp) \
  	linux/src/drivers/net/$(DEPDIR)/$(am__dirstamp)
@@ -667,7 +1278,7 @@ Regenerate with:
  linux/src/drivers/net/liblinux_a-sk_g16.$(OBJEXT):  \
  	linux/src/drivers/net/$(am__dirstamp) \
  	linux/src/drivers/net/$(DEPDIR)/$(am__dirstamp)
-@@ -3710,6 +3691,7 @@ mostlyclean-compile:
+@@ -3722,6 +3703,7 @@ mostlyclean-compile:
  	-rm -f linux/src/drivers/net/liblinux_a-pcnet32.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-rtl8139.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT)
@@ -675,7 +1286,7 @@ Regenerate with:
  	-rm -f linux/src/drivers/net/liblinux_a-sk_g16.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-smc-ultra.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-smc-ultra32.$(OBJEXT)
-@@ -3768,6 +3750,7 @@ mostlyclean-compile:
+@@ -3780,6 +3762,7 @@ mostlyclean-compile:
  	-rm -f vm/lib_dep_tr_for_defs_a-memory_object_user.user.defs.$(OBJEXT)
  	-rm -f vm/memory_object.$(OBJEXT)
  	-rm -f vm/memory_object_default.user.$(OBJEXT)
@@ -683,7 +1294,7 @@ Regenerate with:
  	-rm -f vm/memory_object_user.user.$(OBJEXT)
  	-rm -f vm/vm_debug.$(OBJEXT)
  	-rm -f vm/vm_external.$(OBJEXT)
-@@ -4029,6 +4012,7 @@ distclean-compile:
+@@ -4041,6 +4024,7 @@ distclean-compile:
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-pcnet32.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-rtl8139.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-seeq8005.Po@am__quote@
@@ -691,7 +1302,7 @@ Regenerate with:
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-smc-ultra.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-smc-ultra32.Po@am__quote@
-@@ -4087,6 +4071,7 @@ distclean-compile:
+@@ -4099,6 +4083,7 @@ distclean-compile:
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/lib_dep_tr_for_defs_a-memory_object_user.user.defs.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object_default.user.Po@am__quote@
@@ -699,7 +1310,7 @@ Regenerate with:
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object_user.user.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_debug.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_external.Po@am__quote@
-@@ -5807,6 +5792,20 @@ linux/src/drivers/net/liblinux_a-seeq800
+@@ -5819,6 +5804,20 @@ linux/src/drivers/net/liblinux_a-seeq800
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
  @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_a_CFLAGS) $(CFLAGS) -c -o linux/src/drivers/net/liblinux_a-seeq8005.obj `if test -f 'linux/src/drivers/net/seeq8005.c'; then $(CYGPATH_W) 'linux/src/drivers/net/seeq8005.c'; else $(CYGPATH_W) '$(srcdir)/linux/src/drivers/net/seeq8005.c'; fi`
  
@@ -720,7 +1331,7 @@ Regenerate with:
  linux/src/drivers/net/liblinux_a-sk_g16.o: linux/src/drivers/net/sk_g16.c
  @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_a_CFLAGS) $(CFLAGS) -MT linux/src/drivers/net/liblinux_a-sk_g16.o -MD -MP -MF "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo" -c -o linux/src/drivers/net/liblinux_a-sk_g16.o `test -f 'linux/src/drivers/net/sk_g16.c' || echo '$(srcdir)/'`linux/src/drivers/net/sk_g16.c; \
  @am__fastdepCC_TRUE@	then mv -f "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo" "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Po"; else rm -f "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo"; exit 1; fi
-@@ -6268,74 +6267,6 @@ linux/pcmcia-cs/wireless/liblinux_pcmcia
+@@ -6280,74 +6279,6 @@ linux/pcmcia-cs/wireless/liblinux_pcmcia
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='linux/pcmcia-cs/wireless/orinoco_cs.c' object='linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco_cs.obj' libtool=no @AMDEPBACKSLASH@
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
  @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_pcmcia_cs_wireless_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_pcmcia_cs_wireless_a_CFLAGS) $(CFLAGS) -c -o linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco_cs.obj `if test -f 'linux/pcmcia-cs/wireless/orinoco_cs.c'; then $(CYGPATH_W) 'linux/pcmcia-cs/wireless/orinoco_cs.c'; else $(CYGPATH_W) '$(srcdir)/linux/pcmcia-cs/wireless/orinoco_cs.c'; fi`
@@ -795,7 +1406,7 @@ Regenerate with:
  .dvi.ps:
  	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
  	$(DVIPS) -o $@ $<
-@@ -6381,9 +6312,7 @@ dist-info: $(INFO_DEPS)
+@@ -6393,9 +6324,7 @@ dist-info: $(INFO_DEPS)
  	done
  
  mostlyclean-aminfo:
@@ -806,7 +1417,7 @@ Regenerate with:
  
  maintainer-clean-aminfo:
  	@list='$(INFO_DEPS)'; for i in $$list; do \
-@@ -6685,7 +6614,7 @@ check-TESTS: $(TESTS)
+@@ -6697,7 +6626,7 @@ check-TESTS: $(TESTS)
  distdir: $(DISTFILES)
  	$(am__remove_distdir)
  	mkdir $(distdir)
@@ -815,7 +1426,7 @@ Regenerate with:
  	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
  	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
  	list='$(DISTFILES)'; for file in $$list; do \
-@@ -6864,7 +6793,6 @@ distclean-generic:
+@@ -6876,7 +6805,6 @@ distclean-generic:
  	-rm -f ddb/$(am__dirstamp)
  	-rm -f device/$(DEPDIR)/$(am__dirstamp)
  	-rm -f device/$(am__dirstamp)
@@ -823,7 +1434,7 @@ Regenerate with:
  	-rm -f i386/i386/$(DEPDIR)/$(am__dirstamp)
  	-rm -f i386/i386/$(am__dirstamp)
  	-rm -f i386/i386at/$(DEPDIR)/$(am__dirstamp)
-@@ -6942,7 +6870,7 @@ dvi-am: $(DVIS)
+@@ -6954,7 +6882,7 @@ dvi-am: $(DVIS)
  
  html: html-recursive
  
@@ -832,7 +1443,7 @@ Regenerate with:
  
  info: info-recursive
  
-@@ -6998,20 +6926,20 @@ maintainer-clean: maintainer-clean-recur
+@@ -7010,20 +6938,20 @@ maintainer-clean: maintainer-clean-recur
  	-rm -rf ./$(DEPDIR) chips/$(DEPDIR) ddb/$(DEPDIR) device/$(DEPDIR) i386/i386/$(DEPDIR) i386/i386at/$(DEPDIR) i386/intel/$(DEPDIR) ipc/$(DEPDIR) kern/$(DEPDIR) linux/dev/arch/i386/kernel/$(DEPDIR) linux/dev/drivers/block/$(DEPDIR) linux/dev/drivers/net/$(DEPDIR) linux/dev/drivers/scsi/$(DEPDIR) linux/dev/glue/$(DEPDIR) linux/dev/init/$(DEPDIR) linux/dev/kernel/$(DEPDIR) linux/dev/lib/$(DEPDIR) linux/dev/net/core/$(DEPDIR) linux/pcmcia-cs/clients/$(DEPDIR) linux/pcmcia-cs/glue/$(DEPDIR) linux/pcmcia-cs/modules/$(DEPDIR) linux/pcmcia-cs/wireless/$(DEPDIR) linux/src/arch/i386/kernel/$(DEPDIR) linux/src/arch/i386/lib/$(DEPDIR) linux/src/drivers/block/$(DEPDIR) linux/src/drivers/net/$(DEPDIR) linux/src/drivers/pci/$(DEPDIR) linux/src/drivers/scsi/$(DEPDIR) linux/src/lib/$(DEPDIR) util/$(DEPDIR) vm/$(DEPDIR)
  	-rm -f Makefile
  maintainer-clean-am: distclean-am maintainer-clean-aminfo \
@@ -857,7 +1468,7 @@ Regenerate with:
  
  uninstall-am: uninstall-exec_bootPROGRAMS uninstall-exec_msgidsDATA \
  	uninstall-include_deviceHEADERS uninstall-include_machHEADERS \
-@@ -7028,19 +6956,18 @@ uninstall-info: uninstall-info-recursive
+@@ -7040,19 +6968,18 @@ uninstall-info: uninstall-info-recursive
  	distcheck distclean distclean-compile distclean-generic \
  	distclean-hdr distclean-recursive distclean-tags \
  	distcleancheck distdir distuninstallcheck dvi dvi-am html \
@@ -885,10 +1496,10 @@ Regenerate with:
  	uninstall-exec_bootPROGRAMS uninstall-exec_msgidsDATA \
  	uninstall-include_deviceHEADERS uninstall-include_machHEADERS \
  	uninstall-include_mach_eXecHEADERS \
-@@ -7170,87 +7097,6 @@ gnumach.msgids: $(nodist_lib_dep_tr_for_
+@@ -7206,87 +7133,6 @@ dist-hook-linux:
  #
- # Architecture specific parts.
- #
+ 
+ # ix86.
 -
 -# Prepare a checkout in `$(web)/' of the web pages of the GNU Mach Reference
 -# Manual, using the same account that was used for the source code.  Then
@@ -970,6 +1581,6 @@ Regenerate with:
 -	    "\`$(web)/', ready for checking them in in there." &&	\
 -	  sleep 2;							\
 -	fi
- dist-hook: dist-hook-linux
- .PHONY: dist-hook-linux
- dist-hook-linux:
+ gnumach-undef: gnumach.$(OBJEXT)
+ 	$(NM) -u $< | sed 's/  *U  *//;s/^_*//' | sort -u > $@
+ gnumach-undef-bad: gnumach-undef Makefile
