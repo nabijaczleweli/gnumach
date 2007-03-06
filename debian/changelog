@@ -1,3 +1,9 @@
+gnumach (2:1.3.99.dfsg.cvs20070306-1) UNRELEASED; urgency=low
+
+  * New upstream CVS snapshot.
+
+ -- Guillem Jover <guillem@debian.org>  Tue,  6 Mar 2007 06:45:13 +0200
+
 gnumach (2:1.3.99.dfsg.cvs20070211-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
