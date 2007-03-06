@@ -6,6 +6,9 @@ gnumach (2:1.3.99.dfsg.cvs20070306-1) UNRELEASED; urgency=low
       Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
     - debian/patches/00_clean_gfdl.patch: Sync.
     - debian/patches/90_autoconf_autogen.patch: Regenerated.
+  * Fixed MMX register support. (Closes: #413177)
+    - debian/patches/20_mmx_support.patch: Updated.
+    Thanks to Samuel Thibault <samuel.thibault@ens-lyon.org>.
 
  -- Guillem Jover <guillem@debian.org>  Tue,  6 Mar 2007 06:45:13 +0200
 
