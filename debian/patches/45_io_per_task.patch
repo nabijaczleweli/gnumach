@@ -20,9 +20,6 @@
 	* i386/i386/thread.h (i386_machine_state): Move io_tss member to ...
 	(machine_task): ... here.  New structure.
 
-	* i386/i386at/iopl.c (iopl_emulate): TSS is now task-based, fix TSS
-	and locking accordingly.
-
 	* kern/task.c (task_init): Call new machine_task_module_init() function.
 	(task_create): Call new machine_task_init() function.
 	(task_deallocate): Call new machine_task_terminate() function.
@@ -31,19 +28,6 @@
 	(task): Add new machine member.
 
 
-Index: i386/i386/io_emulate.c
-===================================================================
---- i386/i386/io_emulate.c.orig	2006-10-15 20:39:23.000000000 +0300
-+++ i386/i386/io_emulate.c	2006-11-14 04:16:29.000000000 +0200
-@@ -101,7 +101,7 @@ emulate_io(regs, opcode, io_port)
- 	 * Make the thread use its IO_TSS to get the IO permissions;
- 	 * it may not have had one before this.
- 	 */
--	switch_ktss(thread->pcb);
-+	switch_ktss(thread);
- 
- 	return EM_IO_RETRY;
- }
 Index: i386/i386/iopb.c
 ===================================================================
 --- i386/i386/iopb.c.orig	2006-11-14 04:16:04.000000000 +0200
@@ -497,43 +481,6 @@ Index: i386/i386/user_ldt.c
  	}
  
  	/*
-Index: i386/i386at/iopl.c
-===================================================================
---- i386/i386at/iopl.c.orig	2006-11-14 04:16:08.000000000 +0200
-+++ i386/i386at/iopl.c	2006-11-14 04:16:29.000000000 +0200
-@@ -220,10 +220,15 @@ iopl_emulate(regs, opcode, io_port)
- 	int	io_port;
- {
- 	iopb_tss_t	iopb;
-+	task_t		task;
- 
--	iopb = current_thread()->pcb->ims.io_tss;
--	if (iopb == 0)
-+	task = current_thread()->task;
-+	task_lock(task);
-+	iopb = task->machine.io_tss;
-+	if (iopb == 0) {
-+	    task_unlock(task);
- 	    return FALSE;		/* no IO mapped */
-+	}
- 
- 	/*
- 	 * Handle outb to the timer control port,
-@@ -238,11 +243,14 @@ iopl_emulate(regs, opcode, io_port)
- 	     && (opcode == 0xe6 || opcode == 0xee)	/* outb */
- 	     && (io_byte & 0xc0) == 0x80)		/* timer 2 */
- 	    {
-+		task_unlock(task);
- 		outb(io_port, io_byte);
- 		return TRUE;
- 	    }
-+	    task_unlock(task);
- 	    return FALSE;	/* invalid IO to port 42 */
- 	}
-+	task_unlock(task);
- 
- 	/*
- 	 * If the thread has the IOPL device mapped, and
 Index: kern/task.c
 ===================================================================
 --- kern/task.c.orig	2006-11-14 03:58:57.000000000 +0200
