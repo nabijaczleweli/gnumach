@@ -8,7 +8,7 @@
 Index: kern/mach_param.h
 ===================================================================
 --- kern/mach_param.h.orig	2001-04-05 09:39:20.000000000 +0300
-+++ kern/mach_param.h	2006-11-14 04:15:28.000000000 +0200
++++ kern/mach_param.h	2007-04-05 07:31:10.000000000 +0300
 @@ -38,16 +38,16 @@
  #ifndef	_KERN_MACH_PARAM_H_
  #define _KERN_MACH_PARAM_H_
@@ -32,9 +32,9 @@ Index: kern/mach_param.h
  #define PORT_MAX	((TASK_MAX * 3 + THREAD_MAX)	/* kernel */ \
 Index: kern/zalloc.c
 ===================================================================
---- kern/zalloc.c.orig	2006-11-14 03:58:57.000000000 +0200
-+++ kern/zalloc.c	2006-11-14 04:15:28.000000000 +0200
-@@ -102,7 +102,7 @@ zone_t		zone_zone;	/* this is the zone c
+--- kern/zalloc.c.orig	2007-02-11 14:51:17.000000000 +0200
++++ kern/zalloc.c	2007-04-05 07:31:10.000000000 +0300
+@@ -105,7 +105,7 @@ zone_t		zone_zone;	/* this is the zone c
  boolean_t	zone_ignore_overflow = TRUE;
  
  vm_map_t	zone_map = VM_MAP_NULL;

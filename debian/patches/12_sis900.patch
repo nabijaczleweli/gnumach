@@ -12,7 +12,7 @@
 Index: linux/dev/drivers/net/Space.c
 ===================================================================
 --- linux/dev/drivers/net/Space.c.orig	2006-02-01 22:58:10.000000000 +0200
-+++ linux/dev/drivers/net/Space.c	2007-02-11 15:07:05.000000000 +0200
++++ linux/dev/drivers/net/Space.c	2007-04-05 07:30:59.000000000 +0300
 @@ -93,6 +93,7 @@ extern int yellowfin_probe(struct device
  extern int eepro100_probe(struct device *);
  extern int epic100_probe(struct device *);
@@ -34,7 +34,7 @@ Index: linux/dev/drivers/net/Space.c
 Index: linux/src/drivers/net/sis900.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux/src/drivers/net/sis900.c	2007-02-11 15:07:05.000000000 +0200
++++ linux/src/drivers/net/sis900.c	2007-04-05 07:31:00.000000000 +0300
 @@ -0,0 +1,1803 @@
 +/* sis900.c: A SiS 900/7016 PCI Fast Ethernet driver for Linux.
 +   Copyright 1999 Silicon Integrated System Corporation
@@ -1842,7 +1842,7 @@ Index: linux/src/drivers/net/sis900.c
 Index: linux/src/drivers/net/sis900.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux/src/drivers/net/sis900.h	2007-02-11 15:07:05.000000000 +0200
++++ linux/src/drivers/net/sis900.h	2007-04-05 07:31:00.000000000 +0300
 @@ -0,0 +1,284 @@
 +/* sis900.h Definitions for SiS ethernet controllers including 7014/7016 and 900
 + * Copyright 1999 Silicon Integrated System Corporation
@@ -2130,9 +2130,9 @@ Index: linux/src/drivers/net/sis900.h
 +#define SIOCSMIIREG (SIOCDEVPRIVATE+2)		/* Write a PHY register */
 Index: linux/configfrag.ac
 ===================================================================
---- linux/configfrag.ac.orig	2007-02-11 14:51:18.000000000 +0200
-+++ linux/configfrag.ac	2007-02-11 15:07:05.000000000 +0200
-@@ -423,6 +423,10 @@ AC_Linux_DRIVER([seeq8005],
+--- linux/configfrag.ac.orig	2007-03-06 06:37:45.000000000 +0200
++++ linux/configfrag.ac	2007-04-05 07:31:00.000000000 +0300
+@@ -420,6 +420,10 @@ AC_Linux_DRIVER([seeq8005],
    [Ethernet controller Seeq8005],
    [CONFIG_SEEQ8005],
    [net])
@@ -2145,9 +2145,9 @@ Index: linux/configfrag.ac
    [CONFIG_SK_G16],
 Index: linux/Makefrag.am
 ===================================================================
---- linux/Makefrag.am.orig	2007-02-11 14:51:17.000000000 +0200
-+++ linux/Makefrag.am	2007-02-11 15:07:05.000000000 +0200
-@@ -524,6 +524,11 @@ liblinux_a_SOURCES += \
+--- linux/Makefrag.am.orig	2007-03-06 06:37:45.000000000 +0200
++++ linux/Makefrag.am	2007-04-05 07:31:00.000000000 +0300
+@@ -526,6 +526,11 @@ liblinux_a_SOURCES += \
  	linux/src/drivers/net/seeq8005.h
  endif
  

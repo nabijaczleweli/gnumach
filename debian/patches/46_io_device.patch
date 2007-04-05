@@ -10,8 +10,8 @@
 
 Index: i386/i386/iopb.c
 ===================================================================
---- i386/i386/iopb.c.orig	2006-11-14 04:16:29.000000000 +0200
-+++ i386/i386/iopb.c	2006-11-14 04:21:48.000000000 +0200
+--- i386/i386/iopb.c.orig	2007-04-05 07:31:26.000000000 +0300
++++ i386/i386/iopb.c	2007-04-05 07:31:31.000000000 +0300
 @@ -40,6 +40,7 @@
  #include <kern/thread.h>
  
@@ -87,11 +87,11 @@ Index: i386/i386/iopb.c
  /*
 Index: i386/i386at/conf.c
 ===================================================================
---- i386/i386at/conf.c.orig	2006-10-15 20:39:23.000000000 +0300
-+++ i386/i386at/conf.c	2006-11-14 04:21:48.000000000 +0200
-@@ -64,6 +64,9 @@ extern int	ioplopen(), ioplclose();
- extern vm_offset_t ioplmmap();
- #define	ioplname		"iopl"
+--- i386/i386at/conf.c.orig	2007-04-05 06:37:23.000000000 +0300
++++ i386/i386at/conf.c	2007-04-05 07:31:31.000000000 +0300
+@@ -58,6 +58,9 @@ extern int	kbdgetstat(), kbdsetstat();
+ extern int	mouseopen(), mouseclose(), mouseread(), mousegetstat();
+ #define	mousename		"mouse"
  
 +extern int	ioopen(), ioclose();
 +#define ioname			"io"
@@ -99,7 +99,7 @@ Index: i386/i386at/conf.c
  extern int	kmsgopen(), kmsgclose(), kmsgread(), kmsggetstat();
  #define kmsgname		"kmsg"
  
-@@ -95,6 +98,11 @@ struct dev_ops	dev_name_list[] =
+@@ -89,6 +92,11 @@ struct dev_ops	dev_name_list[] =
  	  nodev,	nulldev,	nulldev,	0,
  	  nodev },
  

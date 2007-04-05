@@ -7,7 +7,7 @@ supporting hardware.
 Index: linux/src/drivers/block/ide.c
 ===================================================================
 --- linux/src/drivers/block/ide.c.orig	2006-10-15 20:39:24.000000000 +0300
-+++ linux/src/drivers/block/ide.c	2006-10-26 00:03:24.000000000 +0300
++++ linux/src/drivers/block/ide.c	2007-04-05 07:31:06.000000000 +0300
 @@ -3594,9 +3594,6 @@ static void ide_probe_promise_20246(void
  		hwif->ctl_port = io[tmp + 1] + 2;
  		hwif->noprobe = 0;
@@ -42,7 +42,7 @@ Index: linux/src/drivers/block/ide.c
 Index: linux/src/drivers/block/ide.h
 ===================================================================
 --- linux/src/drivers/block/ide.h.orig	1999-04-26 08:51:39.000000000 +0300
-+++ linux/src/drivers/block/ide.h	2006-10-26 00:03:24.000000000 +0300
++++ linux/src/drivers/block/ide.h	2007-04-05 07:31:06.000000000 +0300
 @@ -429,7 +429,8 @@ typedef void (ide_selectproc_t) (ide_dri
  typedef enum {	ide_unknown,	ide_generic,	ide_triton,
  		ide_cmd640,	ide_dtc2278,	ide_ali14xx,
@@ -56,7 +56,7 @@ Index: linux/src/drivers/block/ide.h
 Index: linux/src/drivers/block/triton.c
 ===================================================================
 --- linux/src/drivers/block/triton.c.orig	1999-04-26 08:51:41.000000000 +0300
-+++ linux/src/drivers/block/triton.c	2006-10-26 00:03:24.000000000 +0300
++++ linux/src/drivers/block/triton.c	2007-04-05 07:31:06.000000000 +0300
 @@ -1,107 +1,20 @@
  /*
   *  linux/drivers/block/triton.c	Version 1.13  Aug 12, 1996
@@ -1004,7 +1004,7 @@ Index: linux/src/drivers/block/triton.c
 Index: linux/src/include/linux/hdreg.h
 ===================================================================
 --- linux/src/include/linux/hdreg.h.orig	1999-04-26 08:56:27.000000000 +0300
-+++ linux/src/include/linux/hdreg.h	2006-10-26 00:03:24.000000000 +0300
++++ linux/src/include/linux/hdreg.h	2007-04-05 07:31:06.000000000 +0300
 @@ -92,11 +92,12 @@ struct hd_geometry {
  #define HDIO_GETGEO		0x0301	/* get device geometry */
  #define HDIO_GET_UNMASKINTR	0x0302	/* get current unmask setting */
@@ -1079,9 +1079,9 @@ Index: linux/src/include/linux/hdreg.h
  #ifdef __KERNEL__
 Index: linux/configfrag.ac
 ===================================================================
---- linux/configfrag.ac.orig	2006-10-26 00:06:29.000000000 +0300
-+++ linux/configfrag.ac	2006-10-26 00:05:59.000000000 +0300
-@@ -132,6 +132,11 @@ AC_Linux_DRIVER([ide],
+--- linux/configfrag.ac.orig	2007-04-05 07:31:00.000000000 +0300
++++ linux/configfrag.ac	2007-04-05 07:31:06.000000000 +0300
+@@ -129,6 +129,11 @@ AC_Linux_DRIVER([ide],
    [IDE disk controllers],
    [CONFIG_BLK_DEV_IDE])
  
