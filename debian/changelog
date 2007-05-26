@@ -1,4 +1,4 @@
-gnumach (2:1.3.99.dfsg.cvs20070426-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.cvs20070526-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
     - debian/patches/41_io_unlock_ioremove.patch: Removed, merged upstream.
@@ -9,11 +9,12 @@ gnumach (2:1.3.99.dfsg.cvs20070426-1) UNRELEASED; urgency=low
     - debian/patches/46_io_device.patch: Likewise.
     - debian/patches/20_mmx_support.patch: Sync.
     - debian/patches/90_autoconf_autogen.patch: Regenerated.
-  * Temporary support for memory mapping through an iopl device.
+  * Temporarily restore support for memory mapping through the iopl device,
+    so that stuff like X can work again. (Closes: #421135)
     - debian/patches/40_iopl_mmap.patch: New file.
     Thanks to Samuel Thibault <samuel.thibault@labri.fr>.
 
- -- Guillem Jover <guillem@debian.org>  Sat, 26 May 2007 09:05:38 +0300
+ -- Guillem Jover <guillem@debian.org>  Sat, 26 May 2007 10:01:54 +0300
 
 gnumach (2:1.3.99.dfsg.cvs20070405-1) unstable; urgency=low
 
