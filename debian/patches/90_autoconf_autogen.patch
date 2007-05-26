@@ -6,7 +6,7 @@ Regenerate with:
 
 
 --- config.h.in	2007-05-26 09:04:36.000000000 +0300
-+++ config.h.in	2007-05-26 09:25:20.000000000 +0300
++++ config.h.in	2007-05-26 09:56:30.000000000 +0300
 @@ -45,6 +45,9 @@
     default and for qemu */
  #undef CONFIG_BLK_DEV_FD
@@ -29,7 +29,7 @@ Regenerate with:
     G16; on ix86-at enabled by default */
  #undef CONFIG_SK_G16
 --- configure	2007-05-26 09:04:32.000000000 +0300
-+++ configure	2007-05-26 09:25:15.000000000 +0300
++++ configure	2007-05-26 09:56:26.000000000 +0300
 @@ -821,6 +821,8 @@ device_driver_rtl8139_TRUE
  device_driver_rtl8139_FALSE
  device_driver_seeq8005_TRUE
@@ -178,7 +178,7 @@ Regenerate with:
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
 --- Makefile.in	2007-05-26 09:04:43.000000000 +0300
-+++ Makefile.in	2007-05-26 09:25:28.000000000 +0300
++++ Makefile.in	2007-05-26 09:56:37.000000000 +0300
 @@ -161,28 +161,6 @@
  # Tests.
  #
@@ -371,7 +371,15 @@ Regenerate with:
  @HOST_ix86_TRUE@	i386/i386at/autoconf.c \
  @HOST_ix86_TRUE@	i386/i386at/boothdr.S \
  @HOST_ix86_TRUE@	i386/i386at/com.c \
-@@ -751,7 +730,7 @@ DIST_COMMON = README $(am__configure_dep
+@@ -731,6 +710,7 @@ DIST_COMMON = README $(am__configure_dep
+ @HOST_ix86_TRUE@	i386/i386at/immc.c \
+ @HOST_ix86_TRUE@	i386/i386at/int_init.c \
+ @HOST_ix86_TRUE@	i386/i386at/interrupt.S \
++@HOST_ix86_TRUE@	i386/i386at/iopl.c \
+ @HOST_ix86_TRUE@	i386/i386at/kd.c \
+ @HOST_ix86_TRUE@	i386/i386at/kd.h \
+ @HOST_ix86_TRUE@	i386/i386at/kd_event.c \
+@@ -751,7 +731,7 @@ DIST_COMMON = README $(am__configure_dep
  #
  # `lpr' device support.
  #
@@ -380,7 +388,7 @@ Regenerate with:
  @HOST_ix86_TRUE@@enable_lpr_TRUE@	i386/i386at/lpr.c \
  @HOST_ix86_TRUE@@enable_lpr_TRUE@	i386/i386at/lprreg.h
  
-@@ -759,7 +738,7 @@ DIST_COMMON = README $(am__configure_dep
+@@ -759,7 +739,7 @@ DIST_COMMON = README $(am__configure_dep
  #
  # Further source files for any i386 kernel.
  #
@@ -389,7 +397,7 @@ Regenerate with:
  @HOST_ix86_TRUE@	i386/i386/ast.h \
  @HOST_ix86_TRUE@	i386/i386/ast_check.c \
  @HOST_ix86_TRUE@	i386/i386/ast_types.h \
-@@ -844,21 +823,21 @@ DIST_COMMON = README $(am__configure_dep
+@@ -844,21 +824,21 @@ DIST_COMMON = README $(am__configure_dep
  #
  
  # Instead of listing each file individually...
@@ -414,7 +422,7 @@ Regenerate with:
  @HOST_ix86_TRUE@	chips/busses.c \
  @HOST_ix86_TRUE@	chips/busses.h \
  @HOST_ix86_TRUE@	device/cirbuf.c
-@@ -869,14 +848,14 @@ DIST_COMMON = README $(am__configure_dep
+@@ -869,14 +849,14 @@ DIST_COMMON = README $(am__configure_dep
  #
  
  # See Makefrag.am about lib_dep_tr_for_defs.a.
@@ -432,7 +440,7 @@ Regenerate with:
  @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START=0x100000 \
  @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	-T '$(srcdir)'/i386/ldscript
  
-@@ -962,10 +941,10 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
+@@ -962,10 +942,10 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
  	kern/time_out.h kern/time_stamp.c kern/time_stamp.h \
  	kern/timer.c kern/timer.h kern/xpr.c kern/xpr.h kern/zalloc.c \
  	kern/zalloc.h kern/elf-load.c kern/boot_script.c \
@@ -447,7 +455,35 @@ Regenerate with:
  	vm/vm_object.c vm/vm_object.h vm/vm_page.h vm/vm_pageout.c \
  	vm/vm_pageout.h vm/vm_resident.c vm/vm_user.c vm/vm_user.h \
  	device/blkio.c device/buf.h device/chario.c device/cirbuf.h \
-@@ -1120,9 +1099,10 @@ am_libkernel_a_OBJECTS = $(am__objects_2
+@@ -982,12 +962,13 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
+ 	i386/i386at/cons_conf.c i386/i386at/cram.h i386/i386at/disk.h \
+ 	i386/i386at/i8250.h i386/i386at/idt.h i386/i386at/immc.c \
+ 	i386/i386at/int_init.c i386/i386at/interrupt.S \
+-	i386/i386at/kd.c i386/i386at/kd.h i386/i386at/kd_event.c \
+-	i386/i386at/kd_event.h i386/i386at/kd_mouse.c \
+-	i386/i386at/kd_mouse.h i386/i386at/kd_queue.c \
+-	i386/i386at/kd_queue.h i386/i386at/kdasm.S \
+-	i386/i386at/kdsoft.h i386/i386at/model_dep.c \
+-	i386/i386at/pic_isa.c i386/i386at/rtc.c i386/i386at/rtc.h \
++	i386/i386at/iopl.c i386/i386at/kd.c i386/i386at/kd.h \
++	i386/i386at/kd_event.c i386/i386at/kd_event.h \
++	i386/i386at/kd_mouse.c i386/i386at/kd_mouse.h \
++	i386/i386at/kd_queue.c i386/i386at/kd_queue.h \
++	i386/i386at/kdasm.S i386/i386at/kdsoft.h \
++	i386/i386at/model_dep.c i386/i386at/pic_isa.c \
++	i386/i386at/rtc.c i386/i386at/rtc.h \
+ 	i386/include/mach/sa/stdarg.h i386/i386at/lpr.c \
+ 	i386/i386at/lprreg.h i386/i386/ast.h i386/i386/ast_check.c \
+ 	i386/i386/ast_types.h i386/i386/cpu_number.h \
+@@ -1044,6 +1025,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_ac
+ @HOST_ix86_TRUE@	i386/i386at/immc.$(OBJEXT) \
+ @HOST_ix86_TRUE@	i386/i386at/int_init.$(OBJEXT) \
+ @HOST_ix86_TRUE@	i386/i386at/interrupt.$(OBJEXT) \
++@HOST_ix86_TRUE@	i386/i386at/iopl.$(OBJEXT) \
+ @HOST_ix86_TRUE@	i386/i386at/kd.$(OBJEXT) \
+ @HOST_ix86_TRUE@	i386/i386at/kd_event.$(OBJEXT) \
+ @HOST_ix86_TRUE@	i386/i386at/kd_mouse.$(OBJEXT) \
+@@ -1120,9 +1102,10 @@ am_libkernel_a_OBJECTS = $(am__objects_2
  	kern/xpr.$(OBJEXT) kern/zalloc.$(OBJEXT) \
  	kern/elf-load.$(OBJEXT) kern/boot_script.$(OBJEXT) \
  	util/putchar.$(OBJEXT) util/puts.$(OBJEXT) \
@@ -461,7 +497,7 @@ Regenerate with:
  	vm/vm_object.$(OBJEXT) vm/vm_pageout.$(OBJEXT) \
  	vm/vm_resident.$(OBJEXT) vm/vm_user.$(OBJEXT) \
  	device/blkio.$(OBJEXT) device/chario.$(OBJEXT) \
-@@ -1267,7 +1247,8 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
+@@ -1267,7 +1250,8 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
  	linux/src/drivers/net/rtl8139.c \
  	linux/src/drivers/net/seeq8005.c \
  	linux/src/drivers/net/seeq8005.h \
@@ -471,7 +507,7 @@ Regenerate with:
  	linux/src/drivers/net/smc-ultra.c \
  	linux/src/drivers/net/smc-ultra32.c \
  	linux/src/drivers/net/starfire.c \
-@@ -1377,23 +1358,24 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
+@@ -1377,23 +1361,24 @@ am__liblinux_a_SOURCES_DIST = linux/dev/
  @device_driver_pcnet32_TRUE@am__objects_78 = linux/src/drivers/net/liblinux_a-pcnet32.$(OBJEXT)
  @device_driver_rtl8139_TRUE@am__objects_79 = linux/src/drivers/net/liblinux_a-rtl8139.$(OBJEXT)
  @device_driver_seeq8005_TRUE@am__objects_80 = linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT)
@@ -510,7 +546,7 @@ Regenerate with:
  am_liblinux_a_OBJECTS = linux/dev/init/liblinux_a-version.$(OBJEXT) \
  	linux/dev/kernel/liblinux_a-softirq.$(OBJEXT) \
  	linux/src/arch/i386/lib/liblinux_a-delay.$(OBJEXT) \
-@@ -1440,7 +1422,7 @@ am_liblinux_a_OBJECTS = linux/dev/init/l
+@@ -1440,7 +1425,7 @@ am_liblinux_a_OBJECTS = linux/dev/init/l
  	$(am__objects_85) $(am__objects_86) $(am__objects_87) \
  	$(am__objects_88) $(am__objects_89) $(am__objects_90) \
  	$(am__objects_91) $(am__objects_92) $(am__objects_93) \
@@ -519,7 +555,7 @@ Regenerate with:
  liblinux_a_OBJECTS = $(am_liblinux_a_OBJECTS)
  liblinux_pcmcia_cs_clients_a_AR = $(AR) $(ARFLAGS)
  liblinux_pcmcia_cs_clients_a_LIBADD =
-@@ -1455,19 +1437,19 @@ am__liblinux_pcmcia_cs_clients_a_SOURCES
+@@ -1455,19 +1440,19 @@ am__liblinux_pcmcia_cs_clients_a_SOURCES
  	linux/src/drivers/net/8390.c linux/pcmcia-cs/clients/ositech.h \
  	linux/pcmcia-cs/clients/smc91c92_cs.c \
  	linux/pcmcia-cs/clients/xirc2ps_cs.c
@@ -551,7 +587,7 @@ Regenerate with:
  liblinux_pcmcia_cs_clients_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_clients_a_OBJECTS)
  liblinux_pcmcia_cs_modules_a_AR = $(AR) $(ARFLAGS)
-@@ -1492,7 +1474,7 @@ am__liblinux_pcmcia_cs_modules_a_SOURCES
+@@ -1492,7 +1477,7 @@ am__liblinux_pcmcia_cs_modules_a_SOURCES
  	linux/pcmcia-cs/modules/topic.h \
  	linux/pcmcia-cs/modules/vg468.h \
  	linux/pcmcia-cs/modules/yenta.h
@@ -560,7 +596,7 @@ Regenerate with:
  am_liblinux_pcmcia_cs_modules_a_OBJECTS = linux/pcmcia-cs/glue/liblinux_pcmcia_cs_modules_a-pcmcia.$(OBJEXT) \
  	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cs.$(OBJEXT) \
  	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-ds.$(OBJEXT) \
-@@ -1500,7 +1482,7 @@ am_liblinux_pcmcia_cs_modules_a_OBJECTS 
+@@ -1500,7 +1485,7 @@ am_liblinux_pcmcia_cs_modules_a_OBJECTS 
  	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-bulkmem.$(OBJEXT) \
  	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-cistpl.$(OBJEXT) \
  	linux/pcmcia-cs/modules/liblinux_pcmcia_cs_modules_a-pci_fixup.$(OBJEXT) \
@@ -569,7 +605,7 @@ Regenerate with:
  liblinux_pcmcia_cs_modules_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_modules_a_OBJECTS)
  liblinux_pcmcia_cs_wireless_a_AR = $(AR) $(ARFLAGS)
-@@ -1514,10 +1496,10 @@ am__liblinux_pcmcia_cs_wireless_a_SOURCE
+@@ -1514,10 +1499,10 @@ am__liblinux_pcmcia_cs_wireless_a_SOURCE
  	linux/pcmcia-cs/wireless/orinoco.c \
  	linux/pcmcia-cs/wireless/orinoco.h \
  	linux/pcmcia-cs/wireless/orinoco_cs.c
@@ -582,7 +618,7 @@ Regenerate with:
  liblinux_pcmcia_cs_wireless_a_OBJECTS =  \
  	$(am_liblinux_pcmcia_cs_wireless_a_OBJECTS)
  am__installdirs = "$(DESTDIR)$(exec_bootdir)" "$(DESTDIR)$(infodir)" \
-@@ -1559,14 +1541,13 @@ DIST_SOURCES = $(am__libkernel_a_SOURCES
+@@ -1559,14 +1544,13 @@ DIST_SOURCES = $(am__libkernel_a_SOURCES
  	$(am__liblinux_pcmcia_cs_modules_a_SOURCES_DIST) \
  	$(am__liblinux_pcmcia_cs_wireless_a_SOURCES_DIST) \
  	$(gnumach_SOURCES) $(gnumach_o_SOURCES)
@@ -602,7 +638,7 @@ Regenerate with:
  TEXI2DVI = texi2dvi
  TEXI2PDF = $(TEXI2DVI) --pdf --batch
  MAKEINFOHTML = $(MAKEINFO) --html
-@@ -1848,6 +1829,8 @@ device_driver_seagate_FALSE = @device_dr
+@@ -1848,6 +1832,8 @@ device_driver_seagate_FALSE = @device_dr
  device_driver_seagate_TRUE = @device_driver_seagate_TRUE@
  device_driver_seeq8005_FALSE = @device_driver_seeq8005_FALSE@
  device_driver_seeq8005_TRUE = @device_driver_seeq8005_TRUE@
@@ -611,7 +647,7 @@ Regenerate with:
  device_driver_sk_g16_FALSE = @device_driver_sk_g16_FALSE@
  device_driver_sk_g16_TRUE = @device_driver_sk_g16_TRUE@
  device_driver_smc91c92_cs_FALSE = @device_driver_smc91c92_cs_FALSE@
-@@ -1950,8 +1933,7 @@ EXTRA_DIST = gensym.awk ipc/mach_port.sr
+@@ -1950,8 +1936,7 @@ EXTRA_DIST = gensym.awk ipc/mach_port.sr
  	linux/src/drivers/scsi/NCR5380.h linux/src/drivers/net/8390.h \
  	linux/src/drivers/net/kern_compat.h linux/pcmcia-cs/glue/ds.c \
  	linux/dev/README linux/src/COPYING linux/dev/include \
@@ -621,7 +657,7 @@ Regenerate with:
  	Makefile.correct_output_files_for_.S_files.patch \
  	config.status.dep.patch ChangeLog.0 ChangeLog.00 DEVELOPMENT
  
-@@ -1974,9 +1956,9 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-kdb
+@@ -1974,9 +1959,9 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-kdb
  # <http://lists.gnu.org/archive/html/automake/2006-10/msg00039.html> about what
  # we really want to do.
  noinst_LIBRARIES = libkernel.a lib_dep_tr_for_defs.a $(am__append_4) \
@@ -633,7 +669,7 @@ Regenerate with:
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/mach_debug.server.defs
-@@ -2073,10 +2055,10 @@ libkernel_a_SOURCES = $(am__append_2) ip
+@@ -2073,10 +2058,10 @@ libkernel_a_SOURCES = $(am__append_2) ip
  	kern/time_out.h kern/time_stamp.c kern/time_stamp.h \
  	kern/timer.c kern/timer.h kern/xpr.c kern/xpr.h kern/zalloc.c \
  	kern/zalloc.h kern/elf-load.c kern/boot_script.c \
@@ -648,7 +684,7 @@ Regenerate with:
  	vm/vm_object.c vm/vm_object.h vm/vm_page.h vm/vm_pageout.c \
  	vm/vm_pageout.h vm/vm_resident.c vm/vm_user.c vm/vm_user.h \
  	device/blkio.c device/buf.h device/chario.c device/cirbuf.h \
-@@ -2087,9 +2069,9 @@ libkernel_a_SOURCES = $(am__append_2) ip
+@@ -2087,9 +2072,9 @@ libkernel_a_SOURCES = $(am__append_2) ip
  	device/ds_routines.c device/ds_routines.h device/errno.h \
  	device/if_ether.h device/if_hdr.h device/io_req.h \
  	device/net_io.c device/net_io.h device/param.h device/subrs.c \
@@ -661,7 +697,7 @@ Regenerate with:
  
  #
  # Version number.
-@@ -2113,10 +2095,10 @@ nodist_libkernel_a_SOURCES = version.c v
+@@ -2113,10 +2098,10 @@ nodist_libkernel_a_SOURCES = version.c v
  	kern/mach4.server.msgids kern/mach_debug.server.h \
  	kern/mach_debug.server.c kern/mach_debug.server.msgids \
  	kern/mach_host.server.h kern/mach_host.server.c \
@@ -675,7 +711,7 @@ Regenerate with:
  
  #
  # Installation.
-@@ -2219,7 +2201,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  
+@@ -2219,7 +2204,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  
  	device/device.server.defs.c device/device_pager.server.defs.c \
  	ipc/mach_port.server.defs.c kern/mach.server.defs.c \
  	kern/mach4.server.defs.c kern/mach_debug.server.defs.c \
@@ -684,7 +720,7 @@ Regenerate with:
  # Preprocess only.
  lib_dep_tr_for_defs_a_CPPFLAGS = $(AM_CPPFLAGS) \
  	-E
-@@ -2280,7 +2262,8 @@ liblinux_a_SOURCES = linux/dev/init/vers
+@@ -2280,7 +2265,8 @@ liblinux_a_SOURCES = linux/dev/init/vers
  	$(am__append_85) $(am__append_86) $(am__append_87) \
  	$(am__append_88) $(am__append_89) $(am__append_90) \
  	$(am__append_91) $(am__append_92) $(am__append_93) \
@@ -694,7 +730,7 @@ Regenerate with:
  
  # pcmcia-cs.
  liblinux_pcmcia_cs_modules_a_CPPFLAGS = $(liblinux_a_CPPFLAGS) \
-@@ -2297,24 +2280,24 @@ liblinux_pcmcia_cs_modules_a_SOURCES = l
+@@ -2297,24 +2283,24 @@ liblinux_pcmcia_cs_modules_a_SOURCES = l
  	linux/pcmcia-cs/modules/rsrc_mgr.c \
  	linux/pcmcia-cs/modules/bulkmem.c \
  	linux/pcmcia-cs/modules/cistpl.c \
@@ -725,7 +761,7 @@ Regenerate with:
  
  #
  # Installation.
-@@ -2340,14 +2323,6 @@ liblinux_pcmcia_cs_wireless_a_SOURCES = 
+@@ -2340,14 +2326,6 @@ liblinux_pcmcia_cs_wireless_a_SOURCES = 
  @HOST_ix86_TRUE@	i386/include/mach/i386/vm_param.h \
  @HOST_ix86_TRUE@	i386/include/mach/i386/vm_types.h
  
@@ -740,7 +776,7 @@ Regenerate with:
  
  # Makerules: how to do some things.
  
-@@ -2356,6 +2331,7 @@ web = doc/web
+@@ -2356,6 +2334,7 @@ web = doc/web
  # Test suite.
  
  # Documentation.
@@ -748,7 +784,7 @@ Regenerate with:
  
  #
  # Kernel Image
-@@ -2390,7 +2366,7 @@ all: config.h
+@@ -2390,7 +2369,7 @@ all: config.h
  .SUFFIXES: .S .c .dvi .o .obj .ps
  am--refresh:
  	@:
@@ -757,7 +793,7 @@ Regenerate with:
  	@for dep in $?; do \
  	  case '$(am__configure_deps)' in \
  	    *$$dep*) \
-@@ -2680,6 +2656,8 @@ util/putchar.$(OBJEXT): util/$(am__dirst
+@@ -2680,6 +2659,8 @@ util/putchar.$(OBJEXT): util/$(am__dirst
  	util/$(DEPDIR)/$(am__dirstamp)
  util/puts.$(OBJEXT): util/$(am__dirstamp) \
  	util/$(DEPDIR)/$(am__dirstamp)
@@ -766,7 +802,16 @@ Regenerate with:
  vm/memory_object.$(OBJEXT): vm/$(am__dirstamp) \
  	vm/$(DEPDIR)/$(am__dirstamp)
  vm/vm_debug.$(OBJEXT): vm/$(am__dirstamp) vm/$(DEPDIR)/$(am__dirstamp)
-@@ -3286,6 +3264,9 @@ linux/src/drivers/net/liblinux_a-rtl8139
+@@ -2740,6 +2721,8 @@ i386/i386at/int_init.$(OBJEXT): i386/i38
+ 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
+ i386/i386at/interrupt.$(OBJEXT): i386/i386at/$(am__dirstamp) \
+ 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
++i386/i386at/iopl.$(OBJEXT): i386/i386at/$(am__dirstamp) \
++	i386/i386at/$(DEPDIR)/$(am__dirstamp)
+ i386/i386at/kd.$(OBJEXT): i386/i386at/$(am__dirstamp) \
+ 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
+ i386/i386at/kd_event.$(OBJEXT): i386/i386at/$(am__dirstamp) \
+@@ -3286,6 +3269,9 @@ linux/src/drivers/net/liblinux_a-rtl8139
  linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT):  \
  	linux/src/drivers/net/$(am__dirstamp) \
  	linux/src/drivers/net/$(DEPDIR)/$(am__dirstamp)
@@ -776,7 +821,15 @@ Regenerate with:
  linux/src/drivers/net/liblinux_a-sk_g16.$(OBJEXT):  \
  	linux/src/drivers/net/$(am__dirstamp) \
  	linux/src/drivers/net/$(DEPDIR)/$(am__dirstamp)
-@@ -3716,6 +3697,7 @@ mostlyclean-compile:
+@@ -3545,6 +3531,7 @@ mostlyclean-compile:
+ 	-rm -f i386/i386at/immc.$(OBJEXT)
+ 	-rm -f i386/i386at/int_init.$(OBJEXT)
+ 	-rm -f i386/i386at/interrupt.$(OBJEXT)
++	-rm -f i386/i386at/iopl.$(OBJEXT)
+ 	-rm -f i386/i386at/kd.$(OBJEXT)
+ 	-rm -f i386/i386at/kd_event.$(OBJEXT)
+ 	-rm -f i386/i386at/kd_mouse.$(OBJEXT)
+@@ -3716,6 +3703,7 @@ mostlyclean-compile:
  	-rm -f linux/src/drivers/net/liblinux_a-pcnet32.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-rtl8139.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-seeq8005.$(OBJEXT)
@@ -784,7 +837,7 @@ Regenerate with:
  	-rm -f linux/src/drivers/net/liblinux_a-sk_g16.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-smc-ultra.$(OBJEXT)
  	-rm -f linux/src/drivers/net/liblinux_a-smc-ultra32.$(OBJEXT)
-@@ -3774,6 +3756,7 @@ mostlyclean-compile:
+@@ -3774,6 +3762,7 @@ mostlyclean-compile:
  	-rm -f vm/lib_dep_tr_for_defs_a-memory_object_user.user.defs.$(OBJEXT)
  	-rm -f vm/memory_object.$(OBJEXT)
  	-rm -f vm/memory_object_default.user.$(OBJEXT)
@@ -792,7 +845,15 @@ Regenerate with:
  	-rm -f vm/memory_object_user.user.$(OBJEXT)
  	-rm -f vm/vm_debug.$(OBJEXT)
  	-rm -f vm/vm_external.$(OBJEXT)
-@@ -4033,6 +4016,7 @@ distclean-compile:
+@@ -3864,6 +3853,7 @@ distclean-compile:
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/cons_conf.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/immc.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/int_init.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/iopl.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/kd.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/kd_event.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/kd_mouse.Po@am__quote@
+@@ -4033,6 +4023,7 @@ distclean-compile:
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-pcnet32.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-rtl8139.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-seeq8005.Po@am__quote@
@@ -800,7 +861,7 @@ Regenerate with:
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-smc-ultra.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@linux/src/drivers/net/$(DEPDIR)/liblinux_a-smc-ultra32.Po@am__quote@
-@@ -4091,6 +4075,7 @@ distclean-compile:
+@@ -4091,6 +4082,7 @@ distclean-compile:
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/lib_dep_tr_for_defs_a-memory_object_user.user.defs.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object_default.user.Po@am__quote@
@@ -808,7 +869,7 @@ Regenerate with:
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/memory_object_user.user.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_debug.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_external.Po@am__quote@
-@@ -5811,6 +5796,20 @@ linux/src/drivers/net/liblinux_a-seeq800
+@@ -5811,6 +5803,20 @@ linux/src/drivers/net/liblinux_a-seeq800
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
  @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_a_CFLAGS) $(CFLAGS) -c -o linux/src/drivers/net/liblinux_a-seeq8005.obj `if test -f 'linux/src/drivers/net/seeq8005.c'; then $(CYGPATH_W) 'linux/src/drivers/net/seeq8005.c'; else $(CYGPATH_W) '$(srcdir)/linux/src/drivers/net/seeq8005.c'; fi`
  
@@ -829,7 +890,7 @@ Regenerate with:
  linux/src/drivers/net/liblinux_a-sk_g16.o: linux/src/drivers/net/sk_g16.c
  @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_a_CFLAGS) $(CFLAGS) -MT linux/src/drivers/net/liblinux_a-sk_g16.o -MD -MP -MF "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo" -c -o linux/src/drivers/net/liblinux_a-sk_g16.o `test -f 'linux/src/drivers/net/sk_g16.c' || echo '$(srcdir)/'`linux/src/drivers/net/sk_g16.c; \
  @am__fastdepCC_TRUE@	then mv -f "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo" "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Po"; else rm -f "linux/src/drivers/net/$(DEPDIR)/liblinux_a-sk_g16.Tpo"; exit 1; fi
-@@ -6272,74 +6271,6 @@ linux/pcmcia-cs/wireless/liblinux_pcmcia
+@@ -6272,74 +6278,6 @@ linux/pcmcia-cs/wireless/liblinux_pcmcia
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='linux/pcmcia-cs/wireless/orinoco_cs.c' object='linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco_cs.obj' libtool=no @AMDEPBACKSLASH@
  @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
  @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblinux_pcmcia_cs_wireless_a_CPPFLAGS) $(CPPFLAGS) $(liblinux_pcmcia_cs_wireless_a_CFLAGS) $(CFLAGS) -c -o linux/pcmcia-cs/wireless/liblinux_pcmcia_cs_wireless_a-orinoco_cs.obj `if test -f 'linux/pcmcia-cs/wireless/orinoco_cs.c'; then $(CYGPATH_W) 'linux/pcmcia-cs/wireless/orinoco_cs.c'; else $(CYGPATH_W) '$(srcdir)/linux/pcmcia-cs/wireless/orinoco_cs.c'; fi`
@@ -904,7 +965,7 @@ Regenerate with:
  .dvi.ps:
  	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
  	$(DVIPS) -o $@ $<
-@@ -6385,9 +6316,7 @@ dist-info: $(INFO_DEPS)
+@@ -6385,9 +6323,7 @@ dist-info: $(INFO_DEPS)
  	done
  
  mostlyclean-aminfo:
@@ -915,7 +976,7 @@ Regenerate with:
  
  maintainer-clean-aminfo:
  	@list='$(INFO_DEPS)'; for i in $$list; do \
-@@ -6689,7 +6618,7 @@ check-TESTS: $(TESTS)
+@@ -6689,7 +6625,7 @@ check-TESTS: $(TESTS)
  distdir: $(DISTFILES)
  	$(am__remove_distdir)
  	mkdir $(distdir)
@@ -924,7 +985,7 @@ Regenerate with:
  	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
  	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
  	list='$(DISTFILES)'; for file in $$list; do \
-@@ -6868,7 +6797,6 @@ distclean-generic:
+@@ -6868,7 +6804,6 @@ distclean-generic:
  	-rm -f ddb/$(am__dirstamp)
  	-rm -f device/$(DEPDIR)/$(am__dirstamp)
  	-rm -f device/$(am__dirstamp)
@@ -932,7 +993,7 @@ Regenerate with:
  	-rm -f i386/i386/$(DEPDIR)/$(am__dirstamp)
  	-rm -f i386/i386/$(am__dirstamp)
  	-rm -f i386/i386at/$(DEPDIR)/$(am__dirstamp)
-@@ -6946,7 +6874,7 @@ dvi-am: $(DVIS)
+@@ -6946,7 +6881,7 @@ dvi-am: $(DVIS)
  
  html: html-recursive
  
@@ -941,7 +1002,7 @@ Regenerate with:
  
  info: info-recursive
  
-@@ -7002,20 +6930,20 @@ maintainer-clean: maintainer-clean-recur
+@@ -7002,20 +6937,20 @@ maintainer-clean: maintainer-clean-recur
  	-rm -rf ./$(DEPDIR) chips/$(DEPDIR) ddb/$(DEPDIR) device/$(DEPDIR) i386/i386/$(DEPDIR) i386/i386at/$(DEPDIR) i386/intel/$(DEPDIR) ipc/$(DEPDIR) kern/$(DEPDIR) linux/dev/arch/i386/kernel/$(DEPDIR) linux/dev/drivers/block/$(DEPDIR) linux/dev/drivers/net/$(DEPDIR) linux/dev/drivers/scsi/$(DEPDIR) linux/dev/glue/$(DEPDIR) linux/dev/init/$(DEPDIR) linux/dev/kernel/$(DEPDIR) linux/dev/lib/$(DEPDIR) linux/dev/net/core/$(DEPDIR) linux/pcmcia-cs/clients/$(DEPDIR) linux/pcmcia-cs/glue/$(DEPDIR) linux/pcmcia-cs/modules/$(DEPDIR) linux/pcmcia-cs/wireless/$(DEPDIR) linux/src/arch/i386/kernel/$(DEPDIR) linux/src/arch/i386/lib/$(DEPDIR) linux/src/drivers/block/$(DEPDIR) linux/src/drivers/net/$(DEPDIR) linux/src/drivers/pci/$(DEPDIR) linux/src/drivers/scsi/$(DEPDIR) linux/src/lib/$(DEPDIR) util/$(DEPDIR) vm/$(DEPDIR)
  	-rm -f Makefile
  maintainer-clean-am: distclean-am maintainer-clean-aminfo \
@@ -966,7 +1027,7 @@ Regenerate with:
  
  uninstall-am: uninstall-exec_bootPROGRAMS uninstall-exec_msgidsDATA \
  	uninstall-include_deviceHEADERS uninstall-include_machHEADERS \
-@@ -7032,19 +6960,18 @@ uninstall-info: uninstall-info-recursive
+@@ -7032,19 +6967,18 @@ uninstall-info: uninstall-info-recursive
  	distcheck distclean distclean-compile distclean-generic \
  	distclean-hdr distclean-recursive distclean-tags \
  	distcleancheck distdir distuninstallcheck dvi dvi-am html \
@@ -994,7 +1055,7 @@ Regenerate with:
  	uninstall-exec_bootPROGRAMS uninstall-exec_msgidsDATA \
  	uninstall-include_deviceHEADERS uninstall-include_machHEADERS \
  	uninstall-include_mach_eXecHEADERS \
-@@ -7184,87 +7111,6 @@ dist-hook-linux:
+@@ -7184,87 +7118,6 @@ dist-hook-linux:
  #
  
  # ix86.

@@ -7,4 +7,5 @@
 15_mem_obj_proxy.patch -p0
 20_mmx_support.patch -p0
 24_pci_irq_fix.patch -p1
+40_iopl_mmap.patch -p0
 90_autoconf_autogen.patch -p0
