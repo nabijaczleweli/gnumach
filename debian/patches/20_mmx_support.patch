@@ -25,11 +25,8 @@
 
 Index: i386/i386/fpu.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/i386/fpu.c,v
-retrieving revision 1.2.4.10
-diff -u -p -r1.2.4.10 fpu.c
---- i386/i386/fpu.c	4 Jan 2007 23:51:02 -0000	1.2.4.10
-+++ i386/i386/fpu.c	3 Mar 2007 21:05:32 -0000
+--- i386/i386/fpu.c.orig	2007-05-25 03:17:38.000000000 +0300
++++ i386/i386/fpu.c	2007-05-26 09:18:12.000000000 +0300
 @@ -43,6 +43,7 @@
  #include <i386/thread.h>
  #include <i386/fpu.h>
@@ -155,20 +152,22 @@ diff -u -p -r1.2.4.10 fpu.c
  /*
   * Set the floating-point state for a thread.
   * If the thread is not the current thread, it is
-@@ -256,24 +340,43 @@ ASSERT_IPL(SPL0);
- 		pcb->ims.ifps = ifps;
- 	    }
+@@ -261,16 +347,30 @@ ASSERT_IPL(SPL0);
+ 	     */
+ 	    memset(&ifps->fp_save_state, 0, sizeof(struct i386_fp_save));
  
--	    /*
--	     * Ensure that reserved parts of the environment are 0.
--	     */
--	    memset(&ifps->fp_save_state, 0, sizeof(struct i386_fp_save));
+-	    ifps->fp_save_state.fp_control = user_fp_state->fp_control;
+-	    ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
+-	    ifps->fp_save_state.fp_tag     = user_fp_state->fp_tag;
+-	    ifps->fp_save_state.fp_eip     = user_fp_state->fp_eip;
+-	    ifps->fp_save_state.fp_cs      = user_fp_state->fp_cs;
+-	    ifps->fp_save_state.fp_opcode  = user_fp_state->fp_opcode;
+-	    ifps->fp_save_state.fp_dp      = user_fp_state->fp_dp;
+-	    ifps->fp_save_state.fp_ds      = user_fp_state->fp_ds;
+-	    ifps->fp_regs = *user_fp_regs;
+-	    ifps->fp_valid = TRUE;
 +	    if (fp_kind == FP_387X) {
 +		int i;
-+		/*
-+		 * Ensure that reserved parts of the environment are 0.
-+		 */
-+		memset(&ifps->xfp_save_state, 0, sizeof(struct i386_xfp_save));
 +
 +		ifps->xfp_save_state.fp_control = user_fp_state->fp_control;
 +		ifps->xfp_save_state.fp_status  = user_fp_state->fp_status;
@@ -181,20 +180,6 @@ diff -u -p -r1.2.4.10 fpu.c
 +		for (i=0; i<8; i++)
 +		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs[i], sizeof(user_fp_regs[i]));
 +	    } else {
-+		/*
-+		 * Ensure that reserved parts of the environment are 0.
-+		 */
-+		memset(&ifps->fp_save_state, 0, sizeof(struct i386_fp_save));
- 
--	    ifps->fp_save_state.fp_control = user_fp_state->fp_control;
--	    ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
--	    ifps->fp_save_state.fp_tag     = user_fp_state->fp_tag;
--	    ifps->fp_save_state.fp_eip     = user_fp_state->fp_eip;
--	    ifps->fp_save_state.fp_cs      = user_fp_state->fp_cs;
--	    ifps->fp_save_state.fp_opcode  = user_fp_state->fp_opcode;
--	    ifps->fp_save_state.fp_dp      = user_fp_state->fp_dp;
--	    ifps->fp_save_state.fp_ds      = user_fp_state->fp_ds;
--	    ifps->fp_regs = *user_fp_regs;
 +		ifps->fp_save_state.fp_control = user_fp_state->fp_control;
 +		ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
 +		ifps->fp_save_state.fp_tag     = user_fp_state->fp_tag;
@@ -208,12 +193,7 @@ diff -u -p -r1.2.4.10 fpu.c
  
  	    simple_unlock(&pcb->lock);
  	    if (new_ifps != 0)
--		zfree(ifps_zone, (vm_offset_t) ifps);
-+		zfree(ifps_zone, (vm_offset_t) new_ifps);
- 	}
- 
- 	return KERN_SUCCESS;
-@@ -339,15 +442,29 @@ ASSERT_IPL(SPL0);
+@@ -340,15 +440,30 @@ ASSERT_IPL(SPL0);
  	     */
  	    memset(user_fp_state,  0, sizeof(struct i386_fp_save));
  
@@ -227,7 +207,8 @@ diff -u -p -r1.2.4.10 fpu.c
 -	    user_fp_state->fp_ds      = ifps->fp_save_state.fp_ds;
 -	    *user_fp_regs = ifps->fp_regs;
 +	    if (fp_kind == FP_387X) {
-+	        int i;
++		int i;
++
 +		user_fp_state->fp_control = ifps->xfp_save_state.fp_control;
 +		user_fp_state->fp_status  = ifps->xfp_save_state.fp_status;
 +		user_fp_state->fp_tag     = twd_fxsr_to_i387(&ifps->xfp_save_state);
@@ -252,7 +233,7 @@ diff -u -p -r1.2.4.10 fpu.c
  	}
  	simple_unlock(&pcb->lock);
  
-@@ -531,7 +648,9 @@ ASSERT_IPL(SPL0);
+@@ -532,7 +647,9 @@ ASSERT_IPL(SPL0);
  	 */
  	i386_exception(EXC_ARITHMETIC,
  		       EXC_I386_EXTERR,
@@ -263,7 +244,7 @@ diff -u -p -r1.2.4.10 fpu.c
  	/*NOTREACHED*/
  }
  
-@@ -553,7 +672,10 @@ fp_save(thread)
+@@ -554,7 +671,10 @@ fp_save(thread)
  	if (ifps != 0 && !ifps->fp_valid) {
  	    /* registers are in FPU */
  	    ifps->fp_valid = TRUE;
@@ -275,7 +256,7 @@ diff -u -p -r1.2.4.10 fpu.c
  	}
  }
  
-@@ -594,14 +716,19 @@ ASSERT_IPL(SPL0);
+@@ -595,14 +715,19 @@ ASSERT_IPL(SPL0);
  		 */
  		i386_exception(EXC_ARITHMETIC,
  			       EXC_I386_EXTERR,
@@ -297,7 +278,7 @@ diff -u -p -r1.2.4.10 fpu.c
  	}
  	ifps->fp_valid = FALSE;		/* in FPU */
  }
-@@ -623,11 +750,22 @@ fp_state_alloc()
+@@ -624,11 +749,22 @@ fp_state_alloc()
  	pcb->ims.ifps = ifps;
  
  	ifps->fp_valid = TRUE;
@@ -327,11 +308,8 @@ diff -u -p -r1.2.4.10 fpu.c
  #if	AT386
 Index: i386/i386/fpu.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/i386/fpu.h,v
-retrieving revision 1.1.1.1.4.3
-diff -u -p -r1.1.1.1.4.3 fpu.h
---- i386/i386/fpu.h	12 Dec 2006 23:30:49 -0000	1.1.1.1.4.3
-+++ i386/i386/fpu.h	3 Mar 2007 21:05:32 -0000
+--- i386/i386/fpu.h.orig	2007-02-11 14:51:12.000000000 +0200
++++ i386/i386/fpu.h	2007-05-26 09:08:36.000000000 +0300
 @@ -66,6 +66,12 @@
  #define	frstor(state) \
  	asm volatile("frstor %0" : : "m" (state))
@@ -359,12 +337,9 @@ diff -u -p -r1.1.1.1.4.3 fpu.h
      }
 Index: i386/i386/thread.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/i386/thread.h,v
-retrieving revision 1.3.2.1
-diff -u -p -r1.3.2.1 thread.h
---- i386/i386/thread.h	5 Nov 2006 20:39:24 -0000	1.3.2.1
-+++ i386/i386/thread.h	3 Mar 2007 21:05:32 -0000
-@@ -112,9 +112,14 @@ struct i386_kernel_state {
+--- i386/i386/thread.h.orig	2007-05-25 03:17:38.000000000 +0300
++++ i386/i386/thread.h	2007-05-26 09:08:36.000000000 +0300
+@@ -111,9 +111,14 @@ struct i386_kernel_state {
   */
  
  struct i386_fpsave_state {
@@ -383,11 +358,8 @@ diff -u -p -r1.3.2.1 thread.h
  /*
 Index: i386/include/mach/i386/fp_reg.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/include/mach/i386/fp_reg.h,v
-retrieving revision 1.1.1.1
-diff -u -p -r1.1.1.1 fp_reg.h
---- i386/include/mach/i386/fp_reg.h	25 Feb 1997 21:27:00 -0000	1.1.1.1
-+++ i386/include/mach/i386/fp_reg.h	3 Mar 2007 21:05:32 -0000
+--- i386/include/mach/i386/fp_reg.h.orig	1997-02-25 23:27:00.000000000 +0200
++++ i386/include/mach/i386/fp_reg.h	2007-05-26 09:08:36.000000000 +0300
 @@ -46,10 +46,30 @@ struct i386_fp_save	{
  };
  
@@ -429,11 +401,8 @@ diff -u -p -r1.1.1.1 fp_reg.h
  #endif	/* _MACH_I386_FP_REG_H_ */
 Index: i386/include/mach/i386/thread_status.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/include/mach/i386/thread_status.h,v
-retrieving revision 1.1.1.1
-diff -u -p -r1.1.1.1 thread_status.h
---- i386/include/mach/i386/thread_status.h	25 Feb 1997 21:27:01 -0000	1.1.1.1
-+++ i386/include/mach/i386/thread_status.h	3 Mar 2007 21:05:32 -0000
+--- i386/include/mach/i386/thread_status.h.orig	1997-02-25 23:27:01.000000000 +0200
++++ i386/include/mach/i386/thread_status.h	2007-05-26 09:08:36.000000000 +0300
 @@ -111,7 +111,7 @@ struct i386_thread_state {
  	(sizeof (struct i386_fp_save) + sizeof (struct i386_fp_regs))
  
