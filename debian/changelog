@@ -1,3 +1,10 @@
+gnumach (2:1.3.99.dfsg.cvs20070526-1+SVN) UNRELEASED unstable; urgency=low
+
+  * debian/patches/30_fs_gs.patch: New patch to fix crash with coming TLS
+    support.
+
+ -- Samuel Thibault <samuel.thibault@ens-lyon.org>  Tue, 7 Aug 2007 15:11:23 +0200
+
 gnumach (2:1.3.99.dfsg.cvs20070526-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
