@@ -28,7 +28,7 @@ Section: devel
 Priority: extra
 Provides: gnumach
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
-Depends: gnumach (= ${Source-Version})
+Depends: gnumach (= ${binary:Version})
 Description: The GNU version of the Mach microkernel for debugging
  This is the Utah Mach microkernel used by the Hurd.
  .

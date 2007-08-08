@@ -2,6 +2,7 @@ gnumach (2:1.3.99.dfsg.cvs20070809-1) UNRELEASED unstable; urgency=low
 
   * New upstream CVS snapshot.
   * Add an autoregen target to ease regenerating the autoconf patch.
+  * Use binary:Version instead of the deprecated Source-Version substvar.
 
  -- Guillem Jover <guillem@debian.org>  Tue, 7 Aug 2007 15:11:23 +0200
 
