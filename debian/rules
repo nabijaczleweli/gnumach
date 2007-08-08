@@ -44,8 +44,8 @@ autoregen:
 	quilt refresh -p ab
 	quilt pop -a
 
-configure: patch stamp-configure
-stamp-configure:
+configure: patch build/config.status
+build/config.status:
 	dh_testdir
 	
 	-mkdir build
@@ -54,11 +54,9 @@ stamp-configure:
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
 		--prefix=/usr \
 		--exec-prefix=/
-	
-	touch stamp-configure
 
-configure-dbg: patch stamp-configure-dbg
-stamp-configure-dbg:
+configure-dbg: patch build-dbg/config.status
+build-dbg/config.status:
 	dh_testdir
 	
 	-mkdir build-dbg
@@ -66,8 +64,6 @@ stamp-configure-dbg:
 		CFLAGS="$(CFLAGS)" \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
 		--exec-prefix=/
-	
-	touch stamp-configure-dbg
 
 build:
 
@@ -94,8 +90,8 @@ check-gnumach-dbg: build-gnumach-dbg
 clean: unpatch
 	dh_testdir
 	
-	-rm -f machine stamp-configure stamp-configure-dbg
-	-rm -rf build build-dbg
+	rm -f machine
+	rm -rf build build-dbg
 	
 	dh_clean
 
