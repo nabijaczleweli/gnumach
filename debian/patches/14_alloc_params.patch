@@ -1,3 +1,7 @@
+2007-08-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* vm/vm_object.c (vm_object_cached_max): Increase from 200 to 2000.
+
 2005-05-11  Neal H. Walfield  <neal@cs.uml.edu>
 
 	* kern/mach_param.h (THREAD_MAX, TASK_MAX, ACT_MAX,
@@ -43,3 +47,19 @@ Index: kern/zalloc.c
  
  /*
   *	The VM system gives us an initial chunk of memory.
+Index: vm/vm_object.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/vm/vm_object.c,v
+retrieving revision 1.2.4.9
+diff -u -p -r1.2.4.9 vm_object.c
+--- vm/vm_object.c	1 Mar 2007 09:46:46 -0000	1.2.4.9
++++ vm/vm_object.c	20 Aug 2007 00:14:12 -0000
+@@ -179,7 +179,7 @@ vm_object_t	kernel_object;
+  */
+ queue_head_t	vm_object_cached_list;
+ int		vm_object_cached_count;
+-int		vm_object_cached_max = 200;	/* may be patched*/
++int		vm_object_cached_max = 2000;	/* may be patched*/
+ 
+ decl_simple_lock_data(,vm_object_cached_lock_data)
+ 
