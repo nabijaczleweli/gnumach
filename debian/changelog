@@ -3,6 +3,9 @@ gnumach (2:1.3.99.dfsg.cvs20070809-2) unstable; urgency=low
   [ Samuel Thibault ]
   * Append more agressive caching parameter to
     debian/patches/14_alloc_params.patch.
+  * Fix zalloc alignment support, and thus alignment of FPU save area
+    (Closes: #440068)
+    - debian/patches/patches/21_aligned_zalloc.patch
 
  -- Guillem Jover <guillem@debian.org>  Thu, 09 Aug 2007 01:45:22 +0300
 
