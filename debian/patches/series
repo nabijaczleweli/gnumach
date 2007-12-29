@@ -5,6 +5,7 @@
 13_ide_dma.patch -p0
 14_alloc_params.patch -p0
 15_mem_obj_proxy.patch -p0
+16_ide_multsect.patch -p0
 20_mmx_support.patch -p0
 21_aligned_zalloc.patch -p0
 24_pci_irq_fix.patch -p1
