@@ -93,22 +93,3 @@ diff -u -p -r1.2.4.9 vm_object.c
  
  typedef struct vm_map_copy {
  	int			type;
---- vm/vm_pageout.c	3 Dec 2006 21:50:21 -0000	1.7.2.5
-+++ vm/vm_pageout.c	30 Dec 2007 22:20:30 -0000
-@@ -111,14 +111,14 @@
-  */
- 
- #ifndef VM_PAGE_EXTERNAL_LIMIT
--#define VM_PAGE_EXTERNAL_LIMIT(free)		((free) / 2)
-+#define VM_PAGE_EXTERNAL_LIMIT(free)		(((free) * 2) / 3)
- #endif  /* VM_PAGE_EXTERNAL_LIMIT */
- 
- /*	Attempt to keep the number of externally paged pages less
-  *	than vm_pages_external_target.
-  */
- #ifndef VM_PAGE_EXTERNAL_TARGET
--#define VM_PAGE_EXTERNAL_TARGET(free)		((free) / 4)
-+#define VM_PAGE_EXTERNAL_TARGET(free)		((free) / 2)
- #endif  /* VM_PAGE_EXTERNAL_TARGET */
- 
- /*
