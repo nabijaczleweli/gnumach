@@ -1,0 +1,28 @@
+Enable Bus Mastering if not enabled by BIOS (Bochs' BIOS doesn't).
+
+Index: linux/src/drivers/block/triton.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/block/Attic/triton.c,v
+retrieving revision 1.1
+diff -u -p -r1.1 triton.c
+--- linux/src/drivers/block/triton.c	26 Apr 1999 05:51:41 -0000	1.1
++++ linux/src/drivers/block/triton.c	6 Feb 2008 11:30:47 -0000
+@@ -632,7 +632,17 @@ void ide_init_triton (byte bus, byte fn)
+ 		goto quit;
+ 	}
+ 	if ((pcicmd & 4) == 0) {
+-		printk("ide: BM-DMA feature is not enabled (BIOS)\n");
++		printk("ide: BM-DMA feature is not enabled (BIOS), enabling\n");
++		pcicmd |= 4;
++		pcibios_write_config_word(bus, fn, 0x04, pcicmd);
++		if ((rc = pcibios_read_config_word(bus, fn, 0x04, &pcicmd))) {
++			printk("ide: Couldn't read back PCI command\n");
++			goto quit;
++		}
++	}
++
++	if ((pcicmd & 4) == 0) {
++		printk("ide: BM-DMA feature couldn't be enabled\n");
+ 	} else {
+ 		/*
+ 		 * Get the bmiba base address
