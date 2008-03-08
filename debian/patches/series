@@ -12,4 +12,5 @@
 30_net_multicast.patch -p0
 40_iopl_mmap.patch -p0
 50_ide_bm.patch -p0
+70_cld.patch -p0
 90_autoconf_autogen.patch 

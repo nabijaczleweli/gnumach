@@ -1,0 +1,16 @@
+Index: i386/i386/locore.S
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/i386/locore.S,v
+retrieving revision 1.6.2.11
+diff -u -p -r1.6.2.11 locore.S
+--- i386/i386/locore.S	7 Aug 2007 13:07:25 -0000	1.6.2.11
++++ i386/i386/locore.S	7 Mar 2008 23:17:16 -0000
+@@ -966,6 +966,8 @@ syscall
+ syscall_entry:
+ 	pushf				/* save flags as soon as possible */
+ syscall_entry_2:
++	cld				/* clear direction flag */
++
+ 	pushl	%eax			/* save system call number */
+ 	pushl	$0			/* clear trap number slot */
+ 
