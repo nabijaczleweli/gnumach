@@ -13,6 +13,7 @@ gnumach (2:1.3.99.dfsg.cvs20070809-2) unstable; urgency=low
   * New patch from CVS to enable Bus Mastering on triton chipsets.
     - debian/patches/50_ide_bm.patch
   * New patch from CVS to fix direction flag on syscall entry.
+    (Closes: #469566)
     - debian/patches/70_cld.patch
 
  -- Guillem Jover <guillem@debian.org>  Thu, 09 Aug 2007 01:45:22 +0300
