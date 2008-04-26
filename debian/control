@@ -5,6 +5,7 @@ Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
 Uploaders: Marcus Brinkmann <brinkmd@debian.org>,
  Jeff Bailey <jbailey@raspberryginger.com>, Neal H. Walfield <neal@debian.org>,
  Guillem Jover <guillem@debian.org>
+Homepage: http://www.gnu.org/software/hurd/gnumach.html
 Standards-Version: 3.7.2
 Build-Depends: debhelper (>= 5), quilt (>= 0.40), mig, sharutils
 
