@@ -10,10 +10,6 @@ It was downloaded from CVS:
     BRANCH=gnumach-1-branch
     cvs -d $CVSROOT co -r $BRANCH gnumach
 
-The Debian packages are maintained through Subversion on:
-
-    <svn://svn.debian.org/pkg-hurd/gnumach/>
-
 License statement:
 
 Please look at the source files for individual copyrights. They are covered
