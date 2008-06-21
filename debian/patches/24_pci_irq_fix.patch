@@ -1,5 +1,3 @@
-#DPATCHLEVEL=1
-
 My laptop's motherboard set its RTL8139 NIC IRQ at a value that is not
 included in the range 0<=x<16 and it's not 255.
 

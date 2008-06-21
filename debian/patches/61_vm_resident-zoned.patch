@@ -1,5 +1,3 @@
-#DPATCHLEVEL=0
-
 2006-01-20  Gianluca Guida  <glguida@gmail.com>
 
 	* vm/pmap.h (pmap_is_dma, pmap_is_normal): New functions.
