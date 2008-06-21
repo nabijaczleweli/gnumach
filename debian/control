@@ -1,5 +1,5 @@
 Source: gnumach
-Section: base
+Section: admin
 Priority: optional
 Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
 Uploaders: Marcus Brinkmann <brinkmd@debian.org>,
@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 5), quilt (>= 0.40), mig, sharutils
 Standards-Version: 3.8.0
 
 Package: gnumach
-Section: base
+Section: admin
 Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
