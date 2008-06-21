@@ -21,6 +21,7 @@ gnumach (2:1.3.99.dfsg.cvs20070809-2) unstable; urgency=low
   * Add Vcs-Browser and Vcs-Svn fields.
   * Remove repository information from debian/copyright as it is now on
     debian/control.
+  * Add a README.source.
 
  -- Guillem Jover <guillem@debian.org>  Thu, 09 Aug 2007 01:45:22 +0300
 
