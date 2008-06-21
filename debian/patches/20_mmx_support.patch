@@ -23,10 +23,10 @@
 	(fp_state_alloc): Add FXSR-aware initialization.
 
 
-Index: i386/i386/fpu.c
+Index: b/i386/i386/fpu.c
 ===================================================================
---- i386/i386/fpu.c.orig	2007-05-25 03:17:38.000000000 +0300
-+++ i386/i386/fpu.c	2007-05-26 09:18:12.000000000 +0300
+--- a/i386/i386/fpu.c
++++ b/i386/i386/fpu.c
 @@ -43,6 +43,7 @@
  #include <i386/thread.h>
  #include <i386/fpu.h>
@@ -306,10 +306,10 @@ Index: i386/i386/fpu.c
  }
  
  #if	AT386
-Index: i386/i386/fpu.h
+Index: b/i386/i386/fpu.h
 ===================================================================
---- i386/i386/fpu.h.orig	2007-02-11 14:51:12.000000000 +0200
-+++ i386/i386/fpu.h	2007-05-26 09:08:36.000000000 +0300
+--- a/i386/i386/fpu.h
++++ b/i386/i386/fpu.h
 @@ -66,6 +66,12 @@
  #define	frstor(state) \
  	asm volatile("frstor %0" : : "m" (state))
@@ -335,10 +335,10 @@ Index: i386/i386/fpu.h
  	    set_ts(); \
  	} \
      }
-Index: i386/i386/thread.h
+Index: b/i386/i386/thread.h
 ===================================================================
---- i386/i386/thread.h.orig	2007-05-25 03:17:38.000000000 +0300
-+++ i386/i386/thread.h	2007-05-26 09:08:36.000000000 +0300
+--- a/i386/i386/thread.h
++++ b/i386/i386/thread.h
 @@ -111,9 +111,14 @@ struct i386_kernel_state {
   */
  
@@ -356,10 +356,10 @@ Index: i386/i386/thread.h
  };
  
  /*
-Index: i386/include/mach/i386/fp_reg.h
+Index: b/i386/include/mach/i386/fp_reg.h
 ===================================================================
---- i386/include/mach/i386/fp_reg.h.orig	1997-02-25 23:27:00.000000000 +0200
-+++ i386/include/mach/i386/fp_reg.h	2007-05-26 09:08:36.000000000 +0300
+--- a/i386/include/mach/i386/fp_reg.h
++++ b/i386/include/mach/i386/fp_reg.h
 @@ -46,10 +46,30 @@ struct i386_fp_save	{
  };
  
@@ -399,10 +399,10 @@ Index: i386/include/mach/i386/fp_reg.h
 +#define	FP_387X		4		/* FXSAVE/RSTOR-capable */
  
  #endif	/* _MACH_I386_FP_REG_H_ */
-Index: i386/include/mach/i386/thread_status.h
+Index: b/i386/include/mach/i386/thread_status.h
 ===================================================================
---- i386/include/mach/i386/thread_status.h.orig	1997-02-25 23:27:01.000000000 +0200
-+++ i386/include/mach/i386/thread_status.h	2007-05-26 09:08:36.000000000 +0300
+--- a/i386/include/mach/i386/thread_status.h
++++ b/i386/include/mach/i386/thread_status.h
 @@ -111,7 +111,7 @@ struct i386_thread_state {
  	(sizeof (struct i386_fp_save) + sizeof (struct i386_fp_regs))
  

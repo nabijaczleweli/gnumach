@@ -7,10 +7,10 @@
 	argument.
 
 
-Index: i386/i386at/model_dep.c
+Index: b/i386/i386at/model_dep.c
 ===================================================================
---- i386/i386at/model_dep.c.orig	2007-02-11 14:51:13.000000000 +0200
-+++ i386/i386at/model_dep.c	2007-04-05 07:29:39.000000000 +0300
+--- a/i386/i386at/model_dep.c
++++ b/i386/i386at/model_dep.c
 @@ -96,6 +96,10 @@ void		inittodr();	/* forward */
  
  int		rebootflag = 0;	/* exported to kdintr */
@@ -22,7 +22,7 @@ Index: i386/i386at/model_dep.c
  /* XX interrupt stack pointer and highwater mark, for locore.S.  */
  vm_offset_t int_stack_top, int_stack_high;
  
-@@ -367,6 +371,11 @@ void c_boot_entry(vm_offset_t bi)
+@@ -368,6 +372,11 @@ void c_boot_entry(vm_offset_t bi)
  		cninit();		/* need console for debugger */
  		Debugger();
  	}
@@ -34,11 +34,11 @@ Index: i386/i386at/model_dep.c
  #endif	/* MACH_KDB */
  
  	machine_slot[0].is_cpu = TRUE;
-Index: kern/debug.c
+Index: b/kern/debug.c
 ===================================================================
---- kern/debug.c.orig	2006-11-14 03:58:57.000000000 +0200
-+++ kern/debug.c	2007-04-05 07:29:39.000000000 +0300
-@@ -124,6 +124,10 @@ panic_init()
+--- a/kern/debug.c
++++ b/kern/debug.c
+@@ -124,6 +124,10 @@ panic_init(void)
  	}
  }
  

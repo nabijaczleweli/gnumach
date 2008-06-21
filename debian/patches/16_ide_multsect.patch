@@ -1,10 +1,7 @@
-Index: linux/src/drivers/block/ide.h
+Index: b/linux/src/drivers/block/ide.h
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/block/Attic/ide.h,v
-retrieving revision 1.1
-diff -u -p -r1.1 ide.h
---- linux/src/drivers/block/ide.h	26 Apr 1999 05:51:39 -0000	1.1
-+++ linux/src/drivers/block/ide.h	29 Dec 2007 18:09:54 -0000
+--- a/linux/src/drivers/block/ide.h
++++ b/linux/src/drivers/block/ide.h
 @@ -23,7 +23,7 @@
   * REALLY_SLOW_IO can be defined in ide.c and ide-cd.c, if necessary
   */

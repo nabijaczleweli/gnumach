@@ -7,14 +7,10 @@
 	* linux/dev/glue/net.c (device_open): Set LINUX_IFF_ALLMULTI flag
 	on device and propagate.
 
-Index: linux/dev/glue/net.c
+Index: b/linux/dev/glue/net.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/linux/dev/glue/Attic/net.c,v
-retrieving revision 1.1.4.7
-retrieving revision 1.1.4.9
-diff -u -p -r1.1.4.7 -r1.1.4.9
---- linux/dev/glue/net.c	27 Mar 2007 22:47:11 -0000	1.1.4.7
-+++ linux/dev/glue/net.c	9 Oct 2007 07:44:17 -0000	1.1.4.9
+--- a/linux/dev/glue/net.c
++++ b/linux/dev/glue/net.c
 @@ -398,8 +398,14 @@ device_open (ipc_port_t reply_port, mach
  	}
        else

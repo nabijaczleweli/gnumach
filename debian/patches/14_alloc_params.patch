@@ -17,10 +17,10 @@
 	* kern/zalloc.c (zone_map_size): Increase from 12 to 16 MiB.
 
 
-Index: kern/mach_param.h
+Index: b/kern/mach_param.h
 ===================================================================
---- kern/mach_param.h.orig	2001-04-05 09:39:20.000000000 +0300
-+++ kern/mach_param.h	2007-04-05 07:31:10.000000000 +0300
+--- a/kern/mach_param.h
++++ b/kern/mach_param.h
 @@ -38,16 +38,16 @@
  #ifndef	_KERN_MACH_PARAM_H_
  #define _KERN_MACH_PARAM_H_
@@ -42,10 +42,10 @@ Index: kern/mach_param.h
  #define ACTPOOL_CHUNK	64
  
  #define PORT_MAX	((TASK_MAX * 3 + THREAD_MAX)	/* kernel */ \
-Index: kern/zalloc.c
+Index: b/kern/zalloc.c
 ===================================================================
---- kern/zalloc.c.orig	2007-02-11 14:51:17.000000000 +0200
-+++ kern/zalloc.c	2007-04-05 07:31:10.000000000 +0300
+--- a/kern/zalloc.c
++++ b/kern/zalloc.c
 @@ -105,7 +105,7 @@ zone_t		zone_zone;	/* this is the zone c
  boolean_t	zone_ignore_overflow = TRUE;
  
@@ -55,13 +55,10 @@ Index: kern/zalloc.c
  
  /*
   *	The VM system gives us an initial chunk of memory.
-Index: vm/vm_object.c
+Index: b/vm/vm_object.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/vm/vm_object.c,v
-retrieving revision 1.2.4.9
-diff -u -p -r1.2.4.9 vm_object.c
---- vm/vm_object.c	1 Mar 2007 09:46:46 -0000	1.2.4.9
-+++ vm/vm_object.c	20 Aug 2007 00:14:12 -0000
+--- a/vm/vm_object.c
++++ b/vm/vm_object.c
 @@ -179,7 +179,7 @@ vm_object_t	kernel_object;
   */
  queue_head_t	vm_object_cached_list;
@@ -71,9 +68,11 @@ diff -u -p -r1.2.4.9 vm_object.c
  
  decl_simple_lock_data(,vm_object_cached_lock_data)
  
---- linux/dev/glue/block.c.orig	2007-12-30 15:55:04.000000000 +0000
-+++ linux/dev/glue/block.c	2007-12-30 15:55:22.000000000 +0000
-@@ -572,7 +572,7 @@
+Index: b/linux/dev/glue/block.c
+===================================================================
+--- a/linux/dev/glue/block.c
++++ b/linux/dev/glue/block.c
+@@ -572,7 +572,7 @@ out:
  }
  
  #define BH_Bounce	16
@@ -82,9 +81,11 @@ diff -u -p -r1.2.4.9 vm_object.c
  
  /* Perform read/write operation RW on device DEV
     starting at *off to/from buffer *BUF of size *RESID.
---- vm/vm_map.h.orig	2007-12-30 15:56:22.000000000 +0000
-+++ vm/vm_map.h	2007-12-30 15:56:27.000000000 +0000
-@@ -226,7 +226,7 @@
+Index: b/vm/vm_map.h
+===================================================================
+--- a/vm/vm_map.h
++++ b/vm/vm_map.h
+@@ -226,7 +226,7 @@ typedef struct vm_map_version {
   *		(returned) and an abort flag (abort if TRUE).
   */
  

@@ -1,7 +1,7 @@
-Index: linux/dev/glue/block.c
+Index: b/linux/dev/glue/block.c
 ===================================================================
---- linux/dev/glue/block.c.orig	2006-10-15 20:39:24.000000000 +0300
-+++ linux/dev/glue/block.c	2007-02-11 15:06:41.000000000 +0200
+--- a/linux/dev/glue/block.c
++++ b/linux/dev/glue/block.c
 @@ -789,6 +789,7 @@ static struct block_data *open_list;
  extern struct device_emulation_ops linux_block_emulation_ops;
  

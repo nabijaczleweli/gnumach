@@ -3,13 +3,10 @@
 	* kern/zalloc.c (zget_space): Align zalloc_next_space again after
 	calling kmem_alloc_wired (which may sleep).
 
-Index: kern/zalloc.c
+Index: b/kern/zalloc.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/kern/zalloc.c,v
-retrieving revision 1.3.2.8
-diff -u -p -r1.3.2.8 zalloc.c
---- kern/zalloc.c	30 Apr 2007 20:30:11 -0000	1.3.2.8
-+++ kern/zalloc.c	3 Sep 2007 23:22:13 -0000
+--- a/kern/zalloc.c
++++ b/kern/zalloc.c
 @@ -320,6 +320,8 @@ static vm_offset_t zget_space(vm_offset_
  			zone_page_init(new_space, space_to_add,
  							ZONE_PAGE_USED);

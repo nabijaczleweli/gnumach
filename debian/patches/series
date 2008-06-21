@@ -1,16 +1,16 @@
-00_clean_gfdl.patch -p0
-05_halt_on_panic_flag.patch -p0
-10_cdromlock.patch -p0
-12_sis900.patch -p0
-13_ide_dma.patch -p0
-14_alloc_params.patch -p0
-15_mem_obj_proxy.patch -p0
-16_ide_multsect.patch -p0
-20_mmx_support.patch -p0
-21_aligned_zalloc.patch -p0
-24_pci_irq_fix.patch -p1
-30_net_multicast.patch -p0
-40_iopl_mmap.patch -p0
-50_ide_bm.patch -p0
-70_cld.patch -p0
-90_autoconf_autogen.patch 
+00_clean_gfdl.patch
+05_halt_on_panic_flag.patch
+10_cdromlock.patch
+12_sis900.patch
+13_ide_dma.patch
+14_alloc_params.patch
+15_mem_obj_proxy.patch
+16_ide_multsect.patch
+20_mmx_support.patch
+21_aligned_zalloc.patch
+24_pci_irq_fix.patch
+30_net_multicast.patch
+40_iopl_mmap.patch
+50_ide_bm.patch
+70_cld.patch
+90_autoconf_autogen.patch

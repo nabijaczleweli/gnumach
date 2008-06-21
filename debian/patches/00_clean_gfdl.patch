@@ -1,7 +1,7 @@
-Index: Makefile.am
+Index: b/Makefile.am
 ===================================================================
---- Makefile.am.orig	2007-03-06 06:37:41.000000000 +0200
-+++ Makefile.am	2007-03-06 07:05:51.000000000 +0200
+--- a/Makefile.am
++++ b/Makefile.am
 @@ -110,7 +110,7 @@ include Makefrag.am
  include tests/Makefrag.am
  

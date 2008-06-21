@@ -1,10 +1,7 @@
-Index: i386/Makefrag.am
+Index: b/i386/Makefrag.am
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/Attic/Makefrag.am,v
-retrieving revision 1.1.2.10
-diff -u -p -r1.1.2.10 Makefrag.am
---- i386/Makefrag.am	7 May 2007 22:04:53 -0000	1.1.2.10
-+++ i386/Makefrag.am	9 May 2007 16:09:12 -0000
+--- a/i386/Makefrag.am
++++ b/i386/Makefrag.am
 @@ -31,6 +31,7 @@ libkernel_a_SOURCES += \
  	i386/i386at/immc.c \
  	i386/i386at/int_init.c \
@@ -13,13 +10,10 @@ diff -u -p -r1.1.2.10 Makefrag.am
  	i386/i386at/kd.c \
  	i386/i386at/kd.h \
  	i386/i386at/kd_event.c \
-Index: i386/i386at/conf.c
+Index: b/i386/i386at/conf.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/i386/i386at/Attic/conf.c,v
-retrieving revision 1.4.2.15
-diff -u -p -r1.4.2.15 conf.c
---- i386/i386at/conf.c	1 Apr 2007 22:10:40 -0000	1.4.2.15
-+++ i386/i386at/conf.c	9 May 2007 16:09:16 -0000
+--- a/i386/i386at/conf.c
++++ b/i386/i386at/conf.c
 @@ -58,6 +58,9 @@ extern int	kbdgetstat(), kbdsetstat();
  extern int	mouseopen(), mouseclose(), mouseread(), mousegetstat();
  #define	mousename		"mouse"
@@ -42,12 +36,10 @@ diff -u -p -r1.4.2.15 conf.c
  #ifdef	MACH_KMSG
          { kmsgname,     kmsgopen,       kmsgclose,       kmsgread,
            nodev,        kmsggetstat,    nodev,           nomap,
-Index: i386/i386at/iopl.c
+Index: b/i386/i386at/iopl.c
 ===================================================================
-RCS file: i386/i386at/iopl.c
-diff -N i386/i386at/iopl.c
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ i386/i386at/iopl.c	9 May 2007 16:09:16 -0000
+--- /dev/null
++++ b/i386/i386at/iopl.c
 @@ -0,0 +1,56 @@
 +/* 
 + * Mach Operating System

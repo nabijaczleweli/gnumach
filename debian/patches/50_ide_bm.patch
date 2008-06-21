@@ -1,13 +1,10 @@
 Enable Bus Mastering if not enabled by BIOS (Bochs' BIOS doesn't).
 
-Index: linux/src/drivers/block/triton.c
+Index: b/linux/src/drivers/block/triton.c
 ===================================================================
-RCS file: /cvsroot/hurd/gnumach/linux/src/drivers/block/Attic/triton.c,v
-retrieving revision 1.1
-diff -u -p -r1.1 triton.c
---- linux/src/drivers/block/triton.c	26 Apr 1999 05:51:41 -0000	1.1
-+++ linux/src/drivers/block/triton.c	6 Feb 2008 11:30:47 -0000
-@@ -632,7 +632,17 @@ void ide_init_triton (byte bus, byte fn)
+--- a/linux/src/drivers/block/triton.c
++++ b/linux/src/drivers/block/triton.c
+@@ -632,7 +632,17 @@ hpt343_jump_in:
  		goto quit;
  	}
  	if ((pcicmd & 4) == 0) {

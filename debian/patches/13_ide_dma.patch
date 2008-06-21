@@ -4,10 +4,10 @@ supporting hardware.
 2004-09-17  Sergio Lopez  <koro@sinrega.org>
 
 
-Index: linux/src/drivers/block/ide.c
+Index: b/linux/src/drivers/block/ide.c
 ===================================================================
---- linux/src/drivers/block/ide.c.orig	2006-10-15 20:39:24.000000000 +0300
-+++ linux/src/drivers/block/ide.c	2007-04-05 07:31:06.000000000 +0300
+--- a/linux/src/drivers/block/ide.c
++++ b/linux/src/drivers/block/ide.c
 @@ -3594,9 +3594,6 @@ static void ide_probe_promise_20246(void
  		hwif->ctl_port = io[tmp + 1] + 2;
  		hwif->noprobe = 0;
@@ -39,10 +39,10 @@ Index: linux/src/drivers/block/ide.c
  	probe_for_hwifs ();
  
  	/*
-Index: linux/src/drivers/block/ide.h
+Index: b/linux/src/drivers/block/ide.h
 ===================================================================
---- linux/src/drivers/block/ide.h.orig	1999-04-26 08:51:39.000000000 +0300
-+++ linux/src/drivers/block/ide.h	2007-04-05 07:31:06.000000000 +0300
+--- a/linux/src/drivers/block/ide.h
++++ b/linux/src/drivers/block/ide.h
 @@ -429,7 +429,8 @@ typedef void (ide_selectproc_t) (ide_dri
  typedef enum {	ide_unknown,	ide_generic,	ide_triton,
  		ide_cmd640,	ide_dtc2278,	ide_ali14xx,
@@ -53,10 +53,10 @@ Index: linux/src/drivers/block/ide.h
  	hwif_chipset_t;
  
  typedef struct hwif_s {
-Index: linux/src/drivers/block/triton.c
+Index: b/linux/src/drivers/block/triton.c
 ===================================================================
---- linux/src/drivers/block/triton.c.orig	1999-04-26 08:51:41.000000000 +0300
-+++ linux/src/drivers/block/triton.c	2007-04-05 07:31:06.000000000 +0300
+--- a/linux/src/drivers/block/triton.c
++++ b/linux/src/drivers/block/triton.c
 @@ -1,107 +1,20 @@
  /*
   *  linux/drivers/block/triton.c	Version 1.13  Aug 12, 1996
@@ -1001,10 +1001,10 @@ Index: linux/src/drivers/block/triton.c
 -	printk(KERN_WARNING "ide: Promise/33 not configured correctly (BIOS)\n");
 +	quit: if (rc) printk("ide: pcibios access failed - %s\n", pcibios_strerror(rc));
  }
-Index: linux/src/include/linux/hdreg.h
+Index: b/linux/src/include/linux/hdreg.h
 ===================================================================
---- linux/src/include/linux/hdreg.h.orig	1999-04-26 08:56:27.000000000 +0300
-+++ linux/src/include/linux/hdreg.h	2007-04-05 07:31:06.000000000 +0300
+--- a/linux/src/include/linux/hdreg.h
++++ b/linux/src/include/linux/hdreg.h
 @@ -92,11 +92,12 @@ struct hd_geometry {
  #define HDIO_GETGEO		0x0301	/* get device geometry */
  #define HDIO_GET_UNMASKINTR	0x0302	/* get current unmask setting */
@@ -1077,11 +1077,11 @@ Index: linux/src/include/linux/hdreg.h
  };
  
  #ifdef __KERNEL__
-Index: linux/configfrag.ac
+Index: b/linux/configfrag.ac
 ===================================================================
---- linux/configfrag.ac.orig	2007-04-05 07:31:00.000000000 +0300
-+++ linux/configfrag.ac	2007-04-05 07:31:06.000000000 +0300
-@@ -129,6 +129,11 @@ AC_Linux_DRIVER([ide],
+--- a/linux/configfrag.ac
++++ b/linux/configfrag.ac
+@@ -140,6 +140,11 @@ AC_Linux_DRIVER_qemu([ide],
    [IDE disk controllers],
    [CONFIG_BLK_DEV_IDE])
  
