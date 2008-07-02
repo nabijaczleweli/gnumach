@@ -12,6 +12,9 @@ gnumach (2:1.3.99.dfsg.cvs20070809-2) UNRELEASED; urgency=low
     - debian/patches/30_net_multicast.patch
   * New patch from CVS to enable Bus Mastering on triton chipsets.
     - debian/patches/50_ide_bm.patch
+  * New patch from CVS to fix gcc-4.3 non-inlining.
+    (Closes: #474902)
+    - debian/patches/60_bad_user_access_length_fix.patch
   * New patch from CVS to fix direction flag on syscall entry.
     (Closes: #469566)
     - debian/patches/70_cld.patch

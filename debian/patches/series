@@ -12,5 +12,6 @@
 30_net_multicast.patch
 40_iopl_mmap.patch
 50_ide_bm.patch
+60_bad_user_access_length_fix.patch
 70_cld.patch
 90_autoconf_autogen.patch
