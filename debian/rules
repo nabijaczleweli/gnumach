@@ -23,12 +23,6 @@ else
 	CFLAGS += -O2
 endif
 
-ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	CHECKS :=
-else
-	CHECKS := check-gnumach check-gnumach-dbg
-endif
-
 drivers := \
 	--enable-sis900
 
@@ -70,22 +64,20 @@ build:
 build-gnumach: configure
 	dh_testdir
 	
+ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	$(MAKE) -C build
+else
+	$(MAKE) -C build check
+endif
 
 build-gnumach-dbg: configure-dbg
 	dh_testdir
 	
+ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	$(MAKE) -C build-dbg
-
-check-gnumach: build-gnumach
-	dh_testdir
-	
-	$(MAKE) -C build check
-
-check-gnumach-dbg: build-gnumach-dbg
-	dh_testdir
-	
+else
 	$(MAKE) -C build-dbg check
+endif
 
 clean: unpatch
 	dh_testdir
@@ -95,7 +87,7 @@ clean: unpatch
 	
 	dh_clean
 
-install: build-gnumach build-gnumach-dbg $(CHECKS)
+install: build-gnumach build-gnumach-dbg
 	dh_testdir
 	dh_testroot
 	dh_clean -a -k
