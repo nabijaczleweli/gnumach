@@ -91,7 +91,7 @@ clean: unpatch
 	dh_testdir
 	
 	rm -f machine
-	rm -rf build build-dbg
+	rm -rf build build-dbg $(D_DBG)
 	
 	dh_clean
 
