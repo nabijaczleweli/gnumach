@@ -1,10 +1,6 @@
 2007-12-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
-	* linux/dev/glue/block.c (MAX_BUF): Set to sane stack-friendly 8
-	instead of blindly following VM_MAP_COPY_PAGE_LIST_MAX.
 	* vm/vm_map.h (VM_MAP_COPY_PAGE_LIST_MAX): Increase to 64.
-	* vm/vm_pageout.h (VM_PAGE_EXTERNAL_LIMIT): Increase to 2/3 free memory.
-	(VM_PAGE_EXTERNAL_TARGET): Increase to 1/2 free memory.
 
 2007-08-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
