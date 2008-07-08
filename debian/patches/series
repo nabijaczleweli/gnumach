@@ -7,11 +7,5 @@
 15_mem_obj_proxy.patch
 16_ide_multsect.patch
 20_mmx_support.patch
-21_aligned_zalloc.patch
 24_pci_irq_fix.patch
-30_net_multicast.patch
 40_iopl_mmap.patch
-50_ide_bm.patch
-60_bad_user_access_length_fix.patch
-70_cld.patch
-90_autoconf_autogen.patch

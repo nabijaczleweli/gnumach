@@ -1,26 +1,19 @@
-gnumach (2:1.3.99.dfsg.cvs20070809-2) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.cvs20080708-1) UNRELEASED; urgency=low
+
+  * New upstream CVS snapshot.
+    - Fix zalloc alignment support, and thus alignment of FPU save area.
+      (Closes: #440068)
+    - Enable multicast for IPv6.
+    - Enable Bus Mastering on triton chipsets.
+    - Fix gcc-4.3 non-inlining. (Closes: #474902)
+    - Fix direction flag on syscall entry. (Closes: #469566)
+    - Fix initialization of RTL8139. (Closes: #469566)
 
   [ Samuel Thibault ]
   * Append more agressive caching parameter to
     debian/patches/14_alloc_params.patch.
-  * Fix zalloc alignment support, and thus alignment of FPU save area
-    (Closes: #440068)
-    - debian/patches/21_aligned_zalloc.patch
   * New patch to enable IDE multiple sector I/O when the drive can do it.
     - debian/patches/16_ide_multsect.patch
-  * New patch from CVS to enable multicast for IPv6.
-    - debian/patches/30_net_multicast.patch
-  * New patch from CVS to enable Bus Mastering on triton chipsets.
-    - debian/patches/50_ide_bm.patch
-  * New patch from CVS to fix gcc-4.3 non-inlining.
-    (Closes: #474902)
-    - debian/patches/60_bad_user_access_length_fix.patch
-  * New patch from CVS to fix direction flag on syscall entry.
-    (Closes: #469566)
-    - debian/patches/70_cld.patch
-  * New patch from CVS to fix initialization of RTL8139.
-    (Closes: #469566)
-    - debian/patches/80_rtl8139_open.patch
   * Clean debian/tmp-dbg.
 
   [ Guillem Jover ]
@@ -35,6 +28,11 @@ gnumach (2:1.3.99.dfsg.cvs20070809-2) UNRELEASED; urgency=low
   * Remove DPATCHLEVEL variable from patches.
   * Change source and binary packages from Section base to admin.
   * Mangle the Debian version in the watch file.
+  * Sync with upstream:
+    - debian/patches/00_clean_gfdl.patch: Refresh.
+    - debian/patches/05_halt_on_panic_flag.patch: Likewise.
+    - debian/patches/13_ide_dma.patch: Likewise.
+    - debian/patches/14_alloc_params.patch: Likewise.
 
  -- Guillem Jover <guillem@debian.org>  Thu, 09 Aug 2007 01:45:22 +0300
 

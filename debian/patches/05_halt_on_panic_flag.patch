@@ -50,9 +50,9 @@ Index: b/kern/debug.c
  void
  panic(const char *s, ...)
 @@ -165,7 +169,7 @@ panic(const char *s, ...)
- #if	MACH_KDB
- 	Debugger("panic");
- #else
+ 	    delay (1000000);	/* microseconds */
+ 	}
+ 
 -	halt_all_cpus (1);
 +	halt_all_cpus (reboot_on_panic);
  #endif

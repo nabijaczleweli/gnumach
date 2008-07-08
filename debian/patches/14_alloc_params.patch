@@ -68,19 +68,6 @@ Index: b/vm/vm_object.c
  
  decl_simple_lock_data(,vm_object_cached_lock_data)
  
-Index: b/linux/dev/glue/block.c
-===================================================================
---- a/linux/dev/glue/block.c
-+++ b/linux/dev/glue/block.c
-@@ -572,7 +572,7 @@ out:
- }
- 
- #define BH_Bounce	16
--#define MAX_BUF		VM_MAP_COPY_PAGE_LIST_MAX
-+#define MAX_BUF		8
- 
- /* Perform read/write operation RW on device DEV
-    starting at *off to/from buffer *BUF of size *RESID.
 Index: b/vm/vm_map.h
 ===================================================================
 --- a/vm/vm_map.h

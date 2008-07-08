@@ -2,7 +2,7 @@ Index: b/Makefile.am
 ===================================================================
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -110,7 +110,7 @@ include Makefrag.am
+@@ -108,7 +108,7 @@ include Makefrag.am
  include tests/Makefrag.am
  
  # Documentation.

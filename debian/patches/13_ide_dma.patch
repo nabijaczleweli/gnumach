@@ -586,7 +586,7 @@ Index: b/linux/src/drivers/block/triton.c
  		goto quit;
  	if ((pcicmd & 1) == 0)  {
  		printk("ide: ports are not enabled (BIOS)\n");
-@@ -416,21 +639,29 @@ void ide_init_triton (byte bus, byte fn)
+@@ -426,21 +649,29 @@ void ide_init_triton (byte bus, byte fn)
  		 */
  		int try_again = 1;
  		do {
@@ -623,7 +623,7 @@ Index: b/linux/src/drivers/block/triton.c
  					goto quit;
  			}
  		} while (try_again--);
-@@ -439,89 +670,308 @@ void ide_init_triton (byte bus, byte fn)
+@@ -449,89 +680,308 @@ void ide_init_triton (byte bus, byte fn)
  	/*
  	 * See if ide port(s) are enabled
  	 */
