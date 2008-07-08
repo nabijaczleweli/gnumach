@@ -33,6 +33,8 @@ gnumach (2:1.3.99.dfsg.cvs20080708-1) UNRELEASED; urgency=low
     - debian/patches/05_halt_on_panic_flag.patch: Likewise.
     - debian/patches/13_ide_dma.patch: Likewise.
     - debian/patches/14_alloc_params.patch: Likewise.
+  * Use $(filter ...) instead of $(findstring ...) to extract space separated
+    options from DEB_BUILD_OPTIONS in debian/rules.
 
  -- Guillem Jover <guillem@debian.org>  Thu, 09 Aug 2007 01:45:22 +0300
 

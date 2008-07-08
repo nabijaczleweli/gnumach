@@ -17,13 +17,13 @@ DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
 CFLAGS = -Wall -g -pipe -fno-strict-aliasing
 
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
 else
 	CFLAGS += -O2
 endif
 
-ifneq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
+ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	CHECKS :=
 else
 	CHECKS := check-gnumach check-gnumach-dbg
