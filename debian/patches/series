@@ -6,7 +6,6 @@
 14_alloc_params.patch
 15_mem_obj_proxy.patch
 16_ide_multsect.patch
-17_ipc_queue_local.patch
 20_mmx_support.patch
 24_pci_irq_fix.patch
 40_iopl_mmap.patch
