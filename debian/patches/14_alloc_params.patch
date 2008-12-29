@@ -1,3 +1,9 @@
+2008-12-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* i386/intel/pmap.c (pmap_bootstrap): Extend kernel virtual memory to
+	at least the size of the physical memory.
+	* kern/zalloc.c (zone_map_size): Increase from 12 to 64 MiB.
+
 2007-12-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	* vm/vm_map.h (VM_MAP_COPY_PAGE_LIST_MAX): Increase to 64.
@@ -6,38 +12,6 @@
 
 	* vm/vm_object.c (vm_object_cached_max): Increase from 200 to 2000.
 
-2005-05-11  Neal H. Walfield  <neal@cs.uml.edu>
-
-	* kern/mach_param.h (THREAD_MAX, TASK_MAX, ACT_MAX,
-	ACTPOOL_MAX): Make them 64 times bigger.
-	* kern/zalloc.c (zone_map_size): Increase from 12 to 16 MiB.
-
-
-Index: b/kern/mach_param.h
-===================================================================
---- a/kern/mach_param.h
-+++ b/kern/mach_param.h
-@@ -38,16 +38,16 @@
- #ifndef	_KERN_MACH_PARAM_H_
- #define _KERN_MACH_PARAM_H_
- 
--#define THREAD_MAX	1024		/* Max number of threads */
-+#define THREAD_MAX	64 * 1024		/* Max number of threads */
- #define THREAD_CHUNK	64		/* Allocation chunk */
- 
--#define TASK_MAX	1024		/* Max number of tasks */
-+#define TASK_MAX	64 * 1024		/* Max number of tasks */
- #define TASK_CHUNK	64		/* Allocation chunk */
- 
--#define ACT_MAX		1024		/* Max number of acts */
-+#define ACT_MAX		64 * 1024		/* Max number of acts */
- #define ACT_CHUNK	64		/* Allocation chunk */
- 
--#define ACTPOOL_MAX	1024
-+#define ACTPOOL_MAX	64 * 1024
- #define ACTPOOL_CHUNK	64
- 
- #define PORT_MAX	((TASK_MAX * 3 + THREAD_MAX)	/* kernel */ \
 Index: b/kern/zalloc.c
 ===================================================================
 --- a/kern/zalloc.c
@@ -47,7 +21,7 @@ Index: b/kern/zalloc.c
  
  vm_map_t	zone_map = VM_MAP_NULL;
 -vm_size_t	zone_map_size = 12 * 1024 * 1024;
-+vm_size_t	zone_map_size = 16 * 1024 * 1024;
++vm_size_t	zone_map_size = 64 * 1024 * 1024;
  
  /*
   *	The VM system gives us an initial chunk of memory.
@@ -77,3 +51,20 @@ Index: b/vm/vm_map.h
  
  typedef struct vm_map_copy {
  	int			type;
+Index: i386/intel/pmap.c
+===================================================================
+RCS file: /cvsroot/hurd/gnumach/i386/intel/pmap.c,v
+retrieving revision 1.4.2.23
+retrieving revision 1.4.2.24
+diff -u -p -r1.4.2.23 -r1.4.2.24
+--- i386/intel/pmap.c	27 Nov 2008 01:37:52 -0000	1.4.2.23
++++ i386/intel/pmap.c	29 Dec 2008 11:11:03 -0000	1.4.2.24
+@@ -576,7 +576,7 @@ void pmap_bootstrap()
+ 	 */
+ 	kernel_virtual_start = phys_last_addr;
+ 	kernel_virtual_end = phys_last_addr + morevm
+-		+ (phys_last_addr - phys_first_addr) / 15;
++		+ (phys_last_addr - phys_first_addr);
+ 
+ 	if (kernel_virtual_end < phys_last_addr
+ 			|| kernel_virtual_end > VM_MAX_KERNEL_ADDRESS)
