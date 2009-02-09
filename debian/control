@@ -8,7 +8,7 @@ Uploaders: Marcus Brinkmann <brinkmd@debian.org>,
 Homepage: http://www.gnu.org/software/hurd/gnumach.html
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-hurd/gnumach/
 Vcs-Svn: svn://svn.debian.org/pkg-hurd/gnumach/trunk/
-Build-Depends: debhelper (>= 5), quilt (>= 0.40), mig, sharutils,
+Build-Depends: debhelper (>= 7), quilt (>= 0.40), mig, sharutils,
  autoconf, automake
 Standards-Version: 3.8.0
 
