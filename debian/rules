@@ -93,7 +93,7 @@ clean: unpatch
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -a -k
+	dh_prep -a
 	-rm -rf $(D_DBG)
 	dh_installdirs -a
 	
