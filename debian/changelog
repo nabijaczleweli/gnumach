@@ -1,6 +1,8 @@
-gnumach (2:1.3.99.dfsg.cvs20090220-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.cvs20090220-1) unstable; urgency=low
 
   * New upstream CVS snapshot.
+    - Do not panic in fpintr if we receive the interrupt twice in the same
+      thread. (Closes: #447036)
 
   [ Samuel Thibault ]
   * Remove kern/mach_param.h patch from debian/patches/14_alloc_params.patch,
@@ -17,7 +19,7 @@ gnumach (2:1.3.99.dfsg.cvs20090220-1) UNRELEASED; urgency=low
     - debian/patches/15_mem_obj_proxy.patch: Likewise.
     - debian/patches/20_mmx_support.patch: Likewise.
 
- -- Guillem Jover <guillem@debian.org>  Tue, 08 Jul 2008 16:54:06 +0300
+ -- Guillem Jover <guillem@debian.org>  Fri, 20 Feb 2009 03:27:59 +0200
 
 gnumach (2:1.3.99.dfsg.cvs20080708-1) unstable; urgency=low
 
