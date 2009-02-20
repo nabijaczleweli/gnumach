@@ -20,7 +20,7 @@ Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
 Package: gnumach-udeb
-XC-Package-Type: udeb
+Package-Type: udeb
 Section: debian-installer
 Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
