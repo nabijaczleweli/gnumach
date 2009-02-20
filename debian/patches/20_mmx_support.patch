@@ -310,7 +310,7 @@ Index: b/i386/i386/fpu.h
 ===================================================================
 --- a/i386/i386/fpu.h
 +++ b/i386/i386/fpu.h
-@@ -66,6 +66,12 @@
+@@ -67,6 +67,12 @@
  #define	frstor(state) \
  	asm volatile("frstor %0" : : "m" (state))
  
@@ -323,7 +323,7 @@ Index: b/i386/i386/fpu.h
  #define fwait() \
      	asm("fwait");
  
-@@ -85,7 +91,10 @@
+@@ -86,7 +92,10 @@
  	if (ifps != 0 && !ifps->fp_valid) { \
  	    /* registers are in FPU - save to memory */ \
  	    ifps->fp_valid = TRUE; \

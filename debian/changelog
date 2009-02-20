@@ -1,14 +1,21 @@
-gnumach (2:1.3.99.dfsg.cvs20080708-2) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.cvs20090220-1) UNRELEASED; urgency=low
+
+  * New upstream CVS snapshot.
 
   [ Samuel Thibault ]
   * Remove kern/mach_param.h patch from debian/patches/14_alloc_params.patch,
-    increase zone_map_size, kernel virtual space and maximum number of cached
-    objects.
+    increase zone_map_size and maximum number of cached objects.
 
   [ Guillem Jover ]
   * Switch to debhelper compatibility level 7.
   * Use dh_prep instead of “dh_clean -k”.
   * Remove XC- prefix from Package-Type field.
+  * Sync with upstream:
+    - debian/patches/00_clean_gfdl.patch: Refresh.
+    - debian/patches/05_halt_on_panic_flag.patch: Likewise.
+    - debian/patches/14_alloc_params.patch: Likewise.
+    - debian/patches/15_mem_obj_proxy.patch: Likewise.
+    - debian/patches/20_mmx_support.patch: Likewise.
 
  -- Guillem Jover <guillem@debian.org>  Tue, 08 Jul 2008 16:54:06 +0300
 

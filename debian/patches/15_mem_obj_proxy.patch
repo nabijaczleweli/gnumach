@@ -84,7 +84,7 @@ Index: b/kern/ipc_kobject.c
 ===================================================================
 --- a/kern/ipc_kobject.c
 +++ b/kern/ipc_kobject.c
-@@ -353,6 +353,9 @@ ipc_kobject_notify(request_header, reply
+@@ -355,6 +355,9 @@ ipc_kobject_notify(request_header, reply
  		case IKOT_DEVICE:
  		return ds_notify(request_header);
  
@@ -320,7 +320,7 @@ Index: b/vm/vm_init.c
 ===================================================================
 --- a/vm/vm_init.c
 +++ b/vm/vm_init.c
-@@ -81,4 +81,5 @@ void vm_mem_bootstrap()
+@@ -82,4 +82,5 @@ void vm_mem_bootstrap()
  void vm_mem_init()
  {
  	vm_object_init();
@@ -330,7 +330,7 @@ Index: b/vm/vm_user.c
 ===================================================================
 --- a/vm/vm_user.c
 +++ b/vm/vm_user.c
-@@ -275,6 +275,12 @@ kern_return_t vm_copy(map, source_addres
+@@ -276,6 +276,12 @@ kern_return_t vm_copy(map, source_addres
  	return KERN_SUCCESS;
  }
  
@@ -343,7 +343,7 @@ Index: b/vm/vm_user.c
  /*
   *	Routine:	vm_map
   */
-@@ -324,7 +330,22 @@ kern_return_t vm_map(
+@@ -325,7 +331,22 @@ kern_return_t vm_map(
  		copy = FALSE;
  	} else if ((object = vm_object_enter(memory_object, size, FALSE))
  			== VM_OBJECT_NULL)

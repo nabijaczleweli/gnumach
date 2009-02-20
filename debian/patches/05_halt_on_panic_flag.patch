@@ -11,7 +11,7 @@ Index: b/i386/i386at/model_dep.c
 ===================================================================
 --- a/i386/i386at/model_dep.c
 +++ b/i386/i386at/model_dep.c
-@@ -96,6 +96,10 @@ void		inittodr();	/* forward */
+@@ -110,6 +110,10 @@ void		inittodr();	/* forward */
  
  int		rebootflag = 0;	/* exported to kdintr */
  
@@ -22,9 +22,9 @@ Index: b/i386/i386at/model_dep.c
  /* XX interrupt stack pointer and highwater mark, for locore.S.  */
  vm_offset_t int_stack_top, int_stack_high;
  
-@@ -368,6 +372,11 @@ void c_boot_entry(vm_offset_t bi)
+@@ -394,6 +398,11 @@ void c_boot_entry(vm_offset_t bi)
  		cninit();		/* need console for debugger */
- 		Debugger();
+ 		Debugger("init");
  	}
 +#else
 +	if (strstr (kernel_cmdline, "-H "))
@@ -38,7 +38,7 @@ Index: b/kern/debug.c
 ===================================================================
 --- a/kern/debug.c
 +++ b/kern/debug.c
-@@ -124,6 +124,10 @@ panic_init(void)
+@@ -126,6 +126,10 @@ panic_init(void)
  	}
  }
  
@@ -49,7 +49,7 @@ Index: b/kern/debug.c
  /*VARARGS1*/
  void
  panic(const char *s, ...)
-@@ -165,7 +169,7 @@ panic(const char *s, ...)
+@@ -167,7 +171,7 @@ panic(const char *s, ...)
  	    delay (1000000);	/* microseconds */
  	}
  
