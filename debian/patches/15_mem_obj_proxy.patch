@@ -1,3 +1,7 @@
+Memory object proxies permit to replicate objects with different parameters,
+like reduced privileged, different offset, etc.  They are e.g. essential for
+properly managing memory access permissions.
+
 2005-06-06  Marcus Brinkmann  <marcus@gnu.org>
 
 	* include/mach/mach4.defs: Add memory_object_create_proxy
