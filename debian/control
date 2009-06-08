@@ -28,7 +28,7 @@ Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
 Package: gnumach-dbg
-Section: devel
+Section: debug
 Priority: extra
 Provides: gnumach
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
