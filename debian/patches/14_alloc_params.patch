@@ -1,3 +1,8 @@
+2009-06-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	* i386/i386at/model_dep.c (mem_size_init): Reserve 128MiB for virtual
+	memory space, to make room for the zalloc area.
+
 2008-12-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	* kern/zalloc.c (zone_map_size): Increase from 12 to 64 MiB.
@@ -49,3 +54,21 @@ Index: b/vm/vm_map.h
  
  typedef struct vm_map_copy {
  	int			type;
+Index: b/i386/i386at/model_dep.c
+===================================================================
+--- a/i386/i386at/model_dep.c	10 Nov 2008 15:18:47 -0000	1.9.2.19
++++ b/i386/i386at/model_dep.c	11 Jun 2009 00:32:30 -0000
+@@ -231,10 +232,10 @@ mem_size_init(void)
+ 	printf("AT386 boot: physical memory from 0x%x to 0x%x\n",
+ 	       phys_first_addr, phys_last_addr);
+ 
+-	/* Reserve 1/16 of the memory address space for virtual mappings.
++	/* Reserve 1/8 of the memory address space for virtual mappings.
+ 	 * Yes, this loses memory.  Blame i386.  */
+-	if (phys_last_addr > (VM_MAX_KERNEL_ADDRESS / 16) * 15)
+-		phys_last_addr = (VM_MAX_KERNEL_ADDRESS / 16) * 15;
++	if (phys_last_addr > (VM_MAX_KERNEL_ADDRESS / 8) * 7)
++		phys_last_addr = (VM_MAX_KERNEL_ADDRESS / 8) * 7;
+ 
+ 	phys_first_addr = round_page(phys_first_addr);
+ 	phys_last_addr = trunc_page(phys_last_addr);
