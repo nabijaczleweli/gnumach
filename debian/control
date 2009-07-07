@@ -10,7 +10,7 @@ Vcs-Browser: http://svn.debian.org/wsvn/pkg-hurd/gnumach/
 Vcs-Svn: svn://svn.debian.org/pkg-hurd/gnumach/trunk/
 Build-Depends: debhelper (>= 7), quilt (>= 0.40), mig, sharutils,
  autoconf, automake
-Standards-Version: 3.8.0
+Standards-Version: 3.8.2
 
 Package: gnumach
 Section: kernel
