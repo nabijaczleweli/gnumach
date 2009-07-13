@@ -1,6 +1,6 @@
 2007-03-03  Samuel Thibault  <samuel.thibault@ens-lyon.org> 
 
-	Add MMX FPU registers save/restore support.
+	Add XMM FPU registers save/restore support.
 	* i386/include/mach/i386/fp_reg.h (struct i386_fp_regs): Invert array
 	indices.
 	(struct i386_xfp_save): New structure.
