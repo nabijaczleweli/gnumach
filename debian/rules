@@ -26,8 +26,6 @@ endif
 drivers := \
 	--enable-sis900
 
-include /usr/share/quilt/quilt.make
-
 configure: configure.ac
 	autoreconf -fi
 
@@ -50,16 +48,9 @@ build-dbg/config.status: configure
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
 		--exec-prefix=/
 
-# Serialize to support parallel make
-pre-patch-std: patch
-	$(MAKE) -f debian/rules build/config.status
-
-pre-patch-dbg: patch
-	$(MAKE) -f debian/rules build-dbg/config.status
-
 build: build-gnumach-std build-gnumach-dbg
 
-build-gnumach-std: pre-patch-std
+build-gnumach-std: build/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -68,7 +59,7 @@ else
 	$(MAKE) -C build check
 endif
 
-build-gnumach-dbg: pre-patch-dbg
+build-gnumach-dbg: build-dbg/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -77,7 +68,7 @@ else
 	$(MAKE) -C build-dbg check
 endif
 
-clean: unpatch
+clean:
 	dh_testdir
 	
 	rm -f machine
@@ -132,6 +123,5 @@ binary-arch: install
 	dh_builddeb -a
 
 .PHONY: build build-gnumach-std build-gnumach-dbg clean
-.PHONY: pre-patch-std pre-patch-dbg
 .PHONY: install binary binary-indep binary-arch
 
