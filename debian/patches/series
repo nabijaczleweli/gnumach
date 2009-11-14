@@ -3,9 +3,7 @@
 10_cdromlock.patch
 12_sis900.patch
 13_ide_dma.patch
-14_alloc_params.patch
 15_mem_obj_proxy.patch
-16_ide_multsect.patch
 20_xmm_support.patch
 24_pci_irq_fix.patch
 40_iopl_mmap.patch

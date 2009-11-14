@@ -7,8 +7,11 @@
 	argument.
 
 
-Index: b/i386/i386at/model_dep.c
-===================================================================
+---
+ i386/i386at/model_dep.c |    9 +++++++++
+ kern/debug.c            |    6 +++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
 --- a/i386/i386at/model_dep.c
 +++ b/i386/i386at/model_dep.c
 @@ -110,6 +110,10 @@ void		inittodr();	/* forward */
@@ -22,7 +25,7 @@ Index: b/i386/i386at/model_dep.c
  /* XX interrupt stack pointer and highwater mark, for locore.S.  */
  vm_offset_t int_stack_top, int_stack_high;
  
-@@ -394,6 +398,11 @@ void c_boot_entry(vm_offset_t bi)
+@@ -434,6 +438,11 @@ void c_boot_entry(vm_offset_t bi)
  		cninit();		/* need console for debugger */
  		Debugger("init");
  	}
@@ -34,8 +37,6 @@ Index: b/i386/i386at/model_dep.c
  #endif	/* MACH_KDB */
  
  	machine_slot[0].is_cpu = TRUE;
-Index: b/kern/debug.c
-===================================================================
 --- a/kern/debug.c
 +++ b/kern/debug.c
 @@ -126,6 +126,10 @@ panic_init(void)

@@ -4,11 +4,9 @@ This package was originally debianized by Marcus Brinkmann
 It is currently maintained by its upstream authors, who can be reached
 via <bug-hurd@gnu.org>.
 
-It was downloaded from CVS:
+It was downloaded from:
 
-    CVSROOT=:ext:anoncvs@savannah.gnu.org:/cvsroot/hurd
-    BRANCH=gnumach-1-branch
-    cvs -d $CVSROOT co -r $BRANCH gnumach
+    <git://git.sv.gnu.org/hurd/gnumach.git>
 
 License statement:
 
