@@ -17,6 +17,7 @@ gnumach (2:1.3.99.dfsg.git20091128-1) UNRELEASED; urgency=low
     - Remove quilt.make include from debian/rules.
     - Remove patch and unpatch targets from debian/rules.
     - Remove now unneeded debian/README.source.
+  * Do not include ChangeLog.0*, they are not shipped upstream anymore.
 
  -- Guillem Jover <guillem@debian.org>  Sat, 14 Nov 2009 05:33:52 +0100
 
