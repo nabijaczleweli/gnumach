@@ -1,12 +1,16 @@
-gnumach (2:1.3.99.dfsg.git20091114-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.git20091128-1) UNRELEASED; urgency=low
 
   * New upstream git snapshot.
 
   [ Guillem Jover ]
   * Update debian/copyright to point to the git repository.
   * Sync with upstream:
-    - debian/patches/14_alloc_params.patch: Remove, merged upstream.
+    - debian/patches/05_halt_on_panic_flag.patch: Remove, merged upstream.
+    - debian/patches/12_sis900.patch: Likewise.
+    - debian/patches/14_alloc_params.patch: Likewise.
+    - debian/patches/15_mem_obj_proxy.patch: Likewise.
     - debian/patches/16_ide_multsect.patch: Likewise.
+    - debian/patches/20_xmm_support.patch: Likewise.
     - debian/patches/05_halt_on_panic_flag.patch: Refresh.
   * Switch to source format “3.0 (quilt)”:
     - Remove quilt from Build-Depends.

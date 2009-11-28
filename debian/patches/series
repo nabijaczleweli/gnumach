@@ -1,9 +1,5 @@
 00_clean_gfdl.patch
-05_halt_on_panic_flag.patch
 10_cdromlock.patch
-12_sis900.patch
 13_ide_dma.patch
-15_mem_obj_proxy.patch
-20_xmm_support.patch
 24_pci_irq_fix.patch
 40_iopl_mmap.patch
