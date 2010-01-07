@@ -3,6 +3,7 @@ gnumach (2:1.3.99.dfsg.git20091128-2) unreleased; urgency=low
   [ Samuel Thibault ]
   * debian/control (gnumach-udeb): Add XC- prefix to Package-Type. Add Provides:
     kernel-image, *-modules.
+  * debian/control: Remove duplicate priority and section fields.
 
  -- Guillem Jover <guillem@debian.org>  Sat, 28 Nov 2009 19:14:15 +0100
 

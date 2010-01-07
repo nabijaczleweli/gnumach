@@ -13,8 +13,6 @@ Build-Depends: debhelper (>= 7), mig, sharutils,
 Standards-Version: 3.8.3
 
 Package: gnumach
-Section: kernel
-Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
@@ -23,7 +21,6 @@ Package: gnumach-udeb
 XC-Package-Type: udeb
 Provides: kernel-image, floppy-modules, ide-modules, input-modules, nic-modules, nic-pcmcia-modules, nic-wireless-modules, pcmcia-modules, scsi-modules, serial-modules
 Section: debian-installer
-Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
@@ -43,7 +40,6 @@ Description: The GNU version of the Mach microkernel for debugging
 
 Package: gnumach-dev
 Section: devel
-Priority: optional
 Architecture: hurd-i386 i386 kfreebsd-i386 knetbsd-i386
 Description: The GNU version of the Mach microkernel
  These are the header files for the Utah Mach microkernel used by the Hurd.
