@@ -1,3 +1,5 @@
+Mach's GFDL documentation is not DFSG-free, we need to drop the build rules.
+
 Index: b/Makefile.am
 ===================================================================
 --- a/Makefile.am

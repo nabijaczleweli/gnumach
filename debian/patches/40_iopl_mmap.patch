@@ -1,3 +1,5 @@
+Device for direct memory access (needed e.g. for Xorg).
+
 Index: b/i386/Makefrag.am
 ===================================================================
 --- a/i386/Makefrag.am
