@@ -6,6 +6,8 @@ gnumach (2:1.3.99.dfsg.git20091128-2) unreleased; urgency=low
     kernel-image, *-modules.
     - Remove duplicate priority and section fields.
     - Add ${misc:Depends}.
+  * debian/patches/40_iopl_mem.batch: Add patch, not enabled yet, to be used
+    instead of 40_iopl_mmap.patch when a new snapshot is taken.
 
  -- Guillem Jover <guillem@debian.org>  Sat, 28 Nov 2009 19:14:15 +0100
 
