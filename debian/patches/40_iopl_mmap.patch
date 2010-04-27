@@ -1,4 +1,6 @@
 Device for direct memory access (needed e.g. for Xorg).
+Upstream now has a mem device, so this patch should go away and be replaced by
+40_iopl_mem.patch when we upgrade the Debian snapshot.
 
 Index: b/i386/Makefrag.am
 ===================================================================
@@ -13,24 +15,29 @@ Index: b/i386/Makefrag.am
  	i386/i386at/kd.h \
  	i386/i386at/kd_event.c \
 Index: b/i386/i386at/conf.c
-===================================================================
 --- a/i386/i386at/conf.c
 +++ b/i386/i386at/conf.c
-@@ -58,6 +58,9 @@ extern int	kbdgetstat(), kbdsetstat();
+@@ -58,6 +58,10 @@ extern int	kbdgetstat(), kbdsetstat();
  extern int	mouseopen(), mouseclose(), mouseread(), mousegetstat();
  #define	mousename		"mouse"
  
 +extern vm_offset_t ioplmmap();
 +#define	ioplname		"iopl"
++#define	memname			"mem"
 +
  extern int	kmsgopen(), kmsgclose(), kmsgread(), kmsggetstat();
  #define kmsgname		"kmsg"
  
-@@ -113,6 +116,11 @@ struct dev_ops	dev_name_list[] =
+@@ -113,6 +117,16 @@ struct dev_ops	dev_name_list[] =
  	  nodev,	nulldev,	nulldev,	0,
  	  nodev },
  
 +	{ ioplname,	nulldev,	nulldev,	nodev,
++	  nodev,	nodev,		nodev,		ioplmmap,
++	  nodev,	nulldev,	nulldev,	0,
++	  nodev },
++
++	{ memname,	nulldev,	nulldev,	nodev,
 +	  nodev,	nodev,		nodev,		ioplmmap,
 +	  nodev,	nulldev,	nulldev,	0,
 +	  nodev },
