@@ -1,3 +1,13 @@
+gnumach (2:1.3.99.dfsg.git20100732-2) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * debian/control: Add gnumach-xen and gnumach-xen-dbg, containing Xen
+    variants of gnumach and gnumach-dbg. Add gnumach-common to contain msgids
+    shared by gnumach and gnumach-xen, which now depend on it.
+  * debian/rules: Add rules to build Xen variants of gnumach.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 31 Jul 2010 17:35:20 +0200
+
 gnumach (2:1.3.99.dfsg.git20100732-1) unstable; urgency=low
 
   [ Samuel Thibault ]

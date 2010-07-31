@@ -13,9 +13,17 @@ Standards-Version: 3.9.1
 
 Package: gnumach
 Architecture: any-i386
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, gnumach-common
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
+
+Package: gnumach-xen
+Architecture: any-i386
+Depends: ${misc:Depends}, gnumach-common
+Description: The GNU version of the Mach microkernel for Xen
+ This is the Utah Mach microkernel used by the Hurd.
+ .
+ The version in this package is compiled with Xen support.
 
 Package: gnumach-udeb
 XC-Package-Type: udeb
@@ -38,6 +46,26 @@ Description: The GNU version of the Mach microkernel for debugging
  The version in this package is identical to the version found in the
  gnumach package, except that it is not stripped and has the
  kernel-level debugger compiled in.
+
+Package: gnumach-xen-dbg
+Section: debug
+Priority: extra
+Provides: gnumach
+Architecture: any-i386
+Depends: ${misc:Depends}, gnumach-xen (= ${binary:Version})
+Description: The GNU version of the Mach microkernel for Xen for debugging
+ This is the Utah Mach microkernel used by the Hurd.
+ .
+ The version in this package is identical to the version found in the
+ gnumach-xen package, except that it is not stripped and has the
+ kernel-level debugger compiled in.
+
+Package: gnumach-common
+Section: devel
+Architecture: any-i386
+Depends: ${misc:Depends}
+Description: The GNU version of the Mach microkernel, common files.
+ This are common files used by the Utah Mach microkernel used by the Hurd.
 
 Package: gnumach-dev
 Section: devel
