@@ -2,4 +2,4 @@
 10_cdromlock.patch
 13_ide_dma.patch
 24_pci_irq_fix.patch
-40_iopl_mmap.patch
+40_iopl_mem.patch

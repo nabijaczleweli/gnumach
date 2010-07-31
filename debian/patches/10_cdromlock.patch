@@ -65,7 +65,7 @@ Index: b/linux/dev/glue/block.c
  
  /* Check block BN and size COUNT for I/O validity
 @@ -1704,6 +1711,17 @@ device_get_status (void *d, dev_flavor_t
-   return D_SUCCESS;
+   return D_INVALID_OPERATION;
  }
  
 +

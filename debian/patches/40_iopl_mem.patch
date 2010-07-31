@@ -1,5 +1,6 @@
-The mem device provides direct memory access (needed e.g. for Xorg), but some
-packages (Xorg, notably) are still using the iopl device.
+The mem device provides direct memory access (needed e.g. for Xorg), but
+some packages (Xorg, notably) are still using the iopl device.  TODO: fix
+them and drop this patch.
 
 diff --git a/i386/i386at/conf.c b/i386/i386at/conf.c
 index d51b5ee..88e753c 100644
