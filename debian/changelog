@@ -14,6 +14,7 @@ gnumach (2:1.3.99.dfsg.git20100732-1) UNRELEASED; urgency=low
   * Now using Standards-Version 3.9.1 (no changes needed).
   * debian/rules: Remove enable-sis900 as it's now the default.
   * debian/patches/50_initrd.patch: New patch to add ramdisk support for d-i.
+  * debian/control: Remove Neal and Jeff from Uploaders (Closes: #565164).
 
   [ Guillem Jover ]
   * Use any-i386 in binary package Architecture fields.
