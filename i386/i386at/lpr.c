@@ -64,12 +64,14 @@
  * Driver information for auto-configuration stuff.
  */
 
-int 	lprprobe(), lprstop();
+int	lprprobe();
+void	lprstop();
 void	lprintr(), lprstart();
 void	lprattach(struct bus_device *);
 #ifdef	MACH_KERNEL
-int lprstop(), lprgetstat(), lprsetstat();
+int lprgetstat(), lprsetstat();
 #endif	/* MACH_KERNEL */
+void lprpr_addr();
 
 struct bus_device *lprinfo[NLPR];	/* ??? */
 
@@ -370,7 +372,7 @@ struct tty *tp;
 }
 
 #ifdef	MACH_KERNEL
-int
+void
 lprstop(tp, flags)
 register struct tty *tp;
 int	flags;
@@ -379,7 +381,7 @@ int	flags;
 		tp->t_state |= TS_FLUSH;
 }
 #else	/* MACH_KERNEL */
-int lprstop(tp, flag)
+void lprstop(tp, flag)
 struct tty *tp;
 {
 	int s = spltty();
