@@ -23,8 +23,7 @@ else
 	CFLAGS += -O2
 endif
 
-drivers := \
-	--enable-sis900
+drivers := 
 
 configure: configure.ac
 	autoreconf -fi
