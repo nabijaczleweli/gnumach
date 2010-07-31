@@ -62,7 +62,7 @@ Description: The GNU version of the Mach microkernel for Xen for debugging
 
 Package: gnumach-common
 Section: devel
-Architecture: any-i386
+Architecture: all
 Depends: ${misc:Depends}
 Description: The GNU version of the Mach microkernel, common files.
  This are common files used by the Utah Mach microkernel used by the Hurd.
