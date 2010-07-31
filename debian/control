@@ -6,8 +6,8 @@ Uploaders: Guillem Jover <guillem@debian.org>,
  Samuel Thibault <sthibault@debian.org>, Neal H. Walfield <neal@debian.org>,
  Jeff Bailey <jbailey@raspberryginger.com>
 Homepage: http://www.gnu.org/software/hurd/gnumach.html
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-hurd/gnumach/
-Vcs-Svn: svn://svn.debian.org/pkg-hurd/gnumach/trunk/
+Vcs-Browser: http://git.debian.org/?p=pkg-hurd/gnumach.git
+Vcs-Git: git://git.debian.org/pkg-hurd/gnumach.git
 Build-Depends: debhelper (>= 7), mig, sharutils,
  autoconf, automake
 Standards-Version: 3.8.4
