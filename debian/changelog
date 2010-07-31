@@ -10,9 +10,9 @@ gnumach (2:1.3.99.dfsg.git20091128-2) UNRELEASED; urgency=low
     instead of 40_iopl_mmap.patch when a new snapshot is taken.
   * debian/patches/40_iopl_mmap.patch: Add a "mem" alias for the iopl device,
     since that is what upstream provides.
+  * Now using Standards-Version 3.9.1 (no changes needed).
 
   [ Guillem Jover ]
-  * Now using Standards-Version 3.8.4 (no changes needed).
   * Use any-i386 in binary package Architecture fields.
   * Update Vcs fields to point to the new git repositories.
 
