@@ -29,7 +29,7 @@ Package: gnumach-udeb
 XC-Package-Type: udeb
 Provides: kernel-image, floppy-modules, ide-modules, input-modules, nic-modules, nic-pcmcia-modules, nic-wireless-modules, pcmcia-modules, scsi-modules, serial-modules
 Section: debian-installer
-Architecture: any-i386
+Architecture: hurd-i386
 Depends: ${misc:Depends}
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
