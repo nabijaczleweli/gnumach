@@ -26,7 +26,7 @@ Description: The GNU version of the Mach microkernel for Xen
  The version in this package is compiled with Xen support.
 
 Package: gnumach-udeb
-XC-Package-Type: udeb
+Package-Type: udeb
 Provides: kernel-image, floppy-modules, ide-modules, input-modules, nic-modules, nic-pcmcia-modules, nic-wireless-modules, pcmcia-modules, scsi-modules, serial-modules
 Section: debian-installer
 Architecture: hurd-i386

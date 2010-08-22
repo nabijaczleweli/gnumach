@@ -6,6 +6,7 @@ gnumach (2:1.3.99.dfsg.git20100732-2) unreleased; urgency=low
     shared by gnumach and gnumach-xen, which now depend on it.
   * debian/rules: Add rules to build Xen variants of gnumach.
   * debian/control: Build gnumach-udeb on hurd-i386 only.
+  * debian/control: Use Package-Type instead of XC-Package-Type.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 31 Jul 2010 17:35:20 +0200
 
