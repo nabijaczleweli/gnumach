@@ -14,12 +14,14 @@ Standards-Version: 3.9.1
 Package: gnumach
 Architecture: any-i386
 Depends: ${misc:Depends}, gnumach-common
+Breaks: libc0.3 (<< 2.10.1-3)
 Description: The GNU version of the Mach microkernel
  This is the Utah Mach microkernel used by the Hurd.
 
 Package: gnumach-xen
 Architecture: any-i386
 Depends: ${misc:Depends}, gnumach-common
+Breaks: libc0.3 (<< 2.10.1-3)
 Description: The GNU version of the Mach microkernel for Xen
  This is the Utah Mach microkernel used by the Hurd.
  .
