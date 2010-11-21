@@ -1,17 +1,19 @@
 gnumach (2:1.3.99.dfsg.git20100732-2) unreleased; urgency=low
 
   [ Samuel Thibault ]
-  * debian/control: Add gnumach-xen and gnumach-xen-dbg, containing Xen
-    variants of gnumach and gnumach-dbg. Add gnumach-common to contain msgids
-    shared by gnumach and gnumach-xen, which now depend on it.
   * debian/rules: Add rules to build Xen variants of gnumach.
-  * debian/control: Build gnumach-udeb on hurd-i386 only.
-  * debian/control: Use Package-Type instead of XC-Package-Type.
   * debian/source/options: Enable bz2 compression.
   * debian/patches/60_bigmem.patch: Add patch to support almost up to 2GiB
     memory.
-  * debian/control: Make gnumach packages break glibc versions before the one
-    which can cope with > 1GiB memory support.
+  * debian/control:
+    - Add gnumach-xen and gnumach-xen-dbg, containing Xen variants of gnumach
+    and gnumach-dbg. Add gnumach-common to contain msgids shared by gnumach and
+    gnumach-xen, which now depend on it.
+    - Build gnumach-udeb on hurd-i386 only.
+    - Use Package-Type instead of XC-Package-Type.
+    - Make gnumach packages break glibc versions before the one which can cope
+    with > 1GiB memory support.
+    - Fix upstream URL (Closes: Bug#604257).
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 31 Jul 2010 17:35:20 +0200
 
