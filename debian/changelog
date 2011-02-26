@@ -12,10 +12,10 @@ gnumach (2:1.3.99.dfsg.git20100732-2) unreleased; urgency=low
     - Add gnumach-image-1.3.99-xen-486{,-dbg} containing Xen variants of gnumach
     - Add gnumach-common to contain msgids and info documentation shared by
     gnumach-image-1.3.99 packages, which now depend on it.
-    - Add gnumach-image-{xen-,}486{,-dbg}, which depend on
-    gnumach-image-1.3.99-{xen-,}486{,-dbg}.
-    - Re-add gnumach{,-dbg} packages, which depend on
-    gnumach-image-486{,-dbg}, make these packages break grub-pc versions
+    - Add gnumach-image-{xen-,}486, which depend on
+    gnumach-image-1.3.99-{xen-,}486.
+    - Re-add gnumach{,-dbg} packages, which depend on gnumach-image-486 and
+    gnumach-image-1.3.99-486-dbg, make these packages break grub-pc versions
     before the one which generate menu entries for all /boot/gnumach* files.
     - Rename gnumach-udeb into kernel-image-1.3.99-486-di.
     - Add kernel-image-1.3.99-xen-486-di.

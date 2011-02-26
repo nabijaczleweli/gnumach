@@ -23,7 +23,7 @@ Package: gnumach-dbg
 Section: debug
 Priority: extra
 Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-image-486-dbg
+Depends: ${misc:Depends}, gnumach (= ${binary:Version}), gnumach-image-1.3.99-486-dbg
 Breaks: grub-pc (<< 1.98+20100527-1)
 Description: Dummy transition package for gnumach-image-*-dbg
  This is a dummy package to ease the transition to gnumach-image-*dbg
@@ -42,26 +42,6 @@ Depends: ${misc:Depends}, gnumach-image-1.3.99-xen-486
 Description: The GNU version of the Mach microkernel
  This package depends on the latest GNU Mach kernel for use on PCs
  with a 486, Pentium or compatible processor.
- .
- This kernel is for use in unprivileged (domU) Xen domains.
-
-Package: gnumach-image-486-dbg
-Section: debug
-Priority: extra
-Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-image-1.3.99-486-dbg
-Description: The GNU version of the Mach microkernel for debugging
- This package depends on the latest GNU Mach kernel for debugging on
- PCs with a 486, Pentium or compatible processor.
-
-Package: gnumach-image-xen-486-dbg
-Section: debug
-Priority: extra
-Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-image-1.3.99-xen-486-dbg
-Description: The GNU version of the Mach microkernel for debugging
- This package depends on the latest GNU Mach kernel for debugging on
- PCs with a 486, Pentium or compatible processor.
  .
  This kernel is for use in unprivileged (domU) Xen domains.
 
