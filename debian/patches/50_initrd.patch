@@ -12,8 +12,8 @@ Index: gnumach/Makefrag.am
 +	device/ramdisk.c \
 +	device/ramdisk.h \
  	device/subrs.c \
+ 	device/subrs.h \
  	device/tty.h
- EXTRA_DIST += \
 Index: gnumach/i386/i386at/conf.c
 ===================================================================
 --- gnumach.orig/i386/i386at/conf.c	2010-06-12 03:44:45.000000000 +0200
