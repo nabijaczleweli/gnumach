@@ -748,6 +748,9 @@ int	regs;
 	if (kd_pollc)
 	    return;				/* kdb polling kbd */
 
+	if (!kd_initialized)
+		return;
+
 	tp = &kd_tty;
 #ifdef	old
 	while ((inb(K_STATUS) & K_OBUF_FUL) == 0);	/* this should never loop */
@@ -2360,7 +2363,9 @@ kd_setleds1(val)
 u_char val;
 {
 	if (kd_ack != NOT_WAITING) {
+#ifdef MACH_KBD
 		printf("kd_setleds1: unexpected state (%d)\n", kd_ack);
+#endif
 		return;
 	}
 

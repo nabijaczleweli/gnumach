@@ -31,7 +31,9 @@
 	.ascii  ",PAE=no"
 #endif
 	.ascii	",LOADER=generic"
-#ifndef	MACH_PSEUDO_PHYS
+#ifdef	MACH_PSEUDO_PHYS
+	.ascii	",FEATURES=pae_pgdir_above_4gb"
+#else	/* MACH_PSEUDO_PHYS */
 	.ascii	",FEATURES=!auto_translated_physmap"
 #endif
 	.byte	0
@@ -63,8 +65,10 @@
 #endif
 	ELFNOTE(Xen, XEN_ELFNOTE_LOADER,		.asciz, "generic")
 	ELFNOTE(Xen, XEN_ELFNOTE_FEATURES,              .asciz, ""
-#ifndef MACH_PSEUDO_PHYS
-						"!auto_translated_physmap"
+#ifdef MACH_PSEUDO_PHYS
+						"pae_pgdir_above_4gb"
+#else /* MACH_PSEUDO_PHYS */
+						"!auto_translated_physmap|"
 #endif
 	)
 
@@ -89,6 +93,23 @@ _start:
 	/* Push the start_info pointer to be the second argument.  */
 	subl    $KERNELBASE,%esi
 	pushl	%esi
+
+	/* Fix ifunc entries */
+	movl    $__rel_iplt_start,%esi
+	movl    $__rel_iplt_end,%edi
+iplt_cont:
+	cmpl    %edi,%esi
+	jae     iplt_done
+	movl    (%esi),%ebx	/* r_offset */
+	movb    4(%esi),%al	/* info */
+	cmpb    $42,%al		/* IRELATIVE */
+	jnz     iplt_next
+	call    *(%ebx)		/* call ifunc */
+	movl    %eax,(%ebx)	/* fixed address */
+iplt_next:
+	addl    $8,%esi
+	jmp     iplt_cont
+iplt_done:
 
 	/* Jump into C code.  */
 	call	EXT(c_boot_entry)
