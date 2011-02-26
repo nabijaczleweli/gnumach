@@ -4,11 +4,15 @@
 # Rewritten by Guillem Jover <guillem@debian.org>
 #
 
-pkg := gnumach
-pkg_xen := gnumach-xen
-pkg_udeb := gnumach-udeb
-pkg_dbg := gnumach-dbg
-pkg_xen_dbg := gnumach-xen-dbg
+VERSION=1.3.99
+MACHINE=486
+
+pkg := gnumach-image-$(VERSION)-$(MACHINE)
+pkg_xen := gnumach-image-$(VERSION)-xen-$(MACHINE)
+pkg_udeb := kernel-image-$(VERSION)-$(MACHINE)-di
+pkg_xen_udeb := kernel-image-$(VERSION)-xen-$(MACHINE)-di
+pkg_dbg := gnumach-image-$(VERSION)-$(MACHINE)-dbg
+pkg_xen_dbg := gnumach-image-$(VERSION)-xen-$(MACHINE)-dbg
 pkg_common := gnumach-common
 pkg_dev := gnumach-dev
 
@@ -139,35 +143,49 @@ install: build
 	$(MAKE) -C build-xen-dbg install-exec \
 		DESTDIR=$(D_XEN_DBG) \
 	
-	mv $(D_XEN)/boot/gnumach $(D_XEN)/boot/gnumach-xen
-	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-dbg
-	mv $(D_XEN_DBG)/boot/gnumach $(D_XEN_DBG)/boot/gnumach-xen-dbg
+	mv $(D)/boot/gnumach $(D)/boot/gnumach-$(VERSION)-$(MACHINE)
+	mv $(D_XEN)/boot/gnumach $(D_XEN)/boot/gnumach-$(VERSION)-xen-$(MACHINE)
+	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-$(VERSION)-$(MACHINE)-dbg
+	mv $(D_XEN_DBG)/boot/gnumach $(D_XEN_DBG)/boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
 
 binary: binary-indep binary-arch
 
-binary-indep:
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	
+	dh_install -i --sourcedir=$(D)
+	
+	dh_installdocs -i
+	dh_installchangelogs -i -k ChangeLog
+#	dh_installinfo -a
+	
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
 binary-arch: install
 	dh_testdir
 	dh_testroot
 	
-	dh_install -a -N$(pkg_xen) -N$(pkg_dbg) -N$(pkg_xen_dbg) --sourcedir=$(D)
-	dh_install -p$(pkg_xen) --sourcedir=$(D_XEN)
+	dh_install -a -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg) --sourcedir=$(D)
+	dh_install -p$(pkg_xen) -p$(pkg_xen_udeb) --sourcedir=$(D_XEN)
 	dh_install -p$(pkg_dbg) --sourcedir=$(D_DBG)
 	dh_install -p$(pkg_xen_dbg) --sourcedir=$(D_XEN_DBG)
 	
 	dh_installdocs -a
 	dh_installchangelogs -a -k ChangeLog
-#	dh_installinfo -a
 	
 	dh_link -a
 	dh_strip -a -N$(pkg_dbg) -N$(pkg_xen_dbg)
-	dh_compress -p$(pkg) -p$(pkg_udeb) -A boot/gnumach
-	dh_compress -p$(pkg_xen) boot/gnumach-xen
-	dh_compress -p$(pkg_dbg) boot/gnumach-dbg
-	dh_compress -p$(pkg_xen_dbg) boot/gnumach-xen-dbg
-	dh_compress -p$(pkg_common)
-	dh_compress -p$(pkg_dev)
+	dh_compress -a -N$(pkg) -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg)
+	dh_compress -p$(pkg) -p$(pkg_udeb) -A boot/gnumach-$(VERSION)-$(MACHINE)
+	dh_compress -p$(pkg_xen) -p$(pkg_xen_udeb) -A boot/gnumach-$(VERSION)-xen-$(MACHINE)
+	dh_compress -p$(pkg_dbg) boot/gnumach-$(VERSION)-$(MACHINE)-dbg
+	dh_compress -p$(pkg_xen_dbg) boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
 	dh_fixperms -a
 	dh_installdeb -a
 	dh_gencontrol -a
