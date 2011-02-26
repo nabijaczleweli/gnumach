@@ -128,13 +128,11 @@ extern void	setup_main();
 void		halt_all_cpus (boolean_t reboot) __attribute__ ((noreturn));
 void		halt_cpu (void) __attribute__ ((noreturn));
 
+int		discover_x86_cpu_type (void);
+
 void		inittodr();	/* forward */
 
 int		rebootflag = 0;	/* exported to kdintr */
-
-#if ! MACH_KBD
-boolean_t reboot_on_panic = 1;
-#endif
 
 /* XX interrupt stack pointer and highwater mark, for locore.S.  */
 vm_offset_t int_stack_top, int_stack_high;
@@ -551,22 +549,6 @@ void c_boot_entry(vm_offset_t bi)
 	{
 		aout_db_sym_init(kern_sym_start, kern_sym_end, "mach", 0);
 	}
-
-	/*
-	 * Cause a breakpoint trap to the debugger before proceeding
-	 * any further if the proper option flag was specified
-	 * on the kernel's command line.
-	 * XXX check for surrounding spaces.
-	 */
-	if (strstr(kernel_cmdline, "-d ")) {
-		cninit();		/* need console for debugger */
-		SoftDebugger("init");
-	}
-#else
-	if (strstr (kernel_cmdline, "-H "))
-	  {
-	    reboot_on_panic = 0;
-	  }
 #endif	/* MACH_KDB */
 
 	machine_slot[0].is_cpu = TRUE;
@@ -575,8 +557,9 @@ void c_boot_entry(vm_offset_t bi)
 
 	switch (cpu_type)
 	  {
-	  case 3:
 	  default:
+	    printf("warning: unknown cpu type %d, assuming i386\n", cpu_type);
+	  case 3:
 	    machine_slot[0].cpu_type = CPU_TYPE_I386;
 	    break;
 	  case 4:
@@ -586,6 +569,7 @@ void c_boot_entry(vm_offset_t bi)
 	    machine_slot[0].cpu_type = CPU_TYPE_PENTIUM;
 	    break;
 	  case 6:
+	  case 15:
 	    machine_slot[0].cpu_type = CPU_TYPE_PENTIUMPRO;
 	    break;
 	  }
