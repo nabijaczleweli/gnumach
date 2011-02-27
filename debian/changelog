@@ -10,7 +10,8 @@ gnumach (2:1.3.99.dfsg.git20110227-1) unreleased; urgency=low
   * debian/rules: Rename /boot/gnumach* into
     /boot/gnumach-1.3.99-{xen-,}486{,-dbg}
   * debian/control:
-    - Rename gnumach{,-dbg} into gnumach-image-1.3.99-486{,-dbg}
+    - Rename gnumach{,-dbg} into gnumach-image-1.3.99-486{,-dbg} (except in
+    udebs).
     - Add gnumach-image-1.3.99-xen-486{,-dbg} containing Xen variants of gnumach
     - Add gnumach-common to contain msgids and info documentation shared by
     gnumach-image-1.3.99 packages, which now depend on it.
