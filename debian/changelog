@@ -29,6 +29,7 @@ gnumach (2:1.3.99.dfsg.git20110227-1) unreleased; urgency=low
     - Fix upstream URL (Closes: Bug#604257).
   * debian/rules: Apply package renames in $(pkg{,_xen,_udeb,_dbg,_xen_dbg).
   * debian/gnumach*.{install,docs}: Rename accordingly.
+  * debian/patches/11_ignore_CSIn.patch: Ignore \E[6n emited by busybox.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 31 Jul 2010 17:35:20 +0200
 
