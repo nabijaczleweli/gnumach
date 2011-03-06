@@ -76,7 +76,7 @@ Description: The GNU version of the Mach microkernel for the Debian installer
  your full Debian system.
 
 Package: kernel-image-1.3.99-xen-486-di
-XB-Kernel-Version: 1.3.99-486
+XB-Kernel-Version: 1.3.99-xen-486
 Package-Type: udeb
 Provides: kernel-image, input-modules, nic-modules
 Section: debian-installer
