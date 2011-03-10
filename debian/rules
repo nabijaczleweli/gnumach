@@ -4,8 +4,15 @@
 # Rewritten by Guillem Jover <guillem@debian.org>
 #
 
-VERSION=1.3.99
-MACHINE=486
+FULL_VERSION     := $(shell dpkg-parsechangelog | grep ^Version: | sed -e 's/^.*: //g')
+NOEPOCH_VERSION  := $(shell echo $(FULL_VERSION) | sed -e 's/.*://g')
+TAR_VERSION      := $(shell echo $(NOEPOCH_VERSION) | sed -e 's/-.*//g')
+VERSION          := $(shell echo $(TAR_VERSION) | sed -e 's/\.dfsg.*//g')
+MAJOR            := $(shell echo $(VERSION) | sed -e 's/\..*//g')
+DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+
+
+MACHINE         := 486
 
 pkg := gnumach-image-$(VERSION)-$(MACHINE)
 pkg_xen := gnumach-image-$(VERSION)-xen-$(MACHINE)
@@ -123,6 +130,11 @@ clean:
 	rm -rf autom4te.cache build-aux
 	rm -f aclocal.m4 config.h.in configure INSTALL Makefile.in
 	find -name '*~' -o -name '*.rej' -o -name '*.orig' | xargs rm -f
+
+	rm -f debian/gnumach-image-*.preinst
+	rm -f debian/gnumach-image-*.prerm
+	rm -f debian/gnumach-image-*.postinst
+	rm -f debian/gnumach-image-*.postrm
 	
 	dh_clean
 
@@ -153,6 +165,19 @@ install: build
 	mv $(D_XEN)/boot/gnumach $(D_XEN)/boot/gnumach-$(VERSION)-xen-$(MACHINE)
 	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-$(VERSION)-$(MACHINE)-dbg
 	mv $(D_XEN_DBG)/boot/gnumach $(D_XEN_DBG)/boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
+
+ifeq ($(DEB_HOST_ARCH_OS),hurd)
+	for script in preinst prerm postinst postrm ; do \
+		sed -e "s/@VERSION@/$(VERSION)/g" \
+		    -e "s/@RELEASE@/$(VERSION)-$(MACHINE)/g" \
+		    debian/gnumach-image.$$script.in \
+			> debian/gnumach-image-$(VERSION)-$(MACHINE).$$script ; \
+		sed -e "s/@VERSION@/$(VERSION)/g" \
+		    -e "s/@RELEASE@/$(VERSION)-xen-$(MACHINE)/g" \
+		    debian/gnumach-image.$$script.in \
+			> debian/gnumach-image-$(VERSION)-xen-$(MACHINE).$$script ; \
+	done
+endif
 
 binary: binary-indep binary-arch
 
