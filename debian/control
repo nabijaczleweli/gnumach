@@ -13,7 +13,7 @@ Standards-Version: 3.9.1
 
 Package: gnumach
 Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-image-486
+Depends: ${misc:Depends}, gnumach-image-1-486
 Breaks: grub-pc (<< 1.98+20100527-1)
 Description: Dummy transition package for gnumach-image-*
  This is a dummy package to ease the transition to gnumach-image-*
@@ -29,14 +29,14 @@ Description: Dummy transition package for gnumach-image-*-dbg
  This is a dummy package to ease the transition to gnumach-image-*dbg
  package names.  It can be purged safely after upgrade.
 
-Package: gnumach-image-486
+Package: gnumach-image-1-486
 Architecture: any-i386
 Depends: ${misc:Depends}, gnumach-image-1.3.99-486
 Description: The GNU version of the Mach microkernel
  This package depends on the latest GNU Mach kernel for use on PCs
  with a 486, Pentium or compatible processor.
 
-Package: gnumach-image-xen-486
+Package: gnumach-image-1-xen-486
 Architecture: any-i386
 Depends: ${misc:Depends}, gnumach-image-1.3.99-xen-486
 Description: The GNU version of the Mach microkernel
@@ -47,7 +47,7 @@ Description: The GNU version of the Mach microkernel
 
 Package: gnumach-image-1.3.99-486
 Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-common
+Depends: ${misc:Depends}
 Provides: gnumach-image
 Breaks: libc0.3 (<< 2.10.1-3)
 Description: The GNU version of the Mach microkernel
@@ -55,7 +55,7 @@ Description: The GNU version of the Mach microkernel
 
 Package: gnumach-image-1.3.99-xen-486
 Architecture: any-i386
-Depends: ${misc:Depends}, gnumach-common
+Depends: ${misc:Depends}
 Provides: gnumach-image
 Breaks: libc0.3 (<< 2.10.1-3)
 Description: The GNU version of the Mach microkernel for Xen
@@ -120,7 +120,9 @@ Depends: ${misc:Depends}
 Replaces: gnumach (<< 2:1.3.99.dfsg.git20110227-1)
 Breaks: gnumach (<< 2:1.3.99.dfsg.git20110227-1)
 Description: The GNU version of the Mach microkernel, common files.
- This are common files used by the Utah Mach microkernel used by the Hurd.
+ These are common files along the Utah Mach microkernel used by the Hurd.
+ .
+ It notably provides useful messages IDs for rpctrace.
 
 Package: gnumach-dev
 Section: devel
