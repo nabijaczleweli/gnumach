@@ -9,7 +9,7 @@ Vcs-Browser: http://git.debian.org/?p=pkg-hurd/gnumach.git
 Vcs-Git: git://git.debian.org/pkg-hurd/gnumach.git
 Build-Depends: debhelper (>= 7), mig, sharutils,
  autoconf, automake
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 
 Package: gnumach
 Architecture: any-i386
