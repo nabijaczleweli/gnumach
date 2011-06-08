@@ -599,6 +599,7 @@ ENTRY(call_continuation)
 	addl	$(-3-IKS_SIZE),%ecx
 	movl	%ecx,%esp			/* pop the stack */
 	xorl	%ebp,%ebp			/* zero frame pointer */
+	pushl	$0				/* Dummy return address */
 	jmp	*%eax				/* goto continuation */
 
 
@@ -810,7 +811,7 @@ ast_from_interrupt:
 #ifdef	MACH_XEN
 #define	RET_OFFSET	8
 #else	/* MACH_XEN */
-#define	RET_OFFSET	16
+#define	RET_OFFSET	20
 #endif	/* MACH_XEN */
 
 ENTRY(kdb_kintr)
