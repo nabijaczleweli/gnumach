@@ -1,9 +1,9 @@
-gnumach (2:1.3.99.dfsg.git20110609-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.git20110609-1) unstable; urgency=low
 
   * New upstream snapshot
   * Bump Standards-Version to 3.9.2 (no change needed)
 
- -- Samuel Thibault <sthibault@debian.org>  Thu, 09 Jun 2011 00:30:22 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 08 Jun 2011 22:50:30 +0000
 
 gnumach (2:1.3.99.dfsg.git20110305-1) unstable; urgency=low
 
