@@ -577,6 +577,7 @@ ipc_entry_grow_table(space)
 
 		if (osize == size) {
 			is_write_unlock(space);
+			printf_once("no more room for ipc_entry_grow_table in space %p\n", space);
 			return KERN_NO_SPACE;
 		}
 
