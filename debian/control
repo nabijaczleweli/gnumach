@@ -68,7 +68,7 @@ XB-Kernel-Version: 1.3.99-486
 Package-Type: udeb
 Provides: kernel-image, floppy-modules, ide-modules, input-modules, nic-modules, nic-pcmcia-modules, nic-wireless-modules, pcmcia-modules, scsi-modules, serial-modules
 Section: debian-installer
-Architecture: any-i386
+Architecture: hurd-i386
 Depends: ${misc:Depends}, hurd-udeb
 Description: The GNU version of the Mach microkernel for the Debian installer
  This is the Utah Mach microkernel used by the Hurd for the Debian
@@ -80,7 +80,7 @@ XB-Kernel-Version: 1.3.99-xen-486
 Package-Type: udeb
 Provides: kernel-image, input-modules, nic-modules
 Section: debian-installer
-Architecture: any-i386
+Architecture: hurd-i386
 Depends: ${misc:Depends}, hurd-udeb
 Description: The GNU version of the Mach microkernel for the Debian installer
  This is the Utah Mach microkernel used by the Hurd for the Debian
