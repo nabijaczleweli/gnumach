@@ -235,16 +235,6 @@ Index: b/linux/src/drivers/block/triton.c
  
  /*
   * dma_intr() is the handler for disk read/write DMA interrupts
-@@ -161,8 +111,8 @@ static void dma_intr (ide_drive_t *drive
- 	struct request *rq = HWGROUP(drive)->rq;
- 	unsigned short dma_base = HWIF(drive)->dma_base;
- 
--	dma_stat = inb(dma_base+2);		/* get DMA status */
- 	outb(inb(dma_base)&~1, dma_base);	/* stop DMA operation */
-+	dma_stat = inb(dma_base+2);		/* get DMA status */
- 	stat = GET_STAT();			/* get drive status */
- 	if (OK_STAT(stat,DRIVE_READY,drive->bad_wstat|DRQ_STAT)) {
- 		if ((dma_stat & 7) == 4) {	/* verify good DMA status */
 @@ -244,23 +194,57 @@ static int build_dmatable (ide_drive_t *
  	return 1;	/* let the PIO routines handle this weirdness */
  }
