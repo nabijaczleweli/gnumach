@@ -168,14 +168,14 @@ install: build
 
 ifeq ($(DEB_HOST_ARCH_OS),hurd)
 	for script in preinst prerm postinst postrm ; do \
-		sed -e "s/@VERSION@/$(VERSION)/g" \
-		    -e "s/@RELEASE@/$(VERSION)-$(MACHINE)/g" \
-		    debian/gnumach-image.$$script.in \
-			> debian/gnumach-image-$(VERSION)-$(MACHINE).$$script ; \
-		sed -e "s/@VERSION@/$(VERSION)/g" \
-		    -e "s/@RELEASE@/$(VERSION)-xen-$(MACHINE)/g" \
-		    debian/gnumach-image.$$script.in \
-			> debian/gnumach-image-$(VERSION)-xen-$(MACHINE).$$script ; \
+		for prefix in "" -xen ; do \
+			for suffix in "" -dbg ; do \
+				sed -e "s/@VERSION@/$(VERSION)/g" \
+				    -e "s/@RELEASE@/$(VERSION)$$prefix-$(MACHINE)$$suffix/g" \
+				    debian/gnumach-image.$$script.in \
+					> debian/gnumach-image-$(VERSION)$$prefix-$(MACHINE)$$suffix.$$script ; \
+			done ; \
+		done ; \
 	done
 endif
 
