@@ -29,6 +29,7 @@
 
 #include <kern/assert.h>
 #include <kern/kalloc.h>
+#include <kern/printf.h>
 
 #include <vm/vm_page.h>
 #include <vm/vm_kern.h>
@@ -40,14 +41,13 @@
 
 #include <asm/system.h>
 
-extern void *alloc_contig_mem (unsigned, unsigned, unsigned, vm_page_t *);
-extern int printf (const char *, ...);
+#include <linux/dev/glue/glue.h>
 
 /* Amount of memory to reserve for Linux memory allocator.
    We reserve 64K chunks to stay within DMA limits.
    Increase MEM_CHUNKS if the kernel is running out of memory.  */
 #define MEM_CHUNK_SIZE	(64 * 1024)
-#define MEM_CHUNKS	7
+#define MEM_CHUNKS	32
 #define MEM_DMA_LIMIT	(16 * 1024 * 1024)
 
 /* Mininum amount that linux_kmalloc will allocate.  */
@@ -554,7 +554,7 @@ vfree (void *addr)
   if (!p)
     panic ("vmalloc_list_lookup failure");
   
-  kmem_free (kernel_map, addr, p->size);
+  kmem_free (kernel_map, (vm_offset_t) addr, p->size);
   vmalloc_list_remove (p);
 }
 

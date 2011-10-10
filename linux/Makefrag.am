@@ -1,6 +1,6 @@
 # Makefile fragment for Linux device drivers and the glue code.
 
-# Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2007, 2011 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -57,6 +57,7 @@ liblinux_a_SOURCES = \
 	linux/dev/kernel/sched.c \
 	linux/dev/glue/kmem.c \
 	linux/dev/glue/block.c \
+	linux/dev/glue/glue.h \
 	linux/dev/arch/i386/kernel/setup.c
 
 liblinux_a_SOURCES += \
@@ -257,6 +258,14 @@ if device_driver_seagate
 liblinux_a_SOURCES += \
 	linux/src/drivers/scsi/seagate.c \
 	linux/src/drivers/scsi/seagate.h
+endif
+
+if device_driver_sym53c8xx
+liblinux_a_SOURCES += \
+	linux/src/drivers/scsi/sym53c8xx.c \
+	linux/src/drivers/scsi/sym53c8xx_comm.h \
+	linux/src/drivers/scsi/sym53c8xx.h \
+	linux/src/drivers/scsi/sym53c8xx_defs.h
 endif
 
 if device_driver_t128

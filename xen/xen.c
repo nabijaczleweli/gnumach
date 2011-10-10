@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007-2011 Samuel Thibault <samuel.thibault@ens-lyon.org>
+ *  Copyright (C) 2007-2011 Free Software Foundation
  *
  * This program is free software ; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,6 @@
 #include <xen/time.h>
 #include "xen.h"
 #include "evt.h"
-
-void hyp_invalidate_pte(pt_entry_t *pte)
-{
-	if (!hyp_mmu_update_pte(kv_to_ma(pte), (*pte) & ~INTEL_PTE_VALID))
-		panic("%s:%d could not set pte %p(%p) to %p(%p)\n",__FILE__,__LINE__,pte,(vm_offset_t) kv_to_ma(pte),*pte,ma_to_pa(*pte));
-	hyp_mmuext_op_void(MMUEXT_TLB_FLUSH_LOCAL);
-}
 
 void hyp_debug()
 {

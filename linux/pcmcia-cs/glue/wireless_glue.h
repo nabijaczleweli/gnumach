@@ -48,14 +48,7 @@
 #endif
 
 
-/*
- * We compile everything directly into the GNU Mach kernel, there are no
- * modules.
- */
-#define SET_MODULE_OWNER(a)     do{ } while(0)
-#define EXPORT_SYMBOL(a)
-
-
+#include <kern/debug.h>
 
 /*
  * We need some `schedule_task' replacement.  This is defined in

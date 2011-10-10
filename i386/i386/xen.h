@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006, 2009, 2010, 2011 Samuel Thibault <samuel.thibault@ens-lyon.org>
+ *  Copyright (C) 2006-2011 Free Software Foundation
  *
  * This program is free software ; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <mach/machine/vm_types.h>
 #include <mach/vm_param.h>
 #include <mach/inline.h>
+#include <mach/xen.h>
 #include <machine/vm_param.h>
 #include <intel/pmap.h>
 #include <kern/debug.h>
