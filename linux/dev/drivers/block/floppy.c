@@ -177,6 +177,8 @@ static inline int __get_order(unsigned long size);
 #include <linux/blk.h>
 #include <linux/cdrom.h> /* for the compatibility eject ioctl */
 
+#include <linux/dev/glue/glue.h>
+
 
 #ifndef FLOPPY_MOTOR_MASK
 #define FLOPPY_MOTOR_MASK 0xf0
@@ -437,7 +439,6 @@ static int probing = 0;
 static volatile int command_status = FD_COMMAND_NONE, fdc_busy = 0;
 static struct wait_queue *fdc_wait = NULL, *command_done = NULL;
 #ifdef MACH
-extern int issig (void);
 #define NO_SIGNAL (! issig () || ! interruptible)
 #else
 #define NO_SIGNAL (!(current->signal & ~current->blocked) || !interruptible)
@@ -1412,7 +1413,7 @@ static int interpret_errors(void)
  */
 static void setup_rw_floppy(void)
 {
-	int i,ready_date,r, flags,dflags;
+	int i, ready_date, r, flags;
 	timeout_fn function;
 
 	flags = raw_cmd->flags;
@@ -1435,7 +1436,6 @@ static void setup_rw_floppy(void)
 		if (wait_for_completion(ready_date,function))
 			return;
 	}
-	dflags = DRS->flags;
 
 	if ((flags & FD_RAW_READ) || (flags & FD_RAW_WRITE))
 		setup_DMA();
@@ -4172,8 +4172,6 @@ static void floppy_release_irq_and_dma(void)
 
 #ifdef MODULE
 
-extern char *get_options(char *str, int *ints);
-
 char *floppy=NULL;
 
 static void parse_floppy_cfg_string(char *cfg)
@@ -4277,11 +4275,10 @@ void cleanup_module(void)
  * resource contention. */
 void floppy_eject(void)
 {
-	int dummy;
 	if(floppy_grab_irq_and_dma()==0)
 	{
 		lock_fdc(MAXTIMEOUT,0);
-		dummy=fd_eject(0);
+		fd_eject(0);
 		process_fd_request();
 		floppy_release_irq_and_dma();
 	}

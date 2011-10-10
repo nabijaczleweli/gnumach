@@ -53,7 +53,6 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <i386/pio.h>
 #include <i386at/rtc.h>
 
-static unsigned char rtc[RTC_NREG];
 static int first_rtcopen_ever = 1;
 
 void
@@ -139,11 +138,7 @@ readtodc(tp)
 	int i, days = 0;
 	spl_t	ospl;
 
-#ifdef	MACH_KERNEL
 	ospl = splclock();
-#else	/* MACH_KERNEL */
-	ospl = spl5();
-#endif	/* MACH_KERNEL */
 	if (rtcget(&rtclk)) {
 		splx(ospl);
 		return(-1);
@@ -170,12 +165,6 @@ readtodc(tp)
 		days += yeartoday(i);
 	n += days * 3600 * 24;
 
-#ifdef	MACH_KERNEL
-#else	/* MACH_KERNEL */
-	n += tz.tz_minuteswest * 60;
-	if (tz.tz_dsttime)
-		n -= 3600;
-#endif	/* MACH_KERNEL */
 
 	*tp = n;
 
@@ -190,24 +179,14 @@ writetodc()
 	int diff, i, j;
 	spl_t	ospl;
 
-#ifdef	MACH_KERNEL
 	ospl = splclock();
-#else	/* MACH_KERNEL */
-	ospl = spl5();
-#endif	/* MACH_KERNEL */
 	if (rtcget(&rtclk)) {
 		splx(ospl);
 		return(-1);
 	}
 	splx(ospl);
 
-#ifdef	MACH_KERNEL
 	diff = 0;
-#else	/* MACH_KERNEL */
-	diff = tz.tz_minuteswest * 60;
-	if (tz.tz_dsttime)
-		diff -= 3600;
-#endif	/* MACH_KERNEL */
 	n = (time.tv_sec - diff) % (3600 * 24);   /* hrs+mins+secs */
 	rtclk.rtc_sec = dectohexdec(n%60);
 	n /= 60;
@@ -231,11 +210,7 @@ writetodc()
 
 	rtclk.rtc_dom = dectohexdec(++n);
 
-#ifdef	MACH_KERNEL
 	ospl = splclock();
-#else	/* MACH_KERNEL */
-	ospl = spl5();
-#endif	/* MACH_KERNEL */
 	rtcput(&rtclk);
 	splx(ospl);
 

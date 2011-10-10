@@ -85,6 +85,7 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <device/io_req.h>
 #include <device/buf.h>		/* for struct uio (!) */
 #include <vm/vm_kern.h>
+#include <i386/locore.h>
 #include <i386/loose_ends.h>
 #include <i386/vm_param.h>
 #include <i386/machspl.h>
@@ -112,10 +113,6 @@ static void charput(), charmvup(), charmvdown(), charclear(), charsetcursor();
 static void kd_noopreset();
 boolean_t kdcheckmagic();
 
-int kdcnprobe(struct consdev *cp);
-int kdcninit(struct consdev *cp);
-int kdcngetc(dev_t dev, int wait);
-void kdcnputc(dev_t dev, int c);
 int do_modifier (int, Scancode, boolean_t);
 
 /*
@@ -735,9 +732,8 @@ int	flags;				/* flags set for console */
  */
 /*ARGSUSED*/
 void
-kdintr(vec, regs)
+kdintr(vec)
 int	vec;
-int	regs;
 {
 	struct	tty	*tp;
 	unsigned char	c;
@@ -802,7 +798,7 @@ int	regs;
 		goto done;
 	} else if (kd_kbd_mouse && kd_kbd_magic(scancode)) {
 		goto done;
-	} else if (kdcheckmagic(scancode, &regs)) {
+	} else if (kdcheckmagic(scancode)) {
 		goto done;
 	} else if (kb_mode == KB_EVENT) {
 		kd_enqsc(scancode);
@@ -988,9 +984,8 @@ boolean_t	up;
  *		are still held down.
  */
 boolean_t
-kdcheckmagic(scancode, regs)
+kdcheckmagic(scancode)
 Scancode	scancode;
-int		*regs;
 {
 	static int magic_state = KS_NORMAL; /* like kd_state */
 	boolean_t up = FALSE;
@@ -2969,16 +2964,18 @@ kdcngetc(dev_t dev, int wait)
 		return kdcnmaygetc();
 }
 
-void
+int
 kdcnputc(dev_t dev, int c)
 {
 	if (!kd_initialized)
-		return;
+		return -1;
 
 	/* Note that tab is handled in kd_putc */
 	if (c == '\n')
 		kd_putc('\r');
 	kd_putc(c);
+
+	return 0;
 }
 
 /*

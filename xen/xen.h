@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006-2010, 2011 Samuel Thibault <samuel.thibault@ens-lyon.org>
+ *  Copyright (C) 2006-2009, 2011 Free Software Foundation
  *
  * This program is free software ; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 void hyp_init(void);
 void hyp_dev_init(void);
-void hyp_invalidate_pte(pt_entry_t *pte);
 void hyp_idle(void);
 void hyp_p2m_init(void);
 
