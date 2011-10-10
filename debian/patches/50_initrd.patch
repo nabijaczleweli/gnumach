@@ -65,8 +65,8 @@ Index: gnumach/kern/bootstrap.c
 --- gnumach.orig/kern/bootstrap.c	2010-06-12 03:44:44.000000000 +0200
 +++ gnumach/kern/bootstrap.c	2010-06-12 03:45:00.000000000 +0200
 @@ -48,6 +48,7 @@
- #include <vm/vm_kern.h>
  #include <vm/vm_user.h>
+ #include <vm/pmap.h>
  #include <device/device_port.h>
 +#include <device/ramdisk.h>
  

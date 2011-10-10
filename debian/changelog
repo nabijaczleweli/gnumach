@@ -1,6 +1,7 @@
 gnumach (2:1.3.99.dfsg.git20111010-1) UNRELEASED; urgency=low
 
   * New upstream snapshot.
+    - debian/patches/50_initrd.patch: Refresh.
   * debian/control:
     - Do not make -dbg package depend on the non-dbg packages.
     - Make gnumach-image-* packages depend on gnumach-common
