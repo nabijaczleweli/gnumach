@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006 Samuel Thibault <samuel.thibault@ens-lyon.org>
+ *  Copyright (C) 2006-2011 Free Software Foundation
  *
  * This program is free software ; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,9 +216,6 @@ int hypcnclose(int dev, int flag)
 
 int hypcnprobe(struct consdev *cp)
 {
-	struct xencons_interface *my_console;
-	my_console = (void*) mfn_to_kv(boot_info.console_mfn);
-
 	cp->cn_dev = makedev(0, 0);
 	cp->cn_pri = CN_INTERNAL;
 	return 0;

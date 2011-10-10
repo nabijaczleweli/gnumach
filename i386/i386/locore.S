@@ -774,6 +774,7 @@ ast_from_interrupt:
  * #ifndef MACH_XEN
  *		iunit
  *		saved SPL
+ *		irq
  * #endif
  *		return address == return_to_iret_i
  *		saved %edx
@@ -789,6 +790,7 @@ ast_from_interrupt:
  * #ifndef MACH_XEN
  *		iunit
  *		saved SPL
+ *		irq
  * #endif
  *		return address == return_to_iret
  *		pointer to save area on old stack
@@ -1288,48 +1290,51 @@ Entry(copyoutmsg)
 	movl	$USER_DS,%eax		/* use user data segment for accesses */
 	mov	%ax,%es
 
+#if !defined(MACH_HYP) && !PAE
+	cmpl	$3,machine_slot+SUB_TYPE_CPU_TYPE
+	jbe	copyout_retry		/* Use slow version on i386 */
+#endif /* !defined(MACH_HYP) && !PAE */
+
+	movl	%edx,%eax		/* use count */
+	/*cld*/				/* count up: always this way in GCC code */
+	movl	%eax,%ecx		/* move by longwords first */
+	shrl	$2,%ecx
+	RECOVER(copyout_fail)
+	rep
+	movsl
+	movl	%eax,%ecx		/* now move remaining bytes */
+	andl	$3,%ecx
+	RECOVER(copyout_fail)
+	rep
+	movsb				/* move */
+	xorl	%eax,%eax		/* return 0 for success */
+
+copyout_ret:
+	mov	%ss,%di			/* restore ES to kernel segment */
+	mov	%di,%es
+
+	popl	%edi			/* restore registers */
+	popl	%esi
+	ret				/* and return */
+
+copyout_fail:
+	movl	$1,%eax			/* return 1 for failure */
+	jmp	copyout_ret		/* pop frame and return */
+
+#if !defined(MACH_HYP) && !PAE
 /*
  * Check whether user address space is writable
- * before writing to it - hardware is broken.
- * XXX only have to do this on 386's.
+ * before writing to it - i386 hardware is broken.
  */
 copyout_retry:
-#ifdef	MACH_HYP
-	movl	cr3,%ecx		/* point to page directory */
-#else	/* MACH_HYP */
 	movl	%cr3,%ecx		/* point to page directory */
-#endif	/* MACH_HYP */
-#if PAE
-	movl	%edi,%eax		/* get page directory pointer bits */
-	shrl	$(PDPSHIFT),%eax	/* from user address */
-	movl	KERNELBASE(%ecx,%eax,PTE_SIZE),%ecx
-					/* get page directory pointer */
-#ifdef	MACH_PSEUDO_PHYS
-	shrl	$(PTESHIFT),%ecx
-	movl	pfn_list,%eax
-	movl	(%eax,%ecx,4),%ecx	/* mfn_to_pfn */
-	shll	$(PTESHIFT),%ecx
-#else	/* MACH_PSEUDO_PHYS */
-	andl	$(PTE_PFN),%ecx		/* isolate page frame address */
-#endif	/* MACH_PSEUDO_PHYS */
-#endif	/* PAE */
 	movl	%edi,%eax		/* get page directory bits */
 	shrl	$(PDESHIFT),%eax	/* from user address */
-#if PAE
-	andl	$(PDEMASK),%eax
-#endif	/* PAE */
 	movl	KERNELBASE(%ecx,%eax,PTE_SIZE),%ecx
 					/* get page directory pointer */
 	testl	$(PTE_V),%ecx		/* present? */
 	jz	0f			/* if not, fault is OK */
-#ifdef	MACH_PSEUDO_PHYS
-	shrl	$(PTESHIFT),%ecx
-	movl	pfn_list,%eax
-	movl	(%eax,%ecx,4),%ecx	/* mfn_to_pfn */
-	shll	$(PTESHIFT),%ecx
-#else	/* MACH_PSEUDO_PHYS */
 	andl	$(PTE_PFN),%ecx		/* isolate page frame address */
-#endif	/* MACH_PSEUDO_PHYS */
 	movl	%edi,%eax		/* get page table bits */
 	shrl	$(PTESHIFT),%eax
 	andl	$(PTEMASK),%eax		/* from user address */
@@ -1343,17 +1348,9 @@ copyout_retry:
 /*
  * Not writable - must fake a fault.  Turn off access to the page.
  */
-#ifdef	MACH_HYP
-	pushl	%edx
-	pushl	%ecx
-	call	hyp_invalidate_pte
-	popl	%ecx
-	popl	%edx
-#else	/* MACH_HYP */
 	andl	$(PTE_INVALID),(%ecx)	/* turn off valid bit */
 	movl	%cr3,%eax		/* invalidate TLB */
 	movl	%eax,%cr3
-#endif	/* MACH_HYP */
 0:
 
 /*
@@ -1384,18 +1381,8 @@ copyout_retry:
 	subl	%eax,%edx		/* decrement count */
 	jg	copyout_retry		/* restart on next page if not done */
 	xorl	%eax,%eax		/* return 0 for success */
-
-copyout_ret:
-	mov	%ss,%di			/* restore ES to kernel segment */
-	mov	%di,%es
-
-	popl	%edi			/* restore registers */
-	popl	%esi
-	ret				/* and return */
-
-copyout_fail:
-	movl	$1,%eax			/* return 1 for failure */
-	jmp	copyout_ret		/* pop frame and return */
+	jmp	copyout_ret
+#endif /* !defined(MACH_HYP) && !PAE */
 
 /*
  * int inst_fetch(int eip, int cs);

@@ -78,7 +78,7 @@ vm_offset_t	kernel_stack[NCPUS];	/* top of active_stack */
 void stack_attach(thread, stack, continuation)
 	register thread_t thread;
 	register vm_offset_t stack;
-	void (*continuation)();
+	void (*continuation)(thread_t);
 {
 	counter(if (++c_stacks_current > c_stacks_max)
 			c_stacks_max = c_stacks_current);
@@ -96,6 +96,7 @@ void stack_attach(thread, stack, continuation)
 	STACK_IKS(stack)->k_eip = (int) Thread_continue;
 	STACK_IKS(stack)->k_ebx = (int) continuation;
 	STACK_IKS(stack)->k_esp = (int) STACK_IEL(stack);
+	STACK_IKS(stack)->k_ebp = (int) 0;
 
 	/*
 	 *	Point top of kernel stack to user`s registers.

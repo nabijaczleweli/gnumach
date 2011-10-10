@@ -61,6 +61,7 @@
 #include <device/disk_status.h>
 #include <device/device_reply.user.h>
 #include <device/device_emul.h>
+#include <device/ds_routines.h>
 
 /* TODO.  This should be fixed to not be i386 specific.  */
 #include <i386at/disk.h>
@@ -78,9 +79,7 @@
 #include <linux/hdreg.h>
 #include <asm/io.h>
 
-extern int linux_auto_config;
-extern int linux_intr_pri;
-extern int linux_to_mach_error (int);
+#include <linux/dev/glue/glue.h>
 
 /* This task queue is not used in Mach: just for fixing undefined symbols. */
 DECLARE_TASK_QUEUE (tq_disk);
@@ -193,9 +192,6 @@ int read_ahead[MAX_BLKDEV] = {0, };
    This is unused in Mach.  It is here to make drivers compile.  */
 struct wait_queue *wait_for_request = NULL;
 
-/* Map for allocating device memory.  */
-extern vm_map_t device_io_map;
-
 /* Initialize block drivers.  */
 int
 blk_dev_init ()
@@ -230,19 +226,17 @@ int
 register_blkdev (unsigned major, const char *name,
 		 struct file_operations *fops)
 {
-  int err = 0;
-
   if (major == 0)
     {
       for (major = MAX_BLKDEV - 1; major > 0; major--)
 	if (blkdevs[major].fops == NULL)
 	  goto out;
-      return -LINUX_EBUSY;
+      return -EBUSY;
     }
   if (major >= MAX_BLKDEV)
-    return -LINUX_EINVAL;
+    return -EINVAL;
   if (blkdevs[major].fops && blkdevs[major].fops != fops)
-    return -LINUX_EBUSY;
+    return -EBUSY;
 
 out:
   blkdevs[major].name = name;
@@ -260,12 +254,10 @@ out:
 int
 unregister_blkdev (unsigned major, const char *name)
 {
-  int err;
-
   if (major >= MAX_BLKDEV)
-    return -LINUX_EINVAL;
+    return -EINVAL;
   if (! blkdevs[major].fops || strcmp (blkdevs[major].name, name))
-    return -LINUX_EINVAL;
+    return -EINVAL;
   blkdevs[major].fops = NULL;
   if (blkdevs[major].labels)
     {
@@ -280,8 +272,6 @@ unregister_blkdev (unsigned major, const char *name)
 void
 set_blocksize (kdev_t dev, int size)
 {
-  extern int *blksize_size[];
-
   if (! blksize_size[MAJOR (dev)])
     return;
 
@@ -324,7 +314,6 @@ alloc_buffer (int size)
 static void
 free_buffer (void *p, int size)
 {
-  int i;
   struct temp_data *d;
   vm_page_t m;
 
@@ -388,7 +377,6 @@ __brelse (struct buffer_head *bh)
 struct buffer_head *
 bread (kdev_t dev, int block, int size)
 {
-  int err;
   struct buffer_head *bh;
 
   bh = getblk (dev, block, size);
@@ -537,7 +525,7 @@ rdwr_partial (int rw, kdev_t dev, loff_t *off,
     }
   bh->b_data = alloc_buffer (bh->b_size);
   if (! bh->b_data)
-    return -LINUX_ENOMEM;
+    return -ENOMEM;
   ll_rw_block (READ, 1, &bh);
   wait_on_buffer (bh);
   if (buffer_uptodate (bh))
@@ -556,7 +544,7 @@ rdwr_partial (int rw, kdev_t dev, loff_t *off,
 	  wait_on_buffer (bh);
 	  if (! buffer_uptodate (bh))
 	    {
-	      err = -LINUX_EIO;
+	      err = -EIO;
 	      goto out;
 	    }
 	}
@@ -565,7 +553,7 @@ rdwr_partial (int rw, kdev_t dev, loff_t *off,
       *off += c;
     }
   else
-    err = -LINUX_EIO;
+    err = -EIO;
 out:
   free_buffer (bh->b_data, bh->b_size);
   return err;
@@ -618,7 +606,7 @@ rdwr_full (int rw, kdev_t dev, loff_t *off, char **buf, int *resid, int bshift)
 	  bh->b_data = alloc_buffer (cc);
 	  if (! bh->b_data)
 	    {
-	      err = -LINUX_ENOMEM;
+	      err = -ENOMEM;
 	      break;
 	    }
 	  if (rw == WRITE)
@@ -642,7 +630,7 @@ rdwr_full (int rw, kdev_t dev, loff_t *off, char **buf, int *resid, int bshift)
 	  && rw == READ && test_bit (BH_Bounce, &bh->b_state))
 	memcpy (*buf + cc, bh->b_data, bh->b_size);
       else if (! err && ! buffer_uptodate (bh))
-	  err = -LINUX_EIO;
+	  err = -EIO;
       if (test_bit (BH_Bounce, &bh->b_state))
 	free_buffer (bh->b_data, bh->b_size);
     }
@@ -922,7 +910,7 @@ static kern_return_t
 init_partition (struct name_map *np, kdev_t *dev,
 		struct device_struct *ds, int slice, int *part)
 {
-  int err, i, j;
+  int i, j;
   struct disklabel *lp;
   struct gendisk *gd = ds->gd;
   struct partition *p;
@@ -947,7 +935,7 @@ init_partition (struct name_map *np, kdev_t *dev,
       if (gd->part[MINOR (d->inode.i_rdev)].nr_sects <= 0
 	  || gd->part[MINOR (d->inode.i_rdev)].start_sect < 0)
 	continue;
-      linux_intr_pri = SPL5;
+      linux_intr_pri = SPL6;
       d->file.f_flags = 0;
       d->file.f_mode = O_RDONLY;
       if (ds->fops->open && (*ds->fops->open) (&d->inode, &d->file))
@@ -1093,7 +1081,7 @@ device_open (ipc_port_t reply_port, mach_msg_type_name_t reply_port_type,
   if (ds->fops->open)
     {
       td.inode.i_rdev = dev;
-      linux_intr_pri = SPL5;
+      linux_intr_pri = SPL6;
       err = (*ds->fops->open) (&td.inode, &td.file);
       if (err)
 	{
@@ -1674,7 +1662,7 @@ device_get_status (void *d, dev_flavor_t flavor, dev_status_t status,
 	  INIT_DATA();
 
 	  if ((*bd->ds->fops->ioctl) (&td.inode, &td.file,
-				      HDIO_GETGEO, &hg))
+				      HDIO_GETGEO, (unsigned long)&hg))
 	    return D_INVALID_OPERATION;
 
 	  dp->dp_type = DPT_WINI;  /* XXX: It may be a floppy...  */

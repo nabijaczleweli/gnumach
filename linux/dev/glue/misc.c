@@ -53,6 +53,7 @@
 #include <sys/types.h>
 #include <mach/vm_param.h>
 #include <kern/thread.h>
+#include <kern/printf.h>
 #include <vm/vm_map.h>
 #include <vm/vm_page.h>
 #include <device/device_types.h>
@@ -66,10 +67,7 @@
 #include <linux/blk.h>
 #include <linux/proc_fs.h>
 #include <linux/kernel_stat.h>
-
-extern boolean_t vm_map_lookup_entry (register vm_map_t, register vm_offset_t,
-				      vm_map_entry_t *);
-extern int printf (const char *, ...);
+#include <linux/dev/glue/glue.h>
 
 int (*dispatch_scsi_info_ptr) (int ino, char *buffer, char **start,
 			       off_t offset, int length, int inout) = 0;
@@ -84,34 +82,34 @@ linux_to_mach_error (int err)
     case 0:
       return D_SUCCESS;
 
-    case -LINUX_EPERM:
+    case -EPERM:
       return D_INVALID_OPERATION;
 
-    case -LINUX_EIO:
+    case -EIO:
       return D_IO_ERROR;
 
-    case -LINUX_ENXIO:
+    case -ENXIO:
       return D_NO_SUCH_DEVICE;
 
-    case -LINUX_EACCES:
+    case -EACCES:
       return D_INVALID_OPERATION;
 
-    case -LINUX_EFAULT:
+    case -EFAULT:
       return D_INVALID_SIZE;
 
-    case -LINUX_EBUSY:
+    case -EBUSY:
       return D_ALREADY_OPEN;
 
-    case -LINUX_EINVAL:
+    case -EINVAL:
       return D_INVALID_SIZE;
 
-    case -LINUX_EROFS:
+    case -EROFS:
       return D_READ_ONLY;
 
-    case -LINUX_EWOULDBLOCK:
+    case -EWOULDBLOCK:
       return D_WOULD_BLOCK;
 
-    case -LINUX_ENOMEM:
+    case -ENOMEM:
       return D_NO_MEMORY;
 
     default:
@@ -148,7 +146,7 @@ verify_area (int rw, const void *p, unsigned long size)
 	  || (entry->protection & prot) != prot)
 	{
 	  vm_map_unlock_read (current_map ());
-	  return -LINUX_EFAULT;
+	  return -EFAULT;
 	}
       if (entry->vme_end - entry->vme_start >= len)
 	break;
@@ -229,7 +227,12 @@ add_blkdev_randomness (int major)
 void
 do_gettimeofday (struct timeval *tv)
 {
-  host_get_time (1, tv);
+  /*
+   * XXX: The first argument should be mach_host_self (), but that's too
+   * expensive, and the host argument is not used by host_get_time (),
+   * only checked not to be HOST_NULL.
+   */
+  host_get_time ((host_t) 1, (time_value_t *) tv);
 }
 
 int

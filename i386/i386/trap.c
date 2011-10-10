@@ -33,6 +33,7 @@
 #include <mach/machine/eflags.h>
 #include <i386/trap.h>
 #include <i386/fpu.h>
+#include <i386/locore.h>
 #include <i386/model_dep.h>
 #include <intel/read_fault.h>
 #include <machine/machspl.h>	/* for spl_t */
@@ -121,25 +122,6 @@ user_page_fault_continue(kr)
 	i386_exception(EXC_BAD_ACCESS, kr, regs->cr2);
 	/*NOTREACHED*/
 }
-
-/*
- * Fault recovery in copyin/copyout routines.
- */
-struct recovery {
-	int	fault_addr;
-	int	recover_addr;
-};
-
-extern struct recovery	recover_table[];
-extern struct recovery	recover_table_end[];
-
-/*
- * Recovery from Successful fault in copyout does not
- * return directly - it retries the pte check, since
- * the 386 ignores write protection in kernel mode.
- */
-extern struct recovery	retry_table[];
-extern struct recovery	retry_table_end[];
 
 
 static char *trap_type[] = {
@@ -295,6 +277,7 @@ dump_ss(regs);
 		     */
 		    register struct recovery *rp;
 
+                    /* Linear searching; but the list is small enough.  */
 		    for (rp = retry_table; rp < retry_table_end; rp++) {
 			if (regs->eip == rp->fault_addr) {
 			    regs->eip = rp->recover_addr;
@@ -311,6 +294,7 @@ dump_ss(regs);
 		{
 		    register struct recovery *rp;
 
+                    /* Linear searching; but the list is small enough.  */
 		    for (rp = recover_table;
 			 rp < recover_table_end;
 			 rp++) {

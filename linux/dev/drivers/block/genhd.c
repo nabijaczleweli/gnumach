@@ -39,6 +39,7 @@
 
 #ifdef MACH
 #include <machine/spl.h>
+#include <linux/dev/glue/glue.h>
 #endif
 
 #define SYS_IND(p)	get_unaligned(&p->sys_ind)
@@ -289,7 +290,7 @@ read_mbr:
 		printk(" unable to read partition table\n");
 		return -1;
 	}
-	data = bh->b_data;
+	data = (unsigned char *)bh->b_data;
 	/* In some cases we modify the geometry    */
 	/*  of the drive (below), so ensure that   */
 	/*  nobody else tries to re-use this data. */
@@ -770,9 +771,7 @@ void device_setup(void)
 	struct gendisk *p;
 	int nr=0;
 #ifdef MACH
-	extern int linux_intr_pri;
-
-	linux_intr_pri = SPL5;
+	linux_intr_pri = SPL6;
 #endif
 
 #ifndef MACH
