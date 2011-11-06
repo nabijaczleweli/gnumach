@@ -82,9 +82,11 @@ build-xen-dbg/config.status: configure
 		$(common_configure) \
 		--enable-platform=xen
 
-build: build-gnumach-std build-gnumach-xen build-gnumach-dbg build-gnumach-xen-dbg
+build-arch: build/stamp build-xen/stamp build-dbg/stamp build-xen-dbg/stamp
+build-indep: build-arch
+build: build-arch build-indep
 
-build-gnumach-std: build/config.status
+build/stamp: build/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -92,8 +94,9 @@ ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 else
 	$(MAKE) -C build check
 endif
+	touch $@
 
-build-gnumach-xen: build-xen/config.status
+build-xen/stamp: build-xen/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -101,8 +104,9 @@ ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 else
 	$(MAKE) -C build-xen check
 endif
+	touch $@
 
-build-gnumach-dbg: build-dbg/config.status
+build-dbg/stamp: build-dbg/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -110,8 +114,9 @@ ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 else
 	$(MAKE) -C build-dbg check
 endif
+	touch $@
 
-build-gnumach-xen-dbg: build-xen-dbg/config.status
+build-xen-dbg/stamp: build-xen-dbg/config.status
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -119,6 +124,7 @@ ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 else
 	$(MAKE) -C build-xen-dbg check
 endif
+	touch $@
 
 clean:
 	dh_testdir
@@ -227,6 +233,6 @@ binary-arch: install
 	dh_md5sums -a
 	dh_builddeb -a
 
-.PHONY: build build-gnumach-std build-gnumach-xen build-gnumach-dbg build-gnumach-xen-dbg clean
+.PHONY: build build-arch build-indep clean
 .PHONY: install binary binary-indep binary-arch
 
