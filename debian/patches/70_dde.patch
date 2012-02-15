@@ -704,3 +704,15 @@ index 95b499b..c360af6 100644
  #endif
  #ifndef MACH
  	console_map_init();
+diff --git a/Makefrag.am b/Makefrag.am
+index be7b4f4..7ecda30 100644
+--- a/Makefrag.am
++++ b/Makefrag.am
+@@ -355,6 +355,7 @@ include_mach_HEADERS = \
+ 	include/mach/memory_object_default.defs \
+ 	include/mach/notify.defs \
+ 	include/mach/std_types.defs \
++	include/mach/experimental.defs \
+ 	include/mach/alert.h \
+ 	include/mach/boolean.h \
+ 	include/mach/boot.h \
