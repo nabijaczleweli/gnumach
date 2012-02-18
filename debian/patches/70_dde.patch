@@ -304,7 +304,7 @@ new file mode 100644
 index 0000000..368b96c
 --- /dev/null
 +++ b/include/mach/experimental.defs
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,94 @@
 +/* 
 + * Mach Operating System
 + * Copyright (c) 1991,1990,1989 Carnegie Mellon University
@@ -334,9 +334,13 @@ index 0000000..368b96c
 +subsystem experimental 424242;
 +
 +#include <mach/std_types.defs>
++#include <mach/mach_types.defs>
 +
 +serverprefix do_;
 +serverdemux intr_notify_server;
++
++type notify_port_t = MACH_MSG_TYPE_MOVE_SEND_ONCE
++	ctype: mach_port_t
 +
 +simpleroutine mach_intr_notify(
 +		notify	: notify_port_t;
@@ -415,7 +419,7 @@ index 0000000..3c0e1b8
 +} mach_intr_notification_t;
 +
 +#define INTR_NOTIFY_MSGH_SEQNO 0
-+#define MACH_INTR_NOTIFY 100
++#define MACH_INTR_NOTIFY 424242
 +
 +#endif
 diff --git a/kern/startup.c b/kern/startup.c
