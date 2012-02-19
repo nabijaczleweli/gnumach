@@ -40,10 +40,9 @@
 #include <ipc/ipc_space.h>
 #include <ipc/ipc_types.h>
 #include <kern/debug.h>
-#include <kern/mach_param.h>
 #include <kern/task.h>
 #include <kern/thread.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 #include <kern/kalloc.h>
 #include <kern/processor.h>
 #include <kern/sched_prim.h>	/* for thread_wakeup */
@@ -52,7 +51,7 @@
 #include <machine/machspl.h>	/* for splsched */
 
 task_t	kernel_task = TASK_NULL;
-zone_t	task_zone;
+struct kmem_cache task_cache;
 
 extern void eml_init(void);
 extern void eml_task_reference(task_t, task_t);
@@ -60,11 +59,8 @@ extern void eml_task_deallocate(task_t);
 
 void task_init(void)
 {
-	task_zone = zinit(
-			sizeof(struct task), 0,
-			TASK_MAX * sizeof(struct task),
-			TASK_CHUNK * sizeof(struct task),
-			0, "tasks");
+	kmem_cache_init(&task_cache, "task", sizeof(struct task), 0,
+			NULL, NULL, NULL, 0);
 
 	eml_init();
 	machine_task_module_init ();
@@ -75,38 +71,6 @@ void task_init(void)
 	 * for other initialization. (:-()
 	 */
 	(void) task_create(TASK_NULL, FALSE, &kernel_task);
-}
-
-/*
- * Create a task running in the kernel address space.  It may
- * have its own map of size mem_size (if 0, it uses the kernel map),
- * and may have ipc privileges.
- */
-task_t	kernel_task_create(
-	task_t		parent_task,
-	vm_size_t	map_size)
-{
-	task_t		new_task;
-	vm_offset_t	min, max;
-
-	/*
-	 * Create the task.
-	 */
-	(void) task_create(parent_task, FALSE, &new_task);
-
-	/*
-	 * Task_create creates the task with a user-space map.
-	 * Remove the map and replace it with the kernel map
-	 * or a submap of the kernel map.
-	 */
-	vm_map_deallocate(new_task->map);
-	if (map_size == 0)
-	    new_task->map = kernel_map;
-	else
-	    new_task->map = kmem_suballoc(kernel_map, &min, &max,
-					  map_size, FALSE);
-
-	return new_task;
 }
 
 kern_return_t task_create(
@@ -120,7 +84,7 @@ kern_return_t task_create(
 	int i;
 #endif
 
-	new_task = (task_t) zalloc(task_zone);
+	new_task = (task_t) kmem_cache_alloc(&task_cache);
 	if (new_task == TASK_NULL) {
 		panic("task_create: no memory for task structure");
 	}
@@ -235,7 +199,7 @@ void task_deallocate(
 	pset_deallocate(pset);
 	vm_map_deallocate(task->map);
 	is_release(task->itk_space);
-	zfree(task_zone, (vm_offset_t) task);
+	kmem_cache_free(&task_cache, (vm_offset_t) task);
 }
 
 void task_reference(

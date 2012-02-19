@@ -37,9 +37,8 @@
 #include <mach/message.h>
 #include <mach/port.h>
 #include <kern/lock.h>
-#include <kern/mach_param.h>
 #include <kern/kalloc.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 #include <ipc/port.h>
 #include <ipc/ipc_init.h>
 #include <ipc/ipc_space.h>
@@ -58,11 +57,10 @@
 #endif
 
 
-zone_t ipc_marequest_zone;
-int ipc_marequest_max = IMAR_MAX;
+struct kmem_cache ipc_marequest_cache;
 
-#define	imar_alloc()		((ipc_marequest_t) zalloc(ipc_marequest_zone))
-#define	imar_free(imar)		zfree(ipc_marequest_zone, (vm_offset_t) (imar))
+#define	imar_alloc()		((ipc_marequest_t) kmem_cache_alloc(&ipc_marequest_cache))
+#define	imar_free(imar)		kmem_cache_free(&ipc_marequest_cache, (vm_offset_t) (imar))
 
 typedef unsigned int ipc_marequest_index_t;
 
@@ -100,13 +98,9 @@ ipc_marequest_init(void)
 {
 	ipc_marequest_index_t i;
 
-	/* if not configured, initialize ipc_marequest_size */
+	/* initialize ipc_marequest_size */
 
-	if (ipc_marequest_size == 0) {
-		ipc_marequest_size = ipc_marequest_max >> 8;
-		if (ipc_marequest_size < 16)
-			ipc_marequest_size = 16;
-	}
+	ipc_marequest_size = IPC_MAREQUEST_SIZE;
 
 	/* make sure it is a power of two */
 
@@ -142,11 +136,8 @@ ipc_marequest_init(void)
 		bucket->imarb_head = IMAR_NULL;
 	}
 
-	ipc_marequest_zone =
-		zinit(sizeof(struct ipc_marequest), 0,
-		      ipc_marequest_max * sizeof(struct ipc_marequest),
-		      sizeof(struct ipc_marequest),
-		      IPC_ZONE_TYPE, "ipc msg-accepted requests");
+	kmem_cache_init(&ipc_marequest_cache, "ipc_marequest",
+			sizeof(struct ipc_marequest), 0, NULL, NULL, NULL, 0);
 }
 
 /*
@@ -439,7 +430,7 @@ ipc_marequest_info(maxp, info, count)
 		info[i].hib_count = bucket_count;
 	}
 
-	*maxp = ipc_marequest_max;
+	*maxp = (unsigned int)-1;
 	return ipc_marequest_size;
 }
 
