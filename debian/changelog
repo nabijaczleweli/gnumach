@@ -1,5 +1,6 @@
-gnumach (2:1.3.99.dfsg.git20111010-2) unstable; urgency=low
+gnumach (2:1.3.99.dfsg.git20120219-1) unstable; urgency=low
 
+  * New upstream snapshot.
   * debian/control:
     - Do not make gnumach-dbg depend on gnumach.
     - Remove article in synopsis.
@@ -11,7 +12,7 @@ gnumach (2:1.3.99.dfsg.git20111010-2) unstable; urgency=low
     physical memory allocation for DDE. Also adds nonetdev boot parameter to
     disable network device drivers.
 
- -- Samuel Thibault <sthibault@debian.org>  Wed, 15 Feb 2012 01:09:54 +0000
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 19 Feb 2012 00:32:41 +0000
 
 gnumach (2:1.3.99.dfsg.git20111010-1) unstable; urgency=low
 
