@@ -41,7 +41,9 @@ else
 	CFLAGS += -O2
 endif
 
-include /usr/share/cdbs/1/class/langcore.mk
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+DEB_PARALLEL_JOBS ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+endif
 
 ifneq (,$(DEB_PARALLEL_JOBS))
 MAKEFLAGS += -j$(DEB_PARALLEL_JOBS)

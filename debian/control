@@ -8,7 +8,7 @@ Homepage: http://www.gnu.org/software/hurd/microkernel/mach/gnumach.html
 Vcs-Browser: http://git.debian.org/?p=pkg-hurd/gnumach.git
 Vcs-Git: git://git.debian.org/pkg-hurd/gnumach.git
 Build-Depends: debhelper (>= 7), mig, sharutils,
- autoconf, automake, cdbs
+ autoconf, automake
 Standards-Version: 3.9.2
 
 Package: gnumach
