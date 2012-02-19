@@ -4,6 +4,7 @@ gnumach (2:1.3.99.dfsg.git20120219-1) unstable; urgency=low
   * debian/control:
     - Do not make gnumach-dbg depend on gnumach.
     - Remove article in synopsis.
+    - Set Multi-Arch: foreign for gnumach-common.
   * debian/rules:
     - Add stamp files, and build-indep and build-arch targets.
     - Pass -fno-omit-frame-pointer for -dbg builds, to fix kernel debugger
