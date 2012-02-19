@@ -9,6 +9,7 @@ gnumach (2:1.3.99.dfsg.git20120219-1) unstable; urgency=low
     - Add stamp files, and build-indep and build-arch targets.
     - Pass -fno-omit-frame-pointer for -dbg builds, to fix kernel debugger
       traces & co.
+    - Enable parallel build.
   * debian/patches/70_dde.patch: Add experimental support for irq passing and
     physical memory allocation for DDE. Also adds nonetdev boot parameter to
     disable network device drivers.

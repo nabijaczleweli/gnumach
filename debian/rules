@@ -41,6 +41,12 @@ else
 	CFLAGS += -O2
 endif
 
+include /usr/share/cdbs/1/class/langcore.mk
+
+ifneq (,$(DEB_PARALLEL_JOBS))
+MAKEFLAGS += -j$(DEB_PARALLEL_JOBS)
+endif
+
 drivers := 
 
 common_configure := \
