@@ -35,8 +35,8 @@
  */
 
 #include <mach/kern_return.h>
-#include <kern/mach_param.h>
 #include <kern/ipc_host.h>
+#include <kern/slab.h>
 #include <vm/vm_map.h>
 #include <vm/vm_kern.h>
 #include <ipc/ipc_entry.h>
@@ -52,13 +52,9 @@
 
 
 
-vm_map_t ipc_kernel_map;
+static struct vm_map ipc_kernel_map_store;
+vm_map_t ipc_kernel_map = &ipc_kernel_map_store;
 vm_size_t ipc_kernel_map_size = 8 * 1024 * 1024;
-
-int ipc_space_max = SPACE_MAX;
-int ipc_tree_entry_max = ITE_MAX;
-int ipc_port_max = PORT_MAX;
-int ipc_pset_max = SET_MAX;
 
 /*
  *	Routine:	ipc_bootstrap
@@ -77,28 +73,17 @@ ipc_bootstrap(void)
 	ipc_port_timestamp_lock_init();
 	ipc_port_timestamp_data = 0;
 
-	ipc_space_zone = zinit(sizeof(struct ipc_space), 0,
-			       ipc_space_max * sizeof(struct ipc_space),
-			       sizeof(struct ipc_space),
-			       0, "ipc spaces");
+	kmem_cache_init(&ipc_space_cache, "ipc_space",
+			sizeof(struct ipc_space), 0, NULL, NULL, NULL, 0);
 
-	ipc_tree_entry_zone =
-		zinit(sizeof(struct ipc_tree_entry), 0,
-			ipc_tree_entry_max * sizeof(struct ipc_tree_entry),
-			sizeof(struct ipc_tree_entry),
-			IPC_ZONE_TYPE, "ipc tree entries");
+	kmem_cache_init(&ipc_tree_entry_cache, "ipc_tree_entry",
+			sizeof(struct ipc_tree_entry), 0, NULL, NULL, NULL, 0);
 
-	ipc_object_zones[IOT_PORT] =
-		zinit(sizeof(struct ipc_port), 0,
-		      ipc_port_max * sizeof(struct ipc_port),
-		      sizeof(struct ipc_port),
-		      0, "ipc ports");
+	kmem_cache_init(&ipc_object_caches[IOT_PORT], "ipc_port",
+			sizeof(struct ipc_port), 0, NULL, NULL, NULL, 0);
 
-	ipc_object_zones[IOT_PORT_SET] =
-		zinit(sizeof(struct ipc_pset), 0,
-		      ipc_pset_max * sizeof(struct ipc_pset),
-		      sizeof(struct ipc_pset),
-		      IPC_ZONE_TYPE, "ipc port sets");
+	kmem_cache_init(&ipc_object_caches[IOT_PORT_SET], "ipc_pset",
+			sizeof(struct ipc_pset), 0, NULL, NULL, NULL, 0);
 
 	/* create special spaces */
 
@@ -127,8 +112,8 @@ ipc_init()
 {
 	vm_offset_t min, max;
 
-	ipc_kernel_map = kmem_suballoc(kernel_map, &min, &max,
-				       ipc_kernel_map_size, TRUE);
+	kmem_submap(ipc_kernel_map, kernel_map, &min, &max,
+		    ipc_kernel_map_size, TRUE);
 
 	ipc_host_init();
 }
