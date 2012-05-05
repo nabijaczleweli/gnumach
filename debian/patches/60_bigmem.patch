@@ -1,10 +1,10 @@
 Push kernel/user limit to 2GiB, so Mach can address up to close to 2GiB memory.
 This makes glibc's local-bigmem.diff patch mandatory.
 
-diff --git a/i386/include/mach/i386/vm_param.h b/i386/include/mach/i386/vm_param.h
-index 6d7c5f3..839ae68 100644
---- a/i386/include/mach/i386/vm_param.h
-+++ b/i386/include/mach/i386/vm_param.h
+Index: gnumach/i386/include/mach/i386/vm_param.h
+===================================================================
+--- gnumach.orig/i386/include/mach/i386/vm_param.h	2012-05-05 11:22:08.295629763 +0000
++++ gnumach/i386/include/mach/i386/vm_param.h	2012-05-05 11:25:25.955430280 +0000
 @@ -73,6 +73,6 @@
     with that.
     */
@@ -13,3 +13,29 @@ index 6d7c5f3..839ae68 100644
 +#define VM_MAX_ADDRESS		(0x80000000UL)
  
  #endif	/* _MACH_I386_VM_PARAM_H_ */
+Index: gnumach/i386/Makefrag.am
+===================================================================
+--- gnumach.orig/i386/Makefrag.am	2012-05-05 11:22:08.291629849 +0000
++++ gnumach/i386/Makefrag.am	2012-05-05 11:26:22.262233815 +0000
+@@ -199,7 +199,7 @@ EXTRA_DIST += \
+ 	i386/ldscript
+ if PLATFORM_at
+ gnumach_LINKFLAGS += \
+-	--defsym _START=0xC0100000 \
++	--defsym _START=0x80100000 \
+ 	--defsym _START_MAP=0x100000 \
+ 	-T '$(srcdir)'/i386/ldscript
+ endif
+Index: gnumach/i386/i386/vm_param.h
+===================================================================
+--- gnumach.orig/i386/i386/vm_param.h	2012-05-05 11:22:08.295629763 +0000
++++ gnumach/i386/i386/vm_param.h	2012-05-05 11:27:42.380531253 +0000
+@@ -37,7 +37,7 @@
+ /* This can be changed freely to separate kernel addresses from user addresses
+  * for better trace support in kdb; the _START symbol has to be offset by the
+  * same amount. */
+-#define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
++#define VM_MIN_KERNEL_ADDRESS	0x80000000UL
+ /* This must remain 0 */
+ #define INIT_VM_MIN_KERNEL_ADDRESS	0x00000000UL
+ #endif	/* MACH_XEN */

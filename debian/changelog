@@ -2,6 +2,8 @@ gnumach (2:1.3.99.dfsg.git20120505-1) UNRELEASED; urgency=low
 
   * New upstream snapshot.
   * control: Bump Standards-Version to 3.9.3 (no changes).
+  * patches/50_initrd.patch: Refresh.
+  * patches/60_bigmem.patch: Also update the kernel/user addresses limit.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 05 May 2012 13:22:36 +0200
 
