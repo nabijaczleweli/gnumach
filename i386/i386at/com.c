@@ -229,7 +229,7 @@ comattach(struct bus_device *dev)
 	u_short	addr = dev->address;
 
 	take_dev_irq(dev);
-	printf(", port = %x, spl = %d, pic = %d. (DOS COM%d)",
+	printf(", port = %lx, spl = %ld, pic = %d. (DOS COM%d)",
 	       dev->address, dev->sysdep, dev->sysdep1, unit+1);
 
 /*	comcarrier[unit] = addr->flags;*/
@@ -265,7 +265,7 @@ comcninit(struct consdev *cp)
 	outb(LINE_CTL(addr), iDLAB);
 	outb(BAUD_LSB(addr), divisorreg[RCBAUD] & 0xff);
 	outb(BAUD_MSB(addr), divisorreg[RCBAUD] >>8);
-	outb(LINE_CTL(addr), i7BITS|iPEN);
+       outb(LINE_CTL(addr), i8BITS);
 	outb(INTR_ENAB(addr), 0);
 	outb(MODEM_CTL(addr), iDTR|iRTS|iOUT2);
 
@@ -447,7 +447,7 @@ comgetstat(dev, flavor, data, count)
 dev_t		dev;
 int		flavor;
 int		*data;		/* pointer to OUT array */
-unsigned int	*count;		/* out */
+natural_t	*count;		/* out */
 {
 	io_return_t	result = D_SUCCESS;
 	int		unit = minor(dev);
@@ -470,7 +470,7 @@ comsetstat(dev, flavor, data, count)
 dev_t		dev;
 int		flavor;
 int *		data;
-unsigned int	count;
+natural_t	count;
 {
 	io_return_t	result = D_SUCCESS;
 	int 		unit = minor(dev);

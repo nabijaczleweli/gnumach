@@ -716,7 +716,7 @@ void pmap_bootstrap()
 		 * to allocate new kernel page tables later.
 		 * XX fix this
 		 */
-		for (va = phystokv(phys_first_addr); va < kernel_virtual_end; )
+		for (va = phystokv(phys_first_addr); va >= phystokv(phys_first_addr) && va < kernel_virtual_end; )
 		{
 			pt_entry_t *pde = kernel_page_dir + lin2pdenum(kvtolin(va));
 			pt_entry_t *ptable = (pt_entry_t*)phystokv(pmap_grab_page());
@@ -826,26 +826,27 @@ void pmap_set_page_readonly(void *_vaddr) {
 }
 
 /* This needs to be called instead of pmap_set_page_readonly as long as RC3
- * still points to the bootstrap dirbase.  */
+ * still points to the bootstrap dirbase, to also fix the bootstrap table.  */
 void pmap_set_page_readonly_init(void *_vaddr) {
 	vm_offset_t vaddr = (vm_offset_t) _vaddr;
 #if PAE
 	pt_entry_t *pdpbase = (void*) boot_info.pt_base;
-	vm_offset_t dirbase = ptetokv(pdpbase[0]);
+	/* The bootstrap table does not necessarily use contiguous pages for the pde tables */
+	pt_entry_t *dirbase = (void*) ptetokv(pdpbase[lin2pdpnum(vaddr)]);
 #else
-	vm_offset_t dirbase = boot_info.pt_base;
+	pt_entry_t *dirbase = (void*) boot_info.pt_base;
 #endif
-	struct pmap linear_pmap = {
-		.dirbase = (void*) dirbase,
-	};
+	pt_entry_t *pte = &dirbase[lin2pdenum(vaddr) & PTEMASK];
 	/* Modify our future kernel map (can't use update_va_mapping for this)... */
-	if (*pmap_pde(kernel_pmap, vaddr) & INTEL_PTE_VALID)
+	if (*pmap_pde(kernel_pmap, vaddr) & INTEL_PTE_VALID) {
 		if (!hyp_mmu_update_la (kvtolin(vaddr), pa_to_pte (kv_to_ma(vaddr)) | INTEL_PTE_VALID))
 			panic("couldn't set hiMMU readonly for vaddr %p(%p)\n", vaddr, (vm_offset_t) kv_to_ma (vaddr));
+	}
 	/* ... and the bootstrap map.  */
-	if (*pmap_pde(&linear_pmap, vaddr) & INTEL_PTE_VALID)
+	if (*pte & INTEL_PTE_VALID) {
 		if (hyp_do_update_va_mapping (vaddr, pa_to_pte (kv_to_ma(vaddr)) | INTEL_PTE_VALID, UVMF_NONE))
 			panic("couldn't set MMU readonly for vaddr %p(%p)\n", vaddr, (vm_offset_t) kv_to_ma (vaddr));
+	}
 }
 
 void pmap_clear_bootstrap_pagetable(pt_entry_t *base) {
@@ -1127,6 +1128,12 @@ pmap_t pmap_create(size)
 		panic("pmap_create");
 
 	memcpy(p->dirbase, kernel_page_dir, PDPNUM * INTEL_PGBYTES);
+#ifdef LINUX_DEV
+#if VM_MIN_KERNEL_ADDRESS != 0
+	/* Do not map BIOS in user tasks */
+	p->dirbase[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] = 0;
+#endif
+#endif
 #ifdef	MACH_XEN
 	{
 		int i;
@@ -1747,7 +1754,7 @@ void pmap_enter(pmap, v, pa, prot, wired)
 	vm_offset_t		old_pa;
 
 	assert(pa != vm_page_fictitious_addr);
-if (pmap_debug) printf("pmap(%x, %x)\n", v, pa);
+if (pmap_debug) printf("pmap(%lx, %lx)\n", v, pa);
 	if (pmap == PMAP_NULL)
 		return;
 
@@ -1855,9 +1862,9 @@ Retry:
 					      | INTEL_PTE_WRITE))
 			panic("%s:%d could not set pde %p(%p,%p) to %p(%p,%p) %p\n",__FILE__,__LINE__, pdp, kvtophys((vm_offset_t)pdp), (vm_offset_t) pa_to_ma(kvtophys((vm_offset_t)pdp)), ptp, kvtophys(ptp), (vm_offset_t) pa_to_ma(kvtophys(ptp)), (vm_offset_t) pa_to_pte(kv_to_ma(ptp)));
 #else	/* MACH_XEN */
-		*pdp = pa_to_pte(ptp) | INTEL_PTE_VALID
-				      | INTEL_PTE_USER
-				      | INTEL_PTE_WRITE;
+		*pdp = pa_to_pte(kvtophys(ptp)) | INTEL_PTE_VALID
+					        | INTEL_PTE_USER
+					        | INTEL_PTE_WRITE;
 #endif	/* MACH_XEN */
 		pdp++;
 		ptp += INTEL_PGBYTES;
@@ -2786,7 +2793,7 @@ void pmap_update_interrupt()
 }
 #endif	/* NCPUS > 1 */
 
-#ifdef i386
+#if defined(__i386__)
 /* Unmap page 0 to trap NULL references.  */
 void
 pmap_unmap_page_zero ()
@@ -2805,4 +2812,4 @@ pmap_unmap_page_zero ()
   INVALIDATE_TLB(kernel_pmap, 0, PAGE_SIZE);
 #endif	/* MACH_XEN */
 }
-#endif /* i386 */
+#endif /* __i386__ */

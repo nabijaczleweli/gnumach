@@ -25,13 +25,21 @@
 
 /* XXX use xu/vm_param.h */
 #include <mach/vm_param.h>
+#ifdef MACH_XEN
 #include <xen/public/xen.h>
+#endif
 
 /* The kernel address space is usually 1GB, usually starting at virtual address 0.  */
 #ifdef	MACH_XEN
-#define VM_MIN_KERNEL_ADDRESS	0x20000000UL
+#define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
+#define INIT_VM_MIN_KERNEL_ADDRESS	VM_MIN_KERNEL_ADDRESS
 #else	/* MACH_XEN */
-#define VM_MIN_KERNEL_ADDRESS	0x00000000UL
+/* This can be changed freely to separate kernel addresses from user addresses
+ * for better trace support in kdb; the _START symbol has to be offset by the
+ * same amount. */
+#define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
+/* This must remain 0 */
+#define INIT_VM_MIN_KERNEL_ADDRESS	0x00000000UL
 #endif	/* MACH_XEN */
 
 #ifdef	MACH_XEN

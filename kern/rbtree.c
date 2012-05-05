@@ -1,19 +1,26 @@
 /*
- * Copyright (c) 2010 Richard Braun.
+ * Copyright (c) 2010, 2012 Richard Braun.
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <kern/assert.h>
@@ -173,7 +180,7 @@ void rbtree_insert_rebalance(struct rbtree *tree, struct rbtree_node *parent,
         uncle = grand_parent->children[right];
 
         /*
-         * Case 1: uncle is red. Flip colors and repeat at grand parent.
+         * Uncle is red. Flip colors and repeat at grand parent.
          */
         if ((uncle != NULL) && rbtree_is_red(uncle)) {
             rbtree_set_black(uncle);
@@ -185,8 +192,7 @@ void rbtree_insert_rebalance(struct rbtree *tree, struct rbtree_node *parent,
         }
 
         /*
-         * Case 2: node is the right child of its parent. Rotate left at parent
-         * to reduce to case 3.
+         * Node is the right child of its parent. Rotate left at parent.
          */
         if (parent->children[right] == node) {
             rbtree_rotate(tree, parent, left);
@@ -196,8 +202,8 @@ void rbtree_insert_rebalance(struct rbtree *tree, struct rbtree_node *parent,
         }
 
         /*
-         * Case 3: node is the left child of its parent. Handle colors, rotate
-         * right at grand parent, and leave.
+         * Node is the left child of its parent. Handle colors, rotate right
+         * at grand parent, and leave.
          */
         rbtree_set_black(parent);
         rbtree_set_red(grand_parent);
@@ -299,8 +305,8 @@ update_color:
         brother = parent->children[right];
 
         /*
-         * Case 1: brother is red. Recolor and rotate left at parent so that
-         * brother becomes black.
+         * Brother is red. Recolor and rotate left at parent so that brother
+         * becomes black.
          */
         if (rbtree_is_red(brother)) {
             rbtree_set_black(brother);
@@ -310,7 +316,7 @@ update_color:
         }
 
         /*
-         * Case 2: brother has no red child. Recolor and repeat at parent.
+         * Brother has no red child. Recolor and repeat at parent.
          */
         if (((brother->children[RBTREE_LEFT] == NULL)
              || rbtree_is_black(brother->children[RBTREE_LEFT]))
@@ -323,8 +329,7 @@ update_color:
         }
 
         /*
-         * Case 3: brother's right child is black. Recolor and rotate right
-         * at brother to reduce to case 4.
+         * Brother's right child is black. Recolor and rotate right at brother.
          */
         if ((brother->children[right] == NULL)
             || rbtree_is_black(brother->children[right])) {
@@ -335,9 +340,9 @@ update_color:
         }
 
         /*
-         * Case 4: brother's left child is black. Exchange parent and brother
-         * colors (we already know brother is black), set brother's right child
-         * black, rotate left at parent and leave.
+         * Brother's left child is black. Exchange parent and brother colors
+         * (we already know brother is black), set brother's right child black,
+         * rotate left at parent and leave.
          */
         rbtree_set_color(brother, rbtree_color(parent));
         rbtree_set_black(parent);
