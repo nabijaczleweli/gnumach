@@ -48,7 +48,7 @@
  *	Define the generic in terms of the specific
  */
 
-#if	i386
+#if defined(__i386__)
 #define	INTEL_PGBYTES		I386_PGBYTES
 #define INTEL_PGSHIFT		I386_PGSHIFT
 #define	intel_btop(x)		i386_btop(x)
@@ -58,7 +58,7 @@
 #define trunc_intel_to_vm(x)	trunc_i386_to_vm(x)
 #define round_intel_to_vm(x)	round_i386_to_vm(x)
 #define vm_to_intel(x)		vm_to_i386(x)
-#endif	/* i386 */
+#endif /* __i386__ */
 
 /*
  *	i386/i486 Page Table Entry
@@ -101,6 +101,13 @@ typedef unsigned int	pt_entry_t;
 #endif
 
 /*
+ *	Convert linear offset to page directory pointer index
+ */
+#if PAE
+#define lin2pdpnum(a)	(((a) >> PDPSHIFT) & PDPMASK)
+#endif
+
+/*
  *	Convert page descriptor index to linear address
  */
 #define pdenum2lin(a)	((vm_offset_t)(a) << PDESHIFT)
@@ -133,7 +140,7 @@ typedef unsigned int	pt_entry_t;
 #endif	/* MACH_XEN */
 #define INTEL_PTE_WIRED		0x00000200
 #ifdef PAE
-#define INTEL_PTE_PFN		0xfffffffffffff000ULL
+#define INTEL_PTE_PFN		0x00007ffffffff000ULL
 #else
 #define INTEL_PTE_PFN		0xfffff000
 #endif
