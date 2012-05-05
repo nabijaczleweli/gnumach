@@ -763,13 +763,15 @@ index 95b499b..c360af6 100644
  #ifndef MACH
  	console_map_init();
 diff --git a/kern/ipc_kobject.c b/kern/ipc_kobject.c
-index bd171a7..285f90d 100644
+index c922d7f..078b1d0 100644
 --- a/kern/ipc_kobject.c
 +++ b/kern/ipc_kobject.c
-@@ -152,6 +152,7 @@ ipc_kobject_server(request)
+@@ -151,7 +151,8 @@ ipc_kobject_server(request)
+ 				mach_host_server_routine(),
  				device_server_routine(),
  				device_pager_server_routine(),
- 				mach4_server_routine();
+-				mach4_server_routine();
++				mach4_server_routine(),
 +				experimental_server_routine();
  #if	MACH_DEBUG
  	extern mig_routine_t	mach_debug_server_routine();
