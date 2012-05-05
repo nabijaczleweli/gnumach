@@ -14,11 +14,11 @@ struct irqaction {
 	struct irqaction *next;
 };
 
-extern unsigned long intr_count;
+extern unsigned int intr_count;
 
 extern int bh_mask_count[32];
-extern unsigned long bh_active;
-extern unsigned long bh_mask;
+extern unsigned int bh_active;
+extern unsigned int bh_mask;
 extern void (*bh_base[32])(void);
 
 asmlinkage void do_bottom_half(void);

@@ -78,6 +78,7 @@ offset	i386_saved_state	r	err
 offset	i386_saved_state	r	efl		R_EFLAGS
 offset	i386_saved_state	r	eip
 offset	i386_saved_state	r	cr2
+offset	i386_saved_state	r	edi
 
 offset	i386_interrupt_state	i	eip
 offset	i386_interrupt_state	i	cs
@@ -93,7 +94,7 @@ expr	VM_MIN_ADDRESS
 expr	VM_MAX_ADDRESS
 expr	VM_MIN_KERNEL_ADDRESS				KERNELBASE
 expr	KERNEL_STACK_SIZE
-#if VM_MIN_KERNEL_ADDRESS == LINEAR_MIN_KERNEL_ADDRESS
+#if defined MACH_XEN && (VM_MIN_KERNEL_ADDRESS == LINEAR_MIN_KERNEL_ADDRESS)
 expr    PFN_LIST					pfn_list
 #endif
 
