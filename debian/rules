@@ -54,7 +54,10 @@ drivers :=
 common_configure := \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
 		--prefix=/usr \
-		--exec-prefix=/
+		--exec-prefix=/ \
+		--disable-net-group \
+		--disable-pcmcia-group \
+		--disable-wireless-group
 
 configure: configure.ac
 	autoreconf -fi
