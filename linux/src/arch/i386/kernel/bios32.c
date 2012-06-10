@@ -166,7 +166,7 @@ static unsigned long bios32_service(unsigned long service)
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%edi)"
+	__asm__("lcall *(%%edi); cld"
 		: "=a" (return_code),
 		  "=b" (address),
 		  "=c" (length),
@@ -206,10 +206,10 @@ static int check_pcibios(void)
 	int pack;
 
 	if ((pcibios_entry = bios32_service(PCI_SERVICE))) {
-		pci_indirect.address = pcibios_entry;
+		pci_indirect.address = phystokv(pcibios_entry);
 
 		save_flags(flags); cli();
-		__asm__("lcall *(%%edi)\n\t"
+		__asm__("lcall *(%%edi); cld\n\t"
 			"jc 1f\n\t"
 			"xor %%ah, %%ah\n"
 			"1:\tshl $8, %%eax\n\t"
@@ -254,7 +254,7 @@ static int pci_bios_find_class (unsigned int class_code, unsigned short index,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__ ("lcall *(%%edi)\n\t"
+	__asm__ ("lcall *(%%edi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -279,7 +279,7 @@ static int pci_bios_find_device (unsigned short vendor, unsigned short device_id
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%edi)\n\t"
+	__asm__("lcall *(%%edi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -304,7 +304,7 @@ static int pci_bios_read_config_byte(unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -326,7 +326,7 @@ static int pci_bios_read_config_word (unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -348,7 +348,7 @@ static int pci_bios_read_config_dword (unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -370,7 +370,7 @@ static int pci_bios_write_config_byte (unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -392,7 +392,7 @@ static int pci_bios_write_config_word (unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -414,7 +414,7 @@ static int pci_bios_write_config_dword (unsigned char bus,
 	unsigned long flags;
 
 	save_flags(flags); cli();
-	__asm__("lcall *(%%esi)\n\t"
+	__asm__("lcall *(%%esi); cld\n\t"
 		"jc 1f\n\t"
 		"xor %%ah, %%ah\n"
 		"1:"
@@ -903,7 +903,7 @@ unsigned long pcibios_init(unsigned long memory_start, unsigned long memory_end)
 			} else {
 				bios32_entry = check->fields.entry;
 				printk ("pcibios_init : BIOS32 Service Directory entry at 0x%lx\n", bios32_entry);
-				bios32_indirect.address = bios32_entry;
+				bios32_indirect.address = phystokv(bios32_entry);
 			}
 		}
 	}
