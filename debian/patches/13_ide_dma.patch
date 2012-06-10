@@ -1081,5 +1081,5 @@ Index: b/linux/configfrag.ac
 +   AC_DEFINE([CONFIG_BLK_DEV_FORCE_DMA], [1], [Force DMA on IDE block devices])])
 +
  dnl SCSI controllers.
+ AC_OPTION_Linux_group([scsi], [SCSI drivers])
  
- AC_Linux_DRIVER([53c78xx],
