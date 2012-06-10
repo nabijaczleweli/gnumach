@@ -2,8 +2,11 @@ gnumach (2:1.3.99.dfsg.git20120610-1) unstable; urgency=low
 
   * New upstream snapshot.
   * rules: Disable net, pcmcia and wireless groups
-  * control: Do not provide nic-modules, nic-pcmcia-modules,
-    nic-wireless-modules and pcmcia-modules any more.
+  * control:
+    - Do not provide nic-modules, nic-pcmcia-modules, nic-wireless-modules
+    and pcmcia-modules any more.
+    - Break old hurd package versions, to provide smooth network driver
+    transition.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 10 Jun 2012 23:36:00 +0200
 
