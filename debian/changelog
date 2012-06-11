@@ -1,7 +1,10 @@
 gnumach (2:1.3.99.dfsg.git20120610-1) unstable; urgency=low
 
   * New upstream snapshot.
-  * rules: Disable net, pcmcia and wireless groups
+  * patches/12_version_suffix.patch: New patch to append suffix to Mach version.
+  * rules:
+    - Disable net, pcmcia and wireless groups
+    - Add version suffixes.
   * control:
     - Do not provide nic-modules, nic-pcmcia-modules, nic-wireless-modules
     and pcmcia-modules any more.

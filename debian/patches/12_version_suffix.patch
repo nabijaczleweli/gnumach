@@ -1,0 +1,20 @@
+Index: gnumach/configure.ac
+===================================================================
+--- gnumach.orig/configure.ac	2012-06-11 00:49:00.000000000 +0000
++++ gnumach/configure.ac	2012-06-11 00:54:31.000000000 +0000
+@@ -19,6 +19,7 @@
+ m4_include([version.m4])
+ AC_INIT([AC_PACKAGE_NAME], [AC_PACKAGE_VERSION], [AC_PACKAGE_BUGREPORT],
+   [AC_PACKAGE_TARNAME])
++AC_SUBST([PACKAGE_VERSION_SUFFIX])
+ AC_CONFIG_SRCDIR([kern/ipc_kobject.c])
+ 
+ AC_CONFIG_AUX_DIR([build-aux])
+Index: gnumach/version.c.in
+===================================================================
+--- gnumach.orig/version.c.in	2012-06-11 00:49:00.000000000 +0000
++++ gnumach/version.c.in	2012-06-11 00:49:22.000000000 +0000
+@@ -1,2 +1,2 @@
+ /* @configure_input@ */
+-const char version[] = "@PACKAGE_NAME@ @PACKAGE_VERSION@";
++const char version[] = "@PACKAGE_NAME@ @PACKAGE_VERSION@@PACKAGE_VERSION_SUFFIX@";
