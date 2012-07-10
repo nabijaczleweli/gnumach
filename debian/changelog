@@ -1,3 +1,9 @@
+gnumach (2:1.3.99.dfsg.git20120710-1) UNRELEASED; urgency=low
+
+  * New upstream snaphsot
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 10 Jul 2012 01:59:41 +0000
+
 gnumach (2:1.3.99.dfsg.git20120610-1) unstable; urgency=low
 
   * New upstream snapshot.
