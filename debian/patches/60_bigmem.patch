@@ -3,8 +3,8 @@ This makes glibc's local-bigmem.diff patch mandatory.
 
 Index: gnumach/i386/include/mach/i386/vm_param.h
 ===================================================================
---- gnumach.orig/i386/include/mach/i386/vm_param.h	2012-05-05 11:22:08.295629763 +0000
-+++ gnumach/i386/include/mach/i386/vm_param.h	2012-05-05 11:25:25.955430280 +0000
+--- gnumach.orig/i386/include/mach/i386/vm_param.h	2012-06-10 23:45:02.000000000 +0200
++++ gnumach/i386/include/mach/i386/vm_param.h	2012-07-14 15:57:26.423861314 +0200
 @@ -73,6 +73,6 @@
     with that.
     */
@@ -15,8 +15,8 @@ Index: gnumach/i386/include/mach/i386/vm_param.h
  #endif	/* _MACH_I386_VM_PARAM_H_ */
 Index: gnumach/i386/Makefrag.am
 ===================================================================
---- gnumach.orig/i386/Makefrag.am	2012-05-05 11:22:08.291629849 +0000
-+++ gnumach/i386/Makefrag.am	2012-05-05 11:26:22.262233815 +0000
+--- gnumach.orig/i386/Makefrag.am	2012-06-10 23:45:02.000000000 +0200
++++ gnumach/i386/Makefrag.am	2012-07-14 15:57:26.427861233 +0200
 @@ -199,7 +199,7 @@ EXTRA_DIST += \
  	i386/ldscript
  if PLATFORM_at
@@ -28,9 +28,16 @@ Index: gnumach/i386/Makefrag.am
  endif
 Index: gnumach/i386/i386/vm_param.h
 ===================================================================
---- gnumach.orig/i386/i386/vm_param.h	2012-05-05 11:22:08.295629763 +0000
-+++ gnumach/i386/i386/vm_param.h	2012-05-05 11:27:42.380531253 +0000
-@@ -37,7 +37,7 @@
+--- gnumach.orig/i386/i386/vm_param.h	2012-06-10 23:45:02.000000000 +0200
++++ gnumach/i386/i386/vm_param.h	2012-07-14 15:57:44.559495669 +0200
+@@ -31,13 +31,13 @@
+ 
+ /* The kernel address space is usually 1GB, usually starting at virtual address 0.  */
+ #ifdef	MACH_XEN
+-#define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
++#define VM_MIN_KERNEL_ADDRESS	0x80000000UL
+ #define INIT_VM_MIN_KERNEL_ADDRESS	VM_MIN_KERNEL_ADDRESS
+ #else	/* MACH_XEN */
  /* This can be changed freely to separate kernel addresses from user addresses
   * for better trace support in kdb; the _START symbol has to be offset by the
   * same amount. */
@@ -39,3 +46,32 @@ Index: gnumach/i386/i386/vm_param.h
  /* This must remain 0 */
  #define INIT_VM_MIN_KERNEL_ADDRESS	0x00000000UL
  #endif	/* MACH_XEN */
+Index: gnumach/i386/xen/Makefrag.am
+===================================================================
+--- gnumach.orig/i386/xen/Makefrag.am	2012-07-14 15:58:19.998781083 +0200
++++ gnumach/i386/xen/Makefrag.am	2012-07-14 15:58:30.254574271 +0200
+@@ -28,7 +28,7 @@ libkernel_a_SOURCES += \
+ 
+ if PLATFORM_xen
+ gnumach_LINKFLAGS += \
+-	--defsym _START=0xC0000000 \
+-	--defsym _START_MAP=0xC0000000 \
++	--defsym _START=0x80000000 \
++	--defsym _START_MAP=0x80000000 \
+ 	-T '$(srcdir)'/i386/ldscript
+ endif
+Index: gnumach/i386/xen/xen_boothdr.S
+===================================================================
+--- gnumach.orig/i386/xen/xen_boothdr.S	2012-07-14 15:58:13.358914976 +0200
++++ gnumach/i386/xen/xen_boothdr.S	2012-07-14 15:58:39.790381972 +0200
+@@ -22,8 +22,8 @@
+ 	.ascii	"GUEST_OS=GNU Mach"
+ 	.ascii  ",GUEST_VERSION=1.3"
+ 	.ascii	",XEN_VER=xen-3.0"
+-	.ascii  ",VIRT_BASE=0xC0000000"
+-	.ascii  ",ELF_PADDR_OFFSET=0xC0000000"
++	.ascii  ",VIRT_BASE=0x80000000"
++	.ascii  ",ELF_PADDR_OFFSET=0x80000000"
+ 	.ascii	",HYPERCALL_PAGE=0x2"
+ #if PAE
+ 	.ascii  ",PAE=yes[extended-cr3]"
