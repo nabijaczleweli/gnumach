@@ -66,7 +66,7 @@ build/config.status: configure
 	dh_testdir
 	
 	-mkdir build
-	cd build && ../configure $(drivers) \
+	cd build && PACKAGE_VERSION_SUFFIX=-486 ../configure $(drivers) \
 		CFLAGS="$(CFLAGS)" \
 		$(common_configure)
 
@@ -74,7 +74,7 @@ build-xen/config.status: configure
 	dh_testdir
 	
 	-mkdir build-xen
-	cd build-xen && ../configure \
+	cd build-xen && PACKAGE_VERSION_SUFFIX=-xen-486 ../configure \
 		CFLAGS="$(CFLAGS)" \
 		$(common_configure) \
 		--enable-platform=xen
@@ -83,7 +83,7 @@ build-dbg/config.status: configure
 	dh_testdir
 	
 	-mkdir build-dbg
-	cd build-dbg && ../configure --enable-kdb $(drivers) \
+	cd build-dbg && PACKAGE_VERSION_SUFFIX=-486-dbg ../configure --enable-kdb $(drivers) \
 		CFLAGS="$(CFLAGS) -fno-omit-frame-pointer" \
 		$(common_configure) \
 
@@ -91,7 +91,7 @@ build-xen-dbg/config.status: configure
 	dh_testdir
 	
 	-mkdir build-xen-dbg
-	cd build-xen-dbg && ../configure --enable-kdb \
+	cd build-xen-dbg && PACKAGE_VERSION_SUFFIX=-xen-486-dbg ../configure --enable-kdb \
 		CFLAGS="$(CFLAGS) -fno-omit-frame-pointer" \
 		$(common_configure) \
 		--enable-platform=xen
