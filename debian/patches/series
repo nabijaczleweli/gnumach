@@ -4,7 +4,6 @@
 12_version_suffix.patch
 13_ide_dma.patch
 24_pci_irq_fix.patch
-40_iopl_mem.patch
 50_initrd.patch
 60_bigmem.patch
 70_dde.patch
