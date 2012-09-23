@@ -3,9 +3,9 @@ index 5d22504..64abbe9 100644
 --- a/Makefrag.am
 +++ b/Makefrag.am
 @@ -204,6 +204,7 @@ libkernel_a_SOURCES += \
- EXTRA_DIST += \
  	kern/mach.srv \
  	kern/mach4.srv \
+ 	kern/gnumach.srv \
 +	kern/experimental.srv \
  	kern/mach_debug.srv \
  	kern/mach_host.srv
@@ -27,17 +27,17 @@ index 5d22504..64abbe9 100644
  	include/mach/boolean.h \
  	include/mach/boot.h \
 @@ -478,6 +483,7 @@ nodist_libkernel_a_SOURCES += \
- nodist_lib_dep_tr_for_defs_a_SOURCES += \
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
+ 	kern/gnumach.server.defs.c \
 +	kern/experimental.server.defs.c \
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
 @@ -487,6 +493,9 @@ nodist_libkernel_a_SOURCES += \
- 	kern/mach4.server.h \
- 	kern/mach4.server.c \
- 	kern/mach4.server.msgids \
+ 	kern/gnumach.server.h \
+ 	kern/gnumach.server.c \
+ 	kern/gnumach.server.msgids \
 +	kern/experimental.server.h \
 +	kern/experimental.server.c \
 +	kern/experimental.server.msgids \
@@ -45,9 +45,9 @@ index 5d22504..64abbe9 100644
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
 @@ -495,6 +504,7 @@ nodist_libkernel_a_SOURCES += \
- 	kern/mach_host.server.msgids
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
+ #	kern/gnumach.server.defs
 +#	kern/experimental.server.defs
  #	kern/mach_debug.server.defs
  #	kern/mach_host.server.defs
@@ -767,19 +767,19 @@ index c922d7f..078b1d0 100644
 --- a/kern/ipc_kobject.c
 +++ b/kern/ipc_kobject.c
 @@ -151,7 +151,8 @@ ipc_kobject_server(request)
- 				mach_host_server_routine(),
  				device_server_routine(),
  				device_pager_server_routine(),
--				mach4_server_routine();
-+				mach4_server_routine(),
+ 				mach4_server_routine(),
+-				gnumach_server_routine();
++				gnumach_server_routine(),
 +				experimental_server_routine();
  #if	MACH_DEBUG
  	extern mig_routine_t	mach_debug_server_routine();
  #endif
 @@ -170,6 +171,7 @@ ipc_kobject_server(request)
- 	 || (routine = mach_debug_server_routine(&request->ikm_header)) != 0
  #endif	/* MACH_DEBUG */
  	 || (routine = mach4_server_routine(&request->ikm_header)) != 0
+ 	 || (routine = gnumach_server_routine(&request->ikm_header)) != 0
 +	 || (routine = experimental_server_routine(&request->ikm_header)) != 0
  #if	MACH_MACHINE_ROUTINES
  	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0

@@ -4,6 +4,7 @@ gnumach (2:1.3.99.dfsg.git20120923-1) UNRELEASED; urgency=low
     - patches/10_cdromlock.patch: Remove, merged upstream
     - patches/13_ide_dma.patch: Remove, merged upstream
     - patches/24_pci_irq_fix.patch: Remove, merged upstream
+    - patches/70_dde.patch: Refresh.
   * patches/60_bigmem.patch: Also set Xen to 2/2 memory model.
   * patches/40_iopl_mem.patch: Remove
   * control: Break xserver before 1.9.99.1.
