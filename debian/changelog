@@ -1,4 +1,4 @@
-gnumach (2:1.3.99.dfsg.git20120923-1) UNRELEASED; urgency=low
+gnumach (2:1.3.99.dfsg.git20120923-1) unstable; urgency=low
 
   * New upstream snapshot
     - patches/10_cdromlock.patch: Remove, merged upstream
