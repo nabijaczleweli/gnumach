@@ -17,6 +17,7 @@ the device is not being used for unassigned IRQ.
 	if we are getting an invalid IRQ >= 16 and different from 255 (it
 	happens in some motherboard).
 
+merged upstream
 
 Index: b/linux/src/drivers/net/pci-scan.c
 ===================================================================

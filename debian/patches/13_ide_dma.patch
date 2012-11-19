@@ -3,6 +3,7 @@ supporting hardware.
 
 2004-09-17  Sergio Lopez  <koro@sinrega.org>
 
+merged upstream
 
 Index: b/linux/src/drivers/block/ide.c
 ===================================================================
