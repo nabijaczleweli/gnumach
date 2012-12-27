@@ -1,7 +1,6 @@
 gnumach (2:1.3.99.dfsg.git20121227-1) unstable; urgency=low
 
   * New upstream snapshot.
-  * patches/20_zeromap.patch: New patch to fix abortion on mmap(size=0);
 
  -- Samuel Thibault <sthibault@debian.org>  Thu, 27 Dec 2012 16:52:39 +0000
 
