@@ -1,0 +1,82 @@
+commit 14a29498dfee39e72443ff0e6f463be7f3bfd4ec
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Dec 27 21:48:42 2012 +0100
+
+    Fix slow boot in virtualbox
+    
+    By disabling some of the most slow drivers by default, and giving progress
+    feedback to the user.
+    
+    * linux/configfrag.ac (CONFIG_SCSI_NCR53C7xx, CONFIG_SCSI_AIC7XXX,
+    CONFIG_SCSI_GDTH): Disable by default
+    * linux/src/drivers/scsi/eata.c (__initfunc): Don't feed line in probe
+    message.
+    * linux/src/drivers/scsi/hosts.c (scsi_init): Print SCSI probe progress.
+
+diff --git a/linux/configfrag.ac b/linux/configfrag.ac
+index f5af666..882af6b 100644
+--- a/linux/configfrag.ac
++++ b/linux/configfrag.ac
+@@ -157,7 +157,8 @@ AC_ARG_ENABLE([ide-forcedma],
+ dnl SCSI controllers.
+ AC_OPTION_Linux_group([scsi], [SCSI drivers])
+ 
+-AC_Linux_DRIVER([53c78xx],
++# Disabled by default.
++AC_Linux_DRIVER_nodef([53c78xx],
+   [SCSI controller NCR 53C7,8xx],
+   [CONFIG_SCSI_NCR53C7xx],
+   [scsi])
+@@ -196,7 +197,8 @@ AC_Linux_DRIVER([aha1740],
+   [SCSI controller Adaptec AHA-1740],
+   [CONFIG_SCSI_AHA1740],
+   [scsi])
+-AC_Linux_DRIVER([aic7xxx],
++# Disabled by default.
++AC_Linux_DRIVER_nodef([aic7xxx],
+   [SCSI controller Adaptec AIC7xxx],
+   [CONFIG_SCSI_AIC7XXX],
+   [scsi])
+@@ -227,7 +229,8 @@ AC_Linux_DRIVER_nodef([g_NCR5380],
+   [SCSI controller Generic NCR5380/53c400 (ncr5380, ncr53c400)],
+   [CONFIG_SCSI_GENERIC_NCR5380],
+   [scsi])
+-AC_Linux_DRIVER([gdth],
++# Disabled by default.
++AC_Linux_DRIVER_nodef([gdth],
+   [GDT SCSI Disk Array Controller],
+   [CONFIG_SCSI_GDTH],
+   [scsi])
+diff --git a/linux/src/drivers/scsi/eata.c b/linux/src/drivers/scsi/eata.c
+index ce859ce..49f0827 100644
+--- a/linux/src/drivers/scsi/eata.c
++++ b/linux/src/drivers/scsi/eata.c
+@@ -881,7 +881,7 @@ __initfunc (static inline int port_detect \
+ 
+    sprintf(name, "%s%d", driver_name, j);
+ 
+-   printk("probing eata on %lx\n", port_base);
++   printk("\rprobing eata on %lx", port_base);
+ 
+    if(check_region(port_base, REGION_SIZE)) {
+       printk("%s: address 0x%03lx in use, skipping probe.\n", name, port_base);
+diff --git a/linux/src/drivers/scsi/hosts.c b/linux/src/drivers/scsi/hosts.c
+index 010e1ce..0f1bedd 100644
+--- a/linux/src/drivers/scsi/hosts.c
++++ b/linux/src/drivers/scsi/hosts.c
+@@ -472,6 +472,7 @@ unsigned int scsi_init()
+ 	 * Initialize our semaphores.  -1 is interpreted to mean
+ 	 * "inactive" - where as 0 will indicate a time out condition.
+ 	 */
++	printk("\rprobing scsi %d/%d: %s \e[K", tpnt-builtin_scsi_hosts, MAX_SCSI_HOSTS, tpnt->name);
+ 	
+ 	pcount = next_scsi_host;
+ 	if ((tpnt->detect) &&
+@@ -496,6 +497,7 @@ unsigned int scsi_init()
+ #endif
+ 	}
+     }
++    printk("\ndone\n");
+         
+     for(shpnt=scsi_hostlist; shpnt; shpnt = shpnt->next)
+     {
