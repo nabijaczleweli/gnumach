@@ -130,6 +130,7 @@ Description: GNU version of the Mach microkernel, common files.
 Package: gnumach-dev
 Section: devel
 Architecture: any-i386
+Multi-Arch: same
 Depends: ${misc:Depends}
 Description: GNU version of the Mach microkernel
  These are the header files for the Utah Mach microkernel used by the Hurd.
