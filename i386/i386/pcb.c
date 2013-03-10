@@ -46,6 +46,7 @@
 #include <i386/proc_reg.h>
 #include <i386/seg.h>
 #include <i386/user_ldt.h>
+#include <i386/db_interface.h>
 #include <i386/fpu.h>
 #include "eflags.h"
 #include "gdt.h"
@@ -155,13 +156,13 @@ void switch_ktss(pcb)
 			? (long) (&pcb->iss + 1)
 			: (long) (&pcb->iss.v86_segs);
 
-#ifdef	MACH_XEN
+#ifdef	MACH_RING1
 	/* No IO mask here */
 	if (hyp_stack_switch(KERNEL_DS, pcb_stack_top))
 		panic("stack_switch");
-#else	/* MACH_XEN */
+#else	/* MACH_RING1 */
 	curr_ktss(mycpu)->tss.esp0 = pcb_stack_top;
-#endif	/* MACH_XEN */
+#endif	/* MACH_RING1 */
     }
 
     {
@@ -173,28 +174,28 @@ void switch_ktss(pcb)
 	    /*
 	     * Use system LDT.
 	     */
-#ifdef	MACH_HYP
+#ifdef	MACH_PV_DESCRIPTORS
 	    hyp_set_ldt(&ldt, LDTSZ);
-#else	/* MACH_HYP */
+#else	/* MACH_PV_DESCRIPTORS */
 	    set_ldt(KERNEL_LDT);
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_DESCRIPTORS */
 	}
 	else {
 	    /*
 	     * Thread has its own LDT.
 	     */
-#ifdef	MACH_HYP
+#ifdef	MACH_PV_DESCRIPTORS
 	    hyp_set_ldt(tldt->ldt,
 	    		(tldt->desc.limit_low|(tldt->desc.limit_high<<16)) /
 				sizeof(struct real_descriptor));
-#else	/* MACH_HYP */
+#else	/* MACH_PV_DESCRIPTORS */
 	    *gdt_desc_p(mycpu,USER_LDT) = tldt->desc;
 	    set_ldt(USER_LDT);
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_DESCRIPTORS */
 	}
     }
 
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_DESCRIPTORS
     {
 	int i;
 	for (i=0; i < USER_GDT_SLOTS; i++) {
@@ -206,14 +207,16 @@ void switch_ktss(pcb)
 	    }
 	}
     }
-#else /* MACH_XEN */
+#else /* MACH_PV_DESCRIPTORS */
 
     /* Copy in the per-thread GDT slots.  No reloading is necessary
        because just restoring the segment registers on the way back to
        user mode reloads the shadow registers from the in-memory GDT.  */
     memcpy (gdt_desc_p (mycpu, USER_GDT),
         pcb->ims.user_gdt, sizeof pcb->ims.user_gdt);
-#endif /* MACH_XEN */
+#endif /* MACH_PV_DESCRIPTORS */
+
+	db_load_context(pcb);
 
 	/*
 	 * Load the floating-point context, if necessary.
@@ -621,6 +624,21 @@ kern_return_t thread_setstatus(thread, flavor, tstate, count)
 		break;
 	    }
 
+	    case i386_DEBUG_STATE:
+	    {
+		register struct i386_debug_state *state;
+		kern_return_t ret;
+
+		if (count < i386_DEBUG_STATE_COUNT)
+		    return KERN_INVALID_ARGUMENT;
+
+		state = (struct i386_debug_state *) tstate;
+		ret = db_set_debug_state(thread->pcb, state);
+		if (ret)
+			return ret;
+		break;
+	    }
+
 	    default:
 		return(KERN_INVALID_ARGUMENT);
 	}
@@ -757,6 +775,20 @@ kern_return_t thread_getstatus(thread, flavor, tstate, count)
 		state->int_count = thread->pcb->ims.v86s.int_count;
 
 		*count = i386_V86_ASSIST_STATE_COUNT;
+		break;
+	    }
+
+	    case i386_DEBUG_STATE:
+	    {
+		register struct i386_debug_state *state;
+
+		if (*count < i386_DEBUG_STATE_COUNT)
+		    return KERN_INVALID_ARGUMENT;
+
+		state = (struct i386_debug_state *) tstate;
+		db_get_debug_state(thread->pcb, state);
+
+		*count = i386_DEBUG_STATE_COUNT;
 		break;
 	    }
 
