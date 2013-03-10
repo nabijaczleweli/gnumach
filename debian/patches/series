@@ -1,7 +1,6 @@
 00_clean_gfdl.patch
 11_ignore_CSIn.patch
 12_version_suffix.patch
-20_slow-boot.patch
 50_initrd.patch
 60_bigmem.patch
 70_dde.patch
