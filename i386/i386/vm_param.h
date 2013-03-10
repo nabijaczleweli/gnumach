@@ -25,33 +25,34 @@
 
 /* XXX use xu/vm_param.h */
 #include <mach/vm_param.h>
-#ifdef MACH_XEN
+#ifdef MACH_PV_PAGETABLES
 #include <xen/public/xen.h>
 #endif
 
 /* The kernel address space is usually 1GB, usually starting at virtual address 0.  */
-#ifdef	MACH_XEN
-#define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
-#define INIT_VM_MIN_KERNEL_ADDRESS	VM_MIN_KERNEL_ADDRESS
-#else	/* MACH_XEN */
 /* This can be changed freely to separate kernel addresses from user addresses
  * for better trace support in kdb; the _START symbol has to be offset by the
  * same amount. */
 #define VM_MIN_KERNEL_ADDRESS	0xC0000000UL
+
+#ifdef	MACH_XEN
+/* PV kernels can be loaded directly to the target virtual address */
+#define INIT_VM_MIN_KERNEL_ADDRESS	VM_MIN_KERNEL_ADDRESS
+#else	/* MACH_XEN */
 /* This must remain 0 */
 #define INIT_VM_MIN_KERNEL_ADDRESS	0x00000000UL
 #endif	/* MACH_XEN */
 
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 #if	PAE
 #define HYP_VIRT_START	HYPERVISOR_VIRT_START_PAE
 #else	/* PAE */
 #define HYP_VIRT_START	HYPERVISOR_VIRT_START_NONPAE
 #endif	/* PAE */
 #define VM_MAX_KERNEL_ADDRESS	(HYP_VIRT_START - LINEAR_MIN_KERNEL_ADDRESS + VM_MIN_KERNEL_ADDRESS)
-#else	/* MACH_XEN */
+#else	/* MACH_PV_PAGETABLES */
 #define VM_MAX_KERNEL_ADDRESS	(LINEAR_MAX_KERNEL_ADDRESS - LINEAR_MIN_KERNEL_ADDRESS + VM_MIN_KERNEL_ADDRESS)
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 
 /* Reserve mapping room for kmem. */
 #ifdef	MACH_XEN
@@ -66,14 +67,14 @@
 #define LINEAR_MIN_KERNEL_ADDRESS	(VM_MAX_ADDRESS)
 #define LINEAR_MAX_KERNEL_ADDRESS	(0xffffffffUL)
 
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 /* need room for mmu updates (2*8bytes) */
 #define KERNEL_STACK_SIZE	(4*I386_PGBYTES)
 #define INTSTACK_SIZE		(4*I386_PGBYTES)
-#else	/* MACH_XEN */
+#else	/* MACH_PV_PAGETABLES */
 #define KERNEL_STACK_SIZE	(1*I386_PGBYTES)
 #define INTSTACK_SIZE		(1*I386_PGBYTES)
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 						/* interrupt stack size */
 
 /*
