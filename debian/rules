@@ -84,7 +84,6 @@ build-dbg/config.status: configure
 	
 	-mkdir build-dbg
 	cd build-dbg && PACKAGE_VERSION_SUFFIX=-486-dbg ../configure --enable-kdb $(drivers) \
-		CFLAGS="$(CFLAGS) -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		$(common_configure) \
 
 build-xen-dbg/config.status: configure
@@ -92,7 +91,6 @@ build-xen-dbg/config.status: configure
 	
 	-mkdir build-xen-dbg
 	cd build-xen-dbg && PACKAGE_VERSION_SUFFIX=-xen-486-dbg ../configure --enable-kdb \
-		CFLAGS="$(CFLAGS) -fno-omit-frame-pointer" \
 		$(common_configure) \
 		--enable-platform=xen
 
