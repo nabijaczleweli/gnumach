@@ -1,3 +1,10 @@
+gnumach (2:1.3.99.dfsg.git20130510-1) unstable; urgency=low
+
+  * New upstream snapshot.
+    - Adds AHCI support.
+
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 10 May 2013 22:29:22 +0000
+
 gnumach (2:1.3.99.dfsg.git20130501-1) unstable; urgency=low
 
   * New upstream snapshot
