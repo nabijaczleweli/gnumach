@@ -615,18 +615,24 @@ static inline void kmem_cpu_pool_push(struct kmem_cpu_pool *cpu_pool, void *obj)
 static int kmem_cpu_pool_fill(struct kmem_cpu_pool *cpu_pool,
                               struct kmem_cache *cache)
 {
-    void *obj;
+    kmem_cache_ctor_t ctor;
+    void *buf;
     int i;
+
+    ctor = (cpu_pool->flags & KMEM_CF_VERIFY) ? NULL : cache->ctor;
 
     simple_lock(&cache->lock);
 
     for (i = 0; i < cpu_pool->transfer_size; i++) {
-        obj = kmem_cache_alloc_from_slab(cache);
+        buf = kmem_cache_alloc_from_slab(cache);
 
-        if (obj == NULL)
+        if (buf == NULL)
             break;
 
-        kmem_cpu_pool_push(cpu_pool, obj);
+        if (ctor != NULL)
+            ctor(buf);
+
+        kmem_cpu_pool_push(cpu_pool, buf);
     }
 
     simple_unlock(&cache->lock);
@@ -878,7 +884,7 @@ static int kmem_cache_grow(struct kmem_cache *cache)
     simple_lock(&cache->lock);
 
     if (slab != NULL) {
-        list_insert(&cache->free_slabs, &slab->list_node);
+        list_insert_head(&cache->free_slabs, &slab->list_node);
         cache->nr_bufs += cache->bufs_per_slab;
         cache->nr_slabs++;
         cache->nr_free_slabs++;
@@ -955,9 +961,12 @@ static void * kmem_cache_alloc_from_slab(struct kmem_cache *cache)
         if (slab->nr_refs == 1)
             cache->nr_free_slabs--;
     } else if (slab->nr_refs == 1) {
-        /* The slab has become partial */
+        /*
+         * The slab has become partial. Insert the new slab at the end of
+         * the list to reduce fragmentation.
+         */
         list_remove(&slab->list_node);
-        list_insert(&cache->partial_slabs, &slab->list_node);
+        list_insert_tail(&cache->partial_slabs, &slab->list_node);
         cache->nr_free_slabs--;
     }
 
@@ -1010,11 +1019,11 @@ static void kmem_cache_free_to_slab(struct kmem_cache *cache, void *buf)
         if (cache->bufs_per_slab > 1)
             list_remove(&slab->list_node);
 
-        list_insert(&cache->free_slabs, &slab->list_node);
+        list_insert_head(&cache->free_slabs, &slab->list_node);
         cache->nr_free_slabs++;
     } else if (slab->nr_refs == (cache->bufs_per_slab - 1)) {
         /* The slab has become partial */
-        list_insert(&cache->partial_slabs, &slab->list_node);
+        list_insert_head(&cache->partial_slabs, &slab->list_node);
     }
 }
 
@@ -1226,6 +1235,7 @@ fast_free:
             simple_unlock(&cpu_pool->lock);
             kmem_cache_free(cache->cpu_pool_type->array_cache,
                             (vm_offset_t)array);
+            simple_lock(&cpu_pool->lock);
             goto fast_free;
         }
 
@@ -1319,7 +1329,6 @@ void kalloc_init(void)
 {
     char name[KMEM_CACHE_NAME_SIZE];
     size_t i, size;
-    vm_offset_t min, max;
 
     size = 1 << KALLOC_FIRST_SHIFT;
 
