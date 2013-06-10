@@ -533,7 +533,6 @@ kern_return_t thread_create(
 #endif	/* HW_FOOTPRINT */
 
 #if	MACH_PCSAMPLE
-	new_thread->pc_sample.buffer = 0;
 	new_thread->pc_sample.seqno = 0;
 	new_thread->pc_sample.sampletypes = 0;
 #endif	/* MACH_PCSAMPLE */
@@ -862,7 +861,7 @@ void
 thread_force_terminate(
 	register thread_t	thread)
 {
-	boolean_t	deallocate_here = FALSE;
+	boolean_t	deallocate_here;
 	spl_t s;
 
 	ipc_thread_disable(thread);
