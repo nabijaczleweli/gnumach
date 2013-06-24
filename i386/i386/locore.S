@@ -432,12 +432,12 @@ ENTRY(t_debug)
 ENTRY(t_page_fault)
 	pushl	$(T_PAGE_FAULT)		/* mark a page fault trap */
 	pusha				/* save the general registers */
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 	movl	%ss:hyp_shared_info+CR2,%eax
-#else	/* MACH_XEN */
+#else	/* MACH_PV_PAGETABLES */
 	movl	%cr2,%eax		/* get the faulting address */
-#endif	/* MACH_XEN */
-	movl	%eax,12(%esp)		/* save in esp save slot */
+#endif	/* MACH_PV_PAGETABLES */
+	movl	%eax,R_CR2-R_EDI(%esp)	/* save in esp save slot */
 	jmp	trap_push_segs		/* continue fault */
 
 /*
@@ -1410,128 +1410,6 @@ _inst_fetch_fault:
 	RETRY_TABLE_END
 
 
-
-ENTRY(dr6)
-#ifdef MACH_XEN
-	pushl	%ebx
-	movl	$6, %ebx
-	call	__hyp_get_debugreg
-	popl	%ebx
-#else /* MACH_XEN */
-	movl	%db6, %eax
-#endif /* MACH_XEN */
-	ret
-
-/*	dr<i>(address, type, len, persistence)
- */
-ENTRY(dr0)
-	movl	S_ARG0, %eax
-	movl	%eax,EXT(dr_addr)
-#ifdef MACH_XEN
-	pushl	%ebx
-	movl	$0,%ebx
-	movl	%eax,%ecx
-	call	__hyp_set_debugreg
-#else /* MACH_XEN */
-	movl	%eax, %db0
-#endif /* MACH_XEN */
-	movl	$0, %ecx
-	jmp	0f
-ENTRY(dr1)
-	movl	S_ARG0, %eax
-	movl	%eax,EXT(dr_addr)+1*4
-#ifdef MACH_XEN
-	pushl	%ebx
-	movl	$1,%ebx
-	movl	%eax,%ecx
-	call	__hyp_set_debugreg
-#else /* MACH_XEN */
-	movl	%eax, %db1
-#endif /* MACH_XEN */
-	movl	$2, %ecx
-	jmp	0f
-ENTRY(dr2)
-	movl	S_ARG0, %eax
-	movl	%eax,EXT(dr_addr)+2*4
-#ifdef MACH_XEN
-	pushl	%ebx
-	movl	$2,%ebx
-	movl	%eax,%ecx
-	call	__hyp_set_debugreg
-#else /* MACH_XEN */
-	movl	%eax, %db2
-#endif /* MACH_XEN */
-	movl	$4, %ecx
-	jmp	0f
-
-ENTRY(dr3)
-	movl	S_ARG0, %eax
-	movl	%eax,EXT(dr_addr)+3*4
-#ifdef MACH_XEN
-	pushl	%ebx
-	movl	$3,%ebx
-	movl	%eax,%ecx
-	call	__hyp_set_debugreg
-#else /* MACH_XEN */
-	movl	%eax, %db3
-#endif /* MACH_XEN */
-	movl	$6, %ecx
-
-0:
-	pushl	%ebp
-	movl	%esp, %ebp
-
-#ifdef MACH_XEN
-	movl	$7,%ebx
-	call	__hyp_get_debugreg
-	movl	%eax, %edx
-#else /* MACH_XEN */
-	movl	%db7, %edx
-#endif /* MACH_XEN */
-	movl	%edx,EXT(dr_addr)+4*4
-	andl	dr_msk(,%ecx,2),%edx	/* clear out new entry */
-	movl	%edx,EXT(dr_addr)+5*4
-	movzbl	B_ARG3, %eax
-	andb	$3, %al
-	shll	%cl, %eax
-	orl	%eax, %edx
-
-	movzbl	B_ARG1, %eax
-	andb	$3, %al
-	addb	%cl, %cl
-	addb	$0x10, %cl
-	shll	%cl, %eax
-	orl	%eax, %edx
-
-	movzbl	B_ARG2, %eax
-	andb	$3, %al
-	addb	$0x2, %cl
-	shll	%cl, %eax
-	orl	%eax, %edx
-
-#ifdef MACH_XEN
-	movl	$7,%ebx
-	movl	%edx, %ecx
-	call	__hyp_set_debugreg
-	popl	%ebx
-#else /* MACH_XEN */
-	movl	%edx, %db7
-#endif /* MACH_XEN */
-	movl	%edx,EXT(dr_addr)+7*4
-	movl	%edx, %eax
-	leave
-	ret
-
-	.data
-dr_msk:
-	.long	~0x000f0003
-	.long	~0x00f0000c
-	.long	~0x0f000030
-	.long	~0xf00000c0
-ENTRY(dr_addr)
-	.long	0,0,0,0
-	.long	0,0,0,0
-	.text
 
 /*
  * cpu_shutdown()

@@ -151,7 +151,8 @@ ipc_kobject_server(request)
 				mach_host_server_routine(),
 				device_server_routine(),
 				device_pager_server_routine(),
-				mach4_server_routine();
+				mach4_server_routine(),
+				gnumach_server_routine();
 #if	MACH_DEBUG
 	extern mig_routine_t	mach_debug_server_routine();
 #endif
@@ -170,20 +171,27 @@ ipc_kobject_server(request)
 	 || (routine = mach_debug_server_routine(&request->ikm_header)) != 0
 #endif	/* MACH_DEBUG */
 	 || (routine = mach4_server_routine(&request->ikm_header)) != 0
+	 || (routine = gnumach_server_routine(&request->ikm_header)) != 0
 #if	MACH_MACHINE_ROUTINES
 	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0
 #endif	/* MACH_MACHINE_ROUTINES */
 	) {
 	    (*routine)(&request->ikm_header, &reply->ikm_header);
-	}
-	else if (!ipc_kobject_notify(&request->ikm_header,&reply->ikm_header)){
+	    kernel_task->messages_received++;
+	} else {
+	    if (!ipc_kobject_notify(&request->ikm_header,
+		&reply->ikm_header)) {
 		((mig_reply_header_t *) &reply->ikm_header)->RetCode
 		    = MIG_BAD_ID;
 #if	MACH_IPC_TEST
 		printf("ipc_kobject_server: bogus kernel message, id=%d\n",
 		       request->ikm_header.msgh_id);
 #endif	/* MACH_IPC_TEST */
+	    } else {
+		kernel_task->messages_received++;
+	    }
 	}
+	kernel_task->messages_sent++;
     }
 	check_simple_locks();
 
@@ -319,7 +327,7 @@ ipc_kobject_destroy(
 
 	    default:
 #if	MACH_ASSERT
-		printf("ipc_kobject_destroy: port 0x%p, kobj 0x%x, type %d\n",
+		printf("ipc_kobject_destroy: port 0x%p, kobj 0x%lx, type %d\n",
 		       port, port->ip_kobject, ip_kotype(port));
 #endif	/* MACH_ASSERT */
 		break;

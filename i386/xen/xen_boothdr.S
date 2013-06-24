@@ -22,8 +22,8 @@
 	.ascii	"GUEST_OS=GNU Mach"
 	.ascii  ",GUEST_VERSION=1.3"
 	.ascii	",XEN_VER=xen-3.0"
-	.ascii  ",VIRT_BASE=0x20000000"
-	.ascii  ",ELF_PADDR_OFFSET=0x20000000"
+	.ascii  ",VIRT_BASE=0xC0000000"
+	.ascii  ",ELF_PADDR_OFFSET=0xC0000000"
 	.ascii	",HYPERCALL_PAGE=0x2"
 #if PAE
 	.ascii  ",PAE=yes[extended-cr3]"
@@ -36,6 +36,15 @@
 #else	/* MACH_PSEUDO_PHYS */
 	.ascii	",FEATURES=!auto_translated_physmap"
 #endif
+#ifndef	MACH_PV_PAGETABLES
+	.ascii	"|!writable_page_tables"
+#endif	/* MACH_PV_PAGETABLES */
+#ifndef	MACH_PV_DESCRIPTORS
+	.ascii	"|!writable_descriptor_tables"
+#endif	/* MACH_PV_DESCRIPTORS */
+#ifndef	MACH_RING1
+	.ascii	"|!supervisor_mode_kernel"
+#endif	/* MACH_PV_DESCRIPTORS */
 	.byte	0
 
 /* Macro taken from linux/include/linux/elfnote.h */
@@ -68,8 +77,17 @@
 #ifdef MACH_PSEUDO_PHYS
 						"pae_pgdir_above_4gb"
 #else /* MACH_PSEUDO_PHYS */
-						"!auto_translated_physmap|"
+						"!auto_translated_physmap"
 #endif
+#ifndef	MACH_PV_PAGETABLES
+						"|!writable_page_tables"
+#endif	/* MACH_PV_PAGETABLES */
+#ifndef	MACH_PV_DESCRIPTORS
+						"|!writable_descriptor_tables"
+#endif	/* MACH_PV_DESCRIPTORS */
+#ifndef	MACH_RING1
+						"|!supervisor_mode_kernel"
+#endif	/* MACH_RING1 */
 	)
 
 #include <mach/machine/asm.h>

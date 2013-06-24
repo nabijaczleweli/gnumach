@@ -45,7 +45,6 @@
 #include <kern/eventcount.h>
 #include <kern/ipc_mig.h>
 #include <kern/ipc_tt.h>
-#include <kern/mach_param.h>
 #include <kern/processor.h>
 #include <kern/queue.h>
 #include <kern/sched.h>
@@ -54,7 +53,8 @@
 #include <kern/thread.h>
 #include <kern/thread_swap.h>
 #include <kern/host.h>
-#include <kern/zalloc.h>
+#include <kern/kalloc.h>
+#include <kern/slab.h>
 #include <kern/mach_clock.h>
 #include <vm/vm_kern.h>
 #include <ipc/ipc_kmsg.h>
@@ -67,7 +67,7 @@
 thread_t active_threads[NCPUS];
 vm_offset_t active_stacks[NCPUS];
 
-struct zone *thread_zone;
+struct kmem_cache thread_cache;
 
 queue_head_t		reaper_queue;
 decl_simple_lock_data(,	reaper_lock)
@@ -208,7 +208,7 @@ void stack_alloc(
 		 *	addresses of a stack given an address in the middle.
 		 */
 
-		if (kmem_alloc_aligned(kernel_map, &stack, KERNEL_STACK_SIZE)
+		if (kmem_alloc_aligned(kmem_map, &stack, KERNEL_STACK_SIZE)
 							!= KERN_SUCCESS)
 			panic("stack_alloc");
 
@@ -268,7 +268,7 @@ void stack_collect(void)
 #if	MACH_DEBUG
 		stack_finalize(stack);
 #endif	/* MACH_DEBUG */
-		kmem_free(kernel_map, stack, KERNEL_STACK_SIZE);
+		kmem_free(kmem_map, stack, KERNEL_STACK_SIZE);
 
 		s = splsched();
 		stack_lock();
@@ -300,11 +300,8 @@ void stack_privilege(
 
 void thread_init(void)
 {
-	thread_zone = zinit(
-			sizeof(struct thread), 0,
-			THREAD_MAX * sizeof(struct thread),
-			THREAD_CHUNK * sizeof(struct thread),
-			0, "threads");
+	kmem_cache_init(&thread_cache, "thread", sizeof(struct thread), 0,
+			NULL, NULL, NULL, 0);
 
 	/*
 	 *	Fill in a template thread for fast initialization.
@@ -414,7 +411,7 @@ kern_return_t thread_create(
 	 *	Allocate a thread and initialize static fields
 	 */
 
-	new_thread = (thread_t) zalloc(thread_zone);
+	new_thread = (thread_t) kmem_cache_alloc(&thread_cache);
 
 	if (new_thread == THREAD_NULL)
 		return KERN_RESOURCE_SHORTAGE;
@@ -536,7 +533,6 @@ kern_return_t thread_create(
 #endif	/* HW_FOOTPRINT */
 
 #if	MACH_PCSAMPLE
-	new_thread->pc_sample.buffer = 0;
 	new_thread->pc_sample.seqno = 0;
 	new_thread->pc_sample.sampletypes = 0;
 #endif	/* MACH_PCSAMPLE */
@@ -710,7 +706,7 @@ void thread_deallocate(
 	evc_notify_abort(thread);
 
 	pcb_terminate(thread);
-	zfree(thread_zone, (vm_offset_t) thread);
+	kmem_cache_free(&thread_cache, (vm_offset_t) thread);
 }
 
 void thread_reference(
@@ -865,7 +861,7 @@ void
 thread_force_terminate(
 	register thread_t	thread)
 {
-	boolean_t	deallocate_here = FALSE;
+	boolean_t	deallocate_here;
 	spl_t s;
 
 	ipc_thread_disable(thread);
@@ -1329,10 +1325,12 @@ kern_return_t thread_suspend(
 	hold = FALSE;
 	spl = splsched();
 	thread_lock(thread);
-	if (thread->state & TH_UNINT) {
+	/* Wait for thread to get interruptible */
+	while (thread->state & TH_UNINT) {
+		assert_wait(&thread->state, TRUE);
 		thread_unlock(thread);
-		(void) splx(spl);
-		return KERN_FAILURE;
+		thread_block(NULL);
+		thread_lock(thread);
 	}
 	if (thread->user_stop_count++ == 0) {
 		hold = TRUE;
@@ -2400,7 +2398,7 @@ kern_return_t host_stack_usage(
 	vm_size_t	*maxusagep,
 	vm_offset_t	*maxstackp)
 {
-	unsigned int total;
+	natural_t total;
 	vm_size_t maxusage;
 
 	if (host == HOST_NULL)

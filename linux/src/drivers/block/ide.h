@@ -152,7 +152,8 @@ typedef unsigned char	byte;	/* used everywhere */
 /*
  * Timeouts for various operations:
  */
-#define WAIT_DRQ	(5*HZ/100)	/* 50msec - spec allows up to 20ms */
+#define WAIT_DRQ	(1*HZ)		/* 1s - spec allows up to 20ms, but CF
+					 * cards and SSD drives need more */
 #ifdef CONFIG_APM
 #define WAIT_READY	(5*HZ)		/* 5sec - some laptops are very slow */
 #else
@@ -429,7 +430,8 @@ typedef void (ide_selectproc_t) (ide_drive_t *);
 typedef enum {	ide_unknown,	ide_generic,	ide_triton,
 		ide_cmd640,	ide_dtc2278,	ide_ali14xx,
 		ide_qd6580,	ide_umc8672,	ide_ht6560b,
-		ide_promise,	ide_promise_udma }
+		ide_promise,	ide_hpt343,	ide_udma,
+		ide_ultra66 }
 	hwif_chipset_t;
 
 typedef struct hwif_s {

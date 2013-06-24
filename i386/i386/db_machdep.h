@@ -34,12 +34,11 @@
 #include <mach/machine/vm_types.h>
 #include <mach/machine/vm_param.h>
 #include <mach/machine/eflags.h>
-#include <machine/db_interface.h>
 #include <i386/thread.h>		/* for thread_status */
 #include <i386/trap.h>
 
 typedef	vm_offset_t	db_addr_t;	/* address - unsigned */
-typedef	int		db_expr_t;	/* expression - signed */
+typedef	long		db_expr_t;	/* expression - signed */
 
 typedef struct i386_saved_state db_regs_t;
 db_regs_t	ddb_regs;	/* register state */

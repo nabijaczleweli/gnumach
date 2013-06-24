@@ -35,6 +35,7 @@
 #include <mach/vm_param.h>
 #include <kern/cpu_number.h>
 #include <kern/debug.h>
+#include <kern/kalloc.h>
 #include <kern/lock.h>
 #include <kern/host.h>
 #include <kern/ipc_tt.h>
@@ -46,8 +47,8 @@
 #include <ipc/ipc_port.h>
 
 #if	MACH_HOST
-#include <kern/zalloc.h>
-zone_t	pset_zone;
+#include <kern/slab.h>
+struct kmem_cache pset_cache;
 #endif	/* MACH_HOST */
 
 
@@ -112,10 +113,10 @@ void pset_sys_init(void)
 	register processor_t	processor;
 
 	/*
-	 * Allocate the zone for processor sets.
+	 * Allocate the cache for processor sets.
 	 */
-	pset_zone = zinit(sizeof(struct processor_set), 0, 128*PAGE_SIZE,
-		PAGE_SIZE, 0, "processor sets");
+	kmem_cache_init(&pset_cache, "processor_set",
+			sizeof(struct processor_set), 0, NULL, NULL, NULL, 0);
 
 	/*
 	 * Give each processor a control port.
@@ -394,7 +395,7 @@ void pset_deallocate(
 	/*
 	 *	That's it, free data structure.
 	 */
-	zfree(pset_zone, (vm_offset_t)pset);
+	kmem_cache_free(&pset_cache, (vm_offset_t)pset);
 #endif	/* MACH_HOST */
 }
 
@@ -538,7 +539,7 @@ processor_set_create(
 	if (host == HOST_NULL)
 		return KERN_INVALID_ARGUMENT;
 
-	pset = (processor_set_t) zalloc(pset_zone);
+	pset = (processor_set_t) kmem_cache_alloc(&pset_cache);
 	pset_init(pset);
 	pset_reference(pset);	/* for new_set out argument */
 	pset_reference(pset);	/* for new_name out argument */

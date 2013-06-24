@@ -356,7 +356,7 @@ static void aha1542_intr_handle(int irq, void *dev_id, struct pt_regs *regs)
     void (*my_done)(Scsi_Cmnd *) = NULL;
     int errstatus, mbi, mbo, mbistatus;
     int number_serviced;
-    unsigned int flags;
+    unsigned long flags;
     struct Scsi_Host * shost;
     Scsi_Cmnd * SCtmp;
     int flag;
@@ -875,7 +875,7 @@ void aha1542_setup( char *str, int *ints)
     if (ints[0] < 1 || ints[0] > 4)
       {
 	printk("aha1542: %s\n", str );
-	printk(ahausage);
+	printk("%s", ahausage);
 	printk("aha1542: Wrong parameters may cause system malfunction.. We try anyway..\n");
       }
 
@@ -905,7 +905,7 @@ void aha1542_setup( char *str, int *ints)
 	    break;
 	default:
 	    printk("aha1542: %s\n", str );
-	    printk(ahausage);
+	    printk("%s", ahausage);
 	    printk("aha1542: Valid values for DMASPEED are 5-8, 10 MB/s.  Using jumper defaults.\n");
 	    break;
       }

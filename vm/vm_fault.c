@@ -51,9 +51,8 @@
 #include <mach/memory_object.h>
 #include <vm/memory_object_user.user.h>
 				/* For memory_object_data_{request,unlock} */
-#include <kern/mach_param.h>
 #include <kern/macro_help.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 
 #if	MACH_PCSAMPLE
 #include <kern/pc_sample.h>
@@ -85,7 +84,7 @@ typedef struct vm_fault_state {
 	vm_prot_t vmfp_access;
 } vm_fault_state_t;
 
-zone_t		vm_fault_state_zone = 0;
+struct kmem_cache	vm_fault_state_cache;
 
 int		vm_object_absent_max = 50;
 
@@ -107,10 +106,8 @@ extern struct db_watchpoint *db_watchpoint_list;
  */
 void vm_fault_init(void)
 {
-	vm_fault_state_zone = zinit(sizeof(vm_fault_state_t), 0,
-				    THREAD_MAX * sizeof(vm_fault_state_t),
-				    sizeof(vm_fault_state_t),
-				    0, "vm fault state");
+	kmem_cache_init(&vm_fault_state_cache, "vm_fault_state",
+			sizeof(vm_fault_state_t), 0, NULL, NULL, NULL, 0);
 }
 
 /*
@@ -257,6 +254,7 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 
 	vm_stat_sample(SAMPLED_PC_VM_FAULTS_ANY);
 	vm_stat.faults++;		/* needs lock XXX */
+	current_task()->faults++;
 
 /*
  *	Recovery actions
@@ -474,6 +472,7 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 					vm_stat_sample(SAMPLED_PC_VM_ZFILL_FAULTS);
 
 					vm_stat.zero_fill_count++;
+					current_task()->zero_fills++;
 					vm_object_lock(object);
 					pmap_clear_modify(m->phys_addr);
 					break;
@@ -555,6 +554,7 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 				if (m->inactive)  {
 				    	vm_stat_sample(SAMPLED_PC_VM_REACTIVATION_FAULTS);
 					vm_stat.reactivations++;
+					current_task()->reactivations++;
 				}
 
 				VM_PAGE_QUEUES_REMOVE(m);
@@ -654,13 +654,14 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 
 			vm_stat.pageins++;
 		    	vm_stat_sample(SAMPLED_PC_VM_PAGEIN_FAULTS);
+			current_task()->pageins++;
 
 			if ((rc = memory_object_data_request(object->pager,
 				object->pager_request,
 				m->offset + object->paging_offset,
 				PAGE_SIZE, access_required)) != KERN_SUCCESS) {
 				if (rc != MACH_SEND_INTERRUPTED)
-					printf("%s(0x%p, 0x%p, 0x%x, 0x%x, 0x%x) failed, %x\n",
+					printf("%s(0x%p, 0x%p, 0x%lx, 0x%x, 0x%x) failed, %x\n",
 						"memory_object_data_request",
 						object->pager,
 						object->pager_request,
@@ -743,6 +744,7 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 			vm_page_zero_fill(m);
 			vm_stat_sample(SAMPLED_PC_VM_ZFILL_FAULTS);
 			vm_stat.zero_fill_count++;
+			current_task()->zero_fills++;
 			vm_object_lock(object);
 			pmap_clear_modify(m->phys_addr);
 			break;
@@ -858,6 +860,7 @@ vm_fault_return_t vm_fault_page(first_object, first_offset,
 
 			vm_stat.cow_faults++;
 			vm_stat_sample(SAMPLED_PC_VM_COW_FAULTS);
+			current_task()->cow_faults++;
 			object = first_object;
 			offset = first_offset;
 
@@ -1206,12 +1209,12 @@ kern_return_t vm_fault(map, vaddr, fault_type, change_wiring,
 
 		/*
 		 * if this assignment stmt is written as
-		 * 'active_threads[cpu_number()] = zalloc()',
-		 * cpu_number may be evaluated before zalloc;
-		 * if zalloc blocks, cpu_number will be wrong
+		 * 'active_threads[cpu_number()] = kmem_cache_alloc()',
+		 * cpu_number may be evaluated before kmem_cache_alloc;
+		 * if kmem_cache_alloc blocks, cpu_number will be wrong
 		 */
 
-		state = (char *) zalloc(vm_fault_state_zone);
+		state = (char *) kmem_cache_alloc(&vm_fault_state_cache);
 		current_thread()->ith_other = state;
 
 	}
@@ -1490,7 +1493,7 @@ kern_return_t vm_fault(map, vaddr, fault_type, change_wiring,
 		register vm_fault_state_t *state =
 			(vm_fault_state_t *) current_thread()->ith_other;
 
-		zfree(vm_fault_state_zone, (vm_offset_t) state);
+		kmem_cache_free(&vm_fault_state_cache, (vm_offset_t) state);
 		(*continuation)(kr);
 		/*NOTREACHED*/
 	}
@@ -1641,6 +1644,7 @@ kern_return_t vm_fault_wire_fast(map, va, entry)
 	vm_prot_t		prot;
 
 	vm_stat.faults++;		/* needs lock XXX */
+	current_task()->faults++;
 /*
  *	Recovery actions
  */

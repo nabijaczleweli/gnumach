@@ -102,7 +102,7 @@ void lprattach(struct bus_device *dev)
 	u_short		addr = (u_short) dev->address;
 
 	take_dev_irq(dev);
-	printf(", port = %x, spl = %d, pic = %d.",
+	printf(", port = %lx, spl = %ld, pic = %d.",
 	       dev->address, dev->sysdep, dev->sysdep1);
 	lprinfo[unit] = dev;
   
@@ -185,7 +185,7 @@ lprgetstat(dev, flavor, data, count)
 dev_t		dev;
 int		flavor;
 int		*data;		/* pointer to OUT array */
-unsigned int	*count;		/* out */
+natural_t	*count;		/* out */
 {
 	io_return_t	result = D_SUCCESS;
 	int		unit = minor(dev);
@@ -203,7 +203,7 @@ lprsetstat(dev, flavor, data, count)
 dev_t		dev;
 int		flavor;
 int *		data;
-unsigned int	count;
+natural_t	count;
 {
 	io_return_t	result = D_SUCCESS;
 	int 		unit = minor(dev);

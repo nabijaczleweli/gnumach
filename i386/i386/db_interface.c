@@ -27,8 +27,6 @@
  * Interface to new debugger.
  */
 
-#if MACH_KDB
-
 #include <sys/reboot.h>
 #include <vm/pmap.h>
 
@@ -55,14 +53,162 @@
 #include <ddb/db_run.h>
 #include <ddb/db_task_thread.h>
 #include <ddb/db_trap.h>
+#include <ddb/db_watch.h>
 #include <machine/db_interface.h>
 #include <machine/machspl.h>
+
+#if MACH_KDB
+/* Whether the kernel uses any debugging register.  */
+static int kernel_dr;
+#endif
+
+void db_load_context(pcb_t pcb)
+{
+#if MACH_KDB
+	int s = splhigh();
+
+	if (kernel_dr) {
+		splx(s);
+		return;
+	}
+#endif
+
+	/* Else set user debug registers */
+	set_dr0(pcb->ims.ids.dr[0]);
+	set_dr1(pcb->ims.ids.dr[1]);
+	set_dr2(pcb->ims.ids.dr[2]);
+	set_dr3(pcb->ims.ids.dr[3]);
+	set_dr7(pcb->ims.ids.dr[7]);
+#if MACH_KDB
+	splx(s);
+#endif
+}
+
+void db_get_debug_state(
+	pcb_t pcb,
+	struct i386_debug_state *state)
+{
+	*state = pcb->ims.ids;
+}
+
+kern_return_t db_set_debug_state(
+	pcb_t pcb,
+	const struct i386_debug_state *state)
+{
+	int i;
+
+	for (i = 0; i <= 3; i++)
+		if (state->dr[i] < VM_MIN_ADDRESS
+	 	 || state->dr[i] >= VM_MAX_ADDRESS)
+			return KERN_INVALID_ARGUMENT;
+
+	pcb->ims.ids = *state;
+
+	if (pcb == current_thread()->pcb)
+		db_load_context(pcb);
+
+	return KERN_SUCCESS;
+}
+
+#if MACH_KDB
 
 struct	 i386_saved_state *i386_last_saved_statep;
 struct	 i386_saved_state i386_nested_saved_state;
 unsigned i386_last_kdb_sp;
 
 extern	thread_t db_default_thread;
+
+static struct i386_debug_state ids;
+
+void db_dr (
+	int		num,
+	vm_offset_t	linear_addr,
+	int		type,
+	int		len,
+	int		persistence)
+{
+	int s = splhigh();
+	unsigned long dr7;
+
+	if (!kernel_dr) {
+	    if (!linear_addr) {
+		splx(s);
+		return;
+	    }
+	    kernel_dr = 1;
+	    /* Clear user debugging registers */
+	    set_dr7(0);
+	    set_dr0(0);
+	    set_dr1(0);
+	    set_dr2(0);
+	    set_dr3(0);
+	}
+
+	ids.dr[num] = linear_addr;
+	switch (num) {
+	    case 0: set_dr0(linear_addr); break;
+	    case 1: set_dr1(linear_addr); break;
+	    case 2: set_dr2(linear_addr); break;
+	    case 3: set_dr3(linear_addr); break;
+	}
+
+	/* Replace type/len/persistence for DRnum in dr7 */
+	dr7 = get_dr7 ();
+	dr7 &= ~(0xfUL << (4*num+16)) & ~(0x3UL << (2*num));
+	dr7 |= (((len << 2) | type) << (4*num+16)) | (persistence << (2*num));
+	set_dr7 (dr7);
+
+	if (kernel_dr) {
+	    if (!ids.dr[0] && !ids.dr[1] && !ids.dr[2] && !ids.dr[3]) {
+		/* Not used any more, switch back to user debugging registers */
+		kernel_dr = 0;
+		db_load_context(current_thread()->pcb);
+	    }
+	}
+	splx(s);
+}
+
+boolean_t
+db_set_hw_watchpoint(
+	db_watchpoint_t	watch,
+	unsigned	num)
+{
+	vm_size_t	size = watch->hiaddr - watch->loaddr;
+	db_addr_t	addr = watch->loaddr;
+	unsigned int kern_addr;
+
+	if (num >= 4)
+	    return FALSE;
+	if (size != 1 && size != 2 && size != 4)
+	    return FALSE;
+
+	if (addr & (size-1))
+	    /* Unaligned */
+	    return FALSE;
+
+	if (watch->task) {
+	    if (db_user_to_kernel_address(watch->task, addr, &kern_addr, 1) < 0)
+		return FALSE;
+	    addr = kern_addr;
+	}
+	addr = kvtolin(addr);
+
+	db_dr (num, addr, I386_DB_TYPE_W, size-1, I386_DB_LOCAL|I386_DB_GLOBAL);
+
+	db_printf("Hardware watchpoint %d set for %x\n", num, addr);
+	return TRUE;
+}
+
+boolean_t
+db_clear_hw_watchpoint(
+	unsigned	num)
+{
+	if (num >= 4)
+		return FALSE;
+
+	db_dr (num, 0, 0, 0, 0);
+	return TRUE;
+}
 
 /*
  * Print trap reason.
@@ -96,15 +242,14 @@ kdb_trap(
 	switch (type) {
 	    case T_DEBUG:	/* single_step */
 	    {
-	    	extern int dr_addr[];
 		int addr;
-	    	int status = dr6();
+	    	int status = get_dr6();
 
 		if (status & 0xf) {	/* hmm hdw break */
-			addr =	status & 0x8 ? dr_addr[3] :
-				status & 0x4 ? dr_addr[2] :
-				status & 0x2 ? dr_addr[1] :
-					       dr_addr[0];
+			addr =	status & 0x8 ? get_dr3() :
+				status & 0x4 ? get_dr2() :
+				status & 0x2 ? get_dr1() :
+					       get_dr0();
 			regs->efl |= EFL_RF;
 			db_single_step_cmd(addr, 0, 1, "p");
 		}
@@ -188,10 +333,10 @@ kdb_trap(
  *	instead of those at its call to KDB.
  */
 struct int_regs {
-	int	edi;
-	int	esi;
-	int	ebp;
-	int	ebx;
+	long	edi;
+	long	esi;
+	long	ebp;
+	long	ebx;
 	struct i386_interrupt_state *is;
 };
 
@@ -443,7 +588,7 @@ db_check_access(
 	register int	size,
 	task_t		task)
 {
-	register	n;
+	int	n;
 	vm_offset_t	kern_addr;
 
 	if (addr >= VM_MIN_KERNEL_ADDRESS) {

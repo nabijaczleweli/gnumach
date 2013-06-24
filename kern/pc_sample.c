@@ -31,6 +31,7 @@
 #include <mach/std_types.h>	/* pointer_t */
 #include <mach/pc_sample.h>
 #include <machine/trap.h>
+#include <kern/kalloc.h>
 #include <kern/host.h>
 #include <kern/thread.h>
 #include <kern/pc_sample.h>
@@ -56,7 +57,7 @@ void take_pc_sample(
     pc = interrupted_pc(t);
     cp->seqno++;
     sample = &((sampled_pc_t *)cp->buffer)[cp->seqno % MAX_PC_SAMPLES];
-    sample->id = (natural_t)t;
+    sample->id = (vm_offset_t)t;
     sample->pc = pc;
     sample->sampletype = flavor;
 }

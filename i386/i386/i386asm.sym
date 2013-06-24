@@ -78,6 +78,7 @@ offset	i386_saved_state	r	err
 offset	i386_saved_state	r	efl		R_EFLAGS
 offset	i386_saved_state	r	eip
 offset	i386_saved_state	r	cr2
+offset	i386_saved_state	r	edi
 
 offset	i386_interrupt_state	i	eip
 offset	i386_interrupt_state	i	cs
@@ -93,7 +94,7 @@ expr	VM_MIN_ADDRESS
 expr	VM_MAX_ADDRESS
 expr	VM_MIN_KERNEL_ADDRESS				KERNELBASE
 expr	KERNEL_STACK_SIZE
-#if VM_MIN_KERNEL_ADDRESS == LINEAR_MIN_KERNEL_ADDRESS
+#if defined MACH_PSEUDO_PHYS && (VM_MIN_KERNEL_ADDRESS == LINEAR_MIN_KERNEL_ADDRESS)
 expr    PFN_LIST					pfn_list
 #endif
 
@@ -123,9 +124,9 @@ expr	KERNEL_RING
 expr	KERNEL_CS
 expr	KERNEL_DS
 expr	KERNEL_TSS
-#ifndef	MACH_XEN
+#ifndef	MACH_PV_DESCRIPTORS
 expr	KERNEL_LDT
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_DESCRIPTORS */
 
 expr	(VM_MIN_KERNEL_ADDRESS>>PDESHIFT)*sizeof(pt_entry_t)	KERNELBASEPDE
 
@@ -150,5 +151,7 @@ offset	shared_info		si	vcpu_info[0].evtchn_upcall_pending	CPU_PENDING
 offset	shared_info		si	vcpu_info[0].evtchn_pending_sel	CPU_PENDING_SEL
 offset	shared_info		si	evtchn_pending	PENDING
 offset	shared_info		si	evtchn_mask	EVTMASK
+#ifdef	MACH_PV_PAGETABLES
 offset	shared_info		si	vcpu_info[0].arch.cr2	CR2
+#endif	/* MACH_PV_PAGETABLES */
 #endif	/* MACH_XEN */

@@ -38,6 +38,7 @@
 #include <mach/vm_attributes.h>
 #include <mach/vm_param.h>
 #include <mach/vm_statistics.h>
+#include <mach/vm_cache_statistics.h>
 #include <kern/host.h>
 #include <kern/task.h>
 #include <vm/vm_fault.h>
@@ -189,6 +190,29 @@ kern_return_t vm_statistics(map, stat)
 	return(KERN_SUCCESS);
 }
 
+kern_return_t vm_cache_statistics(
+	vm_map_t			map,
+	vm_cache_statistics_data_t	*stats)
+{
+	if (map == VM_MAP_NULL)
+		return KERN_INVALID_ARGUMENT;
+
+	stats->cache_object_count = vm_object_cached_count;
+	stats->cache_count = vm_object_cached_pages;
+
+	/* XXX Not implemented yet */
+	stats->active_tmp_count = 0;
+	stats->inactive_tmp_count = 0;
+	stats->active_perm_count = 0;
+	stats->inactive_perm_count = 0;
+	stats->dirty_count = 0;
+	stats->laundry_count = 0;
+	stats->writeback_count = 0;
+	stats->slab_count = 0;
+	stats->slab_reclaim_count = 0;
+	return KERN_SUCCESS;
+}
+
 /*
  * Handle machine-specific attributes for a mapping, such
  * as cachability, migrability, etc.
@@ -317,6 +341,9 @@ kern_return_t vm_map(
         default:
                 return(KERN_INVALID_ARGUMENT);
         }
+
+	if (size == 0)
+		return KERN_INVALID_ARGUMENT;
 
 	*address = trunc_page(*address);
 	size = round_page(size);

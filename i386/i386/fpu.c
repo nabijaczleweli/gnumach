@@ -44,10 +44,9 @@
 
 #include <kern/debug.h>
 #include <machine/machspl.h>	/* spls */
-#include <kern/mach_param.h>
 #include <kern/printf.h>
 #include <kern/thread.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 
 #include <i386/thread.h>
 #include <i386/fpu.h>
@@ -72,7 +71,7 @@
 extern void i386_exception();
 
 int		fp_kind = FP_387;	/* 80387 present */
-zone_t		ifps_zone;		/* zone for FPU save area */
+struct kmem_cache	ifps_cache;	/* cache for FPU save area */
 static unsigned long	mxcsr_feature_mask = 0xffffffff;	/* Always AND user-provided mxcsr with this security mask */
 
 void fp_save(thread_t thread);
@@ -110,9 +109,9 @@ init_fpu()
 {
 	unsigned short	status, control;
 
-#ifdef	MACH_HYP
+#ifdef	MACH_RING1
 	clear_ts();
-#else	/* MACH_HYP */
+#else	/* MACH_RING1 */
 	unsigned int native = 0;
 
 	if (machine_slot[cpu_number()].cpu_type >= CPU_TYPE_I486)
@@ -124,7 +123,7 @@ init_fpu()
 	 * the control and status registers.
 	 */
 	set_cr0((get_cr0() & ~(CR0_EM|CR0_TS)) | native);	/* allow use of FPU */
-#endif	/* MACH_HYP */
+#endif	/* MACH_RING1 */
 
 	fninit();
 	status = fnstsw();
@@ -158,10 +157,10 @@ init_fpu()
 		    struct i386_xfp_save save;
 		    unsigned long mask;
 		    fp_kind = FP_387X;
-#ifndef MACH_HYP
+#ifndef MACH_RING1
 		    printf("Enabling FXSR\n");
 		    set_cr4(get_cr4() | CR4_OSFXSR);
-#endif /* MACH_HYP */
+#endif /* MACH_RING1 */
 		    fxsave(&save);
 		    mask = save.fp_mxcsr_mask;
 		    if (!mask)
@@ -170,14 +169,14 @@ init_fpu()
 		} else
 		    fp_kind = FP_387;
 	    }
-#ifdef MACH_HYP
+#ifdef MACH_RING1
 	    set_ts();
-#else	/* MACH_HYP */
+#else	/* MACH_RING1 */
 	    /*
 	     * Trap wait instructions.  Turn off FPU for now.
 	     */
 	    set_cr0(get_cr0() | CR0_TS | CR0_MP);
-#endif	/* MACH_HYP */
+#endif	/* MACH_RING1 */
 	}
 	else {
 	    /*
@@ -193,10 +192,9 @@ init_fpu()
 void
 fpu_module_init()
 {
-	ifps_zone = zinit(sizeof(struct i386_fpsave_state), 16,
-			  THREAD_MAX * sizeof(struct i386_fpsave_state),
-			  THREAD_CHUNK * sizeof(struct i386_fpsave_state),
-			  0, "i386 fpsave state");
+	kmem_cache_init(&ifps_cache, "i386_fpsave_state",
+			sizeof(struct i386_fpsave_state), 16,
+			NULL, NULL, NULL, 0);
 }
 
 /*
@@ -221,7 +219,7 @@ ASSERT_IPL(SPL0);
 	    clear_fpu();
 	}
 #endif	/* NCPUS == 1 */
-	zfree(ifps_zone, (vm_offset_t) fps);
+	kmem_cache_free(&ifps_cache, (vm_offset_t) fps);
 }
 
 /* The two following functions were stolen from Linux's i387.c */
@@ -335,7 +333,7 @@ ASSERT_IPL(SPL0);
 	    simple_unlock(&pcb->lock);
 
 	    if (ifps != 0) {
-		zfree(ifps_zone, (vm_offset_t) ifps);
+		kmem_cache_free(&ifps_cache, (vm_offset_t) ifps);
 	    }
 	}
 	else {
@@ -356,7 +354,7 @@ ASSERT_IPL(SPL0);
 	    if (ifps == 0) {
 		if (new_ifps == 0) {
 		    simple_unlock(&pcb->lock);
-		    new_ifps = (struct i386_fpsave_state *) zalloc(ifps_zone);
+		    new_ifps = (struct i386_fpsave_state *) kmem_cache_alloc(&ifps_cache);
 		    goto Retry;
 		}
 		ifps = new_ifps;
@@ -396,7 +394,7 @@ ASSERT_IPL(SPL0);
 
 	    simple_unlock(&pcb->lock);
 	    if (new_ifps != 0)
-		zfree(ifps_zone, (vm_offset_t) new_ifps);
+		kmem_cache_free(&ifps_cache, (vm_offset_t) new_ifps);
 	}
 
 	return KERN_SUCCESS;
@@ -609,7 +607,7 @@ fpextovrflt()
 	clear_fpu();
 
 	if (ifps)
-	    zfree(ifps_zone, (vm_offset_t) ifps);
+	    kmem_cache_free(&ifps_cache, (vm_offset_t) ifps);
 
 	/*
 	 * Raise exception.
@@ -686,7 +684,7 @@ fpexterrflt()
 	/*NOTREACHED*/
 }
 
-#ifndef MACH_XEN
+#ifndef MACH_RING1
 /*
  * FPU error. Called by AST.
  */
@@ -743,7 +741,7 @@ ASSERT_IPL(SPL0);
 		           thread->pcb->ims.ifps->fp_save_state.fp_status);
 	/*NOTREACHED*/
 }
-#endif /* MACH_XEN */
+#endif /* MACH_RING1 */
 
 /*
  * Save FPU state.
@@ -785,7 +783,7 @@ fp_load(thread)
 ASSERT_IPL(SPL0);
 	ifps = pcb->ims.ifps;
 	if (ifps == 0) {
-	    ifps = (struct i386_fpsave_state *) zalloc(ifps_zone);
+	    ifps = (struct i386_fpsave_state *) kmem_cache_alloc(&ifps_cache);
 	    memset(ifps, 0, sizeof *ifps);
 	    pcb->ims.ifps = ifps;
 	    fpinit();
@@ -836,7 +834,7 @@ fp_state_alloc()
 	pcb_t	pcb = current_thread()->pcb;
 	struct i386_fpsave_state *ifps;
 
-	ifps = (struct i386_fpsave_state *)zalloc(ifps_zone);
+	ifps = (struct i386_fpsave_state *)kmem_cache_alloc(&ifps_cache);
 	memset(ifps, 0, sizeof *ifps);
 	pcb->ims.ifps = ifps;
 

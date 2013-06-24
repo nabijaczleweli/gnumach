@@ -41,7 +41,9 @@
 #include <mach/vm_param.h>
 #include <kern/assert.h>
 #include <kern/debug.h>
-#include <kern/zalloc.h>
+#include <kern/kalloc.h>
+#include <kern/rbtree.h>
+#include <kern/slab.h>
 #include <vm/pmap.h>
 #include <vm/vm_fault.h>
 #include <vm/vm_map.h>
@@ -50,6 +52,11 @@
 #include <vm/vm_resident.h>
 #include <vm/vm_kern.h>
 #include <ipc/ipc_port.h>
+
+#if	MACH_KDB
+#include <ddb/db_output.h>
+#endif	/* MACH_KDB */
+
 
 /* Forward declarations */
 kern_return_t vm_map_delete(
@@ -70,7 +77,7 @@ void vm_map_copy_page_discard (vm_map_copy_t copy);
  * map entry to the same memory - the wired count in the new entry
  * must be set to zero. vm_map_entry_copy_full() creates a new
  * entry that is identical to the old entry.  This preserves the
- * wire count; it's used for map splitting and zone changing in
+ * wire count; it's used for map splitting and cache changing in
  * vm_map_copyout.
  */
 #define vm_map_entry_copy(NEW,OLD) \
@@ -94,7 +101,7 @@ MACRO_END
  *	Synchronization is required prior to most operations.
  *
  *	Maps consist of an ordered doubly-linked list of simple
- *	entries; a single hint is used to speed up lookups.
+ *	entries; a hint and a red-black tree are used to speed up lookups.
  *
  *	Sharing maps have been deleted from this version of Mach.
  *	All shared objects are now mapped directly into the respective
@@ -130,10 +137,10 @@ MACRO_END
  *	vm_object_copy_strategically() in vm_object.c.
  */
 
-zone_t		vm_map_zone;		/* zone for vm_map structures */
-zone_t		vm_map_entry_zone;	/* zone for vm_map_entry structures */
-zone_t		vm_map_kentry_zone;	/* zone for kernel entry structures */
-zone_t		vm_map_copy_zone;	/* zone for vm_map_copy structures */
+struct kmem_cache    vm_map_cache;		/* cache for vm_map structures */
+struct kmem_cache    vm_map_entry_cache;	/* cache for vm_map_entry structures */
+struct kmem_cache    vm_map_kentry_cache;	/* cache for kernel entry structures */
+struct kmem_cache    vm_map_copy_cache; 	/* cache for vm_map_copy structures */
 
 boolean_t	vm_map_lookup_entry();	/* forward declaration */
 
@@ -143,7 +150,8 @@ boolean_t	vm_map_lookup_entry();	/* forward declaration */
  *	vm_map_submap creates the submap.
  */
 
-vm_object_t	vm_submap_object;
+static struct vm_object	vm_submap_object_store;
+vm_object_t		vm_submap_object = &vm_submap_object_store;
 
 /*
  *	vm_map_init:
@@ -151,49 +159,80 @@ vm_object_t	vm_submap_object;
  *	Initialize the vm_map module.  Must be called before
  *	any other vm_map routines.
  *
- *	Map and entry structures are allocated from zones -- we must
- *	initialize those zones.
+ *	Map and entry structures are allocated from caches -- we must
+ *	initialize those caches.
  *
- *	There are three zones of interest:
+ *	There are three caches of interest:
  *
- *	vm_map_zone:		used to allocate maps.
- *	vm_map_entry_zone:	used to allocate map entries.
- *	vm_map_kentry_zone:	used to allocate map entries for the kernel.
+ *	vm_map_cache:		used to allocate maps.
+ *	vm_map_entry_cache:	used to allocate map entries.
+ *	vm_map_kentry_cache:	used to allocate map entries for the kernel.
  *
- *	The kernel allocates map entries from a special zone that is initially
- *	"crammed" with memory.  It would be difficult (perhaps impossible) for
- *	the kernel to allocate more memory to a entry zone when it became
- *	empty since the very act of allocating memory implies the creation
- *	of a new entry.
+ *	Kernel map entries are allocated from a special cache, using a custom
+ *	page allocation function to avoid recursion. It would be difficult
+ *	(perhaps impossible) for the kernel to allocate more memory to an entry
+ *	cache when it became empty since the very act of allocating memory
+ *	implies the creation of a new entry.
  */
 
 vm_offset_t	kentry_data;
-vm_size_t	kentry_data_size;
-int		kentry_count = 256;		/* to init kentry_data_size */
+vm_size_t	kentry_data_size = KENTRY_DATA_SIZE;
+
+static vm_offset_t kentry_pagealloc(vm_size_t size)
+{
+	vm_offset_t result;
+
+	if (size > kentry_data_size)
+		panic("vm_map: kentry memory exhausted");
+
+	result = kentry_data;
+	kentry_data += size;
+	kentry_data_size -= size;
+	return result;
+}
 
 void vm_map_init(void)
 {
-	vm_map_zone = zinit((vm_size_t) sizeof(struct vm_map), 0, 40*1024,
-					PAGE_SIZE, 0, "maps");
-	vm_map_entry_zone = zinit((vm_size_t) sizeof(struct vm_map_entry),
-					0, 1024*1024, PAGE_SIZE*5,
-					0, "non-kernel map entries");
-	vm_map_kentry_zone = zinit((vm_size_t) sizeof(struct vm_map_entry), 0,
-					kentry_data_size, kentry_data_size,
-					ZONE_FIXED /* XXX */, "kernel map entries");
-
-	vm_map_copy_zone = zinit((vm_size_t) sizeof(struct vm_map_copy),
-					0, 16*1024, PAGE_SIZE, 0,
-					"map copies");
-
-	/*
-	 *	Cram the kentry zone with initial data.
-	 */
-	zcram(vm_map_kentry_zone, kentry_data, kentry_data_size);
+	kmem_cache_init(&vm_map_cache, "vm_map", sizeof(struct vm_map), 0,
+			NULL, NULL, NULL, 0);
+	kmem_cache_init(&vm_map_entry_cache, "vm_map_entry",
+			sizeof(struct vm_map_entry), 0, NULL, NULL, NULL, 0);
+	kmem_cache_init(&vm_map_kentry_cache, "vm_map_kentry",
+			sizeof(struct vm_map_entry), 0, NULL, kentry_pagealloc,
+			NULL, KMEM_CACHE_NOCPUPOOL | KMEM_CACHE_NOOFFSLAB
+			      | KMEM_CACHE_NORECLAIM);
+	kmem_cache_init(&vm_map_copy_cache, "vm_map_copy",
+			sizeof(struct vm_map_copy), 0, NULL, NULL, NULL, 0);
 
 	/*
 	 *	Submap object is initialized by vm_object_init.
 	 */
+}
+
+void vm_map_setup(map, pmap, min, max, pageable)
+	vm_map_t	map;
+	pmap_t		pmap;
+	vm_offset_t	min, max;
+	boolean_t	pageable;
+{
+	vm_map_first_entry(map) = vm_map_to_entry(map);
+	vm_map_last_entry(map)  = vm_map_to_entry(map);
+	map->hdr.nentries = 0;
+	map->hdr.entries_pageable = pageable;
+	rbtree_init(&map->hdr.tree);
+
+	map->size = 0;
+	map->ref_count = 1;
+	map->pmap = pmap;
+	map->min_offset = min;
+	map->max_offset = max;
+	map->wiring_required = FALSE;
+	map->wait_for_space = FALSE;
+	map->first_free = vm_map_to_entry(map);
+	map->hint = vm_map_to_entry(map);
+	vm_map_lock_init(map);
+	simple_lock_init(&map->ref_lock);
+	simple_lock_init(&map->hint_lock);
 }
 
 /*
@@ -210,27 +249,11 @@ vm_map_t vm_map_create(pmap, min, max, pageable)
 {
 	register vm_map_t	result;
 
-	result = (vm_map_t) zalloc(vm_map_zone);
+	result = (vm_map_t) kmem_cache_alloc(&vm_map_cache);
 	if (result == VM_MAP_NULL)
 		panic("vm_map_create");
 
-	vm_map_first_entry(result) = vm_map_to_entry(result);
-	vm_map_last_entry(result)  = vm_map_to_entry(result);
-	result->hdr.nentries = 0;
-	result->hdr.entries_pageable = pageable;
-
-	result->size = 0;
-	result->ref_count = 1;
-	result->pmap = pmap;
-	result->min_offset = min;
-	result->max_offset = max;
-	result->wiring_required = FALSE;
-	result->wait_for_space = FALSE;
-	result->first_free = vm_map_to_entry(result);
-	result->hint = vm_map_to_entry(result);
-	vm_map_lock_init(result);
-	simple_lock_init(&result->ref_lock);
-	simple_lock_init(&result->hint_lock);
+	vm_map_setup(result, pmap, min, max, pageable);
 
 	return(result);
 }
@@ -250,15 +273,15 @@ vm_map_t vm_map_create(pmap, min, max, pageable)
 vm_map_entry_t _vm_map_entry_create(map_header)
 	register struct vm_map_header *map_header;
 {
-	register zone_t	zone;
+	register kmem_cache_t cache;
 	register vm_map_entry_t	entry;
 
 	if (map_header->entries_pageable)
-	    zone = vm_map_entry_zone;
+	    cache = &vm_map_entry_cache;
 	else
-	    zone = vm_map_kentry_zone;
+	    cache = &vm_map_kentry_cache;
 
-	entry = (vm_map_entry_t) zalloc(zone);
+	entry = (vm_map_entry_t) kmem_cache_alloc(cache);
 	if (entry == VM_MAP_ENTRY_NULL)
 		panic("vm_map_entry_create");
 
@@ -280,20 +303,50 @@ void _vm_map_entry_dispose(map_header, entry)
 	register struct vm_map_header *map_header;
 	register vm_map_entry_t	entry;
 {
-	register zone_t		zone;
+	register kmem_cache_t cache;
 
 	if (map_header->entries_pageable)
-	    zone = vm_map_entry_zone;
+	    cache = &vm_map_entry_cache;
 	else
-	    zone = vm_map_kentry_zone;
+	    cache = &vm_map_kentry_cache;
 
-	zfree(zone, (vm_offset_t) entry);
+	kmem_cache_free(cache, (vm_offset_t) entry);
+}
+
+/*
+ *	Red-black tree lookup/insert comparison functions
+ */
+static inline int vm_map_entry_cmp_lookup(vm_offset_t addr,
+                                          const struct rbtree_node *node)
+{
+	struct vm_map_entry *entry;
+
+	entry = rbtree_entry(node, struct vm_map_entry, tree_node);
+
+	if (addr < entry->vme_start)
+		return -1;
+	else if (addr < entry->vme_end)
+		return 0;
+	else
+		return 1;
+}
+
+static inline int vm_map_entry_cmp_insert(const struct rbtree_node *a,
+                                          const struct rbtree_node *b)
+{
+	struct vm_map_entry *entry;
+
+	entry = rbtree_entry(a, struct vm_map_entry, tree_node);
+	return vm_map_entry_cmp_lookup(entry->vme_start, b);
 }
 
 /*
  *	vm_map_entry_{un,}link:
  *
  *	Insert/remove entries from maps (or map copies).
+ *
+ *	The start and end addresses of the entries must be properly set
+ *	before using these macros.
  */
 #define vm_map_entry_link(map, after_where, entry)	\
 	_vm_map_entry_link(&(map)->hdr, after_where, entry)
@@ -308,6 +361,8 @@ void _vm_map_entry_dispose(map_header, entry)
 	(entry)->vme_next = (after_where)->vme_next;	\
 	(entry)->vme_prev->vme_next =			\
 	 (entry)->vme_next->vme_prev = (entry);		\
+	rbtree_insert(&(hdr)->tree, &(entry)->tree_node,	\
+		      vm_map_entry_cmp_insert);		\
 	MACRO_END
 
 #define vm_map_entry_unlink(map, entry)			\
@@ -321,6 +376,7 @@ void _vm_map_entry_dispose(map_header, entry)
 	(hdr)->nentries--;				\
 	(entry)->vme_next->vme_prev = (entry)->vme_prev; \
 	(entry)->vme_prev->vme_next = (entry)->vme_next; \
+	rbtree_remove(&(hdr)->tree, &(entry)->tree_node);	\
 	MACRO_END
 
 /*
@@ -368,7 +424,7 @@ void vm_map_deallocate(map)
 
 	pmap_destroy(map->pmap);
 
-	zfree(vm_map_zone, (vm_offset_t) map);
+	kmem_cache_free(&vm_map_cache, (vm_offset_t) map);
 }
 
 /*
@@ -397,70 +453,49 @@ boolean_t vm_map_lookup_entry(map, address, entry)
 	register vm_offset_t	address;
 	vm_map_entry_t		*entry;		/* OUT */
 {
-	register vm_map_entry_t		cur;
-	register vm_map_entry_t		last;
+	register struct rbtree_node	*node;
+	register vm_map_entry_t		hint;
 
 	/*
-	 *	Start looking either from the head of the
-	 *	list, or from the hint.
+	 *	First, make a quick check to see if we are already
+	 *	looking at the entry we want (which is often the case).
 	 */
 
 	simple_lock(&map->hint_lock);
-	cur = map->hint;
+	hint = map->hint;
 	simple_unlock(&map->hint_lock);
 
-	if (cur == vm_map_to_entry(map))
-		cur = cur->vme_next;
-
-	if (address >= cur->vme_start) {
-	    	/*
-		 *	Go from hint to end of list.
-		 *
-		 *	But first, make a quick check to see if
-		 *	we are already looking at the entry we
-		 *	want (which is usually the case).
-		 *	Note also that we don't need to save the hint
-		 *	here... it is the same hint (unless we are
-		 *	at the header, in which case the hint didn't
-		 *	buy us anything anyway).
-		 */
-		last = vm_map_to_entry(map);
-		if ((cur != last) && (cur->vme_end > address)) {
-			*entry = cur;
+	if ((hint != vm_map_to_entry(map)) && (address >= hint->vme_start)) {
+		if (address < hint->vme_end) {
+			*entry = hint;
 			return(TRUE);
+		} else {
+			vm_map_entry_t next = hint->vme_next;
+
+			if ((next == vm_map_to_entry(map))
+			    || (address < next->vme_start)) {
+				*entry = hint;
+				return(FALSE);
+			}
 		}
-	}
-	else {
-	    	/*
-		 *	Go from start to hint, *inclusively*
-		 */
-		last = cur->vme_next;
-		cur = vm_map_first_entry(map);
 	}
 
 	/*
-	 *	Search linearly
+	 *	If the hint didn't help, use the red-black tree.
 	 */
 
-	while (cur != last) {
-		if (cur->vme_end > address) {
-			if (address >= cur->vme_start) {
-			    	/*
-				 *	Save this lookup for future
-				 *	hints, and return
-				 */
+	node = rbtree_lookup_nearest(&map->hdr.tree, address,
+				     vm_map_entry_cmp_lookup, RBTREE_LEFT);
 
-				*entry = cur;
-				SAVE_HINT(map, cur);
-				return(TRUE);
-			}
-			break;
-		}
-		cur = cur->vme_next;
+	if (node == NULL) {
+		*entry = vm_map_to_entry(map);
+		SAVE_HINT(map, *entry);
+		return(FALSE);
+	} else {
+		*entry = rbtree_entry(node, struct vm_map_entry, tree_node);
+		SAVE_HINT(map, *entry);
+		return((address < (*entry)->vme_end) ? TRUE : FALSE);
 	}
-	*entry = cur->vme_prev;
-	SAVE_HINT(map, *entry);
-	return(FALSE);
 }
 
 /*
@@ -695,7 +730,7 @@ vm_map_pmap_enter(map, addr, end_addr, object, offset, protection)
 
 		if (vm_map_pmap_enter_print) {
 			printf("vm_map_pmap_enter:");
-			printf("map: %p, addr: %x, object: %p, offset: %x\n",
+			printf("map: %p, addr: %lx, object: %p, offset: %lx\n",
 				map, addr, object, offset);
 		}
 
@@ -753,6 +788,9 @@ kern_return_t vm_map_enter(
 	kern_return_t		result = KERN_SUCCESS;
 
 #define	RETURN(value)	{ result = value; goto BailOut; }
+
+	if (size == 0)
+		return KERN_INVALID_ARGUMENT;
 
  StartAgain: ;
 
@@ -1907,7 +1945,7 @@ free_next_copy:
 				register vm_map_copy_t	new_copy;
 
 				new_copy = (vm_map_copy_t) copy->cpy_cont_args;
-				zfree(vm_map_copy_zone, (vm_offset_t) copy);
+				kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) copy);
 				copy = new_copy;
 				goto free_next_copy;
 			}
@@ -1918,7 +1956,7 @@ free_next_copy:
 
 		break;
 	}
-	zfree(vm_map_copy_zone, (vm_offset_t) copy);
+	kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) copy);
 }
 
 /*
@@ -1952,7 +1990,7 @@ vm_map_copy_copy(copy)
 	 * from the old one into it.
 	 */
 
-	new_copy = (vm_map_copy_t) zalloc(vm_map_copy_zone);
+	new_copy = (vm_map_copy_t) kmem_cache_alloc(&vm_map_copy_cache);
 	*new_copy = *copy;
 
 	if (copy->type == VM_MAP_COPY_ENTRY_LIST) {
@@ -2160,7 +2198,7 @@ start_pass_1:
 
 	/*
 	 * XXXO	If there are no permanent objects in the destination,
-	 * XXXO	and the source and destination map entry zones match,
+	 * XXXO	and the source and destination map entry caches match,
 	 * XXXO and the destination map entry is not shared,
 	 * XXXO	then the map entries can be deleted and replaced
 	 * XXXO	with those from the copy.  The following code is the
@@ -2398,12 +2436,16 @@ start_pass_1:
  */
 #define	vm_map_copy_insert(map, where, copy)				\
 	MACRO_BEGIN							\
+	struct rbtree_node *node, *tmp;					\
+	rbtree_for_each_remove(&(copy)->cpy_hdr.tree, node, tmp)	\
+		rbtree_insert(&(map)->hdr.tree, node,			\
+			      vm_map_entry_cmp_insert);			\
 	(((where)->vme_next)->vme_prev = vm_map_copy_last_entry(copy))	\
 		->vme_next = ((where)->vme_next);			\
 	((where)->vme_next = vm_map_copy_first_entry(copy))		\
 		->vme_prev = (where);					\
 	(map)->hdr.nentries += (copy)->cpy_hdr.nentries;		\
-	zfree(vm_map_copy_zone, (vm_offset_t) copy);			\
+	kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) copy);	\
 	MACRO_END
 
 /*
@@ -2459,7 +2501,7 @@ kern_return_t vm_map_copyout(dst_map, dst_addr, copy)
 				  VM_INHERIT_DEFAULT);
 		if (kr != KERN_SUCCESS)
 			return(kr);
-		zfree(vm_map_copy_zone, (vm_offset_t) copy);
+		kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) copy);
 		return(KERN_SUCCESS);
 	}
 
@@ -2516,15 +2558,15 @@ kern_return_t vm_map_copyout(dst_map, dst_addr, copy)
 	     * Mismatches occur when dealing with the default
 	     * pager.
 	     */
-	    zone_t		old_zone;
+	    kmem_cache_t	old_cache;
 	    vm_map_entry_t	next, new;
 
 	    /*
-	     * Find the zone that the copies were allocated from
+	     * Find the cache that the copies were allocated from
 	     */
-	    old_zone = (copy->cpy_hdr.entries_pageable)
-			? vm_map_entry_zone
-			: vm_map_kentry_zone;
+	    old_cache = (copy->cpy_hdr.entries_pageable)
+			? &vm_map_entry_cache
+			: &vm_map_kentry_cache;
 	    entry = vm_map_copy_first_entry(copy);
 
 	    /*
@@ -2547,7 +2589,7 @@ kern_return_t vm_map_copyout(dst_map, dst_addr, copy)
 				vm_map_copy_last_entry(copy),
 				new);
 		next = entry->vme_next;
-		zfree(old_zone, (vm_offset_t) entry);
+		kmem_cache_free(old_cache, (vm_offset_t) entry);
 		entry = next;
 	    }
 	}
@@ -3036,10 +3078,10 @@ error:
 	 *	Consume on success logic.
 	 */
 	if (copy != orig_copy) {
-		zfree(vm_map_copy_zone, (vm_offset_t) copy);
+		kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) copy);
 	}
 	if (result == KERN_SUCCESS) {
-		zfree(vm_map_copy_zone, (vm_offset_t) orig_copy);
+		kmem_cache_free(&vm_map_copy_cache, (vm_offset_t) orig_copy);
 	}
 
 	return(result);
@@ -3116,12 +3158,13 @@ kern_return_t vm_map_copyin(src_map, src_addr, len, src_destroy, copy_result)
 	 *	remember the endpoints prior to rounding.
 	 */
 
-	copy = (vm_map_copy_t) zalloc(vm_map_copy_zone);
+	copy = (vm_map_copy_t) kmem_cache_alloc(&vm_map_copy_cache);
 	vm_map_copy_first_entry(copy) =
 	 vm_map_copy_last_entry(copy) = vm_map_copy_to_entry(copy);
 	copy->type = VM_MAP_COPY_ENTRY_LIST;
 	copy->cpy_hdr.nentries = 0;
 	copy->cpy_hdr.entries_pageable = TRUE;
+	rbtree_init(&copy->cpy_hdr.tree);
 
 	copy->offset = src_addr;
 	copy->size = len;
@@ -3443,7 +3486,7 @@ kern_return_t vm_map_copyin_object(object, offset, size, copy_result)
 	 *	and null links.
 	 */
 
-	copy = (vm_map_copy_t) zalloc(vm_map_copy_zone);
+	copy = (vm_map_copy_t) kmem_cache_alloc(&vm_map_copy_cache);
 	vm_map_copy_first_entry(copy) =
 	 vm_map_copy_last_entry(copy) = VM_MAP_ENTRY_NULL;
 	copy->type = VM_MAP_COPY_OBJECT;
@@ -3598,7 +3641,7 @@ kern_return_t vm_map_copyin_page_list(src_map, src_addr, len, src_destroy,
 	 *      be page-aligned.
 	 */
 
-	copy = (vm_map_copy_t) zalloc(vm_map_copy_zone);
+	copy = (vm_map_copy_t) kmem_cache_alloc(&vm_map_copy_cache);
 	copy->type = VM_MAP_COPY_PAGE_LIST;
 	copy->cpy_npages = 0;
 	copy->offset = src_addr;

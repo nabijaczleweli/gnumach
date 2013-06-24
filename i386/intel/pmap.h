@@ -37,7 +37,6 @@
 
 #ifndef	__ASSEMBLER__
 
-#include <kern/zalloc.h>
 #include <kern/lock.h>
 #include <mach/machine/vm_param.h>
 #include <mach/vm_statistics.h>
@@ -49,7 +48,7 @@
  *	Define the generic in terms of the specific
  */
 
-#if	i386
+#if defined(__i386__)
 #define	INTEL_PGBYTES		I386_PGBYTES
 #define INTEL_PGSHIFT		I386_PGSHIFT
 #define	intel_btop(x)		i386_btop(x)
@@ -59,7 +58,7 @@
 #define trunc_intel_to_vm(x)	trunc_i386_to_vm(x)
 #define round_intel_to_vm(x)	round_i386_to_vm(x)
 #define vm_to_intel(x)		vm_to_i386(x)
-#endif	/* i386 */
+#endif /* __i386__ */
 
 /*
  *	i386/i486 Page Table Entry
@@ -102,6 +101,13 @@ typedef unsigned int	pt_entry_t;
 #endif
 
 /*
+ *	Convert linear offset to page directory pointer index
+ */
+#if PAE
+#define lin2pdpnum(a)	(((a) >> PDPSHIFT) & PDPMASK)
+#endif
+
+/*
  *	Convert page descriptor index to linear address
  */
 #define pdenum2lin(a)	((vm_offset_t)(a) << PDESHIFT)
@@ -126,15 +132,15 @@ typedef unsigned int	pt_entry_t;
 #define INTEL_PTE_NCACHE 	0x00000010
 #define INTEL_PTE_REF		0x00000020
 #define INTEL_PTE_MOD		0x00000040
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 /* Not supported */
 #define INTEL_PTE_GLOBAL	0x00000000
-#else	/* MACH_XEN */
+#else	/* MACH_PV_PAGETABLES */
 #define INTEL_PTE_GLOBAL	0x00000100
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 #define INTEL_PTE_WIRED		0x00000200
 #ifdef PAE
-#define INTEL_PTE_PFN		0xfffffffffffff000ULL
+#define INTEL_PTE_PFN		0x00007ffffffff000ULL
 #else
 #define INTEL_PTE_PFN		0xfffff000
 #endif
@@ -172,13 +178,13 @@ typedef struct pmap	*pmap_t;
 
 #define PMAP_NULL	((pmap_t) 0)
 
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 extern void pmap_set_page_readwrite(void *addr);
 extern void pmap_set_page_readonly(void *addr);
 extern void pmap_set_page_readonly_init(void *addr);
 extern void pmap_map_mfn(void *addr, unsigned long mfn);
 extern void pmap_clear_bootstrap_pagetable(pt_entry_t *addr);
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 
 #if PAE
 #define	set_pmap(pmap)	set_cr3(kvtophys((vm_offset_t)(pmap)->pdpbase))

@@ -139,14 +139,14 @@ void thread_check(thread_t, run_queue_t);
  *	The wait event hash table declarations are as follows:
  */
 
-#define NUMQUEUES	59
+#define NUMQUEUES	1031
 
 queue_head_t		wait_queue[NUMQUEUES];
 decl_simple_lock_data(,	wait_lock[NUMQUEUES])
 
 /* NOTE: we want a small positive integer out of this */
 #define wait_hash(event) \
-	((((int)(event) < 0) ? ~(int)(event) : (int)(event)) % NUMQUEUES)
+	((((long)(event) < 0) ? ~(long)(event) : (long)(event)) % NUMQUEUES)
 
 void wait_queue_init(void)
 {
@@ -637,6 +637,7 @@ boolean_t thread_invoke(
 	    thread_lock(new_thread);
 	    new_thread->state &= ~TH_UNINT;
 	    thread_unlock(new_thread);
+	    thread_wakeup(&new_thread->state);
 
 	    if (continuation != (void (*)()) 0) {
 		(void) spl0();
@@ -658,6 +659,7 @@ boolean_t thread_invoke(
 
 		    new_thread->state &= ~(TH_SWAPPED | TH_UNINT);
 		    thread_unlock(new_thread);
+		    thread_wakeup(&new_thread->state);
 
 #if	NCPUS > 1
 		    new_thread->last_processor = current_processor();
@@ -787,6 +789,7 @@ boolean_t thread_invoke(
 
 	new_thread->state &= ~(TH_SWAPPED | TH_UNINT);
 	thread_unlock(new_thread);
+	thread_wakeup(&new_thread->state);
 
 	/*
 	 *	Thread is now interruptible.
@@ -1017,7 +1020,7 @@ shift_data_t	wait_shift[32] = {
 	(pri) = (th)->priority	/* start with base priority */		\
 	    + ((th)->sched_usage >> (PRI_SHIFT + SCHED_SHIFT))		\
 	    + ((th)->sched_usage >> (PRI_SHIFT_2 + SCHED_SHIFT));	\
-	if ((pri) > 31) (pri) = 31;					\
+	if ((pri) > NRQS - 1) (pri) = NRQS - 1;				\
 	MACRO_END
 #else	/* PRI_SHIFT_2 */
 #define do_priority_computation(th, pri)				\
@@ -1025,7 +1028,7 @@ shift_data_t	wait_shift[32] = {
 	(pri) = (th)->priority	/* start with base priority */		\
 	    + ((th)->sched_usage >> (PRI_SHIFT + SCHED_SHIFT))		\
 	    - ((th)->sched_usage >> (SCHED_SHIFT - PRI_SHIFT_2));	\
-	if ((pri) > 31) (pri) = 31;					\
+	if ((pri) > NRQS - 1) (pri) = NRQS - 1;				\
 	MACRO_END
 #endif	/* PRI_SHIFT_2 */
 #else	/* defined(PRI_SHIFT_2) */
@@ -1033,7 +1036,7 @@ shift_data_t	wait_shift[32] = {
 	MACRO_BEGIN							\
 	(pri) = (th)->priority	/* start with base priority */		\
 	    + ((th)->sched_usage >> (PRI_SHIFT + SCHED_SHIFT));		\
-	if ((pri) > 31) (pri) = 31;					\
+	if ((pri) > NRQS - 1) (pri) = NRQS - 1;				\
 	MACRO_END
 #endif	/* defined(PRI_SHIFT_2) */
 
@@ -1800,8 +1803,8 @@ void idle_thread(void)
 	stack_privilege(self);
 
 	s = splsched();
-	self->priority = 31;
-	self->sched_pri = 31;
+	self->priority = NRQS-1;
+	self->sched_pri = NRQS-1;
 
 	/*
 	 *	Set the idle flag to indicate that this is an idle thread,

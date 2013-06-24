@@ -18,6 +18,7 @@
 
 #include <sys/types.h>
 #include <mach/mig_errors.h>
+#include <kern/kalloc.h>
 #include <ipc/ipc_port.h>
 #include <ipc/ipc_space.h>
 #include <vm/vm_kern.h>
@@ -213,9 +214,9 @@ void hyp_block_init(void) {
 			continue;
 		}
 		if (partition)
-			sprintf(device_name, "%s%us%u", prefix, disk, partition);
+			sprintf(device_name, "%s%ds%d", prefix, disk, partition);
 		else
-			sprintf(device_name, "%s%u", prefix, disk);
+			sprintf(device_name, "%s%d", prefix, disk);
 		bd->name = (char*) kalloc(strlen(device_name));
 		strcpy(bd->name, device_name);
 
@@ -229,15 +230,15 @@ void hyp_block_init(void) {
 			t = hyp_store_transaction_start();
 
 			/* Get a page for ring */
-			if (kmem_alloc_wired(kernel_map, &addr, PAGE_SIZE) != KERN_SUCCESS)
+			if ((addr = vm_page_grab_phys_addr()) == -1)
 				panic("%s: couldn't allocate space for store ring\n", device_name);
-			ring = (void*) addr;
+			ring = (void*) phystokv(addr);
 			SHARED_RING_INIT(ring);
 			FRONT_RING_INIT(&bd->ring, ring, PAGE_SIZE);
-			grant = hyp_grant_give(domid, atop(kvtophys(addr)), 0);
+			grant = hyp_grant_give(domid, atop(addr), 0);
 
 			/* and give it to backend.  */
-			i = sprintf(port_name, "%u", grant);
+			i = sprintf(port_name, "%d", grant);
 			c = hyp_store_write(t, port_name, 5, VBD_PATH, "/", vbds[n], "/", "ring-ref");
 			if (!c)
 				panic("%s: couldn't store ring reference (%s)", device_name, hyp_store_error);
@@ -516,7 +517,7 @@ device_read (void *d, ipc_port_t reply_port,
       thread_block(NULL);
 
       if (err)
-	printf("error reading %d bytes at sector %d\n", amt,
+	printf("error reading %d bytes at sector %ld\n", amt,
 	  bn + offset / 512);
 
       for (i = 0; i < nbpages; i++)
@@ -669,7 +670,7 @@ device_write(void *d, ipc_port_t reply_port,
       hyp_grant_takeback(gref[j]);
 
     if (err) {
-      printf("error writing %d bytes at sector %d\n", count, bn);
+      printf("error writing %u bytes at sector %d\n", count, bn);
       break;
     }
   }

@@ -73,7 +73,7 @@
 #include <kern/debug.h>
 #include <kern/printf.h>
 #include <kern/queue.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 #include <kern/thread.h>
 #include <kern/task.h>
 #include <kern/sched_prim.h>
@@ -130,7 +130,8 @@ static struct device_emulation_ops *emulation_list[] =
   &mach_device_emulation_ops,
 };
 
-vm_map_t		device_io_map;
+static struct vm_map	device_io_map_store;
+vm_map_t		device_io_map = &device_io_map_store;
 
 #define NUM_EMULATION (sizeof (emulation_list) / sizeof (emulation_list[0]))
 
@@ -855,7 +856,7 @@ device_write_get(ior, wait)
 	 */
 	if (ior->io_op & IO_INBAND) {
 	    assert(ior->io_count <= sizeof (io_buf_ptr_inband_t));
-	    new_addr = zalloc(io_inband_zone);
+	    new_addr = kmem_cache_alloc(&io_inband_cache);
 	    memcpy((void*)new_addr, ior->io_data, ior->io_count);
 	    ior->io_data = (io_buf_ptr_t)new_addr;
 	    ior->io_alloc_size = sizeof (io_buf_ptr_inband_t);
@@ -935,7 +936,7 @@ device_write_dealloc(ior)
 	 * Inband case.
 	 */
 	if (ior->io_op & IO_INBAND) {
-	    zfree(io_inband_zone, (vm_offset_t)ior->io_data);
+	    kmem_cache_free(&io_inband_cache, (vm_offset_t)ior->io_data);
 
 	    return (TRUE);
 	}
@@ -1245,7 +1246,7 @@ kern_return_t device_read_alloc(ior, size)
 	    return (KERN_SUCCESS);
 
 	if (ior->io_op & IO_INBAND) {
-	    ior->io_data = (io_buf_ptr_t) zalloc(io_inband_zone);
+	    ior->io_data = (io_buf_ptr_t) kmem_cache_alloc(&io_inband_cache);
 	    ior->io_alloc_size = sizeof(io_buf_ptr_inband_t);
 	} else {
 	    size = round_page(size);
@@ -1338,7 +1339,7 @@ boolean_t ds_read_done(ior)
 	if (ior->io_count != 0) {
 	    if (ior->io_op & IO_INBAND) {
 		if (ior->io_alloc_size > 0)
-		    zfree(io_inband_zone, (vm_offset_t)ior->io_data);
+		    kmem_cache_free(&io_inband_cache, (vm_offset_t)ior->io_data);
 	    } else {
 		register vm_offset_t	end_alloc;
 
@@ -1448,7 +1449,7 @@ static void
 ds_no_senders(notification)
 	mach_no_senders_notification_t *notification;
 {
-	printf("ds_no_senders called! device_port=0x%x count=%d\n",
+	printf("ds_no_senders called! device_port=0x%lx count=%d\n",
 	       notification->not_header.msgh_remote_port,
 	       notification->not_count);
 }
@@ -1551,11 +1552,9 @@ void mach_device_init()
 	queue_init(&io_done_list);
 	simple_lock_init(&io_done_list_lock);
 
-	device_io_map = kmem_suballoc(kernel_map,
-				      &device_io_min,
-				      &device_io_max,
-				      DEVICE_IO_MAP_SIZE,
-				      FALSE);
+	kmem_submap(device_io_map, kernel_map, &device_io_min, &device_io_max,
+		    DEVICE_IO_MAP_SIZE, FALSE);
+
 	/*
 	 *	If the kernel receives many device_write requests, the
 	 *	device_io_map might run out of space.  To prevent
@@ -1575,11 +1574,8 @@ void mach_device_init()
 	 */
 	device_io_map->wait_for_space = TRUE;
 
-	io_inband_zone = zinit(sizeof(io_buf_ptr_inband_t), 0,
-			    1000 * sizeof(io_buf_ptr_inband_t),
-			    10 * sizeof(io_buf_ptr_inband_t),
-			    FALSE,
-			    "io inband read buffers");
+	kmem_cache_init(&io_inband_cache, "io_buf_ptr_inband",
+			sizeof(io_buf_ptr_inband_t), 0, NULL, NULL, NULL, 0);
 
 	mach_device_trap_init();
 }
@@ -1615,7 +1611,7 @@ void iowait(ior)
  */
 #define IOTRAP_REQSIZE 2048
 
-zone_t io_trap_zone;
+struct kmem_cache io_trap_cache;
 
 /*
  * Initialization.  Called from mach_device_init().
@@ -1623,24 +1619,21 @@ zone_t io_trap_zone;
 static void
 mach_device_trap_init(void)
 {
-	io_trap_zone = zinit(IOTRAP_REQSIZE, 0,
-			     256 * IOTRAP_REQSIZE,
-			     16 * IOTRAP_REQSIZE,
-			     FALSE,
-			     "wired device trap buffers");
+	kmem_cache_init(&io_trap_cache, "io_req", IOTRAP_REQSIZE, 0,
+			NULL, NULL, NULL, 0);
 }
 
 /*
  * Allocate an io_req_t.
- * Currently zalloc's from io_trap_zone.
+ * Currently allocates from io_trap_cache.
  *
- * Could have lists of different size zones.
+ * Could have lists of different size caches.
  * Could call a device-specific routine.
  */
 io_req_t
 ds_trap_req_alloc(mach_device_t device, vm_size_t data_size)
 {
-	return (io_req_t) zalloc(io_trap_zone);
+	return (io_req_t) kmem_cache_alloc(&io_trap_cache);
 }
 
 /*
@@ -1656,7 +1649,7 @@ ds_trap_write_done(io_req_t ior)
 	/*
 	 * Should look at reply port and maybe send a message.
 	 */
-	zfree(io_trap_zone, (vm_offset_t) ior);
+	kmem_cache_free(&io_trap_cache, (vm_offset_t) ior);
 
 	/*
 	 * Give up device reference from ds_write_trap.
@@ -1732,7 +1725,7 @@ device_write_trap (mach_device_t device, dev_mode_t mode,
 	 */
 	mach_device_deallocate(device);
 
-	zfree(io_trap_zone, (vm_offset_t) ior);
+	kmem_cache_free(&io_trap_cache, (vm_offset_t) ior);
 	return (result);
 }
 
@@ -1823,7 +1816,7 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
 	 */
 	mach_device_deallocate(device);
 
-	zfree(io_trap_zone, (vm_offset_t) ior);
+	kmem_cache_free(&io_trap_cache, (vm_offset_t) ior);
 	return (result);
 }
 

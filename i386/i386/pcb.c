@@ -36,9 +36,9 @@
 #include "vm_param.h"
 #include <kern/counters.h>
 #include <kern/debug.h>
-#include <kern/mach_param.h>
 #include <kern/thread.h>
 #include <kern/sched_prim.h>
+#include <kern/slab.h>
 #include <vm/vm_kern.h>
 #include <vm/pmap.h>
 
@@ -46,6 +46,7 @@
 #include <i386/proc_reg.h>
 #include <i386/seg.h>
 #include <i386/user_ldt.h>
+#include <i386/db_interface.h>
 #include <i386/fpu.h>
 #include "eflags.h"
 #include "gdt.h"
@@ -65,7 +66,7 @@ extern void	Thread_continue();
 
 extern void		user_ldt_free();
 
-zone_t		pcb_zone;
+struct kmem_cache	pcb_cache;
 
 vm_offset_t	kernel_stack[NCPUS];	/* top of active_stack */
 
@@ -93,10 +94,10 @@ void stack_attach(thread, stack, continuation)
 	 *	This function will not return normally,
 	 *	so we don`t have to worry about a return address.
 	 */
-	STACK_IKS(stack)->k_eip = (int) Thread_continue;
-	STACK_IKS(stack)->k_ebx = (int) continuation;
-	STACK_IKS(stack)->k_esp = (int) STACK_IEL(stack);
-	STACK_IKS(stack)->k_ebp = (int) 0;
+	STACK_IKS(stack)->k_eip = (long) Thread_continue;
+	STACK_IKS(stack)->k_ebx = (long) continuation;
+	STACK_IKS(stack)->k_esp = (long) STACK_IEL(stack);
+	STACK_IKS(stack)->k_ebp = (long) 0;
 
 	/*
 	 *	Point top of kernel stack to user`s registers.
@@ -152,15 +153,16 @@ void switch_ktss(pcb)
 	 */
 
 	pcb_stack_top = (pcb->iss.efl & EFL_VM)
-			? (int) (&pcb->iss + 1)
-			: (int) (&pcb->iss.v86_segs);
+			? (long) (&pcb->iss + 1)
+			: (long) (&pcb->iss.v86_segs);
 
-#ifdef	MACH_XEN
+#ifdef	MACH_RING1
 	/* No IO mask here */
-	hyp_stack_switch(KERNEL_DS, pcb_stack_top);
-#else	/* MACH_XEN */
+	if (hyp_stack_switch(KERNEL_DS, pcb_stack_top))
+		panic("stack_switch");
+#else	/* MACH_RING1 */
 	curr_ktss(mycpu)->tss.esp0 = pcb_stack_top;
-#endif	/* MACH_XEN */
+#endif	/* MACH_RING1 */
     }
 
     {
@@ -172,28 +174,28 @@ void switch_ktss(pcb)
 	    /*
 	     * Use system LDT.
 	     */
-#ifdef	MACH_HYP
+#ifdef	MACH_PV_DESCRIPTORS
 	    hyp_set_ldt(&ldt, LDTSZ);
-#else	/* MACH_HYP */
+#else	/* MACH_PV_DESCRIPTORS */
 	    set_ldt(KERNEL_LDT);
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_DESCRIPTORS */
 	}
 	else {
 	    /*
 	     * Thread has its own LDT.
 	     */
-#ifdef	MACH_HYP
+#ifdef	MACH_PV_DESCRIPTORS
 	    hyp_set_ldt(tldt->ldt,
 	    		(tldt->desc.limit_low|(tldt->desc.limit_high<<16)) /
 				sizeof(struct real_descriptor));
-#else	/* MACH_HYP */
+#else	/* MACH_PV_DESCRIPTORS */
 	    *gdt_desc_p(mycpu,USER_LDT) = tldt->desc;
 	    set_ldt(USER_LDT);
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_DESCRIPTORS */
 	}
     }
 
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_DESCRIPTORS
     {
 	int i;
 	for (i=0; i < USER_GDT_SLOTS; i++) {
@@ -205,14 +207,16 @@ void switch_ktss(pcb)
 	    }
 	}
     }
-#else /* MACH_XEN */
+#else /* MACH_PV_DESCRIPTORS */
 
     /* Copy in the per-thread GDT slots.  No reloading is necessary
        because just restoring the segment registers on the way back to
        user mode reloads the shadow registers from the in-memory GDT.  */
     memcpy (gdt_desc_p (mycpu, USER_GDT),
         pcb->ims.user_gdt, sizeof pcb->ims.user_gdt);
-#endif /* MACH_XEN */
+#endif /* MACH_PV_DESCRIPTORS */
+
+	db_load_context(pcb);
 
 	/*
 	 * Load the floating-point context, if necessary.
@@ -369,10 +373,8 @@ thread_t switch_context(old, continuation, new)
 
 void pcb_module_init()
 {
-	pcb_zone = zinit(sizeof(struct pcb), 0,
-			 THREAD_MAX * sizeof(struct pcb),
-			 THREAD_CHUNK * sizeof(struct pcb),
-			 0, "i386 pcb state");
+	kmem_cache_init(&pcb_cache, "pcb", sizeof(struct pcb), 0,
+			NULL, NULL, NULL, 0);
 
 	fpu_module_init();
 }
@@ -382,7 +384,7 @@ void pcb_init(thread)
 {
 	register pcb_t		pcb;
 
-	pcb = (pcb_t) zalloc(pcb_zone);
+	pcb = (pcb_t) kmem_cache_alloc(&pcb_cache);
 	if (pcb == 0)
 		panic("pcb_init");
 
@@ -422,7 +424,7 @@ void pcb_terminate(thread)
 		fp_free(pcb->ims.ifps);
 	if (pcb->ims.ldt != 0)
 		user_ldt_free(pcb->ims.ldt);
-	zfree(pcb_zone, (vm_offset_t) pcb);
+	kmem_cache_free(&pcb_cache, (vm_offset_t) pcb);
 	thread->pcb = 0;
 }
 
@@ -622,6 +624,21 @@ kern_return_t thread_setstatus(thread, flavor, tstate, count)
 		break;
 	    }
 
+	    case i386_DEBUG_STATE:
+	    {
+		register struct i386_debug_state *state;
+		kern_return_t ret;
+
+		if (count < i386_DEBUG_STATE_COUNT)
+		    return KERN_INVALID_ARGUMENT;
+
+		state = (struct i386_debug_state *) tstate;
+		ret = db_set_debug_state(thread->pcb, state);
+		if (ret)
+			return ret;
+		break;
+	    }
+
 	    default:
 		return(KERN_INVALID_ARGUMENT);
 	}
@@ -761,6 +778,20 @@ kern_return_t thread_getstatus(thread, flavor, tstate, count)
 		break;
 	    }
 
+	    case i386_DEBUG_STATE:
+	    {
+		register struct i386_debug_state *state;
+
+		if (*count < i386_DEBUG_STATE_COUNT)
+		    return KERN_INVALID_ARGUMENT;
+
+		state = (struct i386_debug_state *) tstate;
+		db_get_debug_state(thread->pcb, state);
+
+		*count = i386_DEBUG_STATE_COUNT;
+		break;
+	    }
+
 	    default:
 		return(KERN_INVALID_ARGUMENT);
 	}
@@ -812,7 +843,7 @@ set_user_regs(stack_base, stack_size, exec_info, arg_size)
 	arg_addr = stack_base + stack_size - arg_size;
 
 	saved_state = USER_REGS(current_thread());
-	saved_state->uesp = (int)arg_addr;
+	saved_state->uesp = (long)arg_addr;
 	saved_state->eip = exec_info->entry;
 
 	return (arg_addr);

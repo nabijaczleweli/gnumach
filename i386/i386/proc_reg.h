@@ -77,54 +77,54 @@
 #include <i386/ldt.h>
 #endif	/* MACH_HYP */
 
-static inline unsigned
+static inline unsigned long
 get_eflags(void)
 {
-	unsigned eflags;
-	asm("pushfd; popl %0" : "=r" (eflags));
+	unsigned long eflags;
+	asm("pushfd; pop %0" : "=r" (eflags));
 	return eflags;
 }
 
 static inline void
-set_eflags(unsigned eflags)
+set_eflags(unsigned long eflags)
 {
-	asm volatile("pushl %0; popfd" : : "r" (eflags));
+	asm volatile("push %0; popfd" : : "r" (eflags));
 }
 
 #define get_esp() \
     ({ \
-	register unsigned int _temp__ asm("esp"); \
+	register unsigned long _temp__ asm("esp"); \
 	_temp__; \
     })
 
 #define get_eflags() \
     ({ \
-	register unsigned int _temp__; \
-	asm("pushf; popl %0" : "=r" (_temp__)); \
+	register unsigned long _temp__; \
+	asm("pushf; pop %0" : "=r" (_temp__)); \
 	_temp__; \
     })
 
 #define	get_cr0() \
     ({ \
-	register unsigned int _temp__; \
+     register unsigned long _temp__; \
 	asm volatile("mov %%cr0, %0" : "=r" (_temp__)); \
 	_temp__; \
     })
 
 #define	set_cr0(value) \
     ({ \
-	register unsigned int _temp__ = (value); \
+	register unsigned long _temp__ = (value); \
 	asm volatile("mov %0, %%cr0" : : "r" (_temp__)); \
      })
 
 #define	get_cr2() \
     ({ \
-	register unsigned int _temp__; \
+	register unsigned long _temp__; \
 	asm volatile("mov %%cr2, %0" : "=r" (_temp__)); \
 	_temp__; \
     })
 
-#ifdef	MACH_HYP
+#ifdef	MACH_PV_PAGETABLES
 extern unsigned long cr3;
 #define get_cr3() (cr3)
 #define	set_cr3(value) \
@@ -133,24 +133,24 @@ extern unsigned long cr3;
 	if (!hyp_set_cr3(value)) \
 		panic("set_cr3"); \
     })
-#else	/* MACH_HYP */
+#else	/* MACH_PV_PAGETABLES */
 #define	get_cr3() \
     ({ \
-	register unsigned int _temp__; \
+	register unsigned long _temp__; \
 	asm volatile("mov %%cr3, %0" : "=r" (_temp__)); \
 	_temp__; \
     })
 
 #define	set_cr3(value) \
     ({ \
-	register unsigned int _temp__ = (value); \
+	register unsigned long _temp__ = (value); \
 	asm volatile("mov %0, %%cr3" : : "r" (_temp__) : "memory"); \
      })
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_PAGETABLES */
 
 #define flush_tlb() set_cr3(get_cr3())
 
-#ifndef	MACH_HYP
+#ifndef	MACH_PV_PAGETABLES
 #define invlpg(addr) \
     ({ \
 	asm volatile("invlpg (%0)" : : "r" (addr)); \
@@ -178,34 +178,34 @@ extern unsigned long cr3;
 		: "+r" (var) : "r" (end), \
 		  "q" (LINEAR_DS), "q" (KERNEL_DS), "i" (PAGE_SIZE)); \
     })
-#endif	/* MACH_HYP */
+#endif	/* MACH_PV_PAGETABLES */
 
 #define	get_cr4() \
     ({ \
-	register unsigned int _temp__; \
+	register unsigned long _temp__; \
 	asm volatile("mov %%cr4, %0" : "=r" (_temp__)); \
 	_temp__; \
     })
 
 #define	set_cr4(value) \
     ({ \
-	register unsigned int _temp__ = (value); \
+	register unsigned long _temp__ = (value); \
 	asm volatile("mov %0, %%cr4" : : "r" (_temp__)); \
      })
 
 
-#ifdef	MACH_HYP
+#ifdef	MACH_RING1
 #define	set_ts() \
 	hyp_fpu_taskswitch(1)
 #define	clear_ts() \
 	hyp_fpu_taskswitch(0)
-#else	/* MACH_HYP */
+#else	/* MACH_RING1 */
 #define	set_ts() \
 	set_cr0(get_cr0() | CR0_TS)
 
 #define	clear_ts() \
 	asm volatile("clts")
-#endif	/* MACH_HYP */
+#endif	/* MACH_RING1 */
 
 #define	get_tr() \
     ({ \
@@ -233,6 +233,132 @@ extern unsigned long cr3;
 #define flush_instr_queue() \
 	asm("jmp 0f\n" \
             "0:\n")
+
+#ifdef MACH_RING1
+#define get_dr0() hyp_get_debugreg(0)
+#else
+#define	get_dr0() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr0, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr0(value) hyp_set_debugreg(0, value)
+#else
+#define	set_dr0(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr0" : : "r" (_temp__)); \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define get_dr1() hyp_get_debugreg(1)
+#else
+#define	get_dr1() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr1, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr1(value) hyp_set_debugreg(1, value)
+#else
+#define	set_dr1(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr1" : : "r" (_temp__)); \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define get_dr2() hyp_get_debugreg(2)
+#else
+#define	get_dr2() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr2, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr2(value) hyp_set_debugreg(2, value)
+#else
+#define	set_dr2(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr2" : : "r" (_temp__)); \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define get_dr3() hyp_get_debugreg(3)
+#else
+#define	get_dr3() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr3, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr3(value) hyp_set_debugreg(3, value)
+#else
+#define	set_dr3(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr3" : : "r" (_temp__)); \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define get_dr6() hyp_get_debugreg(6)
+#else
+#define	get_dr6() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr6, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr6(value) hyp_set_debugreg(6, value)
+#else
+#define	set_dr6(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr6" : : "r" (_temp__)); \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define get_dr7() hyp_get_debugreg(7)
+#else
+#define	get_dr7() \
+    ({ \
+	register unsigned long _temp__; \
+	asm volatile("movl %%dr7, %0" : "=r" (_temp__)); \
+	_temp__; \
+    })
+#endif
+
+#ifdef MACH_RING1
+#define set_dr7(value) hyp_set_debugreg(7, value)
+#else
+#define	set_dr7(value) \
+    ({ \
+	register unsigned long _temp__ = (value); \
+	asm volatile("movl %0,%%dr7" : : "r" (_temp__)); \
+    })
+#endif
 
 #endif	/* __GNUC__ */
 #endif	/* __ASSEMBLER__ */

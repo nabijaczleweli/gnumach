@@ -45,7 +45,7 @@
 #include <mach/vm_statistics.h>
 #include <machine/vm_param.h>
 #include <kern/xpr.h>
-#include <kern/zalloc.h>
+#include <kern/slab.h>
 #include <vm/pmap.h>
 #include <vm/vm_map.h>
 #include <vm/vm_page.h>
@@ -58,9 +58,10 @@
 #include <vm/vm_user.h>
 #endif
 
-/* in zalloc.c XXX */
-extern vm_offset_t	zdata;
-extern vm_size_t	zdata_size;
+#if	MACH_KDB
+#include <ddb/db_output.h>
+#endif	/* MACH_KDB */
+
 
 /*
  *	Associated with eacn page of user-allocatable memory is a
@@ -126,7 +127,7 @@ unsigned int	vm_page_free_count_minimum;	/* debugging */
  *	These page structures are allocated the way
  *	most other kernel structures are.
  */
-zone_t	vm_page_zone;
+struct kmem_cache	vm_page_cache;
 
 /*
  *	Fictitious pages don't have a physical address,
@@ -239,13 +240,10 @@ void vm_page_bootstrap(
 	vm_page_free_wanted = 0;
 
 	/*
-	 *	Steal memory for the zone system.
+	 *	Steal memory for the kernel map entries.
 	 */
 
-	kentry_data_size = kentry_count * sizeof(struct vm_map_entry);
 	kentry_data = pmap_steal_memory(kentry_data_size);
-
-	zdata = pmap_steal_memory(zdata_size);
 
 	/*
 	 *	Allocate (and initialize) the virtual-to-physical
@@ -397,7 +395,7 @@ void pmap_startup(
 	while (pmap_next_page(&paddr))
 		i++;
 	if (i)
-		printf("%d memory page(s) left away\n", i);
+		printf("%u memory page(s) left away\n", i);
 
 	/*
 	 * Release pages in reverse order so that physical pages
@@ -430,10 +428,8 @@ void pmap_startup(
  */
 void		vm_page_module_init(void)
 {
-	vm_page_zone = zinit((vm_size_t) sizeof(struct vm_page), 0,
-			     VM_MAX_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS,
-			     PAGE_SIZE,
-			     0, "vm pages");
+	kmem_cache_init(&vm_page_cache, "vm_page", sizeof(struct vm_page), 0,
+			NULL, NULL, NULL, 0);
 }
 
 /*
@@ -455,7 +451,7 @@ void vm_page_create(
 	for (paddr = round_page(start);
 	     paddr < trunc_page(end);
 	     paddr += PAGE_SIZE) {
-		m = (vm_page_t) zalloc(vm_page_zone);
+		m = (vm_page_t) kmem_cache_alloc(&vm_page_cache);
 		if (m == VM_PAGE_NULL)
 			panic("vm_page_create");
 
@@ -526,6 +522,10 @@ void vm_page_insert(
 	 */
 
 	object->resident_page_count++;
+	assert(object->resident_page_count >= 0);
+
+	if (object->can_persist && (object->ref_count == 0))
+		vm_object_cached_pages_update(1);
 
 	/*
 	 *	Detect sequential access and inactivate previous page.
@@ -594,6 +594,10 @@ void vm_page_replace(
 				m->tabled = FALSE;
 				object->resident_page_count--;
 
+				if (object->can_persist
+				    && (object->ref_count == 0))
+					vm_object_cached_pages_update(-1);
+
 				/*
 				 * Return page to the free list.
 				 * Note the page is not tabled now, so this
@@ -625,6 +629,10 @@ void vm_page_replace(
 	 */
 
 	object->resident_page_count++;
+	assert(object->resident_page_count >= 0);
+
+	if (object->can_persist && (object->ref_count == 0))
+		vm_object_cached_pages_update(1);
 }
 
 /*
@@ -680,6 +688,9 @@ void vm_page_remove(
 	mem->object->resident_page_count--;
 
 	mem->tabled = FALSE;
+
+	if (mem->object->can_persist && (mem->object->ref_count == 0))
+		vm_object_cached_pages_update(-1);
 }
 
 /*
@@ -810,7 +821,7 @@ void vm_page_more_fictitious(void)
 	int i;
 
 	for (i = 0; i < vm_page_fictitious_quantum; i++) {
-		m = (vm_page_t) zalloc(vm_page_zone);
+		m = (vm_page_t) kmem_cache_alloc(&vm_page_cache);
 		if (m == VM_PAGE_NULL)
 			panic("vm_page_more_fictitious");
 

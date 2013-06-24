@@ -326,7 +326,7 @@ ipc_hash_global_delete(
  */
 
 #define	IH_LOCAL_HASH(obj, size)				\
-		((((mach_port_index_t) (obj)) >> 6) % (size))
+		((((mach_port_index_t) (vm_offset_t) (obj)) >> 6) % (size))
 
 /*
  *	Routine:	ipc_hash_local_lookup
@@ -535,13 +535,9 @@ ipc_hash_init(void)
 {
 	ipc_hash_index_t i;
 
-	/* if not configured, initialize ipc_hash_global_size */
+	/* initialize ipc_hash_global_size */
 
-	if (ipc_hash_global_size == 0) {
-		ipc_hash_global_size = ipc_tree_entry_max >> 8;
-		if (ipc_hash_global_size < 32)
-			ipc_hash_global_size = 32;
-	}
+	ipc_hash_global_size = IPC_HASH_GLOBAL_SIZE;
 
 	/* make sure it is a power of two */
 

@@ -274,17 +274,47 @@ mem_size_init(void)
 	} else
 		phys_last_addr = boot_info.nr_pages * 0x1000;
 #else	/* MACH_HYP */
-	/* TODO: support mmap */
-	vm_size_t phys_last_kb = 0x400 + boot_info.mem_upper;
-	/* Avoid 4GiB overflow.  */
-	if (phys_last_kb < 0x400 || phys_last_kb >= 0x400000) {
-		printf("Truncating memory size to 4GiB\n");
-		phys_last_addr = 0xffffffffU;
-	} else
-		phys_last_addr = phys_last_kb * 0x400;
+	vm_size_t phys_last_kb;
+
+	if (boot_info.flags & MULTIBOOT_MEM_MAP) {
+		struct multiboot_mmap *map, *map_end;
+
+		map = (void*) phystokv(boot_info.mmap_addr);
+		map_end = (void*) map + boot_info.mmap_count;
+
+		while (map + 1 <= map_end) {
+			if (map->Type == MB_ARD_MEMORY) {
+				unsigned long long start = map->BaseAddr, end = map->BaseAddr + map->Length;;
+
+				if (start >= 0x100000000ULL) {
+					printf("Ignoring %luMiB RAM region above 4GiB\n", (unsigned long) (map->Length >> 20));
+				} else {
+					if (end >= 0x100000000ULL) {
+						printf("Truncating memory region to 4GiB\n");
+						end = 0x0ffffffffU;
+					}
+					if (end > phys_last_addr)
+						phys_last_addr = end;
+
+					printf("AT386 boot: physical memory map from 0x%lx to 0x%lx\n",
+						(unsigned long) start,
+						(unsigned long) end);
+				}
+			}
+			map = (void*) map + map->size + sizeof(map->size);
+		}
+	} else {
+		phys_last_kb = 0x400 + boot_info.mem_upper;
+		/* Avoid 4GiB overflow.  */
+		if (phys_last_kb < 0x400 || phys_last_kb >= 0x400000) {
+			printf("Truncating memory size to 4GiB\n");
+			phys_last_addr = 0xffffffffU;
+		} else
+			phys_last_addr = phys_last_kb * 0x400;
+	}
 #endif	/* MACH_HYP */
 
-	printf("AT386 boot: physical memory from 0x%x to 0x%x\n",
+	printf("AT386 boot: physical memory from 0x%lx to 0x%lx\n",
 	       phys_first_addr, phys_last_addr);
 
 	/* Reserve room for virtual mappings.
@@ -292,7 +322,7 @@ mem_size_init(void)
 	max_phys_size = VM_MAX_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS - VM_KERNEL_MAP_SIZE;
 	if (phys_last_addr - phys_first_addr > max_phys_size) {
 		phys_last_addr = phys_first_addr + max_phys_size;
-		printf("Truncating memory size to %dMiB\n", (phys_last_addr - phys_first_addr) / (1024 * 1024));
+		printf("Truncating memory to %luMiB\n", (phys_last_addr - phys_first_addr) / (1024 * 1024));
 		/* TODO Xen: be nice, free lost memory */
 	}
 
@@ -319,7 +349,7 @@ i386at_init(void)
 	/* XXX move to intel/pmap.h */
 	extern pt_entry_t *kernel_page_dir;
 	int nb_direct, i;
-	vm_offset_t addr;
+	vm_offset_t addr, delta;
 
 	/*
 	 * Initialize the PIC prior to any possible call to an spl.
@@ -381,29 +411,34 @@ i386at_init(void)
 	pmap_bootstrap();
 
 	/*
-	 * Turn paging on.
 	 * We'll have to temporarily install a direct mapping
 	 * between physical memory and low linear memory,
 	 * until we start using our new kernel segment descriptors.
-	 * Also, set the WP bit so that on 486 or better processors
-	 * page-level write protection works in kernel mode.
 	 */
-	init_alloc_aligned(0, &addr);
-	nb_direct = (addr + NPTES * PAGE_SIZE - 1) / (NPTES * PAGE_SIZE);
+#if INIT_VM_MIN_KERNEL_ADDRESS != LINEAR_MIN_KERNEL_ADDRESS
+	delta = INIT_VM_MIN_KERNEL_ADDRESS - LINEAR_MIN_KERNEL_ADDRESS;
+	if ((vm_offset_t)(-delta) < delta)
+		delta = (vm_offset_t)(-delta);
+	nb_direct = delta >> PDESHIFT;
 	for (i = 0; i < nb_direct; i++)
-		kernel_page_dir[lin2pdenum(VM_MIN_KERNEL_ADDRESS) + i] =
+		kernel_page_dir[lin2pdenum(INIT_VM_MIN_KERNEL_ADDRESS) + i] =
 			kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS) + i];
+#endif
+	/* We need BIOS memory mapped at 0xc0000 & co for Linux drivers */
+#ifdef LINUX_DEV
+#if VM_MIN_KERNEL_ADDRESS != 0
+	kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
+		kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS)];
+#endif
+#endif
 
-#ifdef	MACH_XEN
-	{
-		int i;
-		for (i = 0; i < PDPNUM; i++)
-			pmap_set_page_readonly_init((void*) kernel_page_dir + i * INTEL_PGBYTES);
+#ifdef	MACH_PV_PAGETABLES
+	for (i = 0; i < PDPNUM; i++)
+		pmap_set_page_readonly_init((void*) kernel_page_dir + i * INTEL_PGBYTES);
 #if PAE
-		pmap_set_page_readonly_init(kernel_pmap->pdpbase);
+	pmap_set_page_readonly_init(kernel_pmap->pdpbase);
 #endif	/* PAE */
-	}
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 #if PAE
 	set_cr3((unsigned)_kvtophys(kernel_pmap->pdpbase));
 #ifndef	MACH_HYP
@@ -415,16 +450,19 @@ i386at_init(void)
 	set_cr3((unsigned)_kvtophys(kernel_page_dir));
 #endif	/* PAE */
 #ifndef	MACH_HYP
-	/* already set by Hypervisor */
+	/* Turn paging on.
+	 * Also set the WP bit so that on 486 or better processors
+	 * page-level write protection works in kernel mode.
+	 */
 	set_cr0(get_cr0() | CR0_PG | CR0_WP);
 	set_cr0(get_cr0() & ~(CR0_CD | CR0_NW));
 	if (CPU_HAS_FEATURE(CPU_FEATURE_PGE))
 		set_cr4(get_cr4() | CR4_PGE);
 #endif	/* MACH_HYP */
 	flush_instr_queue();
-#ifdef	MACH_XEN
+#ifdef	MACH_PV_PAGETABLES
 	pmap_clear_bootstrap_pagetable((void *)boot_info.pt_base);
-#endif	/* MACH_XEN */
+#endif	/* MACH_PV_PAGETABLES */
 
 	/* Interrupt stacks are allocated in physical memory,
 	   while kernel stacks are allocated in kernel virtual memory,
@@ -442,6 +480,7 @@ i386at_init(void)
 	ldt_init();
 	ktss_init();
 
+#if INIT_VM_MIN_KERNEL_ADDRESS != LINEAR_MIN_KERNEL_ADDRESS
 	/* Get rid of the temporary direct mapping and flush it out of the TLB.  */
 	for (i = 0 ; i < nb_direct; i++) {
 #ifdef	MACH_XEN
@@ -452,9 +491,17 @@ i386at_init(void)
 #endif	/* MACH_PSEUDO_PHYS */
 			printf("couldn't unmap frame %d\n", i);
 #else	/* MACH_XEN */
-		kernel_page_dir[lin2pdenum(VM_MIN_KERNEL_ADDRESS) + i] = 0;
+		kernel_page_dir[lin2pdenum(INIT_VM_MIN_KERNEL_ADDRESS) + i] = 0;
 #endif	/* MACH_XEN */
 	}
+#endif
+	/* Keep BIOS memory mapped */
+#ifdef LINUX_DEV
+#if VM_MIN_KERNEL_ADDRESS != 0
+	kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
+		kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS)];
+#endif
+#endif
 
 	/* Not used after boot, better give it back.  */
 #ifdef	MACH_XEN
@@ -486,7 +533,7 @@ void c_boot_entry(vm_offset_t bi)
 	/* Before we do _anything_ else, print the hello message.
 	   If there are no initialized console devices yet,
 	   it will be stored and printed at the first opportunity.  */
-	printf(version);
+	printf("%s", version);
 	printf("\n");
 
 #ifdef MACH_XEN
@@ -514,7 +561,7 @@ void c_boot_entry(vm_offset_t bi)
 		strtab_size = (vm_offset_t)phystokv(boot_info.syms.a.strsize);
 		kern_sym_end = kern_sym_start + 4 + symtab_size + strtab_size;
 
-		printf("kernel symbol table at %08x-%08x (%d,%d)\n",
+		printf("kernel symbol table at %08lx-%08lx (%d,%d)\n",
 		       kern_sym_start, kern_sym_end,
 		       symtab_size, strtab_size);
 	}
@@ -693,16 +740,65 @@ init_alloc_aligned(vm_size_t size, vm_offset_t *addrp)
 
 #ifndef MACH_HYP
 	/* Skip past the I/O and ROM area.  */
-	if ((avail_next > (boot_info.mem_lower * 0x400)) && (addr < 0x100000))
+	if (boot_info.flags & MULTIBOOT_MEM_MAP)
+	{
+		struct multiboot_mmap *map, *map_end, *current = NULL, *next = NULL;
+		unsigned long long minimum_next = ~0ULL;
+
+		map = (void*) phystokv(boot_info.mmap_addr);
+		map_end = (void*) map + boot_info.mmap_count;
+
+		/* Find both our current map, and the next one */
+		while (map + 1 <= map_end)
+		{
+			if (map->Type == MB_ARD_MEMORY)
+			{
+				unsigned long long start = map->BaseAddr;
+				unsigned long long end = start + map->Length;;
+
+				if (start <= addr && avail_next <= end)
+				{
+					/* Ok, fits in the current map */
+					current = map;
+					break;
+				}
+				else if (avail_next <= start && start < minimum_next)
+				{
+					/* This map is not far from avail_next */
+					next = map;
+					minimum_next = start;
+				}
+			}
+			map = (void*) map + map->size + sizeof(map->size);
+		}
+
+		if (!current) {
+			/* Area does not fit in the current map, switch to next
+			 * map if any */
+			if (!next || next->BaseAddr >= phys_last_addr)
+			{
+				/* No further reachable map, we have reached
+				 * the end of memory, but possibly wrap around
+				 * 16MiB. */
+				avail_next = phys_last_addr;
+				goto retry;
+			}
+
+			/* Start from next map */
+			avail_next = next->BaseAddr;
+			goto retry;
+		}
+	}
+	else if ((avail_next > (boot_info.mem_lower * 0x400)) && (addr < 0x100000))
 	{
 		avail_next = 0x100000;
 		goto retry;
 	}
 
 	/* Skip our own kernel code, data, and bss.  */
-	if ((avail_next > (vm_offset_t)start) && (addr < (vm_offset_t)end))
+	if ((phystokv(avail_next) > (vm_offset_t)start) && (phystokv(addr) < (vm_offset_t)end))
 	{
-		avail_next = (vm_offset_t)end;
+		avail_next = _kvtophys(end);
 		goto retry;
 	}
 
@@ -717,9 +813,9 @@ init_alloc_aligned(vm_size_t size, vm_offset_t *addrp)
 		avail_next = mods_end_pa;
 		goto retry;
 	}
-	if ((avail_next > kern_sym_start) && (addr < kern_sym_end))
+	if ((phystokv(avail_next) > kern_sym_start) && (phystokv(addr) < kern_sym_end))
 	{
-		avail_next = kern_sym_end;
+		avail_next = _kvtophys(kern_sym_end);
 		goto retry;
 	}
 	if (boot_info.flags & MULTIBOOT_MODS)
