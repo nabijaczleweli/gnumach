@@ -239,14 +239,16 @@ static struct port {
 	struct ahci_fis *fis;
 	struct ahci_cmd_tbl *prdtl;
 
-	unsigned capacity;		/* Nr of sectors */
+	unsigned long long capacity;	/* Nr of sectors */
 	u32 status;			/* interrupt status */
 	unsigned cls;			/* Command list maximum size.
 					   We currently only use 1. */
 	struct wait_queue *q;		/* IRQ wait queue */
 	struct hd_struct *part;		/* drive partition table */
-	int identify;			/* Whether we are just identifying
+	unsigned lba48;			/* Whether LBA48 is supported */
+	unsigned identify;		/* Whether we are just identifying
 					   at boot */
+	struct gendisk *gd;
 } ports[MAX_PORTS];
 
 
@@ -301,10 +303,16 @@ static void ahci_do_port_request(struct port *port, unsigned sector, struct requ
 	fis_h2d = (void*) &prdtl[slot].cfis;
 	fis_h2d->fis_type = FIS_TYPE_REG_H2D;
 	fis_h2d->flags = 128;
-	if (rq->cmd == READ)
-		fis_h2d->command = WIN_READDMA;
+	if (port->lba48)
+		if (rq->cmd == READ)
+			fis_h2d->command = WIN_READDMA_EXT;
+		else
+			fis_h2d->command = WIN_WRITEDMA_EXT;
 	else
-		fis_h2d->command = WIN_WRITEDMA;
+		if (rq->cmd == READ)
+			fis_h2d->command = WIN_READDMA;
+		else
+			fis_h2d->command = WIN_WRITEDMA;
 
 	fis_h2d->device = 1<<6;	/* LBA */
 
@@ -390,7 +398,7 @@ static void ahci_do_request()	/* invoked with cli() */
 	}
 	if (blockend > port->capacity) {
 		printk("offset for %u was %lu\n", minor, port->part[minor & PARTN_MASK].start_sect);
-		printk("bad access: block %lu, count= %u\n", blockend, port->capacity);
+		printk("bad access: block %lu, count= %lu\n", blockend, (unsigned long) port->capacity);
 		goto kill_rq;
 	}
 
@@ -464,6 +472,34 @@ static void ahci_interrupt (int irq, void *host, struct pt_regs *regs)
 	/* unlock */
 }
 
+static int ahci_ioctl (struct inode *inode, struct file *file,
+			unsigned int cmd, unsigned long arg)
+{
+	int major, unit;
+
+	if (!inode || !inode->i_rdev)
+		return -EINVAL;
+
+	major = MAJOR(inode->i_rdev);
+	if (major != MAJOR_NR)
+		return -ENOTTY;
+
+	unit = DEVICE_NR(inode->i_rdev);
+	if (unit >= MAX_PORTS)
+		return -EINVAL;
+
+	switch (cmd) {
+		case BLKRRPART:
+			if (!suser()) return -EACCES;
+			if (!ports[unit].gd)
+				return -EINVAL;
+			resetup_one_dev(ports[unit].gd, unit);
+			return 0;
+		default:
+			return -EPERM;
+	}
+}
+
 static int ahci_open (struct inode *inode, struct file *file)
 {
 	int target;
@@ -497,7 +533,7 @@ static struct file_operations ahci_fops = {
 	.write = block_write,
 	.readdir = NULL,
 	.select = NULL,
-	.ioctl = NULL,
+	.ioctl = ahci_ioctl,
 	.mmap = NULL,
 	.open = ahci_open,
 	.release = ahci_release,
@@ -507,6 +543,15 @@ static struct file_operations ahci_fops = {
 	.revalidate = NULL,
 };
 
+/* Disk timed out while processing identify, interrupt ahci_probe_port */
+static void identify_timeout(unsigned long data)
+{
+	struct port *port = (void*) data;
+
+	wake_up(&port->q);
+}
+
+static struct timer_list identify_timer = { .function = identify_timeout };
 
 /* Probe one AHCI port */
 static void ahci_probe_port(const volatile struct ahci_host *ahci_host, const volatile struct ahci_port *ahci_port)
@@ -664,27 +709,55 @@ static void ahci_probe_port(const volatile struct ahci_host *ahci_host, const vo
 	writel(1 << slot, &ahci_port->ci);
 
 	timeout = jiffies + WAIT_MAX;
+	identify_timer.expires = timeout;
+	identify_timer.data = (unsigned long) port;
+	add_timer(&identify_timer);
 	while (!port->status) {
-		if (jiffies > timeout) {
+		if (jiffies >= timeout) {
 			printk("sd%u: timeout waiting for ready\n", port-ports);
 			port->ahci_host = NULL;
 			port->ahci_port = NULL;
+			del_timer(&identify_timer);
 			return;
 		}
 		sleep_on(&port->q);
 	}
+	del_timer(&identify_timer);
 	restore_flags(flags);
 
 	if (readl(&ahci_port->is) & PORT_IRQ_TF_ERR)
 	{
 		printk("sd%u: identify error\n", port-ports);
 		port->capacity = 0;
+		port->lba48 = 0;
 	} else {
 		ide_fixstring(id.model,     sizeof(id.model),     1);
 		ide_fixstring(id.fw_rev,    sizeof(id.fw_rev),    1);
 		ide_fixstring(id.serial_no, sizeof(id.serial_no), 1);
-		port->capacity = id.lba_capacity;
-		printk("sd%u: %s, %uMB w/%dkB Cache\n", port - ports, id.model, port->capacity/2048, id.buf_size/2);
+		if (id.command_set_2 & (1U<<10))
+		{
+			port->lba48 = 1;
+			port->capacity = id.lba_capacity_2;
+			if (port->capacity >= (1ULL << 32))
+			{
+				port->capacity = (1ULL << 32) - 1;
+				printk("Warning: truncating disk size to 2TiB\n");
+			}
+		}
+		else
+		{
+			port->lba48 = 0;
+			port->capacity = id.lba_capacity;
+			if (port->capacity > (1ULL << 24))
+			{
+				port->capacity = (1ULL << 24);
+				printk("Warning: truncating disk size to 128GiB\n");
+			}
+		}
+		if (port->capacity/2048 >= 10240)
+			printk("sd%u: %s, %uGB w/%dkB Cache\n", port - ports, id.model, (unsigned) (port->capacity/(2048*1024)), id.buf_size/2);
+		else
+			printk("sd%u: %s, %uMB w/%dkB Cache\n", port - ports, id.model, (unsigned) (port->capacity/2048), id.buf_size/2);
 	}
 	port->identify = 0;
 }
@@ -700,6 +773,9 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 	unsigned port_map;
 	unsigned bar;
 	unsigned char irq;
+
+	dev = PCI_SLOT(device);
+	fun = PCI_FUNC(device);
 
 	/* Get configuration */
 	if (pcibios_read_config_byte(bus, device, PCI_HEADER_TYPE, &hdrtype) != PCIBIOS_SUCCESSFUL) {
@@ -727,16 +803,10 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 		return;
 	}
 
-	dev = PCI_SLOT(device);
-	fun = PCI_FUNC(device);
 	printk("AHCI SATA %02u:%02u.%u BAR 0x%x IRQ %u\n", bus, dev, fun, bar, irq);
 
 	/* Map mmio */
 	ahci_host = vremap(bar, 0x2000);
-	if (!(readl(&ahci_host->cap) & HOST_CAP_ONLY)) {
-		printk("ahci: %02u:%02u.%u: available as IDE too, skipping it\n");
-		return;
-	}
 
 	/* Request IRQ */
 	if (request_irq(irq, &ahci_interrupt, SA_SHIRQ, "ahci", (void*) ahci_host)) {
@@ -834,8 +904,10 @@ void ahci_probe_pci(void)
 
 	memset(gd->part, 0, nminors * sizeof(*gd->part));
 
-	for (unit = 0; unit < nports; unit++)
+	for (unit = 0; unit < nports; unit++) {
+		ports[unit].gd = gd;
 		ports[unit].part = &gd->part[unit << PARTN_BITS];
+	}
 
 	gd->major       = MAJOR_NR;
 	gd->major_name  = "sd";
