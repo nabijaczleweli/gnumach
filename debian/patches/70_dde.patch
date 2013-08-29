@@ -347,9 +347,6 @@ index 0000000..6fca328
 +#define KERNEL_SERVER 1
 +
 +#include <mach/experimental.defs>
-diff --git a/include/device/intr.defs b/include/device/intr.defs
-new file mode 100644
-index 0000000..368b96c
 --- /dev/null
 +++ b/include/mach/experimental.defs
 @@ -0,0 +1,100 @@
