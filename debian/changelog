@@ -5,7 +5,8 @@ gnumach (2:1.4-1) unstable; urgency=low
     - Rename packages from 1.3.99 to 1.4.
     - patches/00_clean_gfdl.patch: Drop, upstream documentation does not have
       invariant sections any more.
-    - rules (clean): Remove generated documentation.
+    - rules: Install documentation.
+    - control: Depend on texinfo.
   * Bump Standards-Version to 3.9.4 (no changes).
   * patches/70_dde.patch: Fix experimental.defs creation.
   * patches/80_missing_files.patch: Add missing files from git.
