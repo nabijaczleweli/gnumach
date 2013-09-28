@@ -2,6 +2,7 @@ gnumach (2:1.4-1) UNRELEASED; urgency=low
 
   [ Samuel Thibault ]
   * New upstream release.
+    - Rename packages from 1.3.99 to 1.4.
     - patches/00_clean_gfdl.patch: Drop, upstream documentation does not have
       invariant sections any more.
     - rules (clean): Remove generated documentation.
