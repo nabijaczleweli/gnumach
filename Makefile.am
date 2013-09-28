@@ -1,6 +1,6 @@
 # Makefile for GNU Mach.
 
-# Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2007, 2008, 2009, 2013 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -196,13 +196,34 @@ EXTRA_DIST += \
 EXTRA_DIST += \
 	DEVELOPMENT
 
-dist-hook:
+dist-hook: dist-rm-CVS gen-ChangeLog
+
+.PHONY: dist-rm-CVS
+dist-rm-CVS:
 # Try to be very safe with respect to spuriously removing various directories
 # in case of an error.
 	find $(distdir)/ -type d -name CVS | while read d; do	\
 	  rm -f "$$d"/{Entries,Repository,Root,Tag} &&		\
 	  rmdir "$$d";						\
 	done
+
+gen_start_commit = e227045b06d62ee7d2fbab9d5ade9030ff43170b
+ChangeLog_files = ChangeLog ChangeLog.0 ChangeLog.00
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	$(AM_V_GEN)if test -d $(top_srcdir)/.git; then			\
+	  (cd $(top_srcdir)/ &&						\
+	  ./gitlog-to-changelog	--strip-tab				\
+	    $(gen_start_commit).. &&					\
+	  echo) >> $(distdir)/cl-t &&					\
+	  for f in $(ChangeLog_files); do				\
+	    (cd $(top_srcdir)/ &&					\
+	    git show $(gen_start_commit):$$f) >> $(distdir)/cl-t &&	\
+	    rm -f $(distdir)/$$f &&					\
+	    mv $(distdir)/cl-t $(distdir)/$$f				\
+	    || exit $$?;						\
+	  done;								\
+	fi
 
 DISTCLEANFILES += \
 	Makefile.orig \

@@ -248,6 +248,7 @@ static struct port {
 	unsigned lba48;			/* Whether LBA48 is supported */
 	unsigned identify;		/* Whether we are just identifying
 					   at boot */
+	struct gendisk *gd;
 } ports[MAX_PORTS];
 
 
@@ -471,6 +472,34 @@ static void ahci_interrupt (int irq, void *host, struct pt_regs *regs)
 	/* unlock */
 }
 
+static int ahci_ioctl (struct inode *inode, struct file *file,
+			unsigned int cmd, unsigned long arg)
+{
+	int major, unit;
+
+	if (!inode || !inode->i_rdev)
+		return -EINVAL;
+
+	major = MAJOR(inode->i_rdev);
+	if (major != MAJOR_NR)
+		return -ENOTTY;
+
+	unit = DEVICE_NR(inode->i_rdev);
+	if (unit >= MAX_PORTS)
+		return -EINVAL;
+
+	switch (cmd) {
+		case BLKRRPART:
+			if (!suser()) return -EACCES;
+			if (!ports[unit].gd)
+				return -EINVAL;
+			resetup_one_dev(ports[unit].gd, unit);
+			return 0;
+		default:
+			return -EPERM;
+	}
+}
+
 static int ahci_open (struct inode *inode, struct file *file)
 {
 	int target;
@@ -504,7 +533,7 @@ static struct file_operations ahci_fops = {
 	.write = block_write,
 	.readdir = NULL,
 	.select = NULL,
-	.ioctl = NULL,
+	.ioctl = ahci_ioctl,
 	.mmap = NULL,
 	.open = ahci_open,
 	.release = ahci_release,
@@ -745,6 +774,9 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 	unsigned bar;
 	unsigned char irq;
 
+	dev = PCI_SLOT(device);
+	fun = PCI_FUNC(device);
+
 	/* Get configuration */
 	if (pcibios_read_config_byte(bus, device, PCI_HEADER_TYPE, &hdrtype) != PCIBIOS_SUCCESSFUL) {
 		printk("ahci: %02u:%02u.%u: Can not read configuration", bus, dev, fun);
@@ -771,8 +803,6 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 		return;
 	}
 
-	dev = PCI_SLOT(device);
-	fun = PCI_FUNC(device);
 	printk("AHCI SATA %02u:%02u.%u BAR 0x%x IRQ %u\n", bus, dev, fun, bar, irq);
 
 	/* Map mmio */
@@ -874,8 +904,10 @@ void ahci_probe_pci(void)
 
 	memset(gd->part, 0, nminors * sizeof(*gd->part));
 
-	for (unit = 0; unit < nports; unit++)
+	for (unit = 0; unit < nports; unit++) {
+		ports[unit].gd = gd;
 		ports[unit].part = &gd->part[unit << PARTN_BITS];
+	}
 
 	gd->major       = MAJOR_NR;
 	gd->major_name  = "sd";
