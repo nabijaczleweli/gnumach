@@ -148,6 +148,7 @@ clean:
 	rm -rf autom4te.cache build-aux
 	rm -f aclocal.m4 config.h.in configure INSTALL Makefile.in
 	find -name '*~' -o -name '*.rej' -o -name '*.orig' | xargs rm -f
+	rm -f doc/mach.info* doc/stamp-vti doc/version.texi
 
 	rm -f debian/gnumach-image-*.preinst
 	rm -f debian/gnumach-image-*.prerm

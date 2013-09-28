@@ -3,6 +3,7 @@ gnumach (2:1.4-1) UNRELEASED; urgency=low
   * New upstream release.
     - patches/00_clean_gfdl.patch: Drop, upstream documentation does not have
       invariant sections any more.
+    - rules (clean): Remove generated documentation.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 28 Sep 2013 10:24:04 +0000
 
