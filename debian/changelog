@@ -7,6 +7,7 @@ gnumach (2:1.4-1) UNRELEASED; urgency=low
     - rules (clean): Remove generated documentation.
   * Bump Standards-Version to 3.9.4 (no changes).
   * patches/70_dde.patch: Fix experimental.defs creation.
+  * patches/80_missing_files.patch: Add missing files from git.
 
   [ Pino Toscano ]
   * Update Vcs-* headers.
