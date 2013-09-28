@@ -130,8 +130,8 @@ index a00a12d..9d635cf 100644
 --- a/device/ds_routines.h
 +++ b/device/ds_routines.h
 @@ -58,4 +58,7 @@ boolean_t	ds_write_done(io_req_t);
- 
- void		iowait (io_req_t ior);
+ 	vm_size_t	size,
+ 	mach_port_t	*pager);
  
 +/* XXX arch-specific */
 +extern ipc_port_t intr_rcv_ports[16];

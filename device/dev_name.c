@@ -65,9 +65,9 @@ nomap()
  */
 boolean_t
 name_equal(src, len, target)
-	register char *	src;
-	register int	len;
-	register char *	target;
+	char 	*src;
+	int	len;
+	char 	*target;
 {
 	while (--len >= 0)
 	    if (*src++ != *target++)
@@ -79,7 +79,7 @@ name_equal(src, len, target)
  * device name lookup
  */
 boolean_t dev_name_lookup(name, ops, unit)
-	char *		name;
+	char 		*name;
 	dev_ops_t	*ops;	/* out */
 	int		*unit;	/* out */
 {
@@ -95,18 +95,14 @@ boolean_t dev_name_lookup(name, ops, unit)
 	 * <partition>		is a letter in [a-h] (disks only?)
 	 */
 
-	register char *	cp = name;
+	char 		*cp = name;
 	int		len;
-	register int	j = 0;
-	register int	c;
+	int		j = 0;
+	int		c;
 	dev_ops_t	dev;
-	register boolean_t found;
+	boolean_t 	found;
 
-	int slice_num=0;
-
-#if 0
-	printf("lookup on name %s\n",name);
-#endif /* 0 */
+	int slice_num = 0;
 
 	/*
 	 * Find device type name (characters before digit)
@@ -136,7 +132,7 @@ boolean_t dev_name_lookup(name, ops, unit)
 	}
 	if (!found) {
 	    /* name not found - try indirection list */
-	    register dev_indirect_t	di;
+	    dev_indirect_t	di;
 
 	    dev_indirect_search(di) {
 		if (name_equal(name, len, di->d_name)) {
@@ -167,7 +163,7 @@ boolean_t dev_name_lookup(name, ops, unit)
 	    *unit *= j;
 
 	    /* find slice ? */
-	    if (c=='s') {
+	    if (c == 's') {
 		cp++;
 		while ((c = *cp) != '\0' &&
 			c >= '0' && c <= '9') {
@@ -176,7 +172,7 @@ boolean_t dev_name_lookup(name, ops, unit)
 		}
 	    }
 
-	    *unit += (slice_num <<4);
+	    *unit += (slice_num << 4);
 		/* if slice==0, it is either compatability or whole device */
 
 	    if (c >= 'a' && c < 'a' + j) { /* note: w/o this -> whole slice */
@@ -184,9 +180,6 @@ boolean_t dev_name_lookup(name, ops, unit)
 		 * Minor number is <subdev_count>*unit + letter.
 		 * NOW it is slice result + letter
 		 */
-#if 0
-		*unit = *unit * j + (c - 'a' +1);  /* +1 to start 'a' at 1 */
-#endif /* 0 */
 		*unit += (c - 'a' +1);
 	    }
 	}
@@ -202,7 +195,7 @@ dev_set_indirection(name, ops, unit)
 	dev_ops_t	ops;
 	int		unit;
 {
-	register dev_indirect_t di;
+	dev_indirect_t di;
 
 	dev_indirect_search(di) {
 	    if (!strcmp(di->d_name, name)) {
@@ -214,22 +207,23 @@ dev_set_indirection(name, ops, unit)
 }
 
 boolean_t dev_change_indirect(iname, dname, unit)
-char *iname,*dname;
-int unit;
+	char 	*iname;
+	char	*dname;
+	int 	unit;
 {
     struct dev_ops *dp;
     struct dev_indirect *di;
-    int found = FALSE;
+    boolean_t found = FALSE;
 
     dev_search(dp) {
-	if (!strcmp(dp->d_name,dname)) {
+	if (!strcmp(dp->d_name, dname)) {
 	    found = TRUE;
 	    break;
 	}
     }
     if (!found) return FALSE;
     dev_indirect_search(di) {
-	if (!strcmp(di->d_name,iname)) {
+	if (!strcmp(di->d_name, iname)) {
 	    di->d_ops = dp;
 	    di->d_unit = unit;
 	    return TRUE;
