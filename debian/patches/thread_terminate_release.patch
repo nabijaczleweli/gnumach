@@ -1,0 +1,112 @@
+commit 22495036a354e209a7f2085bdd2e1fc82895208b
+Author: Richard Braun <rbraun@sceen.net>
+Date:   Sun Nov 24 11:17:54 2013 +0100
+
+    New RPC for thread destruction
+    
+    A new call, thread_terminate_release, is added to support self
+    destruction in threading libraries.
+    
+    * include/mach/gnumach.defs (thread_terminate_release): New
+    simpleroutine declaration.
+    * kern/thread.c: Include vm/vm_user.h and ipc/mach_port.h.
+    (thread_terminate_release): New function.
+    * kern/thread.h (thread_terminate_release): New prototype.
+
+diff --git a/include/mach/gnumach.defs b/include/mach/gnumach.defs
+index 7331334..12c4e99 100644
+--- a/include/mach/gnumach.defs
++++ b/include/mach/gnumach.defs
+@@ -37,3 +37,29 @@ type vm_cache_statistics_data_t = struct[11] of integer_t;
+ routine vm_cache_statistics(
+ 		target_task	: vm_task_t;
+ 	out	vm_cache_stats	: vm_cache_statistics_data_t);
++
++/*
++ * Terminate a thread and release rights and memory.
++ *
++ * Intended to be used by threading libraries to provide a clean way for
++ * threads to terminate themselves. The resources a thread wouldn't be able
++ * to release without this call when terminating itself are its
++ * last reference to its kernel port, its reply port, and its stack.
++ *
++ * This call is semantically equivalent to :
++ *  - mach_port_deallocate(task, thread_name);
++ *  - if (reply_port != MACH_PORT_NULL)
++ *      mach_port_destroy(task, reply_port);
++ *  - if ((address != 0) || (size != 0))
++ *      vm_deallocate(task, address, size)
++ *  - thread_terminate(thread)
++ *
++ * Implemented as a simple routine so a reply port isn't required.
++ */
++simpleroutine thread_terminate_release(
++		thread		: thread_t;
++		task		: task_t;
++		thread_name	: mach_port_name_t;
++		reply_port	: mach_port_name_t;
++		address		: vm_address_t;
++		size		: vm_size_t);
+diff --git a/kern/thread.c b/kern/thread.c
+index eb8a8bb..67fd41e 100644
+--- a/kern/thread.c
++++ b/kern/thread.c
+@@ -57,9 +57,11 @@
+ #include <kern/slab.h>
+ #include <kern/mach_clock.h>
+ #include <vm/vm_kern.h>
++#include <vm/vm_user.h>
+ #include <ipc/ipc_kmsg.h>
+ #include <ipc/ipc_port.h>
+ #include <ipc/mach_msg.h>
++#include <ipc/mach_port.h>
+ #include <machine/machspl.h>		/* for splsched */
+ #include <machine/pcb.h>
+ #include <machine/thread.h>		/* for MACHINE_STACK */
+@@ -850,6 +852,28 @@ kern_return_t thread_terminate(
+ 	return KERN_SUCCESS;
+ }
+ 
++kern_return_t thread_terminate_release(
++	thread_t thread,
++	task_t task,
++	mach_port_t thread_name,
++	mach_port_t reply_port,
++	vm_offset_t address,
++	vm_size_t size)
++{
++	if (task == NULL)
++		return KERN_INVALID_ARGUMENT;
++
++	mach_port_deallocate(task->itk_space, thread_name);
++
++	if (reply_port != MACH_PORT_NULL)
++		mach_port_destroy(task->itk_space, reply_port);
++
++	if ((address != 0) || (size != 0))
++		vm_deallocate(task->map, address, size);
++
++	return thread_terminate(thread);
++}
++
+ /*
+  *	thread_force_terminate:
+  *
+diff --git a/kern/thread.h b/kern/thread.h
+index 3959dfc..beb2dbc 100644
+--- a/kern/thread.h
++++ b/kern/thread.h
+@@ -259,6 +259,13 @@ extern kern_return_t	thread_create(
+ 	thread_t	*child_thread);
+ extern kern_return_t	thread_terminate(
+ 	thread_t	thread);
++extern kern_return_t	thread_terminate_release(
++	thread_t	thread,
++	task_t		task,
++	mach_port_t	thread_name,
++	mach_port_t	reply_port,
++	vm_offset_t	address,
++	vm_size_t	size);
+ extern kern_return_t	thread_suspend(
+ 	thread_t	thread);
+ extern kern_return_t	thread_resume(

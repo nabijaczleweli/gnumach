@@ -1,0 +1,21 @@
+commit dd0989ad8e7526844fcbc2e26bbcc4cc37a010ac
+Author: Richard Braun <rbraun@sceen.net>
+Date:   Thu Oct 10 20:21:17 2013 +0200
+
+    Increase kernel map entry pool size
+    
+    * vm/vm_map.h (KENTRY_DATA_SIZE): Set to 256 pages.
+
+diff --git a/vm/vm_map.h b/vm/vm_map.h
+index 5fdac4e..1caf9ae 100644
+--- a/vm/vm_map.h
++++ b/vm/vm_map.h
+@@ -55,7 +55,7 @@
+ #include <kern/macro_help.h>
+ 
+ /* TODO: make it dynamic */
+-#define KENTRY_DATA_SIZE (64*PAGE_SIZE)
++#define KENTRY_DATA_SIZE (256*PAGE_SIZE)
+ 
+ /*
+  *	Types defined:

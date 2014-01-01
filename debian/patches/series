@@ -4,3 +4,6 @@
 60_bigmem.patch
 70_dde.patch
 80_missing_files.patch
+kentry_data_size.patch
+thread_terminate_release.patch
+xen_clock_overflow.patch
