@@ -1,0 +1,61 @@
+commit e1cd0a70ace0944a4916f8a152c50e366c2c6984
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Jan 2 23:25:46 2014 +0100
+
+    Make sure cursor is initialized
+    
+    * i386/i386at/kd.c (kd_xga_init): Add start, stop variables, read them
+    from CRT registers, make sure the cursor is enabled and is not reduced
+    to 0, and write them back to CRT registers.
+    * i386/i386at/kd.h (C_START, C_STOP): New macros.
+
+diff --git a/i386/i386at/kd.c b/i386/i386at/kd.c
+index 3c66cc5..f70175c 100644
+--- a/i386/i386at/kd.c
++++ b/i386/i386at/kd.c
+@@ -2498,6 +2498,7 @@ kd_xga_init(void)
+ {
+ 	csrpos_t	xga_getpos();
+ 	unsigned char	screen;
++	unsigned char	start, stop;
+ 
+ 	outb(CMOS_ADDR, CMOS_EB);
+ 	screen = inb(CMOS_DATA) & CM_SCRMSK;
+@@ -2552,6 +2553,24 @@ kd_xga_init(void)
+ 		printf("kd: unknown screen type, defaulting to EGA\n");
+ 	}
+ 
++	outb(kd_index_reg, C_START);
++	start = inb(kd_io_reg);
++	/* Make sure cursor is enabled */
++	start &= ~0x20;
++	outb(kd_io_reg, start);
++	outb(kd_index_reg, C_STOP);
++	stop = inb(kd_io_reg);
++
++	if (!start && !stop)
++	{
++		/* Some firmware seem not to be initializing the cursor size
++		 * any more...  Try using standard values.  */
++		outb(kd_index_reg, C_START);
++		outb(kd_io_reg, 14);
++		outb(kd_index_reg, C_STOP);
++		outb(kd_io_reg, 15);
++	}
++
+ 	kd_setpos(xga_getpos());
+ }
+ 
+diff --git a/i386/i386at/kd.h b/i386/i386at/kd.h
+index 0907e23..6c869d6 100644
+--- a/i386/i386at/kd.h
++++ b/i386/i386at/kd.h
+@@ -113,6 +113,8 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ /*
+  * Commands sent to graphics adapter.
+  */
++#define C_START 	0x0a		/* return cursor line start */
++#define C_STOP 		0x0b		/* return cursor line stop */
+ #define C_LOW 		0x0f		/* return low byte of cursor addr */
+ #define C_HIGH 		0x0e		/* high byte */
+ 
