@@ -558,7 +558,7 @@ index 41bdaa3..974eaf8 100644
  	}
        while (old);
        shared = 1;
-+      printk("store a new irq %d", irq);
++      printk("store a new irq %d\n", irq);
      }
  
    save_flags (flags);
