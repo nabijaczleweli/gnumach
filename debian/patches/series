@@ -8,3 +8,5 @@ git-kentry_data_size.patch
 git-thread_terminate_release.patch
 git-xen_clock_overflow.patch
 git-cursor_init.patch
+git-coverity-fixes.patch
+git-mig-inlines.patch

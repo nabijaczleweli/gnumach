@@ -1,0 +1,120 @@
+commit a9f5cf5d2ff55abdd05a2ab6965d8b4ba190eac9
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Feb 4 13:03:48 2014 +0100
+
+    Fix FPU state access
+    
+    Found by coverity.
+    
+    * i386/i386/fpu.c (fpu_set_state, fpu_get_state): Fix out of bound
+    `user_fp_regs' access.
+
+diff --git a/i386/i386/fpu.c b/i386/i386/fpu.c
+index fd5f4b6..62a4e67 100644
+--- a/i386/i386/fpu.c
++++ b/i386/i386/fpu.c
+@@ -374,7 +374,7 @@ ASSERT_IPL(SPL0);
+ 		ifps->xfp_save_state.fp_dp      = user_fp_state->fp_dp;
+ 		ifps->xfp_save_state.fp_ds      = user_fp_state->fp_ds;
+ 		for (i=0; i<8; i++)
+-		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs[i], sizeof(user_fp_regs[i]));
++		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs->fp_reg_word[i], sizeof(user_fp_regs[i]));
+ 	    } else {
+ 		ifps->fp_save_state.fp_control = user_fp_state->fp_control;
+ 		ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
+@@ -467,7 +467,7 @@ ASSERT_IPL(SPL0);
+ 		user_fp_state->fp_dp      = ifps->xfp_save_state.fp_dp;
+ 		user_fp_state->fp_ds      = ifps->xfp_save_state.fp_ds;
+ 		for (i=0; i<8; i++)
+-		    memcpy(&user_fp_regs[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs[i]));
++		    memcpy(&user_fp_regs->fp_reg_word[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs[i]));
+ 	    } else {
+ 		user_fp_state->fp_control = ifps->fp_save_state.fp_control;
+ 		user_fp_state->fp_status  = ifps->fp_save_state.fp_status;
+commit a7fcd5dfaad27dc33c1c1e22ebef2ded8d53b5a0
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Feb 4 13:20:15 2014 +0100
+
+    Fix FPU state copy size
+    
+    * i386/i386/fpu.c (fpu_set_state, fpu_get_state): Fix size of
+    `user_fp_regs' access.
+
+diff --git a/i386/i386/fpu.c b/i386/i386/fpu.c
+index 62a4e67..cd90ee9 100644
+--- a/i386/i386/fpu.c
++++ b/i386/i386/fpu.c
+@@ -374,7 +374,7 @@ ASSERT_IPL(SPL0);
+ 		ifps->xfp_save_state.fp_dp      = user_fp_state->fp_dp;
+ 		ifps->xfp_save_state.fp_ds      = user_fp_state->fp_ds;
+ 		for (i=0; i<8; i++)
+-		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs->fp_reg_word[i], sizeof(user_fp_regs[i]));
++		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs->fp_reg_word[i], sizeof(user_fp_regs->fp_reg_word[i]));
+ 	    } else {
+ 		ifps->fp_save_state.fp_control = user_fp_state->fp_control;
+ 		ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
+@@ -467,7 +467,7 @@ ASSERT_IPL(SPL0);
+ 		user_fp_state->fp_dp      = ifps->xfp_save_state.fp_dp;
+ 		user_fp_state->fp_ds      = ifps->xfp_save_state.fp_ds;
+ 		for (i=0; i<8; i++)
+-		    memcpy(&user_fp_regs->fp_reg_word[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs[i]));
++		    memcpy(&user_fp_regs->fp_reg_word[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs->fp_reg_word[i]));
+ 	    } else {
+ 		user_fp_state->fp_control = ifps->fp_save_state.fp_control;
+ 		user_fp_state->fp_status  = ifps->fp_save_state.fp_status;
+commit e6f93609728d0ad864fc2d7dacd9df128eccd37a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Feb 4 19:07:47 2014 +0100
+
+    Fix potential NULL dereference
+    
+    Found by Coverity
+    
+    * i386/i386/user_ldt.c (i386_get_ldt): Fetch `pcb' field of `thread'
+    only after looking for `thread' being NULL.
+
+diff --git a/i386/i386/user_ldt.c b/i386/i386/user_ldt.c
+index a83bc12..3a2c1cc 100644
+--- a/i386/i386/user_ldt.c
++++ b/i386/i386/user_ldt.c
+@@ -262,7 +262,7 @@ i386_get_ldt(thread, first_selector, selector_count, desc_list, count)
+ 	unsigned int	*count;			/* in/out */
+ {
+ 	struct user_ldt *user_ldt;
+-	pcb_t		pcb = thread->pcb;
++	pcb_t		pcb;
+ 	int		first_desc = sel_idx(first_selector);
+ 	unsigned int	ldt_count;
+ 	vm_size_t	ldt_size;
+@@ -276,6 +276,7 @@ i386_get_ldt(thread, first_selector, selector_count, desc_list, count)
+ 	if (first_desc + selector_count >= 8192)
+ 	    return KERN_INVALID_ARGUMENT;
+ 
++	pcb = thread->pcb;
+ 	addr = 0;
+ 	size = 0;
+ 
+commit 03df518586e3cfd106eb20827781f12a0596e48c
+Author: Justus Winter <4winter@informatik.uni-hamburg.de>
+Date:   Tue Feb 4 11:47:00 2014 +0100
+
+    xen: fix buffer size
+    
+    Previously, only strlen(device_name) bytes were allocated, missing one
+    byte for the terminating zero.
+    
+    * xen/block.c (hyp_block_init): Fix buffer size.
+
+diff --git a/xen/block.c b/xen/block.c
+index 3e4ce7c..bd3758f 100644
+--- a/xen/block.c
++++ b/xen/block.c
+@@ -217,7 +217,7 @@ void hyp_block_init(void) {
+ 			sprintf(device_name, "%s%ds%d", prefix, disk, partition);
+ 		else
+ 			sprintf(device_name, "%s%d", prefix, disk);
+-		bd->name = (char*) kalloc(strlen(device_name));
++		bd->name = (char*) kalloc(strlen(device_name) + 1);
+ 		strcpy(bd->name, device_name);
+ 
+ 		/* Get domain id of backend driver.  */

@@ -1,11 +1,15 @@
-gnumach (2:1.4-3) UNRELEASED; urgency=medium
+gnumach (2:1.4-3) unstable; urgency=medium
 
   * patches/{kentry_data_size,thread_terminate_release,
     xen_clock_overflow}.patch: Add "git-" prefix to patch name.
   * patches/git-cursor_init.patch: New patch to make sure cursor is
     initialized.
+  * patches/git-coverity-fixes.patch: New patch to fix several issues found by
+    Coverity.
+  * patches/git-mig-inlines.patch: New patch to inline MIG-generated demuxers.
+  * control: Bump mig version dependency to get inlined MIG demuxers.
 
- -- Samuel Thibault <sthibault@debian.org>  Thu, 02 Jan 2014 23:29:16 +0100
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 05 Feb 2014 11:47:53 +0000
 
 gnumach (2:1.4-2) unstable; urgency=medium
 
