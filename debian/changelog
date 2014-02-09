@@ -1,3 +1,10 @@
+gnumach (2:1.4-4) UNRELEASED; urgency=medium
+
+  * patches/git-quiet-cd-floppy.patch: New patch to quiet down CD and floppy
+    sense errors.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 09 Feb 2014 23:43:49 +0000
+
 gnumach (2:1.4-3) unstable; urgency=medium
 
   * patches/{kentry_data_size,thread_terminate_release,
