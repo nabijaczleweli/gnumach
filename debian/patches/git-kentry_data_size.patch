@@ -19,3 +19,20 @@ index 5fdac4e..1caf9ae 100644
  
  /*
   *	Types defined:
+
+
+Additionally reduce the slab size to 64MiB to make room for that.
+
+diff --git a/kern/slab.c b/kern/slab.c
+index 47c2c8f..4034579 100644
+--- a/kern/slab.c
++++ b/kern/slab.c
+@@ -165,7 +165,7 @@
+ /*
+  * Size of the VM submap from which default backend functions allocate.
+  */
+-#define KMEM_MAP_SIZE (128 * 1024 * 1024)
++#define KMEM_MAP_SIZE (64 * 1024 * 1024)
+ 
+ /*
+  * Shift for the first kalloc cache size.

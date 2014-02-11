@@ -1,3 +1,10 @@
+gnumach (2:1.4-6) unstable; urgency=medium
+
+  * Re-enable patches/git-kentry_data_size.patch, but with an additional
+    change to reduce KMEM_MAP_SIZE by 64MiB to make room for that.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 11 Feb 2014 23:47:14 +0000
+
 gnumach (2:1.4-5) unstable; urgency=medium
 
   * Disable patches/git-kentry_data_size.patch for now, it breaks d-i boot for
