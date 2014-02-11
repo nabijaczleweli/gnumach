@@ -4,7 +4,7 @@
 60_bigmem.patch
 70_dde.patch
 80_missing_files.patch
-git-kentry_data_size.patch
+#git-kentry_data_size.patch
 git-thread_terminate_release.patch
 git-xen_clock_overflow.patch
 git-cursor_init.patch
