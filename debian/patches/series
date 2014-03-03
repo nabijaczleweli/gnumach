@@ -11,3 +11,4 @@ git-cursor_init.patch
 git-coverity-fixes.patch
 git-mig-inlines.patch
 git-quiet-cd-floppy.patch
+git-physical-access.patch
