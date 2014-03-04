@@ -1,7 +1,11 @@
 gnumach (2:1.4-7) UNRELEASED; urgency=medium
 
+  [ Samuel Thibault ]
   * patches/git-physical-access.patch: New patch, fixes access to physical
     pages beyond last_phys_addr.
+
+  [ Guillem Jover ]
+  * Remove myself from Uploaders.
 
  -- Samuel Thibault <sthibault@debian.org>  Mon, 03 Mar 2014 00:59:30 +0100
 
