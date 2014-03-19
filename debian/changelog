@@ -1,3 +1,10 @@
+gnumach (2:1.4-7) unstable; urgency=medium
+
+  * patches/git-task_set_name.patch: New patch from git to add task_set_name
+    RPC.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 19 Mar 2014 19:08:30 +0000
+
 gnumach (2:1.4-6) unstable; urgency=medium
 
   * Re-enable patches/git-kentry_data_size.patch, but with an additional
