@@ -12,3 +12,4 @@ git-coverity-fixes.patch
 git-mig-inlines.patch
 git-quiet-cd-floppy.patch
 git-task_set_name.patch
+90-fix_headers.patch

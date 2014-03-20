@@ -1,3 +1,89 @@
+commit fe7cd805567e1f4d1ed92d87b216e2dc78249892
+Author: Justus Winter <4winter@informatik.uni-hamburg.de>
+Date:   Sat Feb 1 02:02:02 2014 +0100
+
+    kern: add snprintf
+    
+    * kern/printf.c (snprintf): New function.
+    * kern/printf.h (snprintf): New declaration.
+
+diff --git a/kern/printf.c b/kern/printf.c
+index af59d5a..ea78d48 100644
+--- a/kern/printf.c
++++ b/kern/printf.c
+@@ -615,6 +615,16 @@ vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
+   return cookie.index;
+ }
+ 
++int
++snprintf(char *buf, size_t size, const char *fmt, ...)
++{
++	int written;
++	va_list	listp;
++	va_start(listp, fmt);
++	written = vsnprintf(buf, size, fmt, listp);
++	va_end(listp);
++	return written;
++}
+ 
+ void safe_gets(str, maxlen)
+ 	char *str;
+diff --git a/kern/printf.h b/kern/printf.h
+index 8b4e760..0f8b328 100644
+--- a/kern/printf.h
++++ b/kern/printf.h
+@@ -40,6 +40,7 @@ extern void printnum (unsigned long u, int base,
+                       vm_offset_t putc_arg);
+ 
+ extern int sprintf (char *buf, const char *fmt, ...);
++extern int snprintf (char *buf, size_t size, const char *fmt, ...);
+ extern int vsnprintf (char *buf, size_t size, const char *fmt, va_list args);
+ 
+ extern int printf (const char *fmt, ...);
+
+commit 7353f589daccb7fb61880d6994f6471e103da902
+Author: Justus Winter <4winter@informatik.uni-hamburg.de>
+Date:   Sat Feb 1 02:09:02 2014 +0100
+
+    include: add a fixed-size string type for debugging purposes
+    
+    * include/mach/debug.defs: New file.
+    * include/mach/debug.h: Likewise.
+
+diff --git a/include/mach_debug/mach_debug_types.defs b/include/mach_debug/mach_debug_types.defs
+index f60125a..d24b6f9 100644
+--- a/include/mach_debug/mach_debug_types.defs
++++ b/include/mach_debug/mach_debug_types.defs
+@@ -57,6 +57,8 @@ type vm_page_info_array_t = array[] of vm_page_info_t;
+ 
+ type symtab_name_t = (MACH_MSG_TYPE_STRING_C, 8*32);
+ 
++type kernel_debug_name_t = c_string[*: 64];
++
+ import <mach_debug/mach_debug_types.h>;
+ 
+ #endif	/* _MACH_DEBUG_MACH_DEBUG_TYPES_DEFS_ */
+diff --git a/include/mach_debug/mach_debug_types.h b/include/mach_debug/mach_debug_types.h
+index 5d4efcd..9c7d1fd 100644
+--- a/include/mach_debug/mach_debug_types.h
++++ b/include/mach_debug/mach_debug_types.h
+@@ -37,4 +37,15 @@
+ 
+ typedef	char	symtab_name_t[32];
+ 
++/*
++ *	A fixed-length string data type intended for names given to
++ *	kernel objects.
++ *
++ *	Note that it is not guaranteed that the in-kernel data
++ *	structure will hold KERNEL_DEBUG_NAME_MAX bytes.  The given
++ *	name will be truncated to fit into the target data structure.
++ */
++#define KERNEL_DEBUG_NAME_MAX (64)
++typedef char	kernel_debug_name_t[KERNEL_DEBUG_NAME_MAX];
++
+ #endif	/* _MACH_DEBUG_MACH_DEBUG_TYPES_H_ */
+
 commit df47f83ed98e4ce356af8d34de05b549f4f9c912
 Author: Justus Winter <4winter@informatik.uni-hamburg.de>
 Date:   Sat Feb 1 02:15:05 2014 +0100
@@ -19,7 +105,7 @@ index 13b3c76..0b5a6f7 100644
 +#include <kern/printf.h>
  #include <kern/sched_prim.h>	/* for thread_wakeup */
  #include <kern/ipc_tt.h>
- #include <kern/syscall_emulation.h>
+ #include <vm/vm_kern.h>		/* for kernel_map, ipc_kernel_map */
 @@ -164,6 +165,8 @@ kern_return_t task_create(
  	}
  #endif	/* FAST_TAS */

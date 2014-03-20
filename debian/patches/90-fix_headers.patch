@@ -1,0 +1,20 @@
+Index: gnumach/Makefrag.am
+===================================================================
+--- gnumach.orig/Makefrag.am	2014-03-19 23:59:41.000000000 +0000
++++ gnumach/Makefrag.am	2014-03-20 00:19:32.000000000 +0000
+@@ -414,6 +414,15 @@
+ # 		mach_debug.defs mach_debug_types.defs mach_debug_types.h \
+ # 		pc_info.h vm_info.h slab_info.h)
+ 
++include_machdebugdir = $(includedir)/mach_debug
++include_machdebug_HEADERS = \
++	include/mach_debug/mach_debug_types.defs \
++	include/mach_debug/mach_debug_types.h \
++	include/mach_debug/ipc_info.h \
++	include/mach_debug/vm_info.h \
++	include/mach_debug/slab_info.h \
++	include/mach_debug/hash_info.h
++
+ # Other headers for the distribution.  We don't install these, because the
+ # GNU C library has correct versions for users to use.
+ # other-sys-headers := types.h time.h reboot.h ioctl.h
