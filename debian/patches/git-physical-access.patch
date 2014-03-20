@@ -159,9 +159,9 @@ index 2943d26..a3d9630 100644
 + */
 +static pmap_mapwindow_t mapwindows[PMAP_NMAPWINDOWS];
 +
- static inline pt_entry_t *
- pmap_pde(const pmap_t pmap, vm_offset_t addr)
- {
+ void pmap_remove_range();	/* forward */
+ #if	NCPUS > 1
+ void signal_cpus();		/* forward */
 @@ -774,6 +780,12 @@ void pmap_bootstrap(void)
  			}
  			for (; pte < ptable+NPTES; pte++)
