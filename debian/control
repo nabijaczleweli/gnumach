@@ -2,8 +2,7 @@ Source: gnumach
 Section: kernel
 Priority: optional
 Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
-Uploaders: Guillem Jover <guillem@debian.org>,
- Samuel Thibault <sthibault@debian.org>
+Uploaders: Samuel Thibault <sthibault@debian.org>
 Homepage: http://www.gnu.org/software/hurd/microkernel/mach/gnumach.html
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-hurd/gnumach.git
 Vcs-Git: git://anonscm.debian.org/pkg-hurd/gnumach.git

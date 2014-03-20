@@ -1,11 +1,17 @@
 gnumach (2:1.4-7) unstable; urgency=medium
 
+  [ Samuel Thibault ]
+  * patches/git-physical-access.patch: New patch, fixes access to physical
+    pages beyond last_phys_addr.
   * patches/git-task_set_name.patch: New patch from git to add task_set_name
     RPC.
   * patches/90-fix_headers.patch: New patch to fix gnumach.defs build.
   * rules: Remove generated doc files.
 
- -- Samuel Thibault <sthibault@debian.org>  Wed, 19 Mar 2014 19:08:30 +0000
+  [ Guillem Jover ]
+  * Remove myself from Uploaders.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 20 Mar 2014 02:26:40 +0000
 
 gnumach (2:1.4-6) unstable; urgency=medium
 
