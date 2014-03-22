@@ -1,3 +1,9 @@
+gnumach (2:1.4-8) unstable; urgency=medium
+
+  * patches/git-physical-access.patch: Fix overflow brought by patch.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 22 Mar 2014 15:05:11 +0000
+
 gnumach (2:1.4-7) unstable; urgency=medium
 
   [ Samuel Thibault ]

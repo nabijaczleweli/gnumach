@@ -239,3 +239,29 @@ index 047a384..382cd5f 100644
  #if	NCPUS > 1
  /*
   *	List of cpus that are actively using mapped memory.  Any
+
+commit 7e59fbeb2f05e1400dadbbd2d9c93d8bd2ad8178
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Mar 22 16:33:25 2014 +0100
+
+    Fix overflow
+    
+    We were filling much more than the mapwindows array, thus overwriting in
+    at least debugger variables.
+    
+    * i386/intel/pmap.c (pmap_bootstrap): Make sure to limit mapwindows
+    initialization within PMAP_NMAPWINDOWS.
+
+diff --git a/i386/intel/pmap.c b/i386/intel/pmap.c
+index a3d9630..4b2892a 100644
+--- a/i386/intel/pmap.c
++++ b/i386/intel/pmap.c
+@@ -780,7 +780,7 @@ void pmap_bootstrap(void)
+ 			}
+ 			for (; pte < ptable+NPTES; pte++)
+ 			{
+-				if (va >= kernel_virtual_end - PMAP_NMAPWINDOWS * PAGE_SIZE);
++				if (va >= kernel_virtual_end - PMAP_NMAPWINDOWS * PAGE_SIZE && va < kernel_virtual_end)
+ 				{
+ 					pmap_mapwindow_t *win = &mapwindows[atop(va - (kernel_virtual_end - PMAP_NMAPWINDOWS * PAGE_SIZE))];
+ 					win->entry = pte;
