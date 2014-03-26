@@ -1,3 +1,10 @@
+gnumach (2:1.4-9) unstable; urgency=medium
+
+  * patches/git-memory_object_translatable.patch: New patch to make memory
+    object types translation functions mutable.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 26 Mar 2014 09:59:55 +0000
+
 gnumach (2:1.4-8) unstable; urgency=medium
 
   * patches/git-physical-access.patch: Fix overflow brought by patch.

@@ -13,4 +13,5 @@ git-mig-inlines.patch
 git-quiet-cd-floppy.patch
 git-task_set_name.patch
 git-physical-access.patch
+git-memory_object_translatable.patch
 90-fix_headers.patch
