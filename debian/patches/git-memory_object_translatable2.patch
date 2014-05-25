@@ -1,0 +1,63 @@
+In order to use MIG translation functions to lookup memory objects,
+preprocessor macros have been introduced into the definition of
+memory_object_t in 50cc5152.
+
+The procedure definitions contain inlined type definitions in order to
+change the type of the argument in question (i.e. to make it
+polymorphic).  The inline definitions however lack the destructor
+function, leading to reference leaks when a reference is acquired in
+the intran function.
+
+* include/mach/memory_object.defs: Add the destructor functions to the
+inlined type definitions.
+---
+ include/mach/memory_object.defs | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/include/mach/memory_object.defs b/include/mach/memory_object.defs
+index 0ed8dbc..1ae36aa 100644
+--- a/include/mach/memory_object.defs
++++ b/include/mach/memory_object.defs
+@@ -93,6 +93,9 @@ simpleroutine	memory_object_terminate(
+ #ifdef	MEMORY_OBJECT_INTRAN
+ 						intran: MEMORY_OBJECT_INTRAN
+ #endif
++#ifdef	MEMORY_OBJECT_DESTRUCTOR
++					destructor: MEMORY_OBJECT_DESTRUCTOR
++#endif
+ 						;
+ #if	SEQNOS
+ 	msgseqno seqno			: mach_port_seqno_t;
+@@ -233,6 +236,9 @@ simpleroutine	memory_object_lock_completed(
+ #ifdef	MEMORY_OBJECT_INTRAN
+ 			intran: MEMORY_OBJECT_INTRAN
+ #endif
++#ifdef	MEMORY_OBJECT_DESTRUCTOR
++			destructor: MEMORY_OBJECT_DESTRUCTOR
++#endif
+ 			;
+ #if	SEQNOS
+ 	msgseqno seqno			: mach_port_seqno_t;
+@@ -268,6 +274,9 @@ simpleroutine	memory_object_supply_completed(
+ #ifdef	MEMORY_OBJECT_INTRAN
+ 			intran: MEMORY_OBJECT_INTRAN
+ #endif
++#ifdef	MEMORY_OBJECT_DESTRUCTOR
++			destructor: MEMORY_OBJECT_DESTRUCTOR
++#endif
+ 			;
+ #if	SEQNOS
+ 	msgseqno seqno			: mach_port_seqno_t;
+@@ -318,6 +327,9 @@ simpleroutine	memory_object_change_completed(
+ #ifdef	MEMORY_OBJECT_INTRAN
+ 			intran: MEMORY_OBJECT_INTRAN
+ #endif
++#ifdef	MEMORY_OBJECT_DESTRUCTOR
++			destructor: MEMORY_OBJECT_DESTRUCTOR
++#endif
+ 			;
+ #if	SEQNOS
+ 	msgseqno seqno			: mach_port_seqno_t;
+-- 
+2.0.0.rc2
+

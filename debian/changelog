@@ -4,6 +4,8 @@ gnumach (2:1.4-10) unstable; urgency=medium
     functions mutable.
   * patches/git-device_translatable.patch: New patch to make device
     functions mutable.
+  * patches/git-memory_object_translatable2.patch: Fix memory object reference
+    leak.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 25 May 2014 20:06:12 +0000
 
