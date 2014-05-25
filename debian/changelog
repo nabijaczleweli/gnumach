@@ -1,3 +1,12 @@
+gnumach (2:1.4-10) UNRELEASED; urgency=medium
+
+  * patches/git-notify_translatable{,2}.patch: New patch to make notify
+    functions mutable.
+  * patches/git-device_translatable{,2}.patch: New patch to make device
+    functions mutable.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 25 May 2014 16:41:06 +0200
+
 gnumach (2:1.4-9) unstable; urgency=medium
 
   * patches/git-memory_object_translatable.patch: New patch to make memory

@@ -14,4 +14,7 @@ git-quiet-cd-floppy.patch
 git-task_set_name.patch
 git-physical-access.patch
 git-memory_object_translatable.patch
+git-notify_translatable.patch
+git-device_translatable.patch
+git-device_translatable2.patch
 90-fix_headers.patch
