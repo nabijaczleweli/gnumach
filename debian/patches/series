@@ -18,4 +18,5 @@ git-memory_object_translatable2.patch
 git-notify_translatable.patch
 git-device_translatable.patch
 git-device_translatable2.patch
-90-fix_headers.patch
+git-mach_debug.patch
+git-mach_debug2.patch
