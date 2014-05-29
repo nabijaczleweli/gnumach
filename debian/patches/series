@@ -20,3 +20,4 @@ git-device_translatable.patch
 git-device_translatable2.patch
 git-mach_debug.patch
 git-mach_debug2.patch
+git-xen_races.patch
