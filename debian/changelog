@@ -1,7 +1,8 @@
 gnumach (2:1.4-11) unstable; urgency=medium
 
   * patches/git-halt.patch: Add ACPI powerdown support.
-  * patches/git-xen-memory-clobber.patch: Add missing memory clobbers.
+  * patches/git-xen_races.patch: New patch to fix race conditions, notably in
+    disk writes.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 25 Jul 2014 17:05:41 +0000
 
