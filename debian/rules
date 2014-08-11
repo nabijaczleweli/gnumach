@@ -98,7 +98,11 @@ build-arch: build/stamp build-xen/stamp build-dbg/stamp build-xen-dbg/stamp
 build-indep: build-arch
 build: build-arch build-indep
 
-build/stamp: build/config.status
+doc/mach.info: build/config.status
+	dh_testdir
+	$(MAKE) -C build ../doc/mach.info
+
+build/stamp: build/config.status doc/mach.info
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -108,7 +112,7 @@ else
 endif
 	touch $@
 
-build-xen/stamp: build-xen/config.status
+build-xen/stamp: build-xen/config.status doc/mach.info
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -118,7 +122,7 @@ else
 endif
 	touch $@
 
-build-dbg/stamp: build-dbg/config.status
+build-dbg/stamp: build-dbg/config.status doc/mach.info
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
@@ -128,7 +132,7 @@ else
 endif
 	touch $@
 
-build-xen-dbg/stamp: build-xen-dbg/config.status
+build-xen-dbg/stamp: build-xen-dbg/config.status doc/mach.info
 	dh_testdir
 	
 ifneq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
