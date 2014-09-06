@@ -23,3 +23,4 @@ git-mach_debug2.patch
 git-halt.patch
 git-xen_races.patch
 git-vm-tune.patch
+git-vm_map.patch

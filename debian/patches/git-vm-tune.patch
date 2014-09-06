@@ -9,8 +9,6 @@ Date:   Sat Aug 30 12:48:44 2014 +0200
     
     * xen/grant.c (NR_GRANT_PAGES): Increase from 4 to 8.
 
-diff --git a/xen/grant.c b/xen/grant.c
-index 3d5c3fe..ae3a7bf 100644
 --- a/xen/grant.c
 +++ b/xen/grant.c
 @@ -25,7 +25,7 @@
@@ -22,47 +20,9 @@ index 3d5c3fe..ae3a7bf 100644
  
  decl_simple_lock_data(static,lock);
  static struct grant_entry *grants;
-commit c7cdf5ff96e7c3bb008877893aa194908dca2185
-Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date:   Sat Aug 30 12:51:11 2014 +0200
-
-    Increate the pageout thread priority
-    
-    * vm/vm_pageout.c (vm_pageout): Set the priority to 0.
-
-diff --git a/vm/vm_pageout.c b/vm/vm_pageout.c
-index 7ac43d6..d57da78 100644
 --- a/vm/vm_pageout.c
 +++ b/vm/vm_pageout.c
-@@ -912,6 +912,7 @@ void vm_pageout(void)
- 
- 	current_thread()->vm_privilege = TRUE;
- 	stack_privilege(current_thread());
-+	thread_set_own_priority(0);
- 
- 	/*
- 	 *	Initialize some paging parameters.
-commit 91f0887ca2345c2bd02747e4b437076641d77cd9
-Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Date:   Sat Aug 30 12:55:14 2014 +0200
-
-    Tune pageout parameters
-    
-    This targets having always at least 8% free memory instead of just 1%.
-    This has shown improving buildd stability a lot. Also increase the
-    reserved amount to nowadays standards.
-    
-    * vm/vm_pageout.c (VM_PAGE_FREE_TARGET): Increase to 10%.
-    (VM_PAGE_FREE_MIN): Increase to 8%.
-    (VM_PAGE_FREE_RESERVED): Increase to 500 pages.
-    (VM_PAGEOUT_RESERVED_INTERNAL): Increase to 150 pages.
-    (VM_PAGEOUT_RESERVED_REALLY): Increase to 100 pages.
-
-diff --git a/vm/vm_pageout.c b/vm/vm_pageout.c
-index d57da78..ecedb57 100644
---- a/vm/vm_pageout.c
-+++ b/vm/vm_pageout.c
-@@ -97,7 +97,7 @@
+@@ -98,7 +98,7 @@
   */
  
  #ifndef	VM_PAGE_FREE_TARGET
@@ -71,7 +31,7 @@ index d57da78..ecedb57 100644
  #endif	/* VM_PAGE_FREE_TARGET */
  
  /*
-@@ -106,7 +106,7 @@
+@@ -107,7 +107,7 @@
   */
  
  #ifndef	VM_PAGE_FREE_MIN
@@ -80,7 +40,7 @@ index d57da78..ecedb57 100644
  #endif	/* VM_PAGE_FREE_MIN */
  
  /*      When vm_page_external_count exceeds vm_page_external_limit, 
-@@ -132,7 +132,7 @@
+@@ -133,7 +133,7 @@
   *	operation by dipping into the reserved pool of pages.  */
  
  #ifndef	VM_PAGE_FREE_RESERVED
@@ -89,7 +49,7 @@ index d57da78..ecedb57 100644
  #endif	/* VM_PAGE_FREE_RESERVED */
  
  /*
-@@ -144,7 +144,7 @@
+@@ -145,7 +145,7 @@
   */
  
  #ifndef	VM_PAGEOUT_RESERVED_INTERNAL
@@ -98,7 +58,7 @@ index d57da78..ecedb57 100644
  #endif	/* VM_PAGEOUT_RESERVED_INTERNAL */
  
  /*
-@@ -156,7 +156,7 @@
+@@ -157,7 +157,7 @@
   */
  
  #ifndef	VM_PAGEOUT_RESERVED_REALLY
@@ -106,4 +66,12 @@ index d57da78..ecedb57 100644
 +#define	VM_PAGEOUT_RESERVED_REALLY(reserve)	((reserve) - 400)
  #endif	/* VM_PAGEOUT_RESERVED_REALLY */
  
- unsigned int vm_pageout_reserved_internal = 0;
+ extern void vm_pageout_continue();
+@@ -916,6 +916,7 @@ void vm_pageout()
+ 
+ 	current_thread()->vm_privilege = TRUE;
+ 	stack_privilege(current_thread());
++	thread_set_own_priority(0);
+ 
+ 	/*
+ 	 *	Initialize some paging parameters.

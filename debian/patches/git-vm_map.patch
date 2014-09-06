@@ -1,0 +1,27 @@
+commit 5ae510e35c54009626999a88f0f1cb34d6dfc94f
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sat Sep 6 11:55:48 2014 +0200
+
+    Make vm_map really ignore `address' when `anywhere' is true
+    
+    As vm_allocate does.
+    
+    * vm/vm_user.c (vm_map): When `anywhere' is true, set `address' to the
+    minimum address of the `target_map'.
+
+diff --git a/vm/vm_user.c b/vm/vm_user.c
+index f7c87cc..1d8f37b 100644
+--- a/vm/vm_user.c
++++ b/vm/vm_user.c
+@@ -336,7 +336,10 @@ kern_return_t vm_map(
+ 	if (size == 0)
+ 		return KERN_INVALID_ARGUMENT;
+ 
+-	*address = trunc_page(*address);
++	if (anywhere)
++		*address = vm_map_min(target_map);
++	else
++		*address = trunc_page(*address);
+ 	size = round_page(size);
+ 
+ 	if (!IP_VALID(memory_object)) {
