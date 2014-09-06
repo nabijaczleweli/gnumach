@@ -1,11 +1,11 @@
-gnumach (2:1.4-12) UNRELEASED; urgency=medium
+gnumach (2:1.4-12) unstable; urgency=medium
 
   * rules: Rebuild info documentation once (in the source tree) before building
     all variants in parallel. Closes: Bug#756909.
   * patches/git-vm-tune.patch: New patch that tunes VM parameters.
   * patches/git-vm_map.patch: New patch to fix vm_map with anywhere=true.
 
- -- Samuel Thibault <sthibault@debian.org>  Mon, 11 Aug 2014 23:12:59 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 06 Sep 2014 10:37:40 +0000
 
 gnumach (2:1.4-11) unstable; urgency=medium
 
