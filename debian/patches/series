@@ -24,3 +24,4 @@ git-halt.patch
 git-xen_races.patch
 git-vm-tune.patch
 git-vm_map.patch
+git-gdb_hw_watch.patch

@@ -1,0 +1,25 @@
+commit 96cec60d956bfb27f135d4e932a1c319cbc878df
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Sep 17 01:50:05 2014 +0200
+
+    Report DR6 to userland
+    
+    * i386/i386/trap.c (user_trap): On T_DEBUG, record the content of dr6 in
+    PCB, and clear it.
+
+diff --git a/i386/i386/trap.c b/i386/i386/trap.c
+index 200cbcc..9d4d43d 100644
+--- a/i386/i386/trap.c
++++ b/i386/i386/trap.c
+@@ -395,6 +395,11 @@ printf("user trap %d error %d sub %08x\n", type, code, subcode);
+ 			return 0;
+ 		}
+ #endif /* MACH_KDB */
++		/* Make the content of the debug status register (DR6)
++		   available to user space.  */
++		if (thread->pcb)
++		    thread->pcb->ims.ids.dr[6] = get_dr6() & 0x600F;
++		set_dr6(0);
+ 		exc = EXC_BREAKPOINT;
+ 		code = EXC_I386_SGL;
+ 		break;
