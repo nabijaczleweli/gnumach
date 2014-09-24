@@ -7,10 +7,14 @@
 FULL_VERSION     := $(shell dpkg-parsechangelog | grep ^Version: | sed -e 's/^.*: //g')
 NOEPOCH_VERSION  := $(shell echo $(FULL_VERSION) | sed -e 's/.*://g')
 TAR_VERSION      := $(shell echo $(NOEPOCH_VERSION) | sed -e 's/-.*//g')
-VERSION          := $(shell echo $(TAR_VERSION) | sed -e 's/\.dfsg.*//g')
+UPSTREAM_VERSION := $(shell echo $(TAR_VERSION) | sed -e 's/\.dfsg.*//g')
+VERSION          := $(UPSTREAM_VERSION)
 MAJOR            := $(shell echo $(VERSION) | sed -e 's/\..*//g')
 DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
+ifneq (,$(filter custom,$(DEB_BUILD_OPTIONS)))
+VERSION := $(NOEPOCH_VERSION)
+endif
 
 MACHINE         := 486
 
@@ -58,6 +62,16 @@ common_configure := \
 		--disable-net-group \
 		--disable-pcmcia-group \
 		--disable-wireless-group
+
+debian/control: debian/control.stamp
+debian/control.stamp: debian/control.in
+ifneq (,$(filter custom,$(DEB_BUILD_OPTIONS)))
+	@echo Building a custom kernel: "$(VERSION)"
+else
+	@echo Building a stock kernel: "$(VERSION)"
+endif
+	sed -e 's/@version@/$(VERSION)/g' < $< > debian/control
+	touch $@
 
 configure: configure.ac
 	autoreconf -fi
@@ -144,6 +158,8 @@ endif
 
 clean:
 	dh_testdir
+
+	rm -f debian/control.stamp
 	
 	rm -f machine
 	rm -rf build build-xen build-dbg build-xen-dbg $(D_UDEB) $(D_XEN_UDEB) $(D_XEN) $(D_DBG) $(D_XEN_DBG)
@@ -204,7 +220,7 @@ endif
 
 binary: binary-indep binary-arch
 
-binary-indep: install
+binary-indep: install debian/control.stamp
 	dh_testdir
 	dh_testroot
 	
@@ -221,16 +237,24 @@ binary-indep: install
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: install
+binary-arch: install debian/control.stamp
 	dh_testdir
 	dh_testroot
 	
 	dh_install -a -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg) --sourcedir=$(D)
-	dh_install -p$(pkg_udeb) --sourcedir=$(D_UDEB)
-	dh_install -p$(pkg_xen) --sourcedir=$(D_XEN)
-	dh_install -p$(pkg_xen_udeb) --sourcedir=$(D_XEN_UDEB)
-	dh_install -p$(pkg_dbg) --sourcedir=$(D_DBG)
-	dh_install -p$(pkg_xen_dbg) --sourcedir=$(D_XEN_DBG)
+	dh_install -p$(pkg) --sourcedir=$(D) boot
+	dh_install -p$(pkg_xen) --sourcedir=$(D_XEN) boot
+ifeq ($(DEB_HOST_ARCH_OS),hurd)
+	dh_install -p$(pkg_udeb) --sourcedir=$(D_UDEB) boot
+	dh_install -p$(pkg_xen_udeb) --sourcedir=$(D_XEN_UDEB) boot
+endif
+	dh_install -p$(pkg_dbg) --sourcedir=$(D_DBG) boot
+	dh_install -p$(pkg_xen_dbg) --sourcedir=$(D_XEN_DBG) boot
+	
+	dh_installdocs -p$(pkg) README NEWS i386/README-Drivers
+	dh_installdocs -p$(pkg_xen) README NEWS
+	dh_installdocs -p$(pkg_dbg) README NEWS i386/README-Drivers
+	dh_installdocs -p$(pkg_xen_dbg) README NEWS
 	
 	dh_installdocs -a
 	dh_installchangelogs -a -k ChangeLog
@@ -239,9 +263,11 @@ binary-arch: install
 	dh_strip -a -N$(pkg_dbg) -N$(pkg_xen_dbg)
 	dh_compress -a -N$(pkg) -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg)
 	dh_compress -p$(pkg) boot/gnumach-$(VERSION)-$(MACHINE)
-	dh_compress -p$(pkg_udeb) boot/gnumach
 	dh_compress -p$(pkg_xen) boot/gnumach-$(VERSION)-xen-$(MACHINE)
+ifeq ($(DEB_HOST_ARCH_OS),hurd)
+	dh_compress -p$(pkg_udeb) boot/gnumach
 	dh_compress -p$(pkg_xen_udeb) boot/gnumach
+endif
 	dh_compress -p$(pkg_dbg) boot/gnumach-$(VERSION)-$(MACHINE)-dbg
 	dh_compress -p$(pkg_xen_dbg) boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
 	dh_fixperms -a

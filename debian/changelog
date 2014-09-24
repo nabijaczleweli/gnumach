@@ -3,6 +3,10 @@ gnumach (2:1.4-13) UNRELEASED; urgency=medium
   * patches/git-gdb_hw_watch.patch: New patch to fix gdb using hardware
     watches.
   * Bump Standards-Version to 3.9.6 (no changes).
+  * control: rename into control.in with 1.4 replaced with @version@, so
+    that...
+  * rules: ... make DEB_BUILD_OPTIONS=custom use the package version instead
+    of the upstream version. Thanks Svante Signell for the original patch.
 
  -- Samuel Thibault <sthibault@debian.org>  Wed, 17 Sep 2014 01:51:31 +0200
 
