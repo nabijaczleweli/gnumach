@@ -7,6 +7,7 @@ gnumach (2:1.4-13) UNRELEASED; urgency=medium
     that...
   * rules: ... make DEB_BUILD_OPTIONS=custom use the package version instead
     of the upstream version. Thanks Svante Signell for the original patch.
+    Closes: Bug#762175.
 
  -- Samuel Thibault <sthibault@debian.org>  Wed, 17 Sep 2014 01:51:31 +0200
 
