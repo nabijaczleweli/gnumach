@@ -1,7 +1,8 @@
-gnumach (2:1.4-13) UNRELEASED; urgency=medium
+gnumach (2:1.4+git20141107-1) unstable; urgency=medium
 
-  * patches/git-gdb_hw_watch.patch: New patch to fix gdb using hardware
-    watches.
+  * New upstream snapshot
+  * rules: ignore +git version.
+  * patches/git-*, patches/80_missing_files.patch: Remove.
   * Bump Standards-Version to 3.9.6 (no changes).
   * control: rename into control.in with 1.4 replaced with @version@, so
     that...
@@ -9,7 +10,7 @@ gnumach (2:1.4-13) UNRELEASED; urgency=medium
     of the upstream version. Thanks Svante Signell for the original patch.
     Closes: Bug#762175.
 
- -- Samuel Thibault <sthibault@debian.org>  Wed, 17 Sep 2014 01:51:31 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 07 Nov 2014 01:06:55 +0000
 
 gnumach (2:1.4-12) unstable; urgency=medium
 
