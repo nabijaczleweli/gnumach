@@ -83,7 +83,7 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <device/conf.h>
 #include <device/tty.h>
 #include <device/io_req.h>
-#include <device/buf.h>		/* for struct uio (!) */
+#include <device/buf.h>
 #include <vm/vm_kern.h>
 #include <i386/locore.h>
 #include <i386/loose_ends.h>
@@ -100,20 +100,15 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define DEBUG	1			/* export feep() */
 
-void kd_enqsc();			/* enqueues a scancode */
-
 #if 0
 #define BROKEN_KEYBOARD_RESET
 #endif
 
 struct tty       kd_tty;
-extern int	rebootflag;
+extern boolean_t rebootflag;
 
 static void charput(), charmvup(), charmvdown(), charclear(), charsetcursor();
-static void kd_noopreset();
-boolean_t kdcheckmagic();
-
-int do_modifier (int, Scancode, boolean_t);
+static void kd_noopreset(void);
 
 /*
  * These routines define the interface to the device-specific layer.
@@ -126,10 +121,6 @@ void	(*kd_dclear)()	= charclear;	/* block clear */
 void	(*kd_dsetcursor)() = charsetcursor;
 				/* set cursor position on displayed page */
 void	(*kd_dreset)() = kd_noopreset;	/* prepare for reboot */
-
-/* forward declarations */
-unsigned char kd_getdata(), state2leds();
-
 
 /*
  * Globals used for both character-based controllers and bitmap-based
@@ -249,8 +240,7 @@ unsigned char	key_map[NUMKEYS][WIDTH_KMAP] = {
 {K_LBRKT,NC,NC, K_LBRACE,NC,NC, K_ESC,NC,NC,   0x1b,K_LBRKT,NC,  0x1b,0x4e,K_LBRACE},
 {K_RBRKT,NC,NC, K_RBRACE,NC,NC, K_GS,NC,NC,    0x1b,K_RBRKT,NC,  0x1b,0x4e,K_RBRACE},
 {K_CR,NC,NC,    K_CR,NC,NC,     K_CR,NC,NC,    0x1b,K_CR,NC,  K_CR,NC,NC},
-{K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC,
-     K_SCAN,K_CTLSC,NC},
+{K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC, K_SCAN,K_CTLSC,NC},
 {K_a,NC,NC,     K_A,NC,NC,      K_SOH,NC,NC,   0x1b,K_a,NC,  0x1b,0x4e,K_A},
 {K_s,NC,NC,     K_S,NC,NC,      K_DC3,NC,NC,   0x1b,K_s,NC,  0x1b,0x4e,K_S},
 {K_d,NC,NC,     K_D,NC,NC,      K_EOT,NC,NC,   0x1b,K_d,NC,  0x1b,0x4e,K_D},
@@ -263,8 +253,7 @@ unsigned char	key_map[NUMKEYS][WIDTH_KMAP] = {
 {K_SEMI,NC,NC,  K_COLON,NC,NC,  K_SEMI,NC,NC,  0x1b,K_SEMI,NC,  0x1b,0x4e,K_COLON},
 {K_SQUOTE,NC,NC,K_DQUOTE,NC,NC, K_SQUOTE,NC,NC,0x1b,K_SQUOTE,NC,  0x1b,0x4e,K_DQUOTE},
 {K_GRAV,NC,NC,  K_TILDE,NC,NC,  K_RS,NC,NC,    0x1b,K_GRAV,NC,  0x1b,0x4e,K_TILDE},
-{K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC,
- K_SCAN,K_LSHSC,NC},
+{K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC, K_SCAN,K_LSHSC,NC},
 {K_BSLSH,NC,NC, K_PIPE,NC,NC,   K_FS,NC,NC,    0x1b,K_BSLSH,NC,  0x1b,0x4e,K_PIPE},
 {K_z,NC,NC,     K_Z,NC,NC,      K_SUB,NC,NC,   0x1b,K_z,NC,  0x1b,0x4e,K_Z},
 {K_x,NC,NC,     K_X,NC,NC,      K_CAN,NC,NC,   0x1b,K_x,NC,  0x1b,0x4e,K_X},
@@ -276,14 +265,11 @@ unsigned char	key_map[NUMKEYS][WIDTH_KMAP] = {
 {K_COMMA,NC,NC, K_LTHN,NC,NC,   K_COMMA,NC,NC, 0x1b,K_COMMA,NC,  0x1b,0x4e,K_LTHN},
 {K_PERIOD,NC,NC,K_GTHN,NC,NC,   K_PERIOD,NC,NC,0x1b,K_PERIOD,NC,  0x1b,0x4e,K_GTHN},
 {K_SLASH,NC,NC, K_QUES,NC,NC,   K_SLASH,NC,NC, 0x1b,K_SLASH,NC,  0x1b,0x4e,K_QUES},
-{K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC,
-     K_SCAN,K_RSHSC,NC},
+{K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC, K_SCAN,K_RSHSC,NC},
 {K_ASTER,NC,NC, K_ASTER,NC,NC,  K_ASTER,NC,NC, 0x1b,K_ASTER,NC, 0x1b,0x4e,K_ASTER},
-{K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC,
-     K_SCAN,K_ALTSC,NC},
+{K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC, K_SCAN,K_ALTSC,NC},
 {K_SPACE,NC,NC, K_SPACE,NC,NC,  K_NUL,NC,NC,   0x1b,K_SPACE,NC, K_SPACE,NC,NC},
-{K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC,
-     K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC},
+{K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC, K_SCAN,K_CLCKSC,NC},
 {K_F1,  K_F1S,  K_F1,  K_F1A,  K_F1S},
 {K_F2,  K_F2S,  K_F2,  K_F2A,  K_F2S},
 {K_F3,  K_F3S,  K_F3,  K_F3A,  K_F3S},
@@ -294,20 +280,16 @@ unsigned char	key_map[NUMKEYS][WIDTH_KMAP] = {
 {K_F8,  K_F8S,  K_F8,  K_F8A,  K_F8S},
 {K_F9,  K_F9S,  K_F9,  K_F9A,  K_F9S},
 {K_F10, K_F10S, K_F10, K_F10A, K_F10S},
-{K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC,
-     K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC},
+{K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC, K_SCAN,K_NLCKSC,NC},
 {K_SCRL,         K_NUL,NC,NC,    K_SCRL,        K_SCRL,      K_NUL,NC,NC},
 {K_HOME,         K_SEVEN,NC,NC,  K_HOME,        K_HOME,      0x1b,0x4e,K_SEVEN},
 {K_UA,           K_EIGHT,NC,NC,  K_UA,          K_UA,        0x1b,0x4e,K_EIGHT},
 {K_PUP,          K_NINE,NC,NC,   K_PUP,         K_PUP,       0x1b,0x4e,K_NINE},
-{0x1b,0x5b,0x53, K_MINUS,NC,NC,  0x1b,0x5b,0x53, 0x1b,0x5b,0x53,
-     0x1b,0x4e,0x2d},
+{0x1b,0x5b,0x53, K_MINUS,NC,NC,  0x1b,0x5b,0x53, 0x1b,0x5b,0x53, 0x1b,0x4e,0x2d},
 {K_LA,           K_FOUR,NC,NC,   K_LA,          K_LA,        0x1b,0x4e,K_FOUR},
-{0x1b,0x5b,0x47, K_FIVE,NC,NC,   0x1b,0x5b,0x47, 0x1b,0x5b,0x47,
-     0x1b,0x4e,0x35},
+{0x1b,0x5b,0x47, K_FIVE,NC,NC,   0x1b,0x5b,0x47, 0x1b,0x5b,0x47, 0x1b,0x4e,0x35},
 {K_RA,           K_SIX,NC,NC,    K_RA,          K_RA,        0x1b,0x4e,K_SIX},
-{0x1b,0x5b,0x54, K_PLUS,NC,NC,   0x1b,0x5b,0x54, 0x1b,0x5b,0x54,
-     0x1b,0x4e,0x2b},
+{0x1b,0x5b,0x54, K_PLUS,NC,NC,   0x1b,0x5b,0x54, 0x1b,0x5b,0x54, 0x1b,0x4e,0x2b},
 {K_END,          K_ONE,NC,NC,    K_END,         K_END,       0x1b,0x4e,K_ONE},
 {K_DA,           K_TWO,NC,NC,    K_DA,          K_DA,        0x1b,0x4e,K_TWO},
 {K_PDN,          K_THREE,NC,NC,  K_PDN,         K_PDN,       0x1b,0x4e,K_THREE},
@@ -367,7 +349,7 @@ int	kd_pollc = 0;
  *	Warning: uses outb(). You may prefer to use kd_debug_put.
  */
 void
-feep()
+feep(void)
 {
 	int i;
 
@@ -378,7 +360,7 @@ feep()
 }
 
 void
-pause()
+pause(void)
 {
 	int i;
 
@@ -392,9 +374,9 @@ pause()
  * one column to the left, etc.
  */
 void
-kd_debug_put(loc, c)
-int	loc;
-char	c;
+kd_debug_put(
+	int	loc,
+	char	c)
 {
 	csrpos_t pos = ONE_PAGE - (loc+1) * ONE_SPACE;
 
@@ -403,12 +385,11 @@ char	c;
 #endif /* DEBUG */
 
 
-extern int	mouse_in_use;
-int		old_kb_mode;
+extern boolean_t	mouse_in_use;
+int			old_kb_mode;
 
 void
-cnpollc(on)
-boolean_t on;
+cnpollc(boolean_t on)
 {
 	if (mouse_in_use) {
 		if (on) {
@@ -449,15 +430,13 @@ boolean_t on;
  *
  */
 int
-kdopen(dev, flag, ior)
-	dev_t	dev;
-	int	flag;
-	io_req_t ior;
+kdopen(
+	dev_t	 dev,
+	int	 flag,
+	io_req_t ior)
 {
 	struct 	tty	*tp;
-	void	kdstart();
 	spl_t	o_pri;
-	void	kdstop();
 
 	tp = &kd_tty;
 	o_pri = spltty();
@@ -498,7 +477,7 @@ kdopen(dev, flag, ior)
 /*ARGSUSED*/
 void
 kdclose(dev, flag)
-int	dev;
+dev_t	dev;
 int	flag;
 {
 	struct	tty	*tp;
@@ -530,8 +509,8 @@ int	flag;
 /*ARGSUSED*/
 int
 kdread(dev, uio)
-int	dev;
-struct	uio	*uio;
+dev_t	dev;
+io_req_t uio;
 {
 	struct	tty	*tp;
 
@@ -555,8 +534,8 @@ struct	uio	*uio;
 /*ARGSUSED*/
 int
 kdwrite(dev, uio)
-int	dev;
-struct	uio	*uio;
+dev_t	dev;
+io_req_t uio;
 {
 	return((*linesw[kd_tty.t_line].l_write)(&kd_tty, uio));
 }
@@ -569,10 +548,10 @@ struct	uio	*uio;
 int
 kdmmap(dev, off, prot)
 	dev_t dev;
-	off_t off;
-	int prot;
+	vm_offset_t off;
+	vm_prot_t prot;
 {
-	if ((u_int) off >= (128*1024))
+	if (off >= (128*1024))
 		return(-1);
 
 	/* Get page frame number for the page to be mapped. */
@@ -580,19 +559,19 @@ kdmmap(dev, off, prot)
 }
 
 int
-kdportdeath(dev, port)
-	dev_t	dev;
-	mach_port_t	port;
+kdportdeath(
+	dev_t		dev,
+	mach_port_t	port)
 {
 	return (tty_portdeath(&kd_tty, (ipc_port_t)port));
 }
 
 /*ARGSUSED*/
-io_return_t kdgetstat(dev, flavor, data, count)
-	dev_t		dev;
-	int		flavor;
-	int *		data;		/* pointer to OUT array */
-	natural_t	*count;		/* OUT */
+io_return_t kdgetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,		/* pointer to OUT array */
+	natural_t	*count)		/* OUT */
 {
 	io_return_t	result;
 
@@ -618,11 +597,11 @@ io_return_t kdgetstat(dev, flavor, data, count)
 }
 
 /*ARGSUSED*/
-io_return_t kdsetstat(dev, flavor, data, count)
-	dev_t		dev;
-	int		flavor;
-	int *		data;
-	natural_t	count;
+io_return_t kdsetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,
+	natural_t	count)
 {
 	io_return_t	result;
 
@@ -655,12 +634,11 @@ io_return_t kdsetstat(dev, flavor, data, count)
  *	on/off value.
  */
 int
-kdsetbell(val, flags)
-int	val;				/* on or off */
-int	flags;				/* flags set for console */
+kdsetbell(
+	int	val,				/* on or off */
+	int	flags)				/* flags set for console */
 {
 	int err = 0;
-
 
 	if (val == KD_BELLON)
 		kd_bellon();
@@ -672,15 +650,13 @@ int	flags;				/* flags set for console */
 	return(err);
 }
 
-
 /*
  * kdgetkbent:
  *
  *	Get entry from key mapping table.  Returns error code, if any.
  */
 int
-kdgetkbent(kbent)
-struct kbentry *	kbent;
+kdgetkbent(struct kbentry *kbent)
 {
 	u_char *cp;
 	spl_t o_pri = SPLKD();		/* probably superfluous */
@@ -700,9 +676,9 @@ struct kbentry *	kbent;
  *	Set entry in key mapping table.  Return error code, if any.
  */
 int
-kdsetkbent(kbent, flags)
-struct kbentry *	kbent;
-int	flags;				/* flags set for console */
+kdsetkbent(
+	struct kbentry 	*kbent,
+	int		flags)				/* flags set for console */
 {
 	u_char *cp;
 	spl_t o_pri;
@@ -732,15 +708,14 @@ int	flags;				/* flags set for console */
  */
 /*ARGSUSED*/
 void
-kdintr(vec)
-int	vec;
+kdintr(int vec)
 {
 	struct	tty	*tp;
 	unsigned char	c;
 	unsigned char	scancode;
-	int		char_idx;
+	unsigned int	char_idx;
 	boolean_t	up = FALSE;		/* key-up event */
-	extern int	mouse_in_use;
+
 	if (kd_pollc)
 	    return;				/* kdb polling kbd */
 
@@ -749,7 +724,8 @@ int	vec;
 
 	tp = &kd_tty;
 #ifdef	old
-	while ((inb(K_STATUS) & K_OBUF_FUL) == 0);	/* this should never loop */
+	while ((inb(K_STATUS) & K_OBUF_FUL) == 0)
+		;	/* this should never loop */
 #else	/* old */
 	{
 		/*
@@ -818,7 +794,7 @@ int	vec;
 			set_kd_state(do_modifier(kd_state, c, up));
 		} else if (!up) {
 			/* regular key-down */
-			int max;	/* max index for char sequence */
+			unsigned int max; /* max index for char sequence */
 
 			max = char_idx + NUMOUTPUT;
 			char_idx++;
@@ -873,7 +849,7 @@ int	vec;
  *	drop the ack on the floor.
  */
 void
-kd_handle_ack()
+kd_handle_ack(void)
 {
 	switch (kd_ack) {
 	case SET_LEDS:
@@ -898,7 +874,7 @@ kd_handle_ack()
  *	Resend a missed keyboard command or data byte.
  */
 void
-kd_resend()
+kd_resend(void)
 {
 	if (kd_ack == NOT_WAITING)
 		printf("unexpected RESEND from keyboard\n");
@@ -919,10 +895,10 @@ kd_resend()
  * output:	the new state
  */
 int
-do_modifier(state, c, up)
-int	state;
-Scancode	c;
-boolean_t	up;
+do_modifier(
+	int		state,
+	Scancode	c,
+	boolean_t	up)
 {
 	switch (c) {
 	case (K_ALTSC):
@@ -984,12 +960,10 @@ boolean_t	up;
  *		are still held down.
  */
 boolean_t
-kdcheckmagic(scancode)
-Scancode	scancode;
+kdcheckmagic(Scancode scancode)
 {
 	static int magic_state = KS_NORMAL; /* like kd_state */
 	boolean_t up = FALSE;
-	extern	int	rebootflag;
 
 	if (scancode == 0x46)		/* scroll lock */
 /*	if (scancode == 0x52)		** insert key */
@@ -1040,9 +1014,9 @@ Scancode	scancode;
  *	Return the value for the 2nd index into key_map that
  *	corresponds to the given state.
  */
-int
+unsigned int
 kdstate2idx(state, extended)
-int	state;				/* bit vector, not a state index */
+unsigned int	state;			/* bit vector, not a state index */
 boolean_t	extended;
 {
 	int state_idx = NORM_STATE;
@@ -1081,8 +1055,7 @@ boolean_t	extended;
  * ASSUMES that it is never called from interrupt-driven code.
  */
 void
-kdstart(tp)
-struct	tty	*tp;
+kdstart(struct tty *tp)
 {
 	spl_t	o_pri;
 	int	ch;
@@ -1132,9 +1105,9 @@ struct	tty	*tp;
 
 /*ARGSUSED*/
 void
-kdstop(tp, flags)
-	register struct tty *tp;
-	int	flags;
+kdstop(
+	struct tty 	*tp,
+	int		flags)
 {
 	/*
 	 * do nothing - all characters are output by one call to
@@ -1159,9 +1132,8 @@ kdstop(tp, flags)
  *
  */
 void
-kdinit()
+kdinit(void)
 {
-	void	kd_xga_init();
 	unsigned char	k_comm;		/* keyboard command byte */
 
 	if (kd_initialized)
@@ -1194,15 +1166,15 @@ kdinit()
 	/* Now that we're set up, we no longer need or want the
            immediate console.  */
 	{
-		extern int immediate_console_enable;
-		immediate_console_enable = 0;
+		extern boolean_t immediate_console_enable;
+		immediate_console_enable = FALSE;
 	}
 
 	/* The immediate console printed stuff at the bottom of the
 	   screen rather than at the cursor position, so that's where
 	   we should start.  */
 	kd_setpos(ONE_PAGE - ONE_LINE); printf("\n");
-#endif
+#endif /* ENABLE_IMMEDIATE_CONSOLE */
 
 	cnsetleds(kd_state = KS_NORMAL);
 					/* clear the LEDs AFTER we
@@ -1224,7 +1196,7 @@ kdinit()
  * output	: bell is turned off
  *
  */
-static unsigned int kd_bellstate = 0;
+static boolean_t kd_bellstate = FALSE;
 
 void
 kd_belloff(void * param)
@@ -1233,7 +1205,7 @@ kd_belloff(void * param)
 
 	status = (inb(K_PORTB) & ~(K_SPKRDATA | K_ENABLETMR2));
 	outb(K_PORTB, status);
-	kd_bellstate = 0;
+	kd_bellstate = FALSE;
 	return;
 }
 
@@ -1248,7 +1220,7 @@ kd_belloff(void * param)
  *
  */
 void
-kd_bellon()
+kd_bellon(void)
 {
 	unsigned char	status;
 
@@ -1278,8 +1250,7 @@ kd_bellon()
 int sit_for_0 = 1;
 
 void
-kd_putc(ch)
-u_char	ch;
+kd_putc(u_char ch)
 {
 	if ((!ch) && sit_for_0)
 		return;
@@ -1306,7 +1277,7 @@ u_char	ch;
 		  {
 		    kd_bellon();
 		    timeout(kd_belloff, 0, hz/8 );
-		    kd_bellstate = 1;
+		    kd_bellstate = TRUE;
 		  }
 		break;
 	default:
@@ -1332,8 +1303,7 @@ u_char	ch;
  *
  */
 void
-kd_setpos(newpos)
-csrpos_t newpos;
+kd_setpos(csrpos_t newpos)
 {
 	if (newpos > ONE_PAGE) {
 		kd_scrollup();
@@ -1359,7 +1329,7 @@ csrpos_t newpos;
  *
  */
 void
-kd_scrollup()
+kd_scrollup(void)
 {
 	csrpos_t to;
 	csrpos_t from;
@@ -1389,7 +1359,7 @@ kd_scrollup()
  *
  */
 void
-kd_scrolldn()
+kd_scrolldn(void)
 {
 	csrpos_t to;
 	csrpos_t from;
@@ -1423,7 +1393,7 @@ kd_scrolldn()
  *
  */
 void
-kd_parseesc()
+kd_parseesc(void)
 {
 	u_char	*escp;
 
@@ -1495,8 +1465,7 @@ unsigned char color_table[] = { 0, 4, 2, 6, 1, 5, 3, 7,
  *
  */
 void
-kd_parserest(cp)
-u_char	*cp;
+kd_parserest(u_char *cp)
 {
 	int	number[16], npar = 0, i;
 	csrpos_t newpos;
@@ -1760,7 +1729,7 @@ u_char	*cp;
 }
 
 void
-kd_tab()
+kd_tab(void)
 {
     int i;
 
@@ -1781,7 +1750,7 @@ kd_tab()
  *
  */
 void
-kd_cls()
+kd_cls(void)
 {
 	(*kd_dclear)(0, ONE_PAGE/ONE_SPACE, kd_attr);
 	return;
@@ -1799,7 +1768,7 @@ kd_cls()
  *
  */
 void
-kd_home()
+kd_home(void)
 {
 	kd_setpos(0);
 	return;
@@ -1816,7 +1785,7 @@ kd_home()
  *
  */
 void
-kd_up()
+kd_up(void)
 {
 	if (kd_curpos < ONE_LINE)
 		kd_scrolldn();
@@ -1836,7 +1805,7 @@ kd_up()
  *
  */
 void
-kd_down()
+kd_down(void)
 {
 	if (kd_curpos >= (ONE_PAGE - ONE_LINE))
 		kd_scrollup();
@@ -1856,7 +1825,7 @@ kd_down()
  *
  */
 void
-kd_right()
+kd_right(void)
 {
 	if (kd_curpos < (ONE_PAGE - ONE_SPACE))
 		kd_setpos(kd_curpos + ONE_SPACE);
@@ -1878,7 +1847,7 @@ kd_right()
  *
  */
 void
-kd_left()
+kd_left(void)
 {
 	if (0 < kd_curpos)
 		kd_setpos(kd_curpos - ONE_SPACE);
@@ -1897,7 +1866,7 @@ kd_left()
  *
  */
 void
-kd_cr()
+kd_cr(void)
 {
 	kd_setpos(BEG_OF_LINE(kd_curpos));
 	return;
@@ -1915,7 +1884,7 @@ kd_cr()
  *
  */
 void
-kd_cltobcur()
+kd_cltobcur(void)
 {
 	csrpos_t start;
 	int	count;
@@ -1938,7 +1907,7 @@ kd_cltobcur()
  *
  */
 void
-kd_cltopcur()
+kd_cltopcur(void)
 {
 	int	count;
 
@@ -1958,7 +1927,7 @@ kd_cltopcur()
  *
  */
 void
-kd_cltoecur()
+kd_cltoecur(void)
 {
 	csrpos_t i;
 	csrpos_t hold;
@@ -1981,7 +1950,7 @@ kd_cltoecur()
  *
  */
 void
-kd_clfrbcur()
+kd_clfrbcur(void)
 {
 	csrpos_t i;
 
@@ -2002,8 +1971,7 @@ kd_clfrbcur()
  *
  */
 void
-kd_delln(number)
-int	number;
+kd_delln(int number)
 {
 	csrpos_t to;
 	csrpos_t from;
@@ -2041,8 +2009,7 @@ int	number;
  *
  */
 void
-kd_insln(number)
-int	number;
+kd_insln(int number)
 {
 	csrpos_t to;
 	csrpos_t from;
@@ -2081,12 +2048,11 @@ int	number;
  *
  */
 void
-kd_delch(number)
-int	number;
+kd_delch(int number)
 {
-	int	count;			/* num words moved/filled */
-	int	delbytes;		/* bytes to delete */
-	register csrpos_t to;
+	int	 count;			/* num words moved/filled */
+	int	 delbytes;		/* bytes to delete */
+	csrpos_t to;
 	csrpos_t from;
 	csrpos_t nextline;		/* start of next line */
 
@@ -2123,8 +2089,7 @@ int	number;
  *
  */
 void
-kd_erase(number)
-int	number;
+kd_erase(int number)
 {
 	csrpos_t i;
 	csrpos_t stop;
@@ -2149,7 +2114,7 @@ int	number;
  *
  */
 void
-kd_eraseln()
+kd_eraseln(void)
 {
 	csrpos_t i;
 	csrpos_t stop;
@@ -2173,8 +2138,7 @@ kd_eraseln()
  *
  */
 void
-kd_insch(number)
-int	number;
+kd_insch(int number)
 {
 	csrpos_t to;
 	csrpos_t from;
@@ -2215,8 +2179,7 @@ int	number;
  *
  */
 boolean_t
-kd_isupper(c)
-u_char	c;
+kd_isupper(u_char c)
 {
 	if (('A' <= c) && (c <= 'Z'))
 		return(TRUE);
@@ -2224,8 +2187,7 @@ u_char	c;
 }
 
 boolean_t
-kd_islower(c)
-u_char	c;
+kd_islower(u_char c)
 {
 	if (('a' <= c) && (c <= 'z'))
 		return(TRUE);
@@ -2242,10 +2204,10 @@ u_char	c;
  *
  */
 void
-kd_senddata(ch)
-unsigned char	ch;
+kd_senddata(unsigned char ch)
 {
-	while (inb(K_STATUS) & K_IBUF_FUL);
+	while (inb(K_STATUS) & K_IBUF_FUL)
+		;
 	outb(K_RDWR, ch);
 	last_sent = ch;
 	return;
@@ -2260,10 +2222,10 @@ unsigned char	ch;
  *
  */
 void
-kd_sendcmd(ch)
-unsigned char	ch;
+kd_sendcmd(unsigned char ch)
 {
-	while (inb(K_STATUS) & K_IBUF_FUL);
+	while (inb(K_STATUS) & K_IBUF_FUL)
+		;
 	outb(K_CMD, ch);
 	return;
 }
@@ -2277,41 +2239,47 @@ unsigned char	ch;
  *	read.
  */
 unsigned char
-kd_getdata()
+kd_getdata(void)
 {
-	while ((inb(K_STATUS) & K_OBUF_FUL) == 0);
+	while ((inb(K_STATUS) & K_OBUF_FUL) == 0)
+		;
 	return(inb(K_RDWR));
 }
 
 unsigned char
-kd_cmdreg_read()
+kd_cmdreg_read(void)
 {
 int ch=KC_CMD_READ;
 
-	while (inb(K_STATUS) & K_IBUF_FUL);
+	while (inb(K_STATUS) & K_IBUF_FUL)
+		;
 	outb(K_CMD, ch);
 
-	while ((inb(K_STATUS) & K_OBUF_FUL) == 0);
+	while ((inb(K_STATUS) & K_OBUF_FUL) == 0)
+		;
 	return(inb(K_RDWR));
 }
 
 void
-kd_cmdreg_write(val)
+kd_cmdreg_write(int val)
 {
 int ch=KC_CMD_WRITE;
 
-	while (inb(K_STATUS) & K_IBUF_FUL);
+	while (inb(K_STATUS) & K_IBUF_FUL)
+		;
 	outb(K_CMD, ch);
 
-	while (inb(K_STATUS) & K_IBUF_FUL);
+	while (inb(K_STATUS) & K_IBUF_FUL)
+		;
 	outb(K_RDWR, val);
 }
 
 void
-kd_mouse_drain()
+kd_mouse_drain(void)
 {
 	int i;
-	while(inb(K_STATUS) & K_IBUF_FUL);
+	while(inb(K_STATUS) & K_IBUF_FUL)
+		;
 	while((i = inb(K_STATUS)) & K_OBUF_FUL)
 		printf("kbd: S = %x D = %x\n", i, inb(K_RDWR));
 }
@@ -2322,8 +2290,7 @@ kd_mouse_drain()
  *	Set kd_state and update the keyboard status LEDs.
  */
 void
-set_kd_state(newstate)
-int newstate;
+set_kd_state(int newstate)
 {
 	kd_state = newstate;
 	kd_setleds1(state2leds(newstate));
@@ -2336,8 +2303,7 @@ int newstate;
  *	a state vector.
  */
 u_char
-state2leds(state)
-int	state;
+state2leds(int state)
 {
 	u_char result = 0;
 
@@ -2354,8 +2320,7 @@ int	state;
  *	Set the keyboard LEDs according to the given byte.
  */
 void
-kd_setleds1(val)
-u_char val;
+kd_setleds1(u_char val)
 {
 	if (kd_ack != NOT_WAITING) {
 #ifdef MACH_KBD
@@ -2370,7 +2335,7 @@ u_char val;
 }
 
 void
-kd_setleds2()
+kd_setleds2(void)
 {
 	kd_senddata(kd_nextled);
 }
@@ -2384,8 +2349,7 @@ kd_setleds2()
  *	lock anyway.
  */
 void
-cnsetleds(val)
-u_char val;
+cnsetleds(u_char val)
 {
 	kd_senddata(K_CMD_LEDS);
 	(void)kd_getdata();		/* XXX - assume is ACK */
@@ -2394,7 +2358,7 @@ u_char val;
 }
 
 void
-kdreboot()
+kdreboot(void)
 {
 	(*kd_dreset)();
 
@@ -2413,7 +2377,7 @@ static int which_button[] = {0, MOUSE_LEFT, MOUSE_MIDDLE, MOUSE_RIGHT};
 static struct mouse_motion moved;
 
 int
-kd_kbd_magic(scancode)
+kd_kbd_magic(int scancode)
 {
 int new_button = 0;
 
@@ -2507,14 +2471,18 @@ int new_button = 0;
  *	Initialization specific to character-based graphics adapters.
  */
 void
-kd_xga_init()
+kd_xga_init(void)
 {
 	csrpos_t	xga_getpos();
 	unsigned char	screen;
+	unsigned char	start, stop;
 
 	outb(CMOS_ADDR, CMOS_EB);
 	screen = inb(CMOS_DATA) & CM_SCRMSK;
 	switch(screen) {
+	default:
+		printf("kd: unknown screen type, defaulting to EGA\n");
+		/* FALLTHROUGH */
 	case CM_EGA_VGA:
 		/*
 		 * Here we'll want to query to bios on the card
@@ -2540,6 +2508,8 @@ kd_xga_init()
 			addr[i] = 0x00;
 		}
 		break;
+#if 0
+	/* XXX: some buggy BIOSes report these...  */
 	case CM_CGA_40:
 		vid_start = (u_char *)phystokv(CGA_START);
 		kd_index_reg = CGA_IDX_REG;
@@ -2561,8 +2531,25 @@ kd_xga_init()
 		kd_lines = 25;
 		kd_cols = 80;
 		break;
-	default:
-		printf("kd: unknown screen type, defaulting to EGA\n");
+#endif
+	}
+
+	outb(kd_index_reg, C_START);
+	start = inb(kd_io_reg);
+	/* Make sure cursor is enabled */
+	start &= ~0x20;
+	outb(kd_io_reg, start);
+	outb(kd_index_reg, C_STOP);
+	stop = inb(kd_io_reg);
+
+	if (!start && !stop)
+	{
+		/* Some firmware seem not to be initializing the cursor size
+		 * any more...  Try using standard values.  */
+		outb(kd_index_reg, C_START);
+		outb(kd_io_reg, 14);
+		outb(kd_index_reg, C_STOP);
+		outb(kd_io_reg, 15);
 	}
 
 	kd_setpos(xga_getpos());
@@ -2580,7 +2567,7 @@ kd_xga_init()
  *
  */
 csrpos_t
-xga_getpos()
+xga_getpos(void)
 
 {
 	unsigned char	low;
@@ -2683,38 +2670,24 @@ char	chattr;
  * 	No-op reset routine for kd_dreset.
  */
 static void
-kd_noopreset()
+kd_noopreset(void)
 {
 }
 
-
-
-/*
- * Generic routines for bitmap devices (i.e., assume no hardware
- * assist).  Assumes a simple byte ordering (i.e., a byte at a lower
- * address is to the left of the byte at the next higher address).
- * For the 82786, this works anyway if the characters are 2 bytes
- * wide.  (more bubble gum and paper clips.)
- *
- * See the comments above about SLAMBPW.
- */
-
-void	bmpch2bit(), bmppaintcsr();
-u_char	*bit2fbptr();
-
 
 /*
  * bmpput: Copy a character from the font to the frame buffer.
  */
 
 void
-bmpput(pos, ch, chattr)
-csrpos_t pos;
-char	ch, chattr;
+bmpput(
+	csrpos_t pos,
+	char	 ch, 
+	char	 chattr)
 {
 	short xbit, ybit;		/* u/l corner of char pos */
-	register u_char *to, *from;
-	register short i, j;
+	u_char *to, *from;
+	short i, j;
 	u_char mask = (chattr == KA_REVERSE ? 0xff : 0);
 
 	if ((u_char)ch >= chars_in_font)
@@ -2736,13 +2709,14 @@ char	ch, chattr;
  * another.
  */
 void
-bmpcp1char(from, to)
-csrpos_t from, to;
+bmpcp1char(
+	csrpos_t from, 
+	csrpos_t to)
 {
 	short from_xbit, from_ybit;
 	short to_xbit, to_ybit;
-	register u_char *tp, *fp;
-	register short i, j;
+	u_char *tp, *fp;
+	short i, j;
 
 	bmpch2bit(from, &from_xbit, &from_ybit);
 	bmpch2bit(to, &to_xbit, &to_ybit);
@@ -2762,9 +2736,10 @@ csrpos_t from, to;
  * bmpvmup: Copy a block of character positions upwards.
  */
 void
-bmpmvup(from, to, count)
-csrpos_t from, to;
-int	count;
+bmpmvup(
+	csrpos_t 	from, 
+	csrpos_t	to,
+	int		count)
 {
 	short from_xbit, from_ybit;
 	short to_xbit, to_ybit;
@@ -2797,9 +2772,10 @@ int	count;
  * bmpmvdown: copy a block of characters down.
  */
 void
-bmpmvdown(from, to, count)
-csrpos_t from, to;
-int	count;
+bmpmvdown(
+	csrpos_t 	from, 
+	csrpos_t	to,
+	int		count)
 {
 	short from_xbit, from_ybit;
 	short to_xbit, to_ybit;
@@ -2835,12 +2811,12 @@ int	count;
  * bmpclear: clear one or more character positions.
  */
 void
-bmpclear(to, count, chattr)
-csrpos_t to;				/* 1st char */
-int	count;				/* num chars */
-char	chattr;				/* reverse or normal */
+bmpclear(
+	csrpos_t 	to,				/* 1st char */
+	int		count,				/* num chars */
+	char		chattr)				/* reverse or normal */
 {
-	register short i;
+	short i;
 	u_short clearval;
 	u_short clearbyte = (chattr == KA_REVERSE ? char_white : char_black);
 
@@ -2861,8 +2837,7 @@ char	chattr;				/* reverse or normal */
  * bmpsetcursor: update the display and set the logical cursor.
  */
 void
-bmpsetcursor(pos)
-csrpos_t pos;
+bmpsetcursor(csrpos_t pos)
 {
 	/* erase old cursor & paint new one */
 	bmppaintcsr(kd_curpos, char_black);
@@ -2874,13 +2849,13 @@ csrpos_t pos;
  * bmppaintcsr: paint cursor bits.
  */
 void
-bmppaintcsr(pos, val)
-csrpos_t pos;
-u_char	val;
+bmppaintcsr(
+	csrpos_t 	pos,
+	u_char		val)
 {
 	short xbit, ybit;
-	register u_char *cp;
-	register short line, byte;
+	u_char *cp;
+	short line, byte;
 
 	bmpch2bit(pos, &xbit, &ybit);
 	ybit += char_height;		/* position at bottom of line */
@@ -2897,11 +2872,12 @@ u_char	val;
  * (0, 0) is the upper left corner.
  */
 void
-bmpch2bit(pos, xb, yb)
-csrpos_t pos;
-short	*xb, *yb;			/* x, y bit positions, u/l corner */
+bmpch2bit(
+	csrpos_t 	pos,
+	short		*xb, 
+	short		*yb)			/* x, y bit positions, u/l corner */
 {
-	register short xch, ych;
+	short xch, ych;
 
 	xch = (pos / ONE_SPACE) % kd_cols;
 	ych = pos / (ONE_SPACE * kd_cols);
@@ -2916,8 +2892,9 @@ short	*xb, *yb;			/* x, y bit positions, u/l corner */
  * byte.
  */
 u_char *
-bit2fbptr(xb, yb)
-short	xb, yb;
+bit2fbptr(
+	short	xb, 
+	short	yb)
 {
 	return(vid_start + yb * fb_byte_width + xb/8);
 }
@@ -3052,6 +3029,39 @@ kdcnmaygetc(void)
 #ifdef notdef
 				cnsetleds(state2leds(kd_state));
 #endif
+			} else if (! up
+				   && c == K_ESC
+				   && key_map[scancode][char_idx+1] == 0x5b) {
+				/* As a convenience for the nice
+				   people using our debugger, remap
+				   some keys to the readline-like
+				   shortcuts supported by dde.
+
+				   XXX This is a workaround for the
+				   limited kernel getchar interface.
+				   It is only used by the debugger.  */
+				c = key_map[scancode][char_idx+2];
+				switch (c) {
+#define _MAP(A,B,C)	(C)
+#define MAP(T)		_MAP(T)
+#define	CTRL(c)		((c) & 0x1f)
+				case MAP(K_HOME):	c = CTRL('a'); break;
+				case MAP(K_UA):		c = CTRL('p'); break;
+				case MAP(K_LA):		c = CTRL('b'); break;
+				case MAP(K_RA):		c = CTRL('f'); break;
+				case MAP(K_DA):		c = CTRL('n'); break;
+				case MAP(K_END):	c = CTRL('e'); break;
+				/* delete */
+				case 0x39:		c = CTRL('d'); break;
+#undef CTRL
+#undef MAP
+#undef _MAP
+				default:
+					/* Retain the old behavior.  */
+					c = K_ESC;
+				}
+
+				return(c);
 			} else if (!up) {
 				/* regular key-down */
 				if (c == K_CR)

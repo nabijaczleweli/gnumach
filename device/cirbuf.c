@@ -42,7 +42,7 @@
 /* if c_cl == c_cf - 1, buffer is full */
 
 #if	DEBUG
-int cb_check_enable = 0;
+boolean_t cb_check_enable = FALSE;
 #define	CB_CHECK(cb) if (cb_check_enable) cb_check(cb)
 
 void
@@ -270,7 +270,7 @@ void cb_clear(struct cirbuf *cb)
 void
 cb_alloc(
 	struct cirbuf *cb,
-	int		buf_size)
+	vm_size_t	buf_size)
 {
 	char *buf;
 
@@ -292,7 +292,7 @@ cb_alloc(
 void
 cb_free(struct cirbuf *cb)
 {
-	int		size;
+	vm_size_t	size;
 
 	size = cb->c_end - cb->c_start;
 	kfree((vm_offset_t)cb->c_start, size);

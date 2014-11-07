@@ -72,8 +72,8 @@ struct tty {
  * Items beyond this point should be removed to device-specific
  * extension structures.
  */
-	int		(*t_getstat)();	/* routine to get status */
-	int		(*t_setstat)();	/* routine to set status */
+	io_return_t	(*t_getstat)(dev_t, int, int *, natural_t *);	/* routine to get status */
+	io_return_t	(*t_setstat)(dev_t, int, int *, natural_t);	/* routine to set status */
 	dev_ops_t	t_tops;		/* another device to possibly
 					   push through */
 };
@@ -233,7 +233,5 @@ struct ldisc_switch {
 };
 
 extern struct ldisc_switch	linesw[];
-
-extern void chario_init(void);
 
 #endif	/* _DEVICE_TTY_H_ */

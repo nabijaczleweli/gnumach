@@ -47,23 +47,12 @@
 #include <kern/processor.h>
 #include <kern/sched.h>
 #include <kern/sched_prim.h>
+#include <kern/exception.h>
 #include <mach/machine/vm_types.h>
 
-
-
-extern void exception() __attribute__ ((noreturn));
-extern void exception_try_task() __attribute__ ((noreturn));
-extern void exception_no_server() __attribute__ ((noreturn));
-
-extern void exception_raise() __attribute__ ((noreturn));
-extern kern_return_t exception_parse_reply();
-extern void exception_raise_continue() __attribute__ ((noreturn));
-extern void exception_raise_continue_slow() __attribute__ ((noreturn));
-extern void exception_raise_continue_fast() __attribute__ ((noreturn));
-
 #if	MACH_KDB
-extern void thread_kdb_return();
-extern void db_printf();
+#include <machine/trap.h>
+#include <ddb/db_output.h>
 
 boolean_t debug_user_with_kdb = FALSE;
 #endif	/* MACH_KDB */
@@ -93,11 +82,13 @@ boolean_t debug_user_with_kdb = FALSE;
  */
 
 void
-exception(_exception, code, subcode)
-	integer_t _exception, code, subcode;
+exception(
+	integer_t _exception, 
+	integer_t code, 
+	integer_t subcode)
 {
-	register ipc_thread_t self = current_thread();
-	register ipc_port_t exc_port;
+	ipc_thread_t self = current_thread();
+	ipc_port_t exc_port;
 
 	if (_exception == KERN_SUCCESS)
 		panic("exception");
@@ -163,12 +154,14 @@ exception(_exception, code, subcode)
  */
 
 void
-exception_try_task(_exception, code, subcode)
-	integer_t _exception, code, subcode;
+exception_try_task(
+	integer_t _exception, 
+	integer_t code, 
+	integer_t subcode)
 {
 	ipc_thread_t self = current_thread();
-	register task_t task = self->task;
-	register ipc_port_t exc_port;
+	task_t task = self->task;
+	ipc_port_t exc_port;
 
 	/*
 	 *	Optimized version of retrieve_task_exception.
@@ -228,9 +221,9 @@ exception_try_task(_exception, code, subcode)
  */
 
 void
-exception_no_server()
+exception_no_server(void)
 {
-	register ipc_thread_t self = current_thread();
+	ipc_thread_t self = current_thread();
 
 	/*
 	 *	If this thread is being terminated, cooperate.
@@ -330,12 +323,13 @@ mach_msg_type_t exc_code_proto = {
 int exception_raise_misses = 0;
 
 void
-exception_raise(dest_port, thread_port, task_port,
-		_exception, code, subcode)
-	ipc_port_t dest_port;
-	ipc_port_t thread_port;
-	ipc_port_t task_port;
-	integer_t _exception, code, subcode;
+exception_raise(
+	ipc_port_t 	dest_port,
+	ipc_port_t 	thread_port,
+	ipc_port_t 	task_port,
+	integer_t 	_exception, 
+	integer_t 	code, 
+	integer_t 	subcode)
 {
 	ipc_thread_t self = current_thread();
 	ipc_thread_t receiver;
@@ -428,7 +422,7 @@ exception_raise(dest_port, thread_port, task_port,
 	 */
 
     {
-	register ipc_pset_t dest_pset;
+	ipc_pset_t dest_pset;
 
 	dest_pset = dest_port->ip_pset;
 	if (dest_pset == IPS_NULL)
@@ -490,7 +484,7 @@ exception_raise(dest_port, thread_port, task_port,
 	 *	Release the receiver's reference for his object.
 	 */
     {
-	register ipc_object_t object = receiver->ith_object;
+	ipc_object_t object = receiver->ith_object;
 
 	io_lock(object);
 	io_release(object);
@@ -498,7 +492,7 @@ exception_raise(dest_port, thread_port, task_port,
     }
 
     {
-	register struct mach_exception *exc =
+	struct mach_exception *exc =
 			(struct mach_exception *) &kmsg->ikm_header;
 	ipc_space_t space = receiver->task->itk_space;
 
@@ -609,9 +603,9 @@ exception_raise(dest_port, thread_port, task_port,
 	ip_unlock(reply_port);
 
     {
-	register ipc_entry_t table;
-	register ipc_entry_t entry;
-	register mach_port_index_t index;
+	ipc_entry_t table;
+	ipc_entry_t entry;
+	mach_port_index_t index;
 
 	/* optimized ipc_entry_get */
 
@@ -626,7 +620,7 @@ exception_raise(dest_port, thread_port, task_port,
 	entry->ie_request = 0;
 
     {
-	register mach_port_gen_t gen;
+	mach_port_gen_t gen;
 
 	assert((entry->ie_bits &~ IE_BITS_GEN_MASK) == 0);
 	gen = entry->ie_bits + IE_BITS_GEN_ONE;
@@ -710,7 +704,7 @@ exception_raise(dest_port, thread_port, task_port,
 #endif
 
     slow_exception_raise: {
-	register struct mach_exception *exc =
+	struct mach_exception *exc =
 			(struct mach_exception *) &kmsg->ikm_header;
 	ipc_kmsg_t reply_kmsg;
 	mach_port_seqno_t reply_seqno;
@@ -794,10 +788,9 @@ mach_msg_type_t exc_RetCode_proto = {
  */
 
 kern_return_t
-exception_parse_reply(kmsg)
-	ipc_kmsg_t kmsg;
+exception_parse_reply(ipc_kmsg_t kmsg)
 {
-	register mig_reply_header_t *msg =
+	mig_reply_header_t *msg =
 			(mig_reply_header_t *) &kmsg->ikm_header;
 	kern_return_t kr;
 
@@ -839,7 +832,7 @@ exception_parse_reply(kmsg)
  */
 
 void
-exception_raise_continue()
+exception_raise_continue(void)
 {
 	ipc_thread_t self = current_thread();
 	ipc_port_t reply_port = self->ith_port;
@@ -871,10 +864,10 @@ exception_raise_continue()
  */
 
 void
-exception_raise_continue_slow(mr, kmsg, seqno)
-	mach_msg_return_t mr;
-	ipc_kmsg_t kmsg;
-	mach_port_seqno_t seqno;
+exception_raise_continue_slow(
+	mach_msg_return_t mr,
+	ipc_kmsg_t 	  kmsg,
+	mach_port_seqno_t seqno)
 {
 	ipc_thread_t self = current_thread();
 	ipc_port_t reply_port = self->ith_port;
@@ -954,9 +947,9 @@ exception_raise_continue_slow(mr, kmsg, seqno)
  */
 
 void
-exception_raise_continue_fast(reply_port, kmsg)
-	ipc_port_t reply_port;
-	ipc_kmsg_t kmsg;
+exception_raise_continue_fast(
+	ipc_port_t reply_port,
+	ipc_kmsg_t kmsg)
 {
 	ipc_thread_t self = current_thread();
 	kern_return_t kr;

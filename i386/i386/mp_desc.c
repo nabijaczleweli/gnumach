@@ -65,12 +65,6 @@ char		intstack[];	/* bottom */
 char		eintstack[];	/* top */
 
 /*
- * We allocate interrupt stacks from physical memory.
- */
-extern
-vm_offset_t	avail_start;
-
-/*
  * Multiprocessor i386/i486 systems use a separate copy of the
  * GDT, IDT, LDT, and kernel TSS per processor.  The first three
  * are separate to avoid lock contention: the i386 uses locked
@@ -106,10 +100,9 @@ extern struct real_descriptor	ldt[LDTSZ];
  */
 
 struct mp_desc_table *
-mp_desc_init(mycpu)
-	register int	mycpu;
+mp_desc_init(int mycpu)
 {
-	register struct mp_desc_table *mpt;
+	struct mp_desc_table *mpt;
 
 	if (mycpu == master_cpu) {
 		/*
@@ -177,9 +170,9 @@ mp_desc_init(mycpu)
  * is running.  The machine array must show which CPUs exist.
  */
 void
-interrupt_stack_alloc()
+interrupt_stack_alloc(void)
 {
-	register int	i;
+	int		i;
 	int		cpu_count;
 	vm_offset_t	stack_start;
 
@@ -244,7 +237,7 @@ simple_lock_pause(void)
 }
 
 kern_return_t
-cpu_control(int cpu, int *info, unsigned int count)
+cpu_control(int cpu, const int *info, unsigned int count)
 {
 	printf("cpu_control(%d, %p, %d) not implemented\n",
 	       cpu, info, count);

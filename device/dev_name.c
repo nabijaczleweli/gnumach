@@ -39,18 +39,52 @@
 /*
  * Routines placed in empty entries in the device tables
  */
-int nulldev()
+int nulldev(void)
 {
 	return (D_SUCCESS);
 }
 
-int nodev()
+int nulldev_open(dev_t dev, int flags, io_req_t ior)
+{
+	return (D_SUCCESS);
+}
+
+void nulldev_close(dev_t dev, int flags)
+{
+}
+
+int nulldev_read(dev_t dev, io_req_t ior)
+{
+	return (D_SUCCESS);
+}
+
+int nulldev_write(dev_t dev, io_req_t ior)
+{
+	return (D_SUCCESS);
+}
+
+io_return_t nulldev_getstat(dev_t dev, int flavor, int *data, natural_t *count)
+{
+	return (D_SUCCESS);
+}
+
+io_return_t nulldev_setstat(dev_t dev, int flavor, int *data, natural_t count)
+{
+	return (D_SUCCESS);
+}
+
+int nulldev_portdeath(dev_t dev, mach_port_t port)
+{
+	return (D_SUCCESS);
+}
+
+int nodev(void)
 {
 	return (D_INVALID_OPERATION);
 }
 
-vm_offset_t
-nomap()
+int
+nomap(dev_t dev, vm_offset_t off, int prot)
 {
 	return (D_INVALID_OPERATION);
 }
@@ -63,11 +97,11 @@ nomap()
  *   src and target are equal in first 'len' characters
  *   next character of target is 0 (end of string).
  */
-boolean_t
+boolean_t __attribute__ ((pure))
 name_equal(src, len, target)
-	char 	*src;
-	int	len;
-	char 	*target;
+	const char 	*src;
+	int		len;
+	const char 	*target;
 {
 	while (--len >= 0)
 	    if (*src++ != *target++)
@@ -78,10 +112,10 @@ name_equal(src, len, target)
 /*
  * device name lookup
  */
-boolean_t dev_name_lookup(name, ops, unit)
-	char 		*name;
-	dev_ops_t	*ops;	/* out */
-	int		*unit;	/* out */
+boolean_t dev_name_lookup(
+	char 		*name,
+	dev_ops_t	*ops,	/* out */
+	int		*unit)	/* out */
 {
 	/*
 	 * Assume that block device names are of the form
@@ -191,7 +225,7 @@ boolean_t dev_name_lookup(name, ops, unit)
  */
 void
 dev_set_indirection(name, ops, unit)
-	char		*name;
+	const char	*name;
 	dev_ops_t	ops;
 	int		unit;
 {
@@ -207,9 +241,9 @@ dev_set_indirection(name, ops, unit)
 }
 
 boolean_t dev_change_indirect(iname, dname, unit)
-	char 	*iname;
-	char	*dname;
-	int 	unit;
+	const char 	*iname;
+	const char	*dname;
+	int 		unit;
 {
     struct dev_ops *dp;
     struct dev_indirect *di;

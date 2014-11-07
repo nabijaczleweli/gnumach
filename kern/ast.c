@@ -56,10 +56,10 @@
 volatile ast_t need_ast[NCPUS];
 
 void
-ast_init()
+ast_init(void)
 {
 #ifndef	MACHINE_AST
-	register int i;
+	int i;
 
 	for (i=0; i<NCPUS; i++)
 		need_ast[i] = 0;
@@ -69,8 +69,8 @@ ast_init()
 void
 ast_taken(void)
 {
-	register thread_t self = current_thread();
-	register ast_t reasons;
+	thread_t self = current_thread();
+	ast_t reasons;
 
 	/*
 	 *	Interrupts are still disabled.
@@ -114,12 +114,12 @@ ast_taken(void)
 }
 
 void
-ast_check()
+ast_check(void)
 {
-	register int		mycpu = cpu_number();
-	register processor_t	myprocessor;
-	register thread_t	thread = current_thread();
-	register run_queue_t	rq;
+	int			mycpu = cpu_number();
+	processor_t		myprocessor;
+	thread_t		thread = current_thread();
+	run_queue_t		rq;
 	spl_t			s = splsched();
 
 	/*
@@ -190,7 +190,7 @@ ast_check()
 #endif	/* MACH_FIXPRI			 */
 		rq = &(myprocessor->processor_set->runq);
 		if (!(myprocessor->first_quantum) && (rq->count > 0)) {
-		    register queue_t 	q;
+		    queue_t 		q;
 		    /*
 		     *	This is not the first quantum, and there may
 		     *	be something in the processor_set runq.
@@ -198,7 +198,7 @@ ast_check()
 		     */
 		    q = rq->runq + *(volatile int *)&rq->low;
 		    if (queue_empty(q)) {
-			register int i;
+			int i;
 
 			/*
 			 *	Need to recheck and possibly update hint.

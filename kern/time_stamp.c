@@ -32,31 +32,18 @@
 /*
  *	ts.c - kern_timestamp system call.
  */
-#ifdef	multimax
-#include <mmax/timer.h>
-#endif	/* multimax */
-
-
-
 kern_return_t
-kern_timestamp(tsp)
-struct	tsval	*tsp;
+kern_timestamp(struct tsval *tsp)
 {
-#ifdef	multimax
-	struct	tsval	temp;
-	temp.low_val = FRcounter;
-	temp.high_val = 0;
-#else	/* multimax */
 /*
 	temp.low_val = 0;
 	temp.high_val = ts_tick_count;
 */
 	time_value_t temp;
 	temp = time;
-#endif	/* multimax */
 
-	if (copyout((char *)&temp,
-		    (char *)tsp,
+	if (copyout(&temp,
+		    tsp,
 		    sizeof(struct tsval)) != KERN_SUCCESS)
 	    return(KERN_INVALID_ADDRESS);
 	return(KERN_SUCCESS);
@@ -66,10 +53,7 @@ struct	tsval	*tsp;
  *	Initialization procedure.
  */
 
-void timestamp_init()
+void timestamp_init(void)
 {
-#ifdef	multimax
-#else	/* multimax */
 	ts_tick_count = 0;
-#endif	/* multimax */
 }

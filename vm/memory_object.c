@@ -82,24 +82,19 @@ decl_simple_lock_data(,memory_manager_default_lock)
  *		argument conversion. Explicit deallocation is necessary.
  */
 
-kern_return_t memory_object_data_supply(object, offset, data_copy, data_cnt,
-	lock_value, precious, reply_to, reply_to_type)
-	register
-        vm_object_t		object;
-	register
-	vm_offset_t		offset;
-	vm_map_copy_t		data_copy;
-	unsigned int		data_cnt;
-	vm_prot_t		lock_value;
-	boolean_t		precious;
-	ipc_port_t		reply_to;
-	mach_msg_type_name_t	reply_to_type;
+kern_return_t memory_object_data_supply(
+       vm_object_t		object,
+	vm_offset_t		offset,
+	vm_map_copy_t		data_copy,
+	unsigned int		data_cnt,
+	vm_prot_t		lock_value,
+	boolean_t		precious,
+	ipc_port_t		reply_to,
+	mach_msg_type_name_t	reply_to_type)
 {
 	kern_return_t	result = KERN_SUCCESS;
 	vm_offset_t	error_offset = 0;
-	register
 	vm_page_t	m;
-	register
 	vm_page_t	data_m;
 	vm_size_t	original_length;
 	vm_offset_t	original_offset;
@@ -307,29 +302,26 @@ retry_lookup:
 	return(result);
 }
 
-
 /*
  *	If successful, destroys the map copy object.
  */
-kern_return_t memory_object_data_provided(object, offset, data, data_cnt,
-					  lock_value)
-	vm_object_t	object;
-	vm_offset_t	offset;
-	pointer_t	data;
-	unsigned int	data_cnt;
-	vm_prot_t	lock_value;
+kern_return_t memory_object_data_provided(
+	vm_object_t	object,
+	vm_offset_t	offset,
+	pointer_t	data,
+	unsigned int	data_cnt,
+	vm_prot_t	lock_value)
 {
         return memory_object_data_supply(object, offset, (vm_map_copy_t) data,
 					 data_cnt, lock_value, FALSE, IP_NULL,
 					 0);
 }
 
-
-kern_return_t memory_object_data_error(object, offset, size, error_value)
-	vm_object_t	object;
-	vm_offset_t	offset;
-	vm_size_t	size;
-	kern_return_t	error_value;
+kern_return_t memory_object_data_error(
+	vm_object_t	object,
+	vm_offset_t	offset,
+	vm_size_t	size,
+	kern_return_t	error_value)
 {
 	if (object == VM_OBJECT_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -337,16 +329,11 @@ kern_return_t memory_object_data_error(object, offset, size, error_value)
 	if (size != round_page(size))
 		return(KERN_INVALID_ARGUMENT);
 
-#ifdef	lint
-	/* Error value is ignored at this time */
-	error_value++;
-#endif
-
 	vm_object_lock(object);
 	offset -= object->paging_offset;
 
 	while (size != 0) {
-		register vm_page_t m;
+		vm_page_t m;
 
 		m = vm_page_lookup(object, offset);
 		if ((m != VM_PAGE_NULL) && m->busy && m->absent) {
@@ -370,10 +357,10 @@ kern_return_t memory_object_data_error(object, offset, size, error_value)
 	return(KERN_SUCCESS);
 }
 
-kern_return_t memory_object_data_unavailable(object, offset, size)
-	vm_object_t	object;
-	vm_offset_t	offset;
-	vm_size_t	size;
+kern_return_t memory_object_data_unavailable(
+	vm_object_t	object,
+	vm_offset_t	offset,
+	vm_size_t	size)
 {
 #if	MACH_PAGEMAP
 	vm_external_t	existence_info = VM_EXTERNAL_NULL;
@@ -406,7 +393,7 @@ kern_return_t memory_object_data_unavailable(object, offset, size)
 	offset -= object->paging_offset;
 
 	while (size != 0) {
-		register vm_page_t m;
+		vm_page_t m;
 
 		/*
 		 *	We're looking for pages that are both busy and
@@ -453,12 +440,11 @@ kern_return_t memory_object_data_unavailable(object, offset, size)
 #define	MEMORY_OBJECT_LOCK_RESULT_MUST_CLEAN	2
 #define	MEMORY_OBJECT_LOCK_RESULT_MUST_RETURN	3
 
-memory_object_lock_result_t memory_object_lock_page(m, should_return,
-				should_flush, prot)
-	vm_page_t		m;
-	memory_object_return_t	should_return;
-	boolean_t		should_flush;
-	vm_prot_t		prot;
+memory_object_lock_result_t memory_object_lock_page(
+	vm_page_t		m,
+	memory_object_return_t	should_return,
+	boolean_t		should_flush,
+	vm_prot_t		prot)
 {
 	/*
 	 *	Don't worry about pages for which the kernel
@@ -656,19 +642,17 @@ memory_object_lock_result_t memory_object_lock_page(m, should_return,
  */
 
 kern_return_t
-memory_object_lock_request(object, offset, size,
-			should_return, should_flush, prot,
-			reply_to, reply_to_type)
-	register vm_object_t	object;
-	register vm_offset_t	offset;
-	register vm_size_t	size;
-	memory_object_return_t	should_return;
-	boolean_t		should_flush;
-	vm_prot_t		prot;
-	ipc_port_t		reply_to;
-	mach_msg_type_name_t	reply_to_type;
+memory_object_lock_request(
+	vm_object_t		object,
+	vm_offset_t		offset,
+	vm_size_t		size,
+	memory_object_return_t	should_return,
+	boolean_t		should_flush,
+	vm_prot_t		prot,
+	ipc_port_t		reply_to,
+	mach_msg_type_name_t	reply_to_type)
 {
-	register vm_page_t	m;
+	vm_page_t		m;
 	vm_offset_t		original_offset = offset;
 	vm_size_t		original_size = size;
 	vm_offset_t		paging_offset = 0;
@@ -720,8 +704,8 @@ memory_object_lock_request(object, offset, size,
 #define	PAGEOUT_PAGES							\
 MACRO_BEGIN								\
 	vm_map_copy_t		copy;					\
-	register int		i;					\
-	register vm_page_t	hp;					\
+	int			i;					\
+	vm_page_t		hp;					\
 									\
 	vm_object_unlock(object);					\
 									\
@@ -892,13 +876,12 @@ MACRO_END
 }
 
 kern_return_t
-memory_object_set_attributes_common(object, object_ready, may_cache,
-				    copy_strategy, use_old_pageout)
-	vm_object_t	object;
-	boolean_t	object_ready;
-	boolean_t	may_cache;
-	memory_object_copy_strategy_t copy_strategy;
-	boolean_t use_old_pageout;
+memory_object_set_attributes_common(
+	vm_object_t	object,
+	boolean_t	object_ready,
+	boolean_t	may_cache,
+	memory_object_copy_strategy_t copy_strategy,
+	boolean_t use_old_pageout)
 {
 	if (object == VM_OBJECT_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -959,13 +942,12 @@ memory_object_set_attributes_common(object, object_ready, may_cache,
  * XXX	stub that made change_attributes an RPC.  Need investigation.
  */
 
-kern_return_t	memory_object_change_attributes(object, may_cache,
-			copy_strategy, reply_to, reply_to_type)
-	vm_object_t	object;
-	boolean_t	may_cache;
-	memory_object_copy_strategy_t copy_strategy;
-	ipc_port_t		reply_to;
-	mach_msg_type_name_t	reply_to_type;
+kern_return_t	memory_object_change_attributes(
+	vm_object_t		object,
+	boolean_t		may_cache,
+	memory_object_copy_strategy_t copy_strategy,
+	ipc_port_t		reply_to,
+	mach_msg_type_name_t	reply_to_type)
 {
 	kern_return_t	result;
 
@@ -995,33 +977,32 @@ kern_return_t	memory_object_change_attributes(object, may_cache,
 }
 
 kern_return_t
-memory_object_set_attributes(object, object_ready, may_cache, copy_strategy)
-	vm_object_t	object;
-	boolean_t	object_ready;
-	boolean_t	may_cache;
-	memory_object_copy_strategy_t copy_strategy;
+memory_object_set_attributes(
+	vm_object_t	object,
+	boolean_t	object_ready,
+	boolean_t	may_cache,
+	memory_object_copy_strategy_t copy_strategy)
 {
 	return memory_object_set_attributes_common(object, object_ready,
 						   may_cache, copy_strategy,
 						   TRUE);
 }
 
-kern_return_t	memory_object_ready(object, may_cache, copy_strategy)
-	vm_object_t	object;
-	boolean_t	may_cache;
-	memory_object_copy_strategy_t copy_strategy;
+kern_return_t	memory_object_ready(
+	vm_object_t	object,
+	boolean_t	may_cache,
+	memory_object_copy_strategy_t copy_strategy)
 {
 	return memory_object_set_attributes_common(object, TRUE,
 						   may_cache, copy_strategy,
 						   FALSE);
 }
 
-kern_return_t	memory_object_get_attributes(object, object_ready,
-						may_cache, copy_strategy)
-	vm_object_t	object;
-	boolean_t	*object_ready;
-	boolean_t	*may_cache;
-	memory_object_copy_strategy_t *copy_strategy;
+kern_return_t	memory_object_get_attributes(
+	vm_object_t	object,
+	boolean_t	*object_ready,
+	boolean_t	*may_cache,
+	memory_object_copy_strategy_t *copy_strategy)
 {
 	if (object == VM_OBJECT_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -1041,7 +1022,7 @@ kern_return_t	memory_object_get_attributes(object, object_ready,
  *	If successful, consumes the supplied naked send right.
  */
 kern_return_t	vm_set_default_memory_manager(host, default_manager)
-	host_t		host;
+	const host_t	host;
 	ipc_port_t	*default_manager;
 {
 	ipc_port_t current_manager;
@@ -1123,7 +1104,7 @@ ipc_port_t	memory_manager_default_reference(void)
  */
 
 boolean_t	memory_manager_default_port(port)
-	ipc_port_t port;
+	const ipc_port_t port;
 {
 	ipc_port_t current;
 	boolean_t result;

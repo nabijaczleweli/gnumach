@@ -36,7 +36,7 @@
 #endif
 
 #if	MACH_ASSERT
-extern void Assert(char *exp, char *filename, int line) __attribute__ ((noreturn));
+extern void Assert(const char *exp, const char *filename, int line) __attribute__ ((noreturn));
 
 #define assert(ex)							\
 MACRO_BEGIN								\
@@ -44,11 +44,7 @@ MACRO_BEGIN								\
 		Assert(#ex, __FILE__, __LINE__);			\
 MACRO_END
 
-#ifdef	lint
-#define	assert_static(x)
-#else	/* lint */
 #define	assert_static(x)	assert(x)
-#endif	/* lint */
 
 #else	/* MACH_ASSERT */
 #define assert(ex)

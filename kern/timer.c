@@ -40,17 +40,15 @@
 timer_t		current_timer[NCPUS];
 timer_data_t	kernel_timer[NCPUS];
 
-void timer_init(); /* forward */
-
 /*
  *	init_timers initializes all non-thread timers and puts the
  *	service routine on the callout queue.  All timers must be
  *	serviced by the callout routine once an hour.
  */
-void init_timers()
+void init_timers(void)
 {
-	register int	i;
-	register timer_t	this_timer;
+	int	i;
+	timer_t	this_timer;
 
 	/*
 	 *	Initialize all the kernel timers and start the one
@@ -68,9 +66,7 @@ void init_timers()
 /*
  *	timer_init initializes a single timer.
  */
-void timer_init(this_timer)
-register
-timer_t this_timer;
+void timer_init(timer_t this_timer)
 {
 	this_timer->low_bits = 0;
 	this_timer->high_bits = 0;
@@ -94,8 +90,7 @@ timer_t this_timer;
  *	exactly once for each cpu during the boot sequence.
  */
 void
-start_timer(timer)
-timer_t timer;
+start_timer(timer_t timer)
 {
 	timer->tstamp = get_timestamp();
 	current_timer[cpu_number()] = timer;
@@ -108,8 +103,7 @@ timer_t timer;
  *	from user mode.
  */
 void
-time_trap_uentry(ts)
-unsigned ts;
+time_trap_uentry(unsigned ts)
 {
 	int	elapsed;
 	int	mycpu;
@@ -150,7 +144,7 @@ unsigned ts;
  *	user mode.
  */
 void
-time_trap_uexit(ts)
+time_trap_uexit(int ts)
 {
 	int	elapsed;
 	int	mycpu;
@@ -194,9 +188,9 @@ time_trap_uexit(ts)
  *	saved for time_int_exit.
  */
 timer_t
-time_int_entry(ts,new_timer)
-unsigned	ts;
-timer_t	new_timer;
+time_int_entry(
+	unsigned	ts,
+	timer_t		new_timer)
 {
 	int	elapsed;
 	int	mycpu;
@@ -235,9 +229,9 @@ timer_t	new_timer;
  *	it.
  */
 void
-time_int_exit(ts, old_timer)
-unsigned	ts;
-timer_t	old_timer;
+time_int_exit(
+	unsigned	ts,
+	timer_t		old_timer)
 {
 	int	elapsed;
 	int	mycpu;
@@ -282,8 +276,7 @@ timer_t	old_timer;
  *	Caller must lock out interrupts.
  */
 void
-timer_switch(new_timer)
-timer_t new_timer;
+timer_switch(timer_t new_timer)
 {
 	int		elapsed;
 	int		mycpu;
@@ -328,9 +321,7 @@ timer_t new_timer;
  *	timer_normalize normalizes the value of a timer.  It is
  *	called only rarely, to make sure low_bits never overflows.
  */
-void timer_normalize(timer)
-register
-timer_t	timer;
+void timer_normalize(timer_t timer)
 {
 	unsigned int	high_increment;
 
@@ -356,9 +347,9 @@ timer_t	timer;
  *      Keep coherent with db_time_grab below.
  */
 
-static void timer_grab(timer, save)
-timer_t		timer;
-timer_save_t	save;
+static void timer_grab(
+	timer_t		timer,
+	timer_save_t	save)
 {
 #if MACH_ASSERT
   unsigned int passes=0;
@@ -390,9 +381,9 @@ timer_save_t	save;
  *      above.
  *
  */
-void db_timer_grab(timer, save)
-timer_t		timer;
-timer_save_t	save;
+void db_timer_grab(
+	timer_t		timer,
+	timer_save_t	save)
 {
   /* Don't worry about coherency */
 
@@ -409,10 +400,9 @@ timer_save_t	save;
  */
 
 void
-timer_read(timer, tv)
-timer_t timer;
-register
-time_value_t *tv;
+timer_read(
+	timer_t 	timer,
+	time_value_t 	*tv)
 {
 	timer_save_data_t	temp;
 
@@ -436,13 +426,13 @@ time_value_t *tv;
  *
  *      Needs to be kept coherent with thread_read_times ahead.
  */
-void	thread_read_times(thread, user_time_p, system_time_p)
-	thread_t 	thread;
-	time_value_t	*user_time_p;
-	time_value_t	*system_time_p;
+void	thread_read_times(
+	thread_t 	thread,
+	time_value_t	*user_time_p,
+	time_value_t	*system_time_p)
 {
 	timer_save_data_t	temp;
-	register timer_t	timer;
+	timer_t			timer;
 
 	timer = &thread->user_timer;
 	timer_grab(timer, &temp);
@@ -470,13 +460,13 @@ void	thread_read_times(thread, user_time_p, system_time_p)
  *      thread_read_times above.
  *
  */
-void	db_thread_read_times(thread, user_time_p, system_time_p)
-	thread_t 	thread;
-	time_value_t	*user_time_p;
-	time_value_t	*system_time_p;
+void	db_thread_read_times(
+	thread_t 	thread,
+	time_value_t	*user_time_p,
+	time_value_t	*system_time_p)
 {
 	timer_save_data_t	temp;
-	register timer_t	timer;
+	timer_t			timer;
 
 	timer = &thread->user_timer;
 	db_timer_grab(timer, &temp);
@@ -505,13 +495,12 @@ void	db_thread_read_times(thread, user_time_p, system_time_p)
  */
 
 unsigned
-timer_delta(timer, save)
-register
-timer_t	timer;
-timer_save_t	save;
+timer_delta(
+	timer_t		timer,
+	timer_save_t	save)
 {
 	timer_save_data_t	new_save;
-	register unsigned	result;
+	unsigned		result;
 
 	timer_grab(timer,&new_save);
 	result = (new_save.high - save->high) * TIMER_HIGH_UNIT +

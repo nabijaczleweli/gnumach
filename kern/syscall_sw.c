@@ -36,6 +36,8 @@
 #include <mach/mach_traps.h>
 #include <mach/message.h>
 #include <kern/syscall_subr.h>
+#include <kern/ipc_mig.h>
+#include <kern/eventcount.h>
 #include <ipc/mach_port.h>
 
 
@@ -56,40 +58,19 @@
  *		the positive numbers) are reserved for Unix.
  */
 
-int kern_invalid_debug = 0;
+boolean_t kern_invalid_debug = FALSE;
 
-mach_port_t	null_port()
+mach_port_t	null_port(void)
 {
 	if (kern_invalid_debug) SoftDebugger("null_port mach trap");
 	return(MACH_PORT_NULL);
 }
 
-kern_return_t	kern_invalid()
+kern_return_t	kern_invalid(void)
 {
 	if (kern_invalid_debug) SoftDebugger("kern_invalid mach trap");
 	return(KERN_INVALID_ARGUMENT);
 }
-
-extern	kern_return_t	syscall_vm_map();
-extern	kern_return_t	syscall_vm_allocate();
-extern	kern_return_t	syscall_vm_deallocate();
-
-extern  kern_return_t	syscall_task_create();
-extern  kern_return_t	syscall_task_terminate();
-extern  kern_return_t	syscall_task_suspend();
-extern  kern_return_t	syscall_task_set_special_port();
-
-extern	kern_return_t	syscall_mach_port_allocate();
-extern	kern_return_t	syscall_mach_port_deallocate();
-extern	kern_return_t	syscall_mach_port_insert_right();
-extern	kern_return_t	syscall_mach_port_allocate_name();
-
-extern	kern_return_t	syscall_thread_depress_abort();
-extern	kern_return_t	evc_wait();
-extern	kern_return_t	evc_wait_clear();
-
-extern	kern_return_t	syscall_device_write_request();
-extern	kern_return_t	syscall_device_writev_request();
 
 mach_trap_t	mach_trap_table[] = {
 	MACH_TRAP(kern_invalid, 0),		/* 0 */		/* Unix */

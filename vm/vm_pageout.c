@@ -52,7 +52,6 @@
 #include <vm/vm_page.h>
 #include <vm/vm_pageout.h>
 #include <machine/locore.h>
-#include <machine/vm_tuning.h>
 
 
 
@@ -98,7 +97,7 @@
  */
 
 #ifndef	VM_PAGE_FREE_TARGET
-#define	VM_PAGE_FREE_TARGET(free)	(15 + (free) / 80)
+#define	VM_PAGE_FREE_TARGET(free)	(150 + (free) * 10 / 100)
 #endif	/* VM_PAGE_FREE_TARGET */
 
 /*
@@ -107,7 +106,7 @@
  */
 
 #ifndef	VM_PAGE_FREE_MIN
-#define	VM_PAGE_FREE_MIN(free)	(10 + (free) / 100)
+#define	VM_PAGE_FREE_MIN(free)	(100 + (free) * 8 / 100)
 #endif	/* VM_PAGE_FREE_MIN */
 
 /*      When vm_page_external_count exceeds vm_page_external_limit, 
@@ -133,7 +132,7 @@
  *	operation by dipping into the reserved pool of pages.  */
 
 #ifndef	VM_PAGE_FREE_RESERVED
-#define	VM_PAGE_FREE_RESERVED			50
+#define	VM_PAGE_FREE_RESERVED			500
 #endif	/* VM_PAGE_FREE_RESERVED */
 
 /*
@@ -145,7 +144,7 @@
  */
 
 #ifndef	VM_PAGEOUT_RESERVED_INTERNAL
-#define	VM_PAGEOUT_RESERVED_INTERNAL(reserve)	((reserve) - 25)
+#define	VM_PAGEOUT_RESERVED_INTERNAL(reserve)	((reserve) - 250)
 #endif	/* VM_PAGEOUT_RESERVED_INTERNAL */
 
 /*
@@ -157,11 +156,8 @@
  */
 
 #ifndef	VM_PAGEOUT_RESERVED_REALLY
-#define	VM_PAGEOUT_RESERVED_REALLY(reserve)	((reserve) - 40)
+#define	VM_PAGEOUT_RESERVED_REALLY(reserve)	((reserve) - 400)
 #endif	/* VM_PAGEOUT_RESERVED_REALLY */
-
-extern void vm_pageout_continue();
-extern void vm_pageout_scan_continue();
 
 unsigned int vm_pageout_reserved_internal = 0;
 unsigned int vm_pageout_reserved_really = 0;
@@ -230,16 +226,16 @@ unsigned int vm_pageout_inactive_cleaned_external = 0;
  *		not busy on exit.
  */
 vm_page_t
-vm_pageout_setup(m, paging_offset, new_object, new_offset, flush)
-	register vm_page_t	m;
-	vm_offset_t		paging_offset;
-	register vm_object_t	new_object;
-	vm_offset_t		new_offset;
-	boolean_t		flush;
+vm_pageout_setup(
+	vm_page_t		m,
+	vm_offset_t		paging_offset,
+	vm_object_t		new_object,
+	vm_offset_t		new_offset,
+	boolean_t		flush)
 {
-	register vm_object_t	old_object = m->object;
-	register vm_page_t	holding_page = 0; /*'=0'to quiet gcc warnings*/
-	register vm_page_t	new_m;
+	vm_object_t	old_object = m->object;
+	vm_page_t	holding_page = 0; /*'=0'to quiet gcc warnings*/
+	vm_page_t	new_m;
 
 	assert(m->busy && !m->absent && !m->fictitious);
 
@@ -417,15 +413,15 @@ vm_pageout_setup(m, paging_offset, new_object, new_offset, flush)
  *		copy to a new page in a new object, if not.
  */
 void
-vm_pageout_page(m, initial, flush)
-	register vm_page_t	m;
-	boolean_t		initial;
-	boolean_t		flush;
+vm_pageout_page(
+	vm_page_t		m,
+	boolean_t		initial,
+	boolean_t		flush)
 {
 	vm_map_copy_t		copy;
-	register vm_object_t	old_object;
-	register vm_object_t	new_object;
-	register vm_page_t	holding_page;
+	vm_object_t		old_object;
+	vm_object_t		new_object;
+	vm_page_t		holding_page;
 	vm_offset_t		paging_offset;
 	kern_return_t		rc;
 	boolean_t		precious_clean;
@@ -511,7 +507,7 @@ vm_pageout_page(m, initial, flush)
  *	vm_page_free_wanted == 0.
  */
 
-void vm_pageout_scan()
+void vm_pageout_scan(void)
 {
 	unsigned int burst_count;
 	unsigned int want_pages;
@@ -559,8 +555,8 @@ void vm_pageout_scan()
 	slab_collect();
 
 	for (burst_count = 0;;) {
-		register vm_page_t m;
-		register vm_object_t object;
+		vm_page_t m;
+		vm_object_t object;
 		unsigned int free_count;
 
 		/*
@@ -578,7 +574,7 @@ void vm_pageout_scan()
 
 		while ((vm_page_inactive_count < vm_page_inactive_target) &&
 		       !queue_empty(&vm_page_queue_active)) {
-			register vm_object_t obj;
+			vm_object_t obj;
 
 			vm_pageout_active++;
 			m = (vm_page_t) queue_first(&vm_page_queue_active);
@@ -857,7 +853,7 @@ void vm_pageout_scan()
 	}
 }
 
-void vm_pageout_scan_continue()
+void vm_pageout_scan_continue(void)
 {
 	/*
 	 *	We just paused to let the pagers catch up.
@@ -888,7 +884,7 @@ void vm_pageout_scan_continue()
  *	vm_pageout is the high level pageout daemon.
  */
 
-void vm_pageout_continue()
+void vm_pageout_continue(void)
 {
 	/*
 	 *	The pageout daemon is never done, so loop forever.
@@ -910,12 +906,13 @@ void vm_pageout_continue()
 	}
 }
 
-void vm_pageout()
+void vm_pageout(void)
 {
 	int		free_after_reserve;
 
 	current_thread()->vm_privilege = TRUE;
 	stack_privilege(current_thread());
+	thread_set_own_priority(0);
 
 	/*
 	 *	Initialize some paging parameters.

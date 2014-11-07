@@ -72,12 +72,11 @@ decl_simple_lock_data(,action_lock);
  *	Flag specified cpu as up and running.  Called when a processor comes
  *	online.
  */
-void cpu_up(cpu)
-	int	cpu;
+void cpu_up(int cpu)
 {
-	register struct machine_slot	*ms;
-	register processor_t	processor;
-	register spl_t s;
+	struct machine_slot	*ms;
+	processor_t		processor;
+	spl_t 			s;
 
 	processor = cpu_to_processor(cpu);
 	pset_lock(&default_pset);
@@ -102,12 +101,11 @@ void cpu_up(cpu)
  *	Flag specified cpu as down.  Called when a processor is about to
  *	go offline.
  */
-void cpu_down(cpu)
-	int	cpu;
+void cpu_down(int cpu)
 {
-	register struct machine_slot	*ms;
-	register processor_t	processor;
-	register spl_t	s;
+	struct machine_slot	*ms;
+	processor_t		processor;
+	spl_t			s;
 
 	s = splsched();
 	processor = cpu_to_processor(cpu);
@@ -126,8 +124,8 @@ void cpu_down(cpu)
 
 kern_return_t
 host_reboot(host, options)
-	host_t	host;
-	int	options;
+	const host_t	host;
+	int		options;
 {
 	if (host == HOST_NULL)
 		return (KERN_INVALID_HOST);
@@ -153,11 +151,11 @@ host_reboot(host, options)
  *		a reference.
  */
 void
-processor_request_action(processor, new_pset)
-processor_t	processor;
-processor_set_t	new_pset;
+processor_request_action(
+	processor_t	processor,
+	processor_set_t	new_pset)
 {
-    register processor_set_t pset;
+    processor_set_t pset;
 
     /*
      *	Processor must be in a processor set.  Must lock its idle lock to
@@ -228,10 +226,10 @@ processor_set_t	new_pset;
  *	Synchronizes with assignment completion if wait is TRUE.
  */
 kern_return_t
-processor_assign(processor, new_pset, wait)
-processor_t	processor;
-processor_set_t	new_pset;
-boolean_t	wait;
+processor_assign(
+	processor_t	processor,
+	processor_set_t	new_pset,
+	boolean_t	wait)
 {
     spl_t		s;
 
@@ -315,14 +313,11 @@ Retry:
 #else	/* MACH_HOST */
 
 kern_return_t
-processor_assign(processor, new_pset, wait)
-processor_t	processor;
-processor_set_t	new_pset;
-boolean_t	wait;
+processor_assign(
+	processor_t	processor,
+	processor_set_t	new_pset,
+	boolean_t	wait)
 {
-#ifdef	lint
-	processor++; new_pset++; wait++;
-#endif
 	return KERN_FAILURE;
 }
 
@@ -334,8 +329,7 @@ boolean_t	wait;
  *	with the shutdown (can be called from interrupt level).
  */
 kern_return_t
-processor_shutdown(processor)
-processor_t	processor;
+processor_shutdown(processor_t processor)
 {
     spl_t		s;
 
@@ -364,12 +358,10 @@ processor_t	processor;
 /*
  *	action_thread() shuts down processors or changes their assignment.
  */
-void	processor_doaction();	/* forward */
-
-void action_thread_continue()
+void action_thread_continue(void)
 {
-	register processor_t	processor;
-	register spl_t		s;
+	processor_t	processor;
+	spl_t		s;
 
 	while (TRUE) {
 		s = splsched();
@@ -395,7 +387,7 @@ void action_thread_continue()
 	}
 }
 
-void action_thread()
+void __attribute__((noreturn)) action_thread(void)
 {
 	action_thread_continue();
 	/*NOTREACHED*/
@@ -406,21 +398,15 @@ void action_thread()
  *	is to schedule ourselves onto a cpu and then save our
  *	context back into the runqs before taking out the cpu.
  */
-#ifdef __GNUC__
-__volatile__
-#endif
-void	processor_doshutdown();	/* forward */
-
-void processor_doaction(processor)
-register processor_t	processor;
+void processor_doaction(processor_t processor)
 {
 	thread_t			this_thread;
 	spl_t				s;
-	register processor_set_t	pset;
+	processor_set_t			pset;
 #if	MACH_HOST
-	register processor_set_t	new_pset;
-	register thread_t		thread;
-	register thread_t		prev_thread = THREAD_NULL;
+	processor_set_t			new_pset;
+	thread_t			thread;
+	thread_t			prev_thread = THREAD_NULL;
 	boolean_t			have_pset_ref = FALSE;
 #endif	/* MACH_HOST */
 
@@ -633,13 +619,10 @@ Restart_pset:
  *	running on the processor's shutdown stack.
  */
 
-#ifdef __GNUC__
-__volatile__
-#endif
 void processor_doshutdown(processor)
-register processor_t	processor;
+processor_t	processor;
 {
-	register int		cpu = processor->slot_num;
+	int		cpu = processor->slot_num;
 
 	timer_switch(&kernel_timer[cpu]);
 
@@ -663,23 +646,20 @@ register processor_t	processor;
 #else	/* NCPUS > 1 */
 
 kern_return_t
-processor_assign(processor, new_pset, wait)
-processor_t	processor;
-processor_set_t	new_pset;
-boolean_t	wait;
+processor_assign(
+	processor_t	processor,
+	processor_set_t	new_pset,
+	boolean_t	wait)
 {
-#ifdef	lint
-	processor++; new_pset++; wait++;
-#endif	/* lint */
 	return(KERN_FAILURE);
 }
 
 #endif /* NCPUS > 1 */
 
 kern_return_t
-host_get_boot_info(priv_host, boot_info)
-        host_t              priv_host;
-        kernel_boot_info_t  boot_info;
+host_get_boot_info(
+        host_t              priv_host,
+        kernel_boot_info_t  boot_info)
 {
 	char *src = "";
 

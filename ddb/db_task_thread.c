@@ -52,12 +52,12 @@ thread_t	db_default_thread;	/* default target thread */
  */
 int
 db_lookup_task(target_task)
-	task_t target_task;
+	const task_t target_task;
 {
-	register task_t task;
-	register int task_id;
-	register processor_set_t pset;
-	register int npset = 0;
+	task_t task;
+	int task_id;
+	processor_set_t pset;
+	int npset = 0;
 
 	task_id = 0;
 	if (queue_first(&all_psets) == 0)
@@ -82,11 +82,11 @@ db_lookup_task(target_task)
  */
 int
 db_lookup_task_thread(task, target_thread)
-	task_t	 task;
-	thread_t target_thread;
+	const task_t	 task;
+	const thread_t target_thread;
 {
-	register thread_t thread;
-	register int thread_id;
+	thread_t thread;
+	int thread_id;
 
 	thread_id = 0;
 	if (queue_first(&task->thread_list) == 0)
@@ -106,13 +106,13 @@ db_lookup_task_thread(task, target_thread)
  */
 int
 db_lookup_thread(target_thread)
-	thread_t target_thread;
+	const thread_t target_thread;
 {
-	register int thread_id;
-	register task_t task;
-	register processor_set_t pset;
-	register int ntask = 0;
-	register int npset = 0;
+	int thread_id;
+	task_t task;
+	processor_set_t pset;
+	int ntask = 0;
+	int npset = 0;
 
 	if (queue_first(&all_psets) == 0)
 	    return(-1);
@@ -139,7 +139,7 @@ db_lookup_thread(target_thread)
  */
 boolean_t
 db_check_thread_address_valid(thread)
-	thread_t thread;
+	const thread_t thread;
 {
 	if (db_lookup_thread(thread) < 0) {
 	    db_printf("Bad thread address 0x%x\n", thread);
@@ -153,12 +153,11 @@ db_check_thread_address_valid(thread)
  * convert task_id(queue postion) to task address
  */
 task_t
-db_lookup_task_id(task_id)
-	register int task_id;
+db_lookup_task_id(int task_id)
 {
-	register task_t task;
-	register processor_set_t pset;
-	register int npset = 0;
+	task_t task;
+	processor_set_t pset;
+	int npset = 0;
 
 	if (task_id > DB_MAX_TASKID)
 	    return(TASK_NULL);
@@ -181,11 +180,11 @@ db_lookup_task_id(task_id)
  * convert (task_id, thread_id) pair to thread address
  */
 static thread_t
-db_lookup_thread_id(task, thread_id)
-	task_t	 task;
-	register int thread_id;
+db_lookup_thread_id(
+	task_t	task,
+	int 	thread_id)
 {
-	register thread_t thread;
+	thread_t thread;
 
 
 	if (thread_id > DB_MAX_THREADID)
@@ -204,9 +203,9 @@ db_lookup_thread_id(task, thread_id)
  * thread address
  */
 boolean_t
-db_get_next_thread(threadp, position)
-	thread_t	*threadp;
-	int		position;
+db_get_next_thread(
+	thread_t	*threadp,
+	int		position)
 {
 	db_expr_t	value;
 	thread_t	thread;
@@ -245,17 +244,18 @@ db_init_default_thread(void)
  * in the command line
  */
 /* ARGSUSED */
-long
-db_set_default_thread(vp, valuep, flag)
-	struct db_variable *vp;
-	db_expr_t	*valuep;
-	int		flag;
+void
+db_set_default_thread(vp, valuep, flag, ap)
+	struct db_variable 	*vp;
+	db_expr_t		*valuep;
+	int			flag;
+	db_var_aux_param_t 	ap;
 {
 	thread_t	thread;
 
 	if (flag != DB_VAR_SET) {
 	    *valuep = (db_expr_t) db_default_thread;
-	    return(0);
+	    return;
 	}
 	thread = (thread_t) *valuep;
 	if (thread != THREAD_NULL && !db_check_thread_address_valid(thread))
@@ -264,18 +264,18 @@ db_set_default_thread(vp, valuep, flag)
 	db_default_thread = thread;
 	if (thread)
 		db_default_task = thread->task;
-	return(0);
+	return;
 }
 
 /*
  * convert $taskXXX[.YYY] type DDB variable to task or thread address
  */
-long
-db_get_task_thread(vp, valuep, flag, ap)
-	struct db_variable	*vp;
-	db_expr_t		*valuep;
-	int			flag;
-	db_var_aux_param_t	ap;
+void
+db_get_task_thread(
+	struct db_variable	*vp,
+	db_expr_t		*valuep,
+	int			flag,
+	db_var_aux_param_t	ap)
 {
 	task_t	 task;
 	thread_t thread;
@@ -291,7 +291,7 @@ db_get_task_thread(vp, valuep, flag, ap)
 	}
 	if (ap->level <= 1) {
 	    *valuep = (db_expr_t) task;
-	    return(0);
+	    return;
 	}
 	if ((thread = db_lookup_thread_id(task, ap->suffix[1])) == THREAD_NULL){
 	    db_printf("no such thread($task%d.%d)\n",
@@ -300,7 +300,7 @@ db_get_task_thread(vp, valuep, flag, ap)
 	    /* NOTREACHED */
 	}
 	*valuep = (db_expr_t) thread;
-	return(0);
+	return;
 }
 
 #endif /* MACH_KDB */

@@ -53,13 +53,6 @@
 
 #include <kern/eventcount.h>
 
-
-#if  NCPUS <= 1
-void simpler_thread_setrun(
-	thread_t	th,
-	boolean_t	may_preempt); /* forward */
-#endif
-
 #define	MAX_EVCS	10		/* xxx for now */
 evc_t	all_eventcounters[MAX_EVCS];
 
@@ -105,7 +98,7 @@ evc_destroy(evc_t	ev)
  * Thread termination.
  * HORRIBLE. This stuff needs to be fixed.
  */
-void evc_notify_abort(thread_t thread)
+void evc_notify_abort(const thread_t thread)
 {
     int i;
     evc_t ev;
@@ -130,7 +123,7 @@ void evc_notify_abort(thread_t thread)
  * Just so that we return success, and give
  * up the stack while blocked
  */
-static void
+static void  __attribute__((noreturn))
 evc_continue(void)
 {
 	thread_syscall_return(KERN_SUCCESS);
@@ -235,8 +228,8 @@ kern_return_t evc_wait_clear(natural_t ev_id)
 void
 evc_signal(evc_t ev)
 {
-    register volatile thread_t thread;
-    register int state;
+    volatile thread_t thread;
+    int state;
     spl_t    s;
     if (ev->sanity != ev)
       return;
@@ -325,8 +318,8 @@ simpler_thread_setrun(
 	thread_t	th,
 	boolean_t	may_preempt)
 {
-	register struct run_queue	*rq;
-	register int			whichq;
+	struct run_queue	*rq;
+	int			whichq;
 
 	/*
 	 *	XXX should replace queue with a boolean in this case.
@@ -347,7 +340,7 @@ simpler_thread_setrun(
 
 	whichq = (th)->sched_pri;
 	simple_lock(&(rq)->lock);	/* lock the run queue */
-	enqueue_head(&(rq)->runq[whichq], (queue_entry_t) (th));
+	enqueue_head(&(rq)->runq[whichq], &((th)->links));
 
 	if (whichq < (rq)->low || (rq)->count == 0)
 		 (rq)->low = whichq;	/* minimize */

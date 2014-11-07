@@ -36,6 +36,15 @@ char *trap_name(unsigned int trapnum);
 
 unsigned int interrupted_pc(thread_t);
 
+void
+i386_exception(
+	int	exc,
+	int	code,
+	int	subcode) __attribute__ ((noreturn));
+
+extern void
+thread_kdb_return(void);
+
 #endif /* !__ASSEMBLER__ */
 
 #endif	/* _I386_TRAP_H_ */

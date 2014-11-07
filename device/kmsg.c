@@ -42,11 +42,11 @@ static int kmsg_read_offset;
 /* I/O request queue for blocking read */
 static queue_head_t kmsg_read_queue;
 /* Used for exclusive access to the device */
-static int kmsg_in_use;
+static boolean_t kmsg_in_use;
 /* Used for exclusive access to the routines */
 decl_simple_lock_data (static, kmsg_lock);
 /* If already initialized or not  */
-static int kmsg_init_done = 0;
+static boolean_t kmsg_init_done = FALSE;
 
 /* Kernel Message Initializer */
 static void
@@ -55,13 +55,13 @@ kmsginit (void)
   kmsg_write_offset = 0;
   kmsg_read_offset = 0;
   queue_init (&kmsg_read_queue);
-  kmsg_in_use = 0;
+  kmsg_in_use = FALSE;
   simple_lock_init (&kmsg_lock);
 }
 
 /* Kernel Message Open Handler */
 io_return_t
-kmsgopen (dev_t dev, int flag, io_req_t ior)
+kmsgopen (dev_t dev, int flag, const io_req_t ior)
 {
   simple_lock (&kmsg_lock);
   if (kmsg_in_use)
@@ -70,21 +70,20 @@ kmsgopen (dev_t dev, int flag, io_req_t ior)
       return D_ALREADY_OPEN;
     }
   
-  kmsg_in_use = 1;
+  kmsg_in_use = TRUE;
 
   simple_unlock (&kmsg_lock);
   return D_SUCCESS;
 }
 
 /* Kernel Message Close Handler */
-io_return_t
+void
 kmsgclose (dev_t dev, int flag)
 {
   simple_lock (&kmsg_lock);
-  kmsg_in_use = 0;
+  kmsg_in_use = FALSE;
   
   simple_unlock (&kmsg_lock);
-  return D_SUCCESS;
 }
 
 static boolean_t kmsg_read_done (io_req_t ior);
@@ -225,7 +224,7 @@ kmsg_putchar (int c)
   if (!kmsg_init_done)
     {
       kmsginit ();
-      kmsg_init_done = 1;
+      kmsg_init_done = TRUE;
     }
   
   simple_lock (&kmsg_lock);

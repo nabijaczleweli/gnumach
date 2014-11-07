@@ -193,7 +193,7 @@ Port Manipulation Interface
 * Receive Rights::                How to work with receive rights.
 * Port Sets::                     How to work with port sets.
 * Request Notifications::         How to request notifications for events.
-@c  * Inherited Ports::               How to work with the inherited system ports.
+* Inherited Ports::               How to work with the inherited system ports.
 
 Virtual Memory Interface
 
@@ -1330,6 +1330,15 @@ which is conventionally used as a reply port by the recipient of the
 message.  The field must carry a send right, a send-once right,
 @code{MACH_PORT_NULL}, or @code{MACH_PORT_DEAD}.
 
+@item unsigned long msgh_protected_payload
+The @code{msgh_protected_payload} field carries a payload that is set
+by the kernel during message delivery.  The payload is an opaque
+identifier that can be used by the receiver to lookup the associated
+data structure.
+
+It is only valid in received messages.  See @ref{Message Receive} for
+further information.
+
 @item mach_port_seqno_t msgh_seqno
 The @code{msgh_seqno} field provides a sequence number for the message.
 It is only valid in received messages; its value in sent messages is
@@ -1417,6 +1426,7 @@ types are predefined:
 @item MACH_MSG_TYPE_STRING
 @item MACH_MSG_TYPE_STRING_C
 @item MACH_MSG_TYPE_PORT_NAME
+@item MACH_MSG_TYPE_PROTECTED_PAYLOAD
 @end table
 
 The following predefined types specify port rights, and receive special
@@ -1434,6 +1444,11 @@ should be used in preference to @code{MACH_MSG_TYPE_INTEGER_32}.
 @item MACH_MSG_TYPE_MAKE_SEND
 @item MACH_MSG_TYPE_MAKE_SEND_ONCE
 @end table
+
+The type @code{MACH_MSG_TYPE_PROTECTED_PAYLOAD} is used by the kernel
+to indicate that a delivered message carries a payload in the
+@code{msgh_protected_payload} field.  See @ref{Message Receive} for
+more information.
 
 @item msgt_size : 8
 The @code{msgt_size} field specifies the size of each datum, in bits.  For
@@ -1934,6 +1949,25 @@ loses the receive right after the message was dequeued from it, then
 right still exists, but isn't held by the caller, then
 @code{msgh_local_port} specifies @code{MACH_PORT_NULL}.
 
+Servers usually associate some state with a receive right.  To that
+end, they might use a hash table to look up the state for the port a
+message was sent to.  To optimize this, a task may associate an opaque
+@var{payload} with a receive right using the
+@code{mach_port_set_protected_payload} function.  Once this is done,
+the kernel will set the @code{msgh_protected_payload} field to
+@var{payload} when delivering a message to this right and indicate
+this by setting the local part of @code{msgh_bits} to
+@code{MACH_MSG_TYPE_PROTECTED_PAYLOAD}.
+
+The support for protected payloads was added to GNU Mach.  To preserve
+binary compatibility, the @code{msgh_local_port} and
+@code{msgh_local_port} share the same location.  This makes it
+possible to add the payload information without increasing the size of
+@code{mach_msg_header_t}.  This is an implementation detail.  Which
+field is valid is determined by the local part of the
+@code{msgh_bits}.  Existing software is not affected.  When a receive
+right is transferred to another task, its payload is cleared.
+
 Received messages are stamped with a sequence number, taken from the
 port from which the message was received.  (Messages received from a
 port set are stamped with a sequence number from the appropriate member
@@ -2164,7 +2198,7 @@ the kernel.
 * Receive Rights::                How to work with receive rights.
 * Port Sets::                     How to work with port sets.
 * Request Notifications::         How to request notifications for events.
-@c  * Inherited Ports::               How to work with the inherited system ports.
+* Inherited Ports::               How to work with the inherited system ports.
 @end menu
 
 
@@ -2715,6 +2749,41 @@ In addition to the normal diagnostic return codes from the call's server
 (normally the kernel), the call may return @code{mach_msg} return codes.
 @end deftypefun
 
+@deftypefun kern_return_t mach_port_set_protected_payload (@w{ipc_space_t @var{task}}, @w{mach_port_t @var{name}}, @w{unsigned long @var{payload}})
+The function @code{mach_port_set_protected_payload} sets the protected
+payload associated with the right @var{name} to @var{payload}.
+Section @ref{Message Receive} describes how setting a protected
+payload affects the messages delivered to @var{name}.
+
+The function returns @code{KERN_SUCCESS} if the call succeeded,
+@code{KERN_INVALID_TASK} if @var{task} was invalid,
+@code{KERN_INVALID_NAME} if @var{name} did not denote a right and
+@code{KERN_INVALID_RIGHT} if @var{name} denoted a right, but not a
+receive right.
+
+The @code{mach_port_set_protected_payload} call is actually an RPC to
+@var{task}, normally a send right for a task port, but potentially any
+send right.  In addition to the normal diagnostic return codes from
+the call's server (normally the kernel), the call may return
+@code{mach_msg} return codes.
+@end deftypefun
+
+@deftypefun kern_return_t mach_port_clear_protected_payload (@w{ipc_space_t @var{task}}, @w{mach_port_t @var{name}}, @w{unsigned long @var{payload}})
+The function @code{mach_port_clear_protected_payload} clears the
+protected payload associated with the right @var{name}.
+
+The function returns @code{KERN_SUCCESS} if the call succeeded,
+@code{KERN_INVALID_TASK} if @var{task} was invalid,
+@code{KERN_INVALID_NAME} if @var{name} did not denote a right and
+@code{KERN_INVALID_RIGHT} if @var{name} denoted a right, but not a
+receive right.
+
+The @code{mach_port_clear_protected_payload} call is actually an RPC
+to @var{task}, normally a send right for a task port, but potentially
+any send right.  In addition to the normal diagnostic return codes
+from the call's server (normally the kernel), the call may return
+@code{mach_msg} return codes.
+@end deftypefun
 
 @node Port Sets
 @subsection Port Sets
@@ -2848,66 +2917,69 @@ call's server (normally the kernel), the call may return @code{mach_msg}
 return codes.
 @end deftypefun
 
-@c The inherited ports concept is not used in the Hurd,
-@c and so the _SLOT macros are not defined in GNU Mach.
+@node Inherited Ports
+@subsection Inherited Ports
 
-@c  @node Inherited Ports
-@c  @subsection Inherited Ports
+The inherited ports concept is not used in the Hurd, and so the _SLOT
+macros are not defined in GNU Mach.
 
-@c  @deftypefun kern_return_t mach_ports_register (@w{task_t @var{target_task}, @w{port_array_t @var{init_port_set}}, @w{int @var{init_port_array_count}})
-@c  @deftypefunx kern_return_t mach_ports_lookup (@w{task_t @var{target_task}, @w{port_array_t *@var{init_port_set}}, @w{int *@var{init_port_array_count}})
-@c  @code{mach_ports_register} manipulates the inherited ports array,
-@c  @code{mach_ports_lookup} is used to acquire specific parent ports.
-@c  @var{target_task} is the task to be affected.  @var{init_port_set} is an
-@c  array of system ports to be registered, or returned.  Although the array
-@c  size is given as variable, the kernel will only accept a limited number
-@c  of ports.  @var{init_port_array_count} is the number of ports returned
-@c  in @var{init_port_set}.
+The following section documents how @code{mach_ports_register} and
+@code{mach_ports_lookup} were originally intended to be used.
 
-@c  @code{mach_ports_register} registers an array of well-known system ports
-@c  with the kernel on behalf of a specific task.  Currently the ports to be
-@c  registered are: the port to the Network Name Server, the port to the
-@c  Environment Manager, and a port to the Service server.  These port
-@c  values must be placed in specific slots in the init_port_set.  The slot
-@c  numbers are given by the global constants defined in @file{mach_init.h}:
-@c  @code{NAME_SERVER_SLOT}, @code{ENVIRONMENT_SLOT}, and
-@c  @code{SERVICE_SLOT}.  These ports may later be retrieved with
-@c  @code{mach_ports_lookup}.
+@deftypefun kern_return_t mach_ports_register (@w{task_t @var{target_task}}, @w{port_array_t @var{init_port_set}}, @w{int @var{init_port_array_count}})
+@deftypefunx kern_return_t mach_ports_lookup (@w{task_t @var{target_task}}, @w{port_array_t *@var{init_port_set}}, @w{int *@var{init_port_array_count}})
+@code{mach_ports_register} manipulates the inherited ports array,
+@code{mach_ports_lookup} is used to acquire specific parent ports.
+@var{target_task} is the task to be affected.  @var{init_port_set} is an
+array of system ports to be registered, or returned.  Although the array
+size is given as variable, the kernel will only accept a limited number
+of ports.  @var{init_port_array_count} is the number of ports returned
+in @var{init_port_set}.
 
-@c  When a new task is created (see @code{task_create}), the child task will
-@c  be given access to these ports.  Only port send rights may be
-@c  registered.  Furthermore, the number of ports which may be registered is
-@c  fixed and given by the global constant @code{MACH_PORT_SLOTS_USED}
-@c  Attempts to register too many ports will fail.
+@code{mach_ports_register} registers an array of well-known system ports
+with the kernel on behalf of a specific task.  Currently the ports to be
+registered are: the port to the Network Name Server, the port to the
+Environment Manager, and a port to the Service server.  These port
+values must be placed in specific slots in the init_port_set.  The slot
+numbers are given by the global constants defined in @file{mach_init.h}:
+@code{NAME_SERVER_SLOT}, @code{ENVIRONMENT_SLOT}, and
+@code{SERVICE_SLOT}.  These ports may later be retrieved with
+@code{mach_ports_lookup}.
 
-@c  It is intended that this mechanism be used only for task initialization,
-@c  and then only by runtime support modules.  A parent task has three
-@c  choices in passing these system ports to a child task. Most commonly it
-@c  can do nothing and its child will inherit access to the same
-@c  @var{init_port_set} that the parent has; or a parent task may register a
-@c  set of ports it wishes to have passed to all of its children by calling
-@c  @code{mach_ports_register} using its task port; or it may make necessary
-@c  modifications to the set of ports it wishes its child to see, and then
-@c  register those ports using the child's task port prior to starting the
-@c  child's thread(s).  The @code{mach_ports_lookup} call which is done by
-@c  @code{mach_init} in the child task will acquire these initial ports for
-@c  the child.
+When a new task is created (see @code{task_create}), the child task will
+be given access to these ports.  Only port send rights may be
+registered.  Furthermore, the number of ports which may be registered is
+fixed and given by the global constant @code{MACH_PORT_SLOTS_USED}
+Attempts to register too many ports will fail.
 
-@c  Tasks other than the Network Name Server and the Environment Manager
-@c  should not need access to the Service port. The Network Name Server port
-@c  is the same for all tasks on a given machine. The Environment port is
-@c  the only port likely to have different values for different tasks.
+It is intended that this mechanism be used only for task initialization,
+and then only by runtime support modules.  A parent task has three
+choices in passing these system ports to a child task. Most commonly it
+can do nothing and its child will inherit access to the same
+@var{init_port_set} that the parent has; or a parent task may register a
+set of ports it wishes to have passed to all of its children by calling
+@code{mach_ports_register} using its task port; or it may make necessary
+modifications to the set of ports it wishes its child to see, and then
+register those ports using the child's task port prior to starting the
+child's thread(s).  The @code{mach_ports_lookup} call which is done by
+@code{mach_init} in the child task will acquire these initial ports for
+the child.
 
-@c  Since the number of ports which may be registered is limited, ports
-@c  other than those used by the runtime system to initialize a task should
-@c  be passed to children either through an initial message, or through the
-@c  Network Name Server for public ports, or the Environment Manager for
-@c  private ports.
+Tasks other than the Network Name Server and the Environment Manager
+should not need access to the Service port. The Network Name Server port
+is the same for all tasks on a given machine. The Environment port is
+the only port likely to have different values for different tasks.
 
-@c  The function returns @code{KERN_SUCCESS} if the memory was allocated,
-@c  and @code{KERN_INVALID_ARGUMENT} if an attempt was made to register more
-@c  ports than the current kernel implementation allows.
-@c  @end deftypefun
+Since the number of ports which may be registered is limited, ports
+other than those used by the runtime system to initialize a task should
+be passed to children either through an initial message, or through the
+Network Name Server for public ports, or the Environment Manager for
+private ports.
+
+The function returns @code{KERN_SUCCESS} if the memory was allocated,
+and @code{KERN_INVALID_ARGUMENT} if an attempt was made to register more
+ports than the current kernel implementation allows.
+@end deftypefun
 
 
 @node Virtual Memory Interface
@@ -4557,7 +4629,7 @@ their priority from their task and their max priority from the thread.
 
 @deftypefun kern_return_t thread_priority (@w{thread_t @var{thread}}, @w{int @var{prority}}, @w{boolean_t @var{set_max}})
 The function @code{thread_priority} changes the priority and optionally
-the maximum priority of @var{thread}.  Priorities range from 0 to 31,
+the maximum priority of @var{thread}.  Priorities range from 0 to 49,
 where lower numbers denote higher priorities.  If the new priority is
 higher than the priority of the current thread, preemption may occur as
 a result of this call.  The maximum priority of the thread is also set
@@ -4568,7 +4640,7 @@ priority.
 
 The functions returns @code{KERN_SUCCESS} if the operation completed
 successfully, @code{KERN_INVALID_ARGUMENT} if @var{thread} is not a
-thread or @var{priority} is out of range (not in 0..31), and
+thread or @var{priority} is out of range (not in 0..49), and
 @code{KERN_FAILURE} if the requested operation would violate the
 thread's maximum priority (thread_priority).
 @end deftypefun
@@ -4582,7 +4654,7 @@ legal value.
 The functions returns @code{KERN_SUCCESS} if the operation completed
 successfully, @code{KERN_INVALID_ARGUMENT} if @var{thread} is not a
 thread or @var{processor_set} is not a control port for a processor set
-or @var{priority} is out of range (not in 0..31), and
+or @var{priority} is out of range (not in 0..49), and
 @code{KERN_FAILURE} if the thread is not assigned to the processor set
 whose control port was presented.
 @end deftypefun
@@ -5036,6 +5108,17 @@ total system run time for live threads
 @deftp {Data type} task_thread_times_info_t
 This is a pointer to a @code{struct task_thread_times_info}.
 @end deftp
+
+@deftypefun kern_return_t task_set_name (@w{task_t @var{target_task}}, @w{kernel_debug_name_t @var{name}})
+
+The function @code{task_set_name} sets the name of @var{target_task}
+to @var{name}, truncating it if necessary.
+
+This is a debugging aid.  The name is used in diagnostic messages
+printed by the kernel.
+
+The function returns @code{KERN_SUCCESS} if the call succeeded.
+@end deftypefun
 
 
 @node Task Execution
@@ -7018,8 +7101,9 @@ session.  If the execution is resumed again, the numbers may change.
 The current thread can be distinguished from others by a @code{#} after
 the thread id instead of @code{:}.  Without @code{l} option, it only
 shows thread id, thread structure address and the status for each
-thread.  The status consists of 5 letters, R(run), W(wait), S(suspended),
-O(swapped out) and N(interruptible), and if corresponding
+thread.  The status consists of 6 letters, R(run), W(wait), S(suspended),
+O(swapped out), N(interruptible), and F(loating) point arithmetic used (if
+supported by the platform). If the corresponding
 status bit is off, @code{.}  is printed instead.  If @code{l} option is
 specified, more detail information is printed for each thread.
 

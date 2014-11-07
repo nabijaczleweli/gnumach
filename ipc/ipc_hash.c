@@ -64,11 +64,11 @@
  */
 
 boolean_t
-ipc_hash_lookup(space, obj, namep, entryp)
-	ipc_space_t space;
-	ipc_object_t obj;
-	mach_port_t *namep;
-	ipc_entry_t *entryp;
+ipc_hash_lookup(
+	ipc_space_t space,
+	ipc_object_t obj,
+	mach_port_t *namep,
+	ipc_entry_t *entryp)
 {
 	return (ipc_hash_local_lookup(space, obj, namep, entryp) ||
 		((space->is_tree_hash > 0) &&
@@ -326,7 +326,7 @@ ipc_hash_global_delete(
  */
 
 #define	IH_LOCAL_HASH(obj, size)				\
-		((((mach_port_index_t) (vm_offset_t) (obj)) >> 6) % (size))
+	((((mach_port_index_t) (vm_offset_t) (obj)) >> 6) & (size - 1))
 
 /*
  *	Routine:	ipc_hash_local_lookup

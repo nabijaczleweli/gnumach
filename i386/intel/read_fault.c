@@ -39,9 +39,9 @@
  *	ignores write protection in kernel mode.
  */
 kern_return_t
-intel_read_fault(map, vaddr)
-	vm_map_t	map;
-	vm_offset_t	vaddr;
+intel_read_fault(
+	vm_map_t	map,
+	vm_offset_t	vaddr)
 {
 	vm_map_version_t	version;	/* Map version for
 						   verification */
@@ -52,7 +52,7 @@ intel_read_fault(map, vaddr)
 	vm_page_t		top_page;	/* Placeholder page */
 	boolean_t		wired;		/* Is map region wired? */
 	kern_return_t		result;
-	register vm_page_t	m;
+	vm_page_t		m;
 
     RetryFault:
 

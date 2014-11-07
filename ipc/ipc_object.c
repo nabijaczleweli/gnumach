@@ -481,6 +481,7 @@ ipc_object_copyin_from_kernel(
 
 		port->ip_receiver_name = MACH_PORT_NULL;
 		port->ip_destination = IP_NULL;
+		ipc_port_flag_protected_payload_clear(port);
 		ip_unlock(port);
 		break;
 	    }
@@ -1007,7 +1008,7 @@ char *ikot_print_array[IKOT_MAX_TYPE] = {
 
 void
 ipc_object_print(
-	ipc_object_t	object)
+	const ipc_object_t object)
 {
 	int kotype;
 

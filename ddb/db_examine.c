@@ -53,9 +53,6 @@ int		db_examine_count = 1;
 db_addr_t	db_examine_prev_addr = 0;
 thread_t	db_examine_thread = THREAD_NULL;
 
-extern	db_addr_t db_disasm(db_addr_t pc, boolean_t altform, task_t task);
-			/* instruction disassembler */
-
 /*
  * Examine (print) data.
  */
@@ -65,10 +62,9 @@ db_examine_cmd(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	thread_t	thread;
-	boolean_t	db_option();
 
 	if (modif[0] != '\0')
 	    db_strcpy(db_examine_format, modif);
@@ -82,7 +78,7 @@ db_examine_cmd(addr, have_addr, count, modif)
 	      return;
 	  }
 	else
-	  if (db_option(modif,'u'))
+	  if (db_option(modif, 'u'))
 	    thread = current_thread();
 	  else
 	    thread = THREAD_NULL;
@@ -98,7 +94,7 @@ db_examine_forward(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	db_examine(db_next, db_examine_format, db_examine_count,
 				db_thread_to_task(db_examine_thread));
@@ -110,7 +106,7 @@ db_examine_backward(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 
 	db_examine(db_examine_prev_addr - (db_next - db_examine_prev_addr),
@@ -120,9 +116,8 @@ db_examine_backward(addr, have_addr, count, modif)
 
 void
 db_examine(addr, fmt, count, task)
-	register
 	db_addr_t	addr;
-	char *		fmt;	/* format string */
+	const char *	fmt;	/* format string */
 	int		count;	/* repeat count */
 	task_t		task;
 {
@@ -130,7 +125,7 @@ db_examine(addr, fmt, count, task)
 	db_expr_t	value;
 	int		size;	/* in bytes */
 	int		width;
-	char *		fp;
+	const char *	fp;
 
 	db_examine_prev_addr = addr;
 	while (--count >= 0) {
@@ -163,7 +158,7 @@ db_examine(addr, fmt, count, task)
 			db_printf(":\t");
 			break;
 		    case 'm':
-			db_next = db_xcdump(addr, size, count+1, task);
+			db_next = db_xcdump(addr, size, count + 1, task);
 			return;
 		    default:
 			if (db_print_position() == 0) {
@@ -171,7 +166,7 @@ db_examine(addr, fmt, count, task)
 			    char *	name;
 			    db_addr_t	off;
 
-			    db_find_task_sym_and_offset(addr,&name,&off,task);
+			    db_find_task_sym_and_offset(addr, &name, &off, task);
 			    if (off == 0)
 				db_printf("%s:\t", name);
 			    else
@@ -260,7 +255,7 @@ char	db_print_format = 'x';
 
 /*ARGSUSED*/
 void
-db_print_cmd()
+db_print_cmd(void)
 {
 	db_expr_t	value;
 	int		t;
@@ -326,9 +321,9 @@ db_print_cmd()
 }
 
 void
-db_print_loc_and_inst(loc, task)
-	db_addr_t	loc;
-	task_t		task;
+db_print_loc_and_inst(
+	db_addr_t	loc,
+	task_t		task)
 {
 	db_task_printsym(loc, DB_STGY_PROC, task);
 	db_printf(":\t");
@@ -337,20 +332,19 @@ db_print_loc_and_inst(loc, task)
 
 void
 db_strcpy(dst, src)
-	register char *dst;
-	register char *src;
+	char *dst;
+	const char *src;
 {
 	while ((*dst++ = *src++))
 	    ;
 }
 
-void db_search(); /*forward*/
 /*
  * Search for a value in memory.
  * Syntax: search [/bhl] addr value [mask] [,count] [thread]
  */
 void
-db_search_cmd()
+db_search_cmd(void)
 {
 	int		t;
 	db_addr_t	addr;
@@ -360,7 +354,7 @@ db_search_cmd()
 	db_addr_t	count;
 	thread_t	thread;
 	boolean_t	thread_flag = FALSE;
-	register char	*p;
+	char		*p;
 
 	t = db_read_token();
 	if (t == tSLASH) {
@@ -395,7 +389,7 @@ db_search_cmd()
 	    size = sizeof(int);
 	}
 
-	if (!db_expression(&addr)) {
+	if (!db_expression((db_expr_t *)&addr)) {
 	    db_printf("Address missing\n");
 	    db_flush_lex();
 	    return;
@@ -412,7 +406,7 @@ db_search_cmd()
 
 	t = db_read_token();
 	if (t == tCOMMA) {
-	    if (!db_expression(&count)) {
+	    if (!db_expression((db_expr_t *)&count)) {
 		db_printf("Count missing\n");
 		db_flush_lex();
 		return;
@@ -431,18 +425,17 @@ db_search_cmd()
 }
 
 void
-db_search(addr, size, value, mask, count, task)
-	register
-	db_addr_t	addr;
-	int		size;
-	db_expr_t	value;
-	db_expr_t	mask;
-	unsigned int	count;
-	task_t		task;
+db_search(
+	db_addr_t	addr,
+	int		size,
+	db_expr_t	value,
+	db_expr_t	mask,
+	unsigned int	count,
+	task_t		task)
 {
 	while (count-- != 0) {
 		db_prev = addr;
-		if ((db_get_task_value(addr,size,FALSE,task) & mask) == value)
+		if ((db_get_task_value(addr, size, FALSE, task) & mask) == value)
 			break;
 		addr += size;
 	}
@@ -452,13 +445,13 @@ db_search(addr, size, value, mask, count, task)
 #define DB_XCDUMP_NC	16
 
 int
-db_xcdump(addr, size, count, task)
-	db_addr_t	addr;
-	int		size;
-	int		count;
-	task_t		task;
+db_xcdump(
+	db_addr_t	addr,
+	int		size,
+	int		count,
+	task_t		task)
 {
-	register 	int i, n;
+	int 		i, n;
 	db_expr_t	value;
 	int		bcount;
 	db_addr_t	off;

@@ -136,7 +136,10 @@ typedef	struct {
     mach_msg_bits_t	msgh_bits;
     mach_msg_size_t	msgh_size;
     mach_port_t		msgh_remote_port;
-    mach_port_t		msgh_local_port;
+    union {
+        mach_port_t	msgh_local_port;
+        unsigned long	msgh_protected_payload;
+    };
     mach_port_seqno_t	msgh_seqno;
     mach_msg_id_t	msgh_id;
 } mach_msg_header_t;
@@ -253,7 +256,9 @@ typedef	struct	{
 #define MACH_MSG_TYPE_PORT_SEND		MACH_MSG_TYPE_MOVE_SEND
 #define MACH_MSG_TYPE_PORT_SEND_ONCE	MACH_MSG_TYPE_MOVE_SEND_ONCE
 
-#define MACH_MSG_TYPE_LAST		22		/* Last assigned */
+#define MACH_MSG_TYPE_PROTECTED_PAYLOAD	23
+
+#define MACH_MSG_TYPE_LAST		23		/* Last assigned */
 
 /*
  *  A dummy value.  Mostly used to indicate that the actual value

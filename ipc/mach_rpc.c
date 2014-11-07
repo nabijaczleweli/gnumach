@@ -58,9 +58,10 @@
  * info to the other side.
  */
 kern_return_t
-mach_port_rpc_copy(portp, sact, dact)
-	struct rpc_port_desc *portp;
-	struct Act *sact, *dact;
+mach_port_rpc_copy(
+	struct rpc_port_desc 	*portp,
+	struct Act 		*sact, 
+	struct Act 		*dact)
 {
 	ipc_space_t sspace, dspace;
 	mach_msg_type_name_t tname;
@@ -141,7 +142,7 @@ mach_port_rpc_copy(portp, sact, dact)
 }
 
 kern_return_t
-mach_port_rpc_sig(space, name, buffer, buflen)
+mach_port_rpc_sig(const ipc_space_t space, const char *name, const char *buffer, unsigned int buflen)
 {
 	return KERN_FAILURE;
 }

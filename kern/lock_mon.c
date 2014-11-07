@@ -64,7 +64,6 @@ typedef unsigned int time_stamp_t;
 #define LOCK_INFO_HASH_COUNT 1024
 #define LOCK_INFO_PER_BUCKET	(LOCK_INFO_MAX/LOCK_INFO_HASH_COUNT)
 
-
 #define HASH_LOCK(lock)	((long)lock>>5 & (LOCK_INFO_HASH_COUNT-1))
 
 struct lock_info {
@@ -85,7 +84,7 @@ struct lock_info_bucket lock_info[LOCK_INFO_HASH_COUNT];
 struct lock_info default_lock_info;
 unsigned default_lock_stack = 0;
 
-extern int curr_ipl[];
+extern spl_t curr_ipl[];
 
 
 
@@ -94,8 +93,8 @@ locate_lock_info(lock)
 decl_simple_lock_data(, **lock)
 {
 	struct lock_info *li =  &(lock_info[HASH_LOCK(*lock)].info[0]);
-	register i;
-	register my_cpu = cpu_number();
+	int i;
+	my_cpu = cpu_number();
 
 	for (i=0; i < LOCK_INFO_PER_BUCKET; i++, li++)
 		if (li->lock) {
@@ -112,11 +111,11 @@ decl_simple_lock_data(, **lock)
 }
 
 
-simple_lock(lock)
+void simple_lock(lock)
 decl_simple_lock_data(, *lock)
 {
-	register struct lock_info *li = locate_lock_info(&lock);
-	register my_cpu = cpu_number();
+	struct lock_info *li = locate_lock_info(&lock);
+	my_cpu = cpu_number();
 
 	if (current_thread())
 		li->stack = current_thread()->lock_stack++;
@@ -131,11 +130,11 @@ decl_simple_lock_data(, *lock)
 	li->time = time_stamp - li->time;
 }
 
-simple_lock_try(lock)
+int simple_lock_try(lock)
 decl_simple_lock_data(, *lock)
 {
-	register struct lock_info *li = locate_lock_info(&lock);
-	register my_cpu = cpu_number();
+	struct lock_info *li = locate_lock_info(&lock);
+	my_cpu = cpu_number();
 
 	if (curr_ipl[my_cpu])
 		li->masked++;
@@ -151,12 +150,12 @@ decl_simple_lock_data(, *lock)
 	}
 }
 
-simple_unlock(lock)
+void simple_unlock(lock)
 decl_simple_lock_data(, *lock)
 {
-	register time_stamp_t stamp = time_stamp;
-	register time_stamp_t *time = &locate_lock_info(&lock)->time;
-	register unsigned *lock_stack;
+	time_stamp_t stamp = time_stamp;
+	time_stamp_t *time = &locate_lock_info(&lock)->time;
+	unsigned *lock_stack;
 
 	*time = stamp - *time;
 	_simple_unlock(lock);
@@ -167,16 +166,13 @@ decl_simple_lock_data(, *lock)
 	}
 }
 
-lip() {
+void lip(void) {
 	lis(4, 1, 0);
 }
 
 #define lock_info_sort lis
 
-unsigned scurval, ssum;
-struct lock_info *sli;
-
-lock_info_sort(arg, abs, count)
+void lock_info_sort(arg, abs, count)
 {
 	struct lock_info *li, mean;
 	int bucket = 0;
@@ -215,9 +211,6 @@ lock_info_sort(arg, abs, count)
 				sum = li->success + li->fail;
 				if(!sum && !abs)
 					continue;
-				scurval = curval;
-				ssum = sum;
-				sli = li;
 				if (!abs) switch(arg) {
 				case 0:
 					break;
@@ -257,7 +250,7 @@ lock_info_sort(arg, abs, count)
 
 #define lock_info_clear lic
 
-lock_info_clear()
+void lock_info_clear(void)
 {
 	struct lock_info *li;
 	int bucket = 0;
@@ -271,7 +264,7 @@ lock_info_clear()
 	memset(&default_lock_info, 0, sizeof(struct lock_info));
 }
 
-print_lock_info(li)
+void print_lock_info(li)
 struct lock_info *li;
 {
 	int off;
@@ -299,11 +292,11 @@ struct lock_info *li;
  *	Measure lock/unlock operations
  */
 
-time_lock(loops)
+void time_lock(int loops)
 {
 	decl_simple_lock_data(, lock)
-	register time_stamp_t stamp;
-	register int i;
+	time_stamp_t stamp;
+	int i;
 
 
 	if (!loops)
@@ -340,7 +333,7 @@ void
 retry_simple_lock(lock)
 decl_simple_lock_data(, *lock)
 {
-	register count = 0;
+	count = 0;
 
 	while(!simple_lock_try(lock))
 		if (count++ > 1000000 && lock != &kdb_lock) {
@@ -356,7 +349,7 @@ decl_simple_lock_data(, *lock)
 void
 retry_bit_lock(index, addr)
 {
-	register count = 0;
+	count = 0;
 
 	while(!bit_lock_try(index, addr))
 		if (count++ > 1000000) {

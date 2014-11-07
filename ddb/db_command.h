@@ -28,6 +28,9 @@
  *	Date:	7/90
  */
 
+#ifndef _DDB_DB_COMMAND_H_
+#define _DDB_DB_COMMAND_H_
+
 #if MACH_KDB
 
 /*
@@ -38,9 +41,9 @@
 #include <machine/setjmp.h>
 
 extern void		db_command_loop(void);
-extern boolean_t	db_option(char *, int);
+extern boolean_t	db_option(const char *, int) __attribute__ ((pure));
 
-extern void		db_error(char *);	/* report error */
+extern void		db_error(const char *) __attribute__ ((noreturn));	/* report error */
 
 extern db_addr_t	db_dot;		/* current location */
 extern db_addr_t	db_last_addr;	/* last explicit address typed */
@@ -48,8 +51,6 @@ extern db_addr_t	db_prev;	/* last address examined
 					   or written */
 extern db_addr_t	db_next;	/* next address to be examined
 					   or written */
-extern jmp_buf_t *	db_recover;	/* error recovery */
-
 extern jmp_buf_t *	db_recover;	/* error recovery */
 
 /*
@@ -68,6 +69,10 @@ struct db_command {
 
 extern boolean_t db_exec_cmd_nest(char *cmd, int size);
 
-void db_fncall();
+void db_fncall(void);
+
+void db_help_cmd(void);
 
 #endif /* MACH_KDB */
+
+#endif /* _DDB_DB_COMMAND_H_ */

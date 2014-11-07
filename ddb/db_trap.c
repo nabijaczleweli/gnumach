@@ -43,28 +43,25 @@
 #include <ddb/db_output.h>
 #include <ddb/db_task_thread.h>
 #include <ddb/db_trap.h>
+#include <ddb/db_run.h>
 
 
 extern jmp_buf_t *db_recover;
-
-extern void		db_restart_at_pc();
-extern boolean_t	db_stop_at_pc();
 
 extern int		db_inst_count;
 extern int		db_load_count;
 extern int		db_store_count;
 
 void
-db_task_trap(type, code, user_space)
-	int	  type, code;
-	boolean_t user_space;
+db_task_trap(
+	int	  type, 
+	int	  code,
+	boolean_t user_space)
 {
 	jmp_buf_t db_jmpbuf;
 	jmp_buf_t *prev;
 	boolean_t	bkpt;
 	boolean_t	watchpt;
-	void		db_init_default_thread();
-	void		db_check_breakpoint_valid();
 	task_t		task_space;
 
 	task_space = db_target_space(current_thread(), user_space);
@@ -100,8 +97,9 @@ db_task_trap(type, code, user_space)
 }
 
 void
-db_trap(type, code)
-	int	type, code;
+db_trap(
+	int	type, 
+	int	code)
 {
 	db_task_trap(type, code, !DB_VALID_KERN_ADDR(PC_REGS(DDB_REGS)));
 }

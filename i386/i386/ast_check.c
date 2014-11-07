@@ -37,23 +37,17 @@
 /*
  * Initialize for remote invocation of ast_check.
  */
-init_ast_check(processor)
-	processor_t	processor;
+void init_ast_check(processor)
+	const processor_t processor;
 {
-#ifdef lint
-	processor++;
-#endif /* lint */
 }
 
 /*
  * Cause remote invocation of ast_check.  Caller is at splsched().
  */
-cause_ast_check(processor)
-	processor_t	processor;
+void cause_ast_check(processor)
+	const processor_t processor;
 {
-#ifdef lint
-	processor++;
-#endif /* lint */
 }
 
 #endif	/* NCPUS > 1 */

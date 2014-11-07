@@ -40,8 +40,6 @@
 #include <kern/refcount.h>
 #include <kern/queue.h>
 
-#include "act.h"/*XXX*/
-
 struct task;
 struct thread;
 struct Act;
@@ -176,7 +174,6 @@ kern_return_t	act_terminate_task_locked(struct Act *act);
 
 /* Exported to thread.c */
 extern Act	null_act;
-kern_return_t	act_create_kernel(Act **out_act);
 
 /* Exported to machine-dependent activation code */
 void		act_execute_returnhandlers(void);
@@ -192,4 +189,4 @@ kern_return_t	act_machine_get_state(Act *inc, int flavor, int *tstate, unsigned 
 
 
 #endif /* MIGRATING_THREADS */
-#endif _KERN_ACT_H_
+#endif	/* _KERN_ACT_H_ */

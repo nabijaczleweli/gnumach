@@ -27,7 +27,7 @@
  * the rights to redistribute these changes.
  */
 /*
- *	File:	clock_prim.c
+ *	File:	mach_clock.c
  *	Author:	Avadis Tevanian, Jr.
  *	Date:	1986
  *
@@ -54,6 +54,7 @@
 #include <kern/thread.h>
 #include <kern/time_stamp.h>
 #include <kern/timer.h>
+#include <kern/priority.h>
 #include <vm/vm_kern.h>
 #include <sys/time.h>
 #include <machine/mach_param.h>	/* HZ */
@@ -63,8 +64,6 @@
 #if MACH_PCSAMPLE
 #include <kern/pc_sample.h>
 #endif
-
-void softclock();		/* forward */
 
 int		hz = HZ;		/* number of ticks per second */
 int		tick = (1000000 / HZ);	/* number of usec per tick */
@@ -121,13 +120,13 @@ timer_elt_data_t	timer_head;	/* ordered list of timeouts */
  *	the accuracy of the hardware clock.
  *
  */
-void clock_interrupt(usec, usermode, basepri)
-	register int	usec;		/* microseconds per tick */
-	boolean_t	usermode;	/* executing user code */
-	boolean_t	basepri;	/* at base priority */
+void clock_interrupt(
+	int		usec,		/* microseconds per tick */
+	boolean_t	usermode,	/* executing user code */
+	boolean_t	basepri)	/* at base priority */
 {
-	register int		my_cpu = cpu_number();
-	register thread_t	thread = current_thread();
+	int		my_cpu = cpu_number();
+	thread_t	thread = current_thread();
 
 	counter(c_clock_ticks++);
 	counter(c_threads_total += c_threads_current);
@@ -150,8 +149,7 @@ void clock_interrupt(usec, usermode, basepri)
 	 *	Increment the CPU time statistics.
 	 */
 	{
-	    extern void	thread_quantum_update(); /* in priority.c */
-	    register int	state;
+	    int		state;
 
 	    if (usermode)
 		state = CPU_STATE_USER;
@@ -187,8 +185,8 @@ void clock_interrupt(usec, usermode, basepri)
 	 */
 	if (my_cpu == master_cpu) {
 
-	    register spl_t s;
-	    register timer_elt_t	telt;
+	    spl_t s;
+	    timer_elt_t	telt;
 	    boolean_t	needsoft = FALSE;
 
 #if	TS_FORMAT == 1
@@ -221,7 +219,7 @@ void clock_interrupt(usec, usermode, basepri)
 		time_value_add_usec(&time, usec);
 	    }
 	    else {
-		register int	delta;
+		int	delta;
 
 		if (timedelta < 0) {
 		    delta = usec - tickdelta;
@@ -272,15 +270,15 @@ void clock_interrupt(usec, usermode, basepri)
  *	and corrupts it.
  */
 
-void softclock()
+void softclock(void)
 {
 	/*
 	 *	Handle timeouts.
 	 */
 	spl_t	s;
-	register timer_elt_t	telt;
-	register void	(*fcn)( void * param );
-	register void	*param;
+	timer_elt_t	telt;
+	void	(*fcn)( void * param );
+	void	*param;
 
 	while (TRUE) {
 	    s = splsched();
@@ -311,12 +309,12 @@ void softclock()
  *		telt	 timer element.  Function and param are already set.
  *		interval time-out interval, in hz.
  */
-void set_timeout(telt, interval)
-	register timer_elt_t	telt;	/* already loaded */
-	register unsigned int	interval;
+void set_timeout(
+	timer_elt_t	telt,	/* already loaded */
+	unsigned int	interval)
 {
 	spl_t			s;
-	register timer_elt_t	next;
+	timer_elt_t		next;
 
 	s = splsched();
 	simple_lock(&timer_lock);
@@ -341,8 +339,7 @@ void set_timeout(telt, interval)
 	splx(s);
 }
 
-boolean_t reset_timeout(telt)
-	register timer_elt_t	telt;
+boolean_t reset_timeout(timer_elt_t telt)
 {
 	spl_t	s;
 
@@ -362,7 +359,7 @@ boolean_t reset_timeout(telt)
 	}
 }
 
-void init_timeout()
+void init_timeout(void)
 {
 	simple_lock_init(&timer_lock);
 	queue_init(&timer_head.chain);
@@ -389,7 +386,7 @@ record_time_stamp (time_value_t *stamp)
  */
 kern_return_t
 host_get_time(host, current_time)
-	host_t		host;
+	const host_t	host;
 	time_value_t	*current_time;	/* OUT */
 {
 	if (host == HOST_NULL)
@@ -408,7 +405,7 @@ host_get_time(host, current_time)
  */
 kern_return_t
 host_set_time(host, new_time)
-	host_t		host;
+	const host_t	host;
 	time_value_t	new_time;
 {
 	spl_t	s;
@@ -446,7 +443,7 @@ host_set_time(host, new_time)
  */
 kern_return_t
 host_adjust_time(host, new_adjustment, old_adjustment)
-	host_t		host;
+	const host_t	host;
 	time_value_t	new_adjustment;
 	time_value_t	*old_adjustment;	/* OUT */
 {
@@ -492,7 +489,7 @@ host_adjust_time(host, new_adjustment, old_adjustment)
 	return (KERN_SUCCESS);
 }
 
-void mapable_time_init()
+void mapable_time_init(void)
 {
 	if (kmem_alloc_wired(kernel_map, (vm_offset_t *) &mtime, PAGE_SIZE)
 						!= KERN_SUCCESS)
@@ -501,13 +498,13 @@ void mapable_time_init()
 	update_mapped_time(&time);
 }
 
-int timeopen()
+int timeopen(dev_t dev, int flag, io_req_t ior)
 {
 	return(0);
 }
-int timeclose()
+void timeclose(dev_t dev, int flag)
 {
-	return(0);
+	return;
 }
 
 /*
@@ -528,13 +525,13 @@ timer_elt_data_t timeout_timers[NTIMERS];
  *	param:		parameter to pass to function
  *	interval:	timeout interval, in hz.
  */
-void timeout(fcn, param, interval)
-	void	(*fcn)( void * param );
-	void *	param;
-	int	interval;
+void timeout(
+	void	(*fcn)(void *param),
+	void *	param,
+	int	interval)
 {
 	spl_t	s;
-	register timer_elt_t elt;
+	timer_elt_t elt;
 
 	s = splsched();
 	simple_lock(&timer_lock);
@@ -557,11 +554,11 @@ void timeout(fcn, param, interval)
  * and removed.
  */
 boolean_t untimeout(fcn, param)
-	register void	(*fcn)( void * param );
-	register void *	param;
+	void		(*fcn)( void * param );
+	const void *	param;
 {
 	spl_t	s;
-	register timer_elt_t elt;
+	timer_elt_t elt;
 
 	s = splsched();
 	simple_lock(&timer_lock);

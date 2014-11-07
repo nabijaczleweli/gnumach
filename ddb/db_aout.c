@@ -39,6 +39,7 @@
 #include <machine/db_machdep.h>		/* data types */
 #include <ddb/db_output.h>
 #include <ddb/db_sym.h>
+#include <ddb/db_aout.h>
 
 #ifndef	DB_NO_AOUT
 
@@ -69,18 +70,18 @@
 	 ep = (struct nlist *)((char *)sp + *((int*)symtab)))
 
 boolean_t
-aout_db_sym_init(symtab, esymtab, name, task_addr)
-	char *	symtab;		/* pointer to start of symbol table */
-	char *	esymtab;	/* pointer to end of string table,
+aout_db_sym_init(
+	char *	symtab,		/* pointer to start of symbol table */
+	char *	esymtab,	/* pointer to end of string table,
 				   for checking - may be rounded up to
 				   integer boundary */
-	char *	name;
-	char *	task_addr;	/* use for this task only */
+	char *	name,
+	char *	task_addr)	/* use for this task only */
 {
-	register struct nlist	*sym_start, *sym_end;
-	register struct nlist	*sp;
-	register char *	strtab;
-	register int	strlen;
+	struct nlist	*sym_start, *sym_end;
+	struct nlist	*sp;
+	char *		strtab;
+	int		strlen;
 	char *		estrtab;
 
 	db_get_aout_symtab(symtab, sym_start, sym_end);
@@ -100,7 +101,7 @@ aout_db_sym_init(symtab, esymtab, name, task_addr)
 #undef	round_to_size
 
 	for (sp = sym_start; sp < sym_end; sp++) {
-	    register long strx;
+	    long strx;
 	    strx = sp->n_un.n_strx;
 	    if (strx != 0) {
 		if (strx > strlen) {
@@ -131,9 +132,9 @@ aout_db_sym_init(symtab, esymtab, name, task_addr)
 /*
  * check file name or not (check xxxx.x pattern)
  */
-private boolean_t
+private boolean_t __attribute__ ((pure))
 aout_db_is_filename(name)
-	register char *name;
+	const char *name;
 {
 	while (*name) {
 	    if (*name == '.') {
@@ -148,12 +149,12 @@ aout_db_is_filename(name)
 /*
  * special name comparison routine with a name in the symbol table entry
  */
-private boolean_t
+private boolean_t __attribute__ ((pure))
 aout_db_eq_name(sp, name)
-	struct nlist *sp;
-	char *name;
+	const struct nlist *sp;
+	const char *name;
 {
-	register char *s1, *s2;
+	const char *s1, *s2;
 
 	s1 = sp->n_un.n_name;
 	s2 = name;
@@ -185,11 +186,11 @@ aout_db_eq_name(sp, name)
  */
 private struct nlist *
 aout_db_search_name(sp, ep, name, type, fp)
-	register struct nlist *sp;
-	struct nlist	*ep;
-	char		*name;
-	int 		type;
-	struct nlist	**fp;
+	struct nlist 		*sp;
+	const struct nlist	*ep;
+	const char		*name;
+	int 			type;
+	struct nlist		**fp;
 {
 	struct nlist	*file_sp = *fp;
 	struct nlist	*found_sp = 0;
@@ -232,11 +233,11 @@ aout_db_search_name(sp, ep, name, type, fp)
 private db_sym_t
 aout_db_qualified_search(stab, file, sym, line)
 	db_symtab_t	*stab;
-	char		*file;
-	char		*sym;
+	const char	*file;
+	const char	*sym;
 	int 		line;
 {
-	register struct nlist *sp = (struct nlist *)stab->start;
+	struct nlist *sp = (struct nlist *)stab->start;
 	struct nlist	*ep = (struct nlist *)stab->end;
 	struct nlist	*fp = 0;
 	struct nlist	*found_sp;
@@ -244,19 +245,19 @@ aout_db_qualified_search(stab, file, sym, line)
 	boolean_t	in_file;
 
 	if (file == 0 && sym == 0)
-	    return(0);
+	    return(DB_SYM_NULL);
 	if (file) {
 	    if ((sp = aout_db_search_name(sp, ep, file, N_TEXT, &fp)) == 0)
-		return(0);
+		return(DB_SYM_NULL);
 	}
 	if (sym) {
 	    sp = aout_db_search_name(sp, ep, sym, (line > 0)? N_FUN: 0, &fp);
 	    if (sp == 0)
-		return(0);
+		return(DB_SYM_NULL);
 	}
 	if (line > 0) {
 	    if (file && !aout_db_eq_name(fp, file))
-		return(0);
+		return(DB_SYM_NULL);
 	    found_sp = 0;
 	    if (sp->n_type == N_FUN) {
 		/*
@@ -278,7 +279,7 @@ aout_db_qualified_search(stab, file, sym, line)
 		    }
 		}
 		if (sp->n_type != N_SLINE || sp->n_value < func_top)
-		    return(0);
+		    return(DB_SYM_NULL);
 	    } else {
 		/*
 		 * qualified by only file name
@@ -312,26 +313,23 @@ aout_db_qualified_search(stab, file, sym, line)
  * lookup symbol by name
  */
 db_sym_t
-aout_db_lookup(stab, symstr)
-	db_symtab_t	*stab;
-	char *		symstr;
+aout_db_lookup(
+	db_symtab_t	*stab,
+	char *		symstr)
 {
-	db_sym_t db_sym_parse_and_lookup();
-
 	return(db_sym_parse_and_lookup(aout_db_qualified_search, stab, symstr));
 }
 
 db_sym_t
-aout_db_search_symbol(symtab, off, strategy, diffp)
-	db_symtab_t *	symtab;
-	register
-	db_addr_t	off;
-	db_strategy_t	strategy;
-	db_expr_t	*diffp;		/* in/out */
+aout_db_search_symbol(
+	db_symtab_t *	symtab,
+	db_addr_t	off,
+	db_strategy_t	strategy,
+	db_expr_t	*diffp)	/* in/out */
 {
-	register unsigned long	diff = *diffp;
-	register struct nlist	*symp = 0;
-	register struct nlist	*sp, *ep;
+	unsigned long	diff = *diffp;
+	struct nlist	*symp = 0;
+	struct nlist	*sp, *ep;
 
 	sp = (struct nlist *)symtab->start;
 	ep = (struct nlist *)symtab->end;
@@ -376,13 +374,13 @@ aout_db_search_symbol(symtab, off, strategy, diffp)
  * Return the name and value for a symbol.
  */
 void
-aout_db_symbol_values(stab, sym, namep, valuep)
-	db_symtab_t	*stab;
-	db_sym_t	sym;
-	char		**namep;
-	db_expr_t	*valuep;
+aout_db_symbol_values(
+	db_symtab_t	*stab,
+	db_sym_t	sym,
+	char		**namep,
+	db_expr_t	*valuep)
 {
-	register struct nlist *sp;
+	struct nlist *sp;
 
 	sp = (struct nlist *)sym;
 	if (namep)
@@ -398,16 +396,16 @@ aout_db_symbol_values(stab, sym, namep, valuep)
  */
 private boolean_t
 aout_db_search_by_addr(stab, addr, file, func, line, diff)
-	db_symtab_t	*stab;
-	register	vm_offset_t addr;
-	char		**file;
-	char		**func;
-	int 	 	*line;
-	unsigned long	*diff;
+	const db_symtab_t	*stab;
+	vm_offset_t 		addr;
+	char			**file;
+	char			**func;
+	int 	 		*line;
+	unsigned long		*diff;
 {
-	register	struct nlist *sp;
-	register	struct nlist *line_sp, *func_sp, *file_sp, *line_func;
-	register vm_size_t func_diff, line_diff;
+	struct nlist 	*sp;
+	struct nlist 	*line_sp, *func_sp, *file_sp, *line_func;
+	vm_size_t 	func_diff, line_diff;
 	boolean_t	found_line = FALSE;
 	struct 	  	nlist *ep = (struct nlist *)stab->end;
 
@@ -495,13 +493,13 @@ aout_db_line_at_pc(stab, sym, file, line, pc)
 	db_sym_t	sym;
 	char		**file;
 	int		*line;
-	db_expr_t	pc;
+	db_addr_t	pc;
 {
 	char		*func;
 	unsigned long	diff;
 	boolean_t	found;
 
-	found = aout_db_search_by_addr(stab,(vm_offset_t)pc,file,&func,line,&diff);
+	found = aout_db_search_by_addr(stab, pc, file, &func, line, &diff);
 	return(found && func && *file);
 }
 

@@ -25,6 +25,7 @@
 #include <kern/task.h>
 #include <machine/thread.h>
 #include <ddb/db_watch.h>
+#include <ddb/db_variables.h>
 
 extern boolean_t kdb_trap (
 	int 			type,
@@ -57,7 +58,7 @@ extern boolean_t db_phys_eq (
 extern int db_user_to_kernel_address(
 	task_t		task,
 	vm_offset_t	addr,
-	unsigned int	*kaddr,
+	vm_offset_t	*kaddr,
 	int		flag);
 
 extern void db_task_name (task_t task);
@@ -88,6 +89,26 @@ extern void db_dr (
 	int		type,
 	int		len,
 	int		persistence);
+
+extern void
+db_stack_trace_cmd(
+	db_expr_t	addr,
+	boolean_t	have_addr,
+	db_expr_t	count,
+	const char	*modif);
+
+extern void
+db_halt_cpu(void);
+extern void
+db_reset_cpu(void);
+
+void
+db_i386_reg_value(
+	struct db_variable	*vp,
+	db_expr_t		*valuep,
+	int			flag,
+	struct db_var_aux_param	*ap);
+
 #endif
 
 extern void db_get_debug_state(
@@ -98,5 +119,14 @@ extern kern_return_t db_set_debug_state(
 	const struct i386_debug_state *state);
 
 extern void db_load_context(pcb_t pcb);
+
+extern void cnpollc(boolean_t on);
+
+void
+db_write_bytes_user_space(
+	vm_offset_t	addr,
+	int		size,
+	char		*data,
+	task_t		task);
 
 #endif /* _I386_DB_INTERFACE_H_ */

@@ -40,32 +40,27 @@
 /*
  * Print out disk name and block number for hard disk errors.
  */
-void harderr(bp, cp)
-	struct buf *bp;
-	char *	cp;
+void harderr(ior, cp)
+	const io_req_t ior;
+	const char *	cp;
 {
 	printf("%s%d%c: hard error sn%d ",
 	       cp,
-	       minor(bp->b_dev) >> 3,
-	       'a' + (minor(bp->b_dev) & 0x7),
-	       bp->b_blkno);
+	       minor(ior->io_unit) >> 3,
+	       'a' + (minor(ior->io_unit) & 0x7),
+	       ior->io_recnum);
 }
-
-/*
- * Ethernet support routines.
- */
-u_char	etherbroadcastaddr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 /*
  * Convert Ethernet address to printable (loggable) representation.
  */
 char *
 ether_sprintf(ap)
-	register u_char *ap;
+	const u_char *ap;
 {
-	register int i;
+	int i;
 	static char etherbuf[18];
-	register char *cp = etherbuf;
+	char *cp = etherbuf;
 	static char digits[] = "0123456789abcdef";
 
 	for (i = 0; i < 6; i++) {
@@ -80,8 +75,7 @@ ether_sprintf(ap)
 /*
  * Initialize send and receive queues on an interface.
  */
-void if_init_queues(ifp)
-	register struct ifnet *ifp;
+void if_init_queues(struct ifnet *ifp)
 {
 	IFQ_INIT(&ifp->if_snd);
 	queue_init(&ifp->if_rcv_port_list);
@@ -108,11 +102,11 @@ void wakeup(channel)
 	thread_wakeup((event_t) channel);
 }
 
-struct buf *
+io_req_t
 geteblk(size)
 	int	size;
 {
-	register io_req_t	ior;
+	io_req_t	ior;
 
 	io_req_alloc(ior, 0);
 	ior->io_device = (mach_device_t)0;
@@ -133,11 +127,9 @@ geteblk(size)
 	return (ior);
 }
 
-void brelse(bp)
-	struct buf *bp;
+void brelse(ior)
+	io_req_t ior;
 {
-	register io_req_t	ior = bp;
-
 	(void) vm_deallocate(kernel_map,
 			(vm_offset_t) ior->io_data,
 			ior->io_alloc_size);

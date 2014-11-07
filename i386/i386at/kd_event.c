@@ -83,11 +83,6 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 kd_event_queue kbd_queue;		/* queue of keyboard events */
 queue_head_t	kbd_read_queue = { &kbd_read_queue, &kbd_read_queue };
 
-
-void kbd_enqueue();
-io_return_t X_kdb_enter_init();
-io_return_t X_kdb_exit_init();
-
 static boolean_t initialized = FALSE;
 
 
@@ -96,7 +91,7 @@ static boolean_t initialized = FALSE;
  */
 
 void
-kbdinit()
+kbdinit(void)
 {
 	spl_t s = SPLKD();
 
@@ -115,9 +110,10 @@ kbdinit()
 
 /*ARGSUSED*/
 int
-kbdopen(dev, flags)
+kbdopen(dev, flags, ior)
 	dev_t dev;
 	int flags;
+	io_req_t ior;
 {
 	spl_t o_pri = spltty();
 	kdinit();
@@ -135,9 +131,9 @@ kbdopen(dev, flags)
 
 /*ARGSUSED*/
 void
-kbdclose(dev, flags)
-	dev_t dev;
-	int flags;
+kbdclose(
+	dev_t 	dev,
+	int 	flags)
 {
 	spl_t s = SPLKD();
 
@@ -147,11 +143,11 @@ kbdclose(dev, flags)
 }
 
 
-io_return_t kbdgetstat(dev, flavor, data, count)
-	dev_t		dev;
-	int		flavor;
-	int *		data;		/* pointer to OUT array */
-	unsigned int	*count;		/* OUT */
+io_return_t kbdgetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,		/* pointer to OUT array */
+	unsigned int	*count)		/* OUT */
 {
 	switch (flavor) {
 	    case KDGKBDTYPE:
@@ -169,11 +165,11 @@ io_return_t kbdgetstat(dev, flavor, data, count)
 	return (D_SUCCESS);
 }
 
-io_return_t kbdsetstat(dev, flavor, data, count)
-	dev_t		dev;
-	int		flavor;
-	int *		data;
-	unsigned int	count;
+io_return_t kbdsetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,
+	unsigned int	count)
 {
 	switch (flavor) {
 	    case KDSKBDMODE:
@@ -187,9 +183,9 @@ io_return_t kbdsetstat(dev, flavor, data, count)
 		kd_setleds1 (*data);
 		break;
 	    case K_X_KDB_ENTER:
-		return X_kdb_enter_init(data, count);
+		return X_kdb_enter_init((unsigned int *)data, count);
 	    case K_X_KDB_EXIT:
-		return X_kdb_exit_init(data, count);
+		return X_kdb_exit_init((unsigned int *)data, count);
 	    default:
 		return (D_INVALID_OPERATION);
 	}
@@ -201,16 +197,13 @@ io_return_t kbdsetstat(dev, flavor, data, count)
 /*
  * kbdread - dequeue and return any queued events.
  */
-
-boolean_t	kbd_read_done();	/* forward */
-
 int
-kbdread(dev, ior)
-	dev_t	dev;
-	register io_req_t	ior;
+kbdread(
+	dev_t		dev,
+	io_req_t	ior)
 {
-	register int	err, count;
-	register spl_t	s;
+	int		err, count;
+	spl_t		s;
 
 	/* Check if IO_COUNT is a multiple of the record size. */
 	if (ior->io_count % sizeof(kd_event) != 0)
@@ -233,7 +226,7 @@ kbdread(dev, ior)
 	}
 	count = 0;
 	while (!kdq_empty(&kbd_queue) && count < ior->io_count) {
-	    register kd_event *ev;
+	    kd_event *ev;
 
 	    ev = kdq_get(&kbd_queue);
 	    *(kd_event *)(&ior->io_data[count]) = *ev;
@@ -244,11 +237,10 @@ kbdread(dev, ior)
 	return (D_SUCCESS);
 }
 
-boolean_t kbd_read_done(ior)
-	register io_req_t	ior;
+boolean_t kbd_read_done(io_req_t ior)
 {
-	register int	count;
-	register spl_t	s;
+	int		count;
+	spl_t		s;
 
 	s = SPLKD();
 	if (kdq_empty(&kbd_queue)) {
@@ -260,7 +252,7 @@ boolean_t kbd_read_done(ior)
 
 	count = 0;
 	while (!kdq_empty(&kbd_queue) && count < ior->io_count) {
-	    register kd_event *ev;
+	    kd_event *ev;
 
 	    ev = kdq_get(&kbd_queue);
 	    *(kd_event *)(&ior->io_data[count]) = *ev;
@@ -281,8 +273,7 @@ boolean_t kbd_read_done(ior)
  */
 
 void
-kd_enqsc(sc)
-	Scancode sc;
+kd_enqsc(Scancode sc)
 {
 	kd_event ev;
 
@@ -299,8 +290,7 @@ kd_enqsc(sc)
  */
 
 void
-kbd_enqueue(ev)
-	kd_event *ev;
+kbd_enqueue(kd_event *ev)
 {
 	if (kdq_full(&kbd_queue))
 		printf("kbd: queue full\n");
@@ -308,7 +298,7 @@ kbd_enqueue(ev)
 		kdq_put(&kbd_queue, ev);
 
 	{
-	    register io_req_t	ior;
+	    io_req_t	ior;
 	    while ((ior = (io_req_t)dequeue_head(&kbd_read_queue)) != 0)
 		iodone(ior);
 	}
@@ -319,9 +309,9 @@ int   X_kdb_enter_len = 0,  X_kdb_exit_len = 0;
 
 void
 kdb_in_out(p)
-u_int *p;
+const u_int *p;
 {
-register int t = p[0];
+	int t = p[0];
 
 	switch (t & K_X_TYPE) {
 		case K_X_IN|K_X_BYTE:
@@ -351,9 +341,9 @@ register int t = p[0];
 }
 
 void
-X_kdb_enter()
+X_kdb_enter(void)
 {
-register u_int *u_ip, *endp;
+	u_int *u_ip, *endp;
 
 	for (u_ip = X_kdb_enter_str, endp = &X_kdb_enter_str[X_kdb_enter_len];
 	     u_ip < endp;
@@ -362,9 +352,9 @@ register u_int *u_ip, *endp;
 }
 
 void
-X_kdb_exit()
+X_kdb_exit(void)
 {
-register u_int *u_ip, *endp;
+	u_int *u_ip, *endp;
 
 	for (u_ip = X_kdb_exit_str, endp = &X_kdb_exit_str[X_kdb_exit_len];
 	     u_ip < endp;
@@ -373,9 +363,9 @@ register u_int *u_ip, *endp;
 }
 
 io_return_t
-X_kdb_enter_init(data, count)
-    u_int *data;
-    u_int count;
+X_kdb_enter_init(
+    u_int *data,
+    u_int count)
 {
     if (count * sizeof X_kdb_enter_str[0] > sizeof X_kdb_enter_str)
 	return D_INVALID_OPERATION;
@@ -386,9 +376,9 @@ X_kdb_enter_init(data, count)
 }
 
 io_return_t
-X_kdb_exit_init(data, count)
-    u_int *data;
-    u_int count;
+X_kdb_exit_init(
+    u_int *data,
+    u_int count)
 {
     if (count * sizeof X_kdb_exit_str[0] > sizeof X_kdb_exit_str)
 	return D_INVALID_OPERATION;

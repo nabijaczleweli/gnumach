@@ -45,6 +45,8 @@
  *	an ipc_table_size structure.  These structures must
  *	be elements of an array, ipc_table_entries.
  *
+ *	Every its_size value must must be a power of two.
+ *
  *	The array must end with two elements with the same its_size value.
  *	Except for the terminating element, the its_size values must
  *	be strictly increasing.  The largest (last) its_size value
@@ -107,6 +109,12 @@ extern vm_offset_t ipc_table_realloc(
 extern void ipc_table_free(
 	vm_size_t	size,
 	vm_offset_t	table);
+
+void ipc_table_fill(
+	ipc_table_size_t	its,
+	unsigned int		num,
+	unsigned int		min,
+	vm_size_t		elemsize);
 
 #define	it_entries_alloc(its)						\
 	((ipc_entry_t)							\

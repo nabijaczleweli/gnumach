@@ -39,6 +39,7 @@
 #include <mach/time_value.h>
 #include <mach/mach_param.h>
 #include <mach/task_info.h>
+#include <mach_debug/mach_debug_types.h>
 #include <kern/kern_types.h>
 #include <kern/lock.h>
 #include <kern/queue.h>
@@ -48,11 +49,22 @@
 #include <vm/vm_types.h>
 #include <machine/task.h>
 
+/*
+ * Task name buffer size.  The size is chosen so that struct task fits
+ * into three cache lines.  The size of a cache line on a typical CPU
+ * is 64 bytes.
+ */
+#define TASK_NAME_SIZE 32
+
 struct task {
 	/* Synchronization/destruction information */
 	decl_simple_lock_data(,lock)	/* Task's lock */
 	int		ref_count;	/* Number of references to me */
-	boolean_t	active;		/* Task has not been terminated */
+
+	/* Flags */
+	unsigned int	active:1,	/* Task has not been terminated */
+	/* boolean_t */ may_assign:1,	/* can assigned pset be changed? */
+			assign_active:1;	/* waiting for may_assign */
 
 	/* Miscellaneous */
 	vm_map_t	map;		/* Address space description */
@@ -63,8 +75,6 @@ struct task {
 	queue_head_t	thread_list;	/* list of threads */
 	int		thread_count;	/* number of threads */
 	processor_set_t	processor_set;	/* processor set for new threads */
-	boolean_t	may_assign;	/* can assigned pset be changed? */
-	boolean_t	assign_active;	/* waiting for may_assign */
 
 	/* User-visible scheduling information */
 	int		user_stop_count;	/* outstanding stops */
@@ -111,6 +121,8 @@ struct task {
 	natural_t	cow_faults;	/* copy-on-write faults counter */
 	natural_t	messages_sent;	/* messages sent counter */
 	natural_t	messages_received; /* messages received counter */
+
+	char	name[TASK_NAME_SIZE];
 };
 
 #define task_lock(task)		simple_lock(&(task)->lock)
@@ -158,6 +170,9 @@ extern kern_return_t	task_assign(
 extern kern_return_t	task_assign_default(
 	task_t		task,
 	boolean_t	assign_threads);
+extern kern_return_t	task_set_name(
+	task_t			task,
+	kernel_debug_name_t	name);
 extern void consider_task_collect(void);
 
 /*

@@ -1,9 +1,9 @@
-This is mach.info, produced by makeinfo version 5.1 from mach.texi.
+This is mach.info, produced by makeinfo version 5.2 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 27 September 2013, of 'The GNU
-Mach Reference Manual', for version 1.4.
+   This is edition 0.4, last updated on 22 October 2014, of 'The GNU
+Mach Reference Manual', for version 1.4+git20141107.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -36,6 +36,257 @@ INFO-DIR-SECTION Kernel
 START-INFO-DIR-ENTRY
 * GNUMach: (mach).              Using and programming the GNU Mach microkernel.
 END-INFO-DIR-ENTRY
+
+
+File: mach.info,  Node: Device Filter,  Prev: Device Status,  Up: Device Interface
+
+10.8 Device Filter
+==================
+
+ -- Function: kern_return_t device_set_filter (device_t DEVICE,
+          mach_port_t RECEIVE_PORT,
+          mach_msg_type_name_t RECEIVE_PORT_TYPE, int PRIORITY,
+          filter_array_t FILTER, mach_msg_type_number_t FILTER_COUNT)
+     The function 'device_set_filter' makes it possible to filter out
+     selected data arriving at or leaving the device and forward it to a
+     port.  FILTER is a list of filter commands, which are applied to
+     incoming data to determine if the data should be sent to
+     RECEIVE_PORT.  The IPC type of the send right is specified by
+     RECEIVE_PORT_RIGHT, it is either 'MACH_MSG_TYPE_MAKE_SEND' or
+     'MACH_MSG_TYPE_MOVE_SEND'.  The PRIORITY value is used to order
+     multiple filters.
+
+     There can be up to 'NET_MAX_FILTER' commands in FILTER.  The actual
+     number of commands is passed in FILTER_COUNT.  For the purpose of
+     the filter test, an internal stack is provided.  After all commands
+     have been processed, the value on the top of the stack determines
+     if the data is forwarded or the next filter is tried.
+
+     The first command is a header which contains two fields: one for
+     flags and the other for the type of interpreter used to run the
+     rest of the commands.
+
+     Any combination of the following flags is allowed but at least one
+     of them must be specified.
+
+     'NETF_IN'
+          The filter will be applied to data received by the device.
+
+     'NETF_OUT'
+          The filter will be applied to data transmitted by the device.
+
+     Unless the type is given explicitly the native NETF interpreter
+     will be used.  To select an alternative implementation use one of
+     the following types:
+
+     'NETF_BPF'
+          Use Berkeley Packet Filter.
+
+     For the listener to know what kind of packet is being received,
+     when the filter code accepts a packet the message sent to
+     RECEIVE_PORT is tagged with either NETF_IN or NETF_OUT.
+
+     Each word of the command list specifies a data (push) operation
+     (high order NETF_NBPO bits) as well as a binary operator (low order
+     NETF_NBPA bits).  The value to be pushed onto the stack is chosen
+     as follows.
+
+     'NETF_PUSHLIT'
+          Use the next short word of the filter as the value.
+
+     'NETF_PUSHZERO'
+          Use 0 as the value.
+
+     'NETF_PUSHWORD+N'
+          Use short word N of the "data" portion of the message as the
+          value.
+
+     'NETF_PUSHHDR+N'
+          Use short word N of the "header" portion of the message as the
+          value.
+
+     'NETF_PUSHIND+N'
+          Pops the top long word from the stack and then uses short word
+          N of the "data" portion of the message as the value.
+
+     'NETF_PUSHHDRIND+N'
+          Pops the top long word from the stack and then uses short word
+          N of the "header" portion of the message as the value.
+
+     'NETF_PUSHSTK+N'
+          Use long word N of the stack (where the top of stack is long
+          word 0) as the value.
+
+     'NETF_NOPUSH'
+          Don't push a value.
+
+     The unsigned value so chosen is promoted to a long word before
+     being pushed.  Once a value is pushed (except for the case of
+     'NETF_NOPUSH'), the top two long words of the stack are popped and
+     a binary operator applied to them (with the old top of stack as the
+     second operand).  The result of the operator is pushed on the
+     stack.  These operators are:
+
+     'NETF_NOP'
+          Don't pop off any values and do no operation.
+
+     'NETF_EQ'
+          Perform an equal comparison.
+
+     'NETF_LT'
+          Perform a less than comparison.
+
+     'NETF_LE'
+          Perform a less than or equal comparison.
+
+     'NETF_GT'
+          Perform a greater than comparison.
+
+     'NETF_GE'
+          Perform a greater than or equal comparison.
+
+     'NETF_AND'
+          Perform a bitise boolean AND operation.
+
+     'NETF_OR'
+          Perform a bitise boolean inclusive OR operation.
+
+     'NETF_XOR'
+          Perform a bitise boolean exclusive OR operation.
+
+     'NETF_NEQ'
+          Perform a not equal comparison.
+
+     'NETF_LSH'
+          Perform a left shift operation.
+
+     'NETF_RSH'
+          Perform a right shift operation.
+
+     'NETF_ADD'
+          Perform an addition.
+
+     'NETF_SUB'
+          Perform a subtraction.
+
+     'NETF_COR'
+          Perform an equal comparison.  If the comparison is 'TRUE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CAND'
+          Perform an equal comparison.  If the comparison is 'FALSE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CNOR'
+          Perform a not equal comparison.  If the comparison is 'FALSE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CNAND'
+          Perform a not equal comparison.  If the comparison is 'TRUE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.  The scan of the filter list
+          terminates when the filter list is emptied, or a 'NETF_C...'
+          operation terminates the list.  At this time, if the final
+          value of the top of the stack is 'TRUE', then the message is
+          accepted for the filter.
+
+     The function returns 'D_SUCCESS' if some data was successfully
+     written, 'D_INVALID_OPERATION' if RECEIVE_PORT is not a valid send
+     right, and 'D_NO_SUCH_DEVICE' if DEVICE does not denote a device
+     port or the device is dead or not completely open.
+
+
+File: mach.info,  Node: Kernel Debugger,  Next: Copying,  Prev: Device Interface,  Up: Top
+
+11 Kernel Debugger
+******************
+
+The GNU Mach kernel debugger 'ddb' is a powerful built-in debugger with
+a gdb like syntax.  It is enabled at compile time using the
+'--enable-kdb' option.  Whenever you want to enter the debugger while
+running the kernel, you can press the key combination <Ctrl-Alt-D>.
+
+* Menu:
+
+* Operation::                     Basic architecture of the kernel debugger.
+* Commands::                      Available commands in the kernel debugger.
+* Variables::                     Access of variables from the kernel debugger.
+* Expressions::                   Usage of expressions in the kernel debugger.
+
+
+File: mach.info,  Node: Operation,  Next: Commands,  Up: Kernel Debugger
+
+11.1 Operation
+==============
+
+The current location is called "dot".  The dot is displayed with a
+hexadecimal format at a prompt.  Examine and write commands update dot
+to the address of the last line examined or the last location modified,
+and set "next" to the address of the next location to be examined or
+changed.  Other commands don't change dot, and set next to be the same
+as dot.
+
+   The general command syntax is:
+
+     COMMAND[/MODIFIER] ADDRESS [,COUNT]
+
+   '!!' repeats the previous command, and a blank line repeats from the
+address next with count 1 and no modifiers.  Specifying ADDRESS sets dot
+to the address.  Omitting ADDRESS uses dot.  A missing COUNT is taken to
+be 1 for printing commands or infinity for stack traces.
+
+   Current 'ddb' is enhanced to support multi-thread debugging.  A break
+point can be set only for a specific thread, and the address space or
+registers of non current thread can be examined or modified if supported
+by machine dependent routines.  For example,
+
+     break/t mach_msg_trap $task11.0
+
+   sets a break point at 'mach_msg_trap' for the first thread of task 11
+listed by a 'show all threads' command.
+
+   In the above example, '$task11.0' is translated to the corresponding
+thread structure's address by variable translation mechanism described
+later.  If a default target thread is set in a variable '$thread', the
+'$task11.0' can be omitted.  In general, if 't' is specified in a
+modifier of a command line, a specified thread or a default target
+thread is used as a target thread instead of the current one.  The 't'
+modifier in a command line is not valid in evaluating expressions in a
+command line.  If you want to get a value indirectly from a specific
+thread's address space or access to its registers within an expression,
+you have to specify a default target thread in advance, and to use ':t'
+modifier immediately after the indirect access or the register reference
+like as follows:
+
+     set $thread $task11.0
+     print $eax:t *(0x100):tuh
+
+   No sign extension and indirection 'size(long, half word, byte)' can
+be specified with 'u', 'l', 'h' and 'b' respectively for the indirect
+access.
+
+   Note: Support of non current space/register access and user space
+break point depend on the machines.  If not supported, attempts of such
+operation may provide incorrect information or may cause strange
+behavior.  Even if supported, the user space access is limited to the
+pages resident in the main memory at that time.  If a target page is not
+in the main memory, an error will be reported.
+
+   'ddb' has a feature like a command 'more' for the output.  If an
+output line exceeds the number set in the '$lines' variable, it displays
+'--db_more--' and waits for a response.  The valid responses for it are:
+
+'<SPC>'
+     one more page
+
+'<RET>'
+     one more line
+
+'q'
+     abort the current command, and return to the command input mode
 
 
 File: mach.info,  Node: Commands,  Next: Variables,  Prev: Operation,  Up: Kernel Debugger
@@ -313,11 +564,12 @@ File: mach.info,  Node: Commands,  Next: Variables,  Prev: Operation,  Up: Kerne
      numbers may change.  The current thread can be distinguished from
      others by a '#' after the thread id instead of ':'.  Without 'l'
      option, it only shows thread id, thread structure address and the
-     status for each thread.  The status consists of 5 letters, R(run),
-     W(wait), S(suspended), O(swapped out) and N(interruptible), and if
-     corresponding status bit is off, '.' is printed instead.  If 'l'
-     option is specified, more detail information is printed for each
-     thread.
+     status for each thread.  The status consists of 6 letters, R(run),
+     W(wait), S(suspended), O(swapped out), N(interruptible), and
+     F(loating) point arithmetic used (if supported by the platform).
+     If the corresponding status bit is off, '.' is printed instead.  If
+     'l' option is specified, more detail information is printed for
+     each thread.
 
 'show task [ ADDR ]'
      Display the information of a task specified by ADDR.  If ADDR is
@@ -1438,26 +1690,29 @@ Function and Data Index
                                                               (line   9)
 * mach_host_self:                        Host Ports.          (line  13)
 * mach_msg:                              Mach Message Call.   (line   9)
-* MACH_MSGH_BITS:                        Message Format.      (line  94)
-* MACH_MSGH_BITS_LOCAL:                  Message Format.      (line 106)
-* MACH_MSGH_BITS_OTHER:                  Message Format.      (line 116)
-* MACH_MSGH_BITS_PORTS:                  Message Format.      (line 111)
-* MACH_MSGH_BITS_REMOTE:                 Message Format.      (line 101)
+* MACH_MSGH_BITS:                        Message Format.      (line 103)
+* MACH_MSGH_BITS_LOCAL:                  Message Format.      (line 115)
+* MACH_MSGH_BITS_OTHER:                  Message Format.      (line 125)
+* MACH_MSGH_BITS_PORTS:                  Message Format.      (line 120)
+* MACH_MSGH_BITS_REMOTE:                 Message Format.      (line 110)
 * mach_msg_bits_t:                       Message Format.      (line  20)
 * mach_msg_header_t:                     Message Format.      (line  32)
 * mach_msg_id_t:                         Message Format.      (line  28)
 * mach_msg_size_t:                       Message Format.      (line  24)
 * mach_msg_timeout_t:                    Mach Message Call.   (line  60)
-* mach_msg_type_long_t:                  Message Format.      (line 231)
-* mach_msg_type_name_t:                  Message Format.      (line 127)
-* mach_msg_type_number_t:                Message Format.      (line 137)
-* MACH_MSG_TYPE_PORT_ANY:                Message Format.      (line 217)
-* MACH_MSG_TYPE_PORT_ANY_RIGHT:          Message Format.      (line 226)
-* MACH_MSG_TYPE_PORT_ANY_SEND:           Message Format.      (line 221)
-* mach_msg_type_size_t:                  Message Format.      (line 132)
-* mach_msg_type_t:                       Message Format.      (line 142)
+* mach_msg_type_long_t:                  Message Format.      (line 246)
+* mach_msg_type_name_t:                  Message Format.      (line 136)
+* mach_msg_type_number_t:                Message Format.      (line 146)
+* MACH_MSG_TYPE_PORT_ANY:                Message Format.      (line 232)
+* MACH_MSG_TYPE_PORT_ANY_RIGHT:          Message Format.      (line 241)
+* MACH_MSG_TYPE_PORT_ANY_SEND:           Message Format.      (line 236)
+* mach_msg_type_size_t:                  Message Format.      (line 141)
+* mach_msg_type_t:                       Message Format.      (line 151)
+* mach_ports_lookup:                     Inherited Ports.     (line  14)
+* mach_ports_register:                   Inherited Ports.     (line  12)
 * mach_port_allocate:                    Port Creation.       (line   6)
 * mach_port_allocate_name:               Port Creation.       (line  64)
+* mach_port_clear_protected_payload:     Receive Rights.      (line 142)
 * mach_port_deallocate:                  Port Destruction.    (line   6)
 * mach_port_destroy:                     Port Destruction.    (line  28)
 * mach_port_extract_right:               Ports and other Tasks.
@@ -1478,6 +1733,7 @@ Function and Data Index
 * mach_port_rights_t:                    Receive Rights.      (line  18)
 * mach_port_seqno_t:                     Receive Rights.      (line   6)
 * mach_port_set_mscount:                 Receive Rights.      (line  71)
+* mach_port_set_protected_payload:       Receive Rights.      (line 124)
 * mach_port_set_qlimit:                  Receive Rights.      (line  88)
 * mach_port_set_seqno:                   Receive Rights.      (line 106)
 * mach_port_status_t:                    Receive Rights.      (line  22)
@@ -1632,6 +1888,7 @@ Function and Data Index
 * task_set_emulation_vector:             Syscall Emulation.   (line  12)
 * task_set_exception_port:               Task Special Ports.  (line  70)
 * task_set_kernel_port:                  Task Special Ports.  (line  64)
+* task_set_name:                         Task Information.    (line 160)
 * task_set_special_port:                 Task Special Ports.  (line  46)
 * task_suspend:                          Task Execution.      (line   6)
 * task_t:                                Task Interface.      (line   6)

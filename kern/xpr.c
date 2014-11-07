@@ -56,12 +56,16 @@ struct xprbuf *xprptr;	/* Currently allocated xprbuf */
 struct xprbuf *xprlast;	/* Pointer to end of circular buffer */
 
 /*VARARGS1*/
-void xpr(msg, arg1, arg2, arg3, arg4, arg5)
-char *msg;
-int arg1, arg2, arg3, arg4, arg5;
+void xpr(
+	char 	*msg,
+	int 	arg1, 
+	int 	arg2, 
+	int 	arg3, 
+	int 	arg4, 
+	int 	arg5)
 {
-	register spl_t s;
-	register struct xprbuf *x;
+	spl_t s;
+	struct xprbuf *x;
 
 	/* If we aren't initialized, ignore trace request */
 	if (!xprenable || (xprptr == 0))
@@ -115,7 +119,7 @@ void xprbootstrap(void)
 		 *	the previous buffer contents.
 		 */
 
-		memset((char *) addr, 0, size);
+		memset((void *) addr, 0, size);
 	}
 
 	xprbase = (struct xprbuf *) addr;
@@ -132,9 +136,8 @@ void xprinit(void)
 
 #if	MACH_KDB
 #include <machine/setjmp.h>
+#include <ddb/db_output.h>
 
-
-extern void db_printf();
 extern jmp_buf_t *db_recover;
 
 /*
@@ -145,16 +148,16 @@ extern jmp_buf_t *db_recover;
  *	Called with arguments, it can dump xpr buffers in user tasks,
  *	assuming they use the same format as the kernel.
  */
-void xpr_dump(base, nbufs)
-	struct xprbuf *base;
-	int nbufs;
+void xpr_dump(
+	struct xprbuf 	*base,
+	int 		nbufs)
 {
 	jmp_buf_t db_jmpbuf;
 	jmp_buf_t *prev;
 	struct xprbuf *last, *ptr;
-	register struct xprbuf *x;
+	struct xprbuf *x;
 	int i;
-	spl_t s;
+	spl_t s = s;
 
 	if (base == 0) {
 		base = xprbase;

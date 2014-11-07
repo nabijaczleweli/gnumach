@@ -49,6 +49,7 @@
 #include <device/io_req.h>
 #include <device/ds_routines.h>
 #include <device/device_reply.user.h>
+#include <device/chario.h>
 
 #include <device/tty.h>
 
@@ -61,16 +62,6 @@ short	tthiwat[NSPEEDS] =
 short	ttlowat[NSPEEDS] =
    {  30, 30, 30, 30, 30, 30, 30, 50, 50,120,120,120,125,125, 125, 125,
      125,125 };
-
-/*
- * forward declarations
- */
-void	queue_delayed_reply(
-	queue_t, io_req_t, boolean_t (*)(io_req_t));
-void	tty_output(struct tty *);
-boolean_t char_open_done(io_req_t);
-boolean_t char_read_done(io_req_t);
-boolean_t char_write_done(io_req_t);
 
 /*
  * Fake 'line discipline' switch for the benefit of old code
@@ -89,9 +80,9 @@ struct ldisc_switch	linesw[] = {
 /*
  * Sizes for input and output circular buffers.
  */
-const int	tty_inq_size = 4096;	/* big nuf */
-const int	tty_outq_size = 2048;	/* Must be bigger that tthiwat */
-int	pdma_default = 1;       /* turn pseudo dma on by default */
+const unsigned int	tty_inq_size = 4096;	/* big nuf */
+const unsigned int	tty_outq_size = 2048;	/* Must be bigger that tthiwat */
+boolean_t		pdma_default = TRUE;    /* turn pseudo dma on by default */
 
 /*
  * compute pseudo-dma tables
@@ -260,7 +251,7 @@ io_return_t char_write(
 	spl_t		s;
 	int	count;
 	char	*data;
-	vm_offset_t	addr;
+	vm_offset_t	addr = 0;
 	io_return_t	rc = D_SUCCESS;
 
 	data  = ior->io_data;
@@ -535,9 +526,9 @@ void ttyclose(
  */
 boolean_t
 tty_queue_clean(
-	queue_t		q,
-	ipc_port_t	port,
-	boolean_t	(*routine)(io_req_t) )
+	queue_t			q,
+	const ipc_port_t	port,
+	boolean_t		(*routine)(io_req_t) )
 {
 	io_req_t	ior;
 
@@ -561,8 +552,8 @@ tty_queue_clean(
  */
 boolean_t
 tty_portdeath(
-	struct tty *	tp,
-	ipc_port_t	port)
+	struct tty *		tp,
+	const ipc_port_t	port)
 {
 	spl_t	spl = spltty();
 	boolean_t	result;
@@ -848,8 +839,7 @@ void ttrstrt(
  * Called at spltty, tty already locked.
  * Must be on master CPU if device runs on master.
  */
-void ttstart(tp)
-	struct tty *tp;
+void ttstart(struct tty *tp)
 {
 	if ((tp->t_state & (TS_TIMEOUT|TS_TTSTOP|TS_BUSY)) == 0) {
 	    /*
@@ -916,7 +906,7 @@ void ttypush(
 	    if (state & TS_MIN_TO_RCV)
 	      { /* a character was received */
 		tp->t_state = state & ~TS_MIN_TO_RCV;
-		timeout(ttypush,tp,pdma_timeouts[tp->t_ispeed]);
+		timeout(ttypush, tp, pdma_timeouts[tp->t_ispeed]);
 	      }
 	    else
 	      {
@@ -1013,7 +1003,7 @@ void ttyinput_many(
 	 * Do not want to overflow input queue
 	 */
 	if (tp->t_inq.c_cc < tp->t_inq.c_hog)
-		count -= b_to_q( chars, count, &tp->t_inq);
+		count -= b_to_q(chars, count, &tp->t_inq);
 
 	tty_queue_completion(&tp->t_delayed_read);
 }

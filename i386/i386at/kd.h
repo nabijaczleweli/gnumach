@@ -76,7 +76,10 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <sys/types.h>
 #include <sys/time.h>
 #include <device/cons.h>
-
+#include <device/io_req.h>
+#include <device/buf.h>
+#include <device/tty.h>
+#include <i386at/kdsoft.h>
 
 /*
  * Where memory for various graphics adapters starts.
@@ -110,6 +113,8 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /*
  * Commands sent to graphics adapter.
  */
+#define C_START 	0x0a		/* return cursor line start */
+#define C_STOP 		0x0b		/* return cursor line stop */
 #define C_LOW 		0x0f		/* return low byte of cursor addr */
 #define C_HIGH 		0x0e		/* high byte */
 
@@ -359,10 +364,10 @@ typedef u_char Scancode;
  * Other mappable non-Ascii keys (e.g., "ctrl") are represented by a
  * two-byte sequence: K_SCAN, followed by the key's scan code.
  */
-#define K_DONE		0xff		/* must be same as NC */
-#define NC		0xff		/* No character defined	*/
+#define K_DONE		0xffu		/* must be same as NC */
+#define NC		0xffu		/* No character defined	*/
 
-#define K_SCAN		0xfe		/* followed by scan code */
+#define K_SCAN		0xfeu		/* followed by scan code */
 
 /* ascii char set */
 #define K_NUL		0x00		/* Null character	*/
@@ -728,7 +733,7 @@ extern int kdsetbell (int, int);
 extern void kd_resend (void);
 extern void kd_handle_ack (void);
 extern int kd_kbd_magic (int);
-extern int kdstate2idx (int, boolean_t);
+extern unsigned int kdstate2idx (unsigned int, boolean_t);
 extern void kd_parserest (u_char *);
 extern int kdcnprobe(struct consdev *cp);
 extern int kdcninit(struct consdev *cp);
@@ -741,5 +746,54 @@ extern void kd_slmscu (void *from, void *to, int count);
 extern void kd_slmscd (void *from, void *to, int count);
 
 extern void kdintr(int vec);
+
+#if MACH_KDB
+extern void kdb_kintr(void);
+#endif /* MACH_KDB */
+
+extern int kdopen(dev_t dev, int flag, io_req_t ior);
+extern void kdclose(dev_t dev, int flag);
+extern int kdread(dev_t dev, io_req_t uio);
+extern int kdwrite(dev_t dev, io_req_t uio);
+
+extern io_return_t kdgetstat(
+	dev_t		dev,
+	int		flavor,
+	int 		*data,
+	natural_t	*count);
+
+extern io_return_t kdsetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,
+	natural_t	count);
+
+extern int kdportdeath(dev_t dev, mach_port_t port);
+extern int kdmmap(dev_t dev, vm_offset_t off, vm_prot_t prot);
+
+boolean_t kdcheckmagic(Scancode scancode);
+
+int do_modifier(int state, Scancode c, boolean_t up);
+
+/*
+ * Generic routines for bitmap devices (i.e., assume no hardware
+ * assist).  Assumes a simple byte ordering (i.e., a byte at a lower
+ * address is to the left of the byte at the next higher address).
+ * For the 82786, this works anyway if the characters are 2 bytes
+ * wide.  (more bubble gum and paper clips.)
+ *
+ * See the comments above (in i386at/kd.c) about SLAMBPW.
+ */
+void bmpch2bit(csrpos_t pos, short *xb, short *yb);
+void bmppaintcsr(csrpos_t pos, u_char val);
+u_char *bit2fbptr(short	xb, short yb);
+
+unsigned char kd_getdata(void);
+unsigned char state2leds(int state);
+
+void kdstart(struct tty *tp);
+void kdstop(struct tty *tp, int flags);
+
+void kd_xga_init(void);
 
 #endif	/* _KD_H_ */

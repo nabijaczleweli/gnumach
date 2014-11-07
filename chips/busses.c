@@ -59,17 +59,17 @@
  *
  */
 boolean_t configure_bus_master(
-	char		*name,
+	const char	*name,
 	vm_offset_t	 virt,
 	vm_offset_t	 phys,
 	int		 adpt_no,
-	char		*bus_name)
+	const char	*bus_name)
 {
-	register struct bus_device *device;
-	register struct bus_ctlr *master;
-	register struct bus_driver *driver;
+	struct bus_device *device;
+	struct bus_ctlr *master;
+	struct bus_driver *driver;
 
-	int             found = 0;
+	boolean_t             found = FALSE;
 
 	/*
 	 * Match the name in the table, then pick the entry that has the
@@ -81,7 +81,7 @@ boolean_t configure_bus_master(
 			continue;
 		if (((master->adaptor == adpt_no) || (master->adaptor == '?')) &&
 		    (strcmp(master->name, name) == 0)) {
-			found = 1;
+			found = TRUE;
 			break;
 		}
 	}
@@ -171,16 +171,16 @@ boolean_t configure_bus_master(
  *
  */
 boolean_t configure_bus_device( 
-	char		*name,
+	const char	*name,
 	vm_offset_t	 virt,
 	vm_offset_t	 phys,
 	int 		 adpt_no,
-	char		*bus_name)
+	const char	*bus_name)
 {
-	register struct bus_device *device;
-	register struct bus_driver *driver;
+	struct bus_device *device;
+	struct bus_driver *driver;
 
-	int             found = 0;
+	boolean_t             found = FALSE;
 
 	/*
 	 * Walk all devices to find one with the right name
@@ -196,7 +196,7 @@ boolean_t configure_bus_device(
 		    ((!device->phys_address) ||
 		     ((device->phys_address == phys) && (device->address == virt))) &&
 		    (strcmp(device->name, name) == 0)) {
-			found = 1;
+			found = TRUE;
 			break;
 		}
 	}
