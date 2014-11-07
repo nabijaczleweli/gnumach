@@ -39,6 +39,7 @@
 #include <ddb/db_output.h>
 #include <ddb/db_variables.h>
 #include <ddb/db_task_thread.h>
+#include <ddb/db_macro.h>
 
 extern unsigned long	db_maxoff;
 
@@ -46,9 +47,6 @@ extern db_expr_t	db_radix;
 extern db_expr_t	db_max_width;
 extern db_expr_t	db_tab_stop_width;
 extern db_expr_t	db_max_line;
-extern int	db_set_default_thread();
-extern int	db_get_task_thread();
-extern int	db_arg_variable();
 
 #define DB_NWORK	32		/* number of work variable */
 
@@ -70,12 +68,12 @@ struct db_variable db_vars[] = {
 };
 struct db_variable *db_evars = db_vars + sizeof(db_vars)/sizeof(db_vars[0]);
 
-char *
+const char *
 db_get_suffix(suffix, suffix_value)
-	register char	*suffix;
+	const char	*suffix;
 	short		*suffix_value;
 {
-	register int value;
+	int value;
 
 	for (value = 0; *suffix && *suffix != '.' && *suffix != ':'; suffix++) {
 	    if (*suffix < '0' || *suffix > '9')
@@ -92,10 +90,11 @@ static boolean_t
 db_cmp_variable_name(vp, name, ap)
 	struct db_variable		*vp;
 	char				*name;
-	register db_var_aux_param_t	ap;
+	const db_var_aux_param_t	ap;
 {
-	register char *var_np, *np;
-	register int level;
+	char *var_np;
+	const char *np;
+	int level;
 
 	for (np = name, var_np = vp->name; *var_np; ) {
 	    if (*np++ != *var_np++)
@@ -116,9 +115,9 @@ db_cmp_variable_name(vp, name, ap)
 }
 
 int
-db_find_variable(varp, ap)
-	struct db_variable	**varp;
-	db_var_aux_param_t	ap;
+db_find_variable(
+	struct db_variable	**varp,
+	db_var_aux_param_t	ap)
 {
 	int	t;
 	struct db_variable *vp;
@@ -143,12 +142,8 @@ db_find_variable(varp, ap)
 	return (0);
 }
 
-
-void db_read_write_variable(); /* forward */
-
 int
-db_get_variable(valuep)
-	db_expr_t	*valuep;
+db_get_variable(db_expr_t *valuep)
 {
 	struct db_variable *vp;
 	struct db_var_aux_param aux_param;
@@ -164,8 +159,7 @@ db_get_variable(valuep)
 }
 
 int
-db_set_variable(value)
-	db_expr_t	value;
+db_set_variable(db_expr_t value)
 {
 	struct db_variable *vp;
 	struct db_var_aux_param aux_param;
@@ -181,13 +175,13 @@ db_set_variable(value)
 }
 
 void
-db_read_write_variable(vp, valuep, rw_flag, ap)
-	struct db_variable	*vp;
-	db_expr_t		*valuep;
-	int 			rw_flag;
-	db_var_aux_param_t	ap;
+db_read_write_variable(
+	struct db_variable	*vp,
+	db_expr_t		*valuep,
+	int 			rw_flag,
+	db_var_aux_param_t	ap)
 {
-	int	(*func)() = vp->fcn;
+	void	(*func)() = vp->fcn;
 	struct  db_var_aux_param aux_param;
 
 	if (ap == 0) {
@@ -206,7 +200,7 @@ db_read_write_variable(vp, valuep, rw_flag, ap)
 }
 
 void
-db_set_cmd()
+db_set_cmd(void)
 {
 	db_expr_t	value;
 	int		t;

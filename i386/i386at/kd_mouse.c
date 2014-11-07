@@ -101,8 +101,6 @@ u_char lastbuttons;		/* previous state of mouse buttons */
 #define MOUSE_DOWN	0
 #define MOUSE_ALL_UP	0x7
 
-void mouseintr();
-void mouse_enqueue();
 int mouse_baud = BCNT1200;
 
 boolean_t	mouse_char_cmd = FALSE;		/* mouse response is to cmd */
@@ -114,7 +112,7 @@ int		mouse_char_index;		/* mouse response */
  * init_mouse_hw - initialize the serial port.
  */
 void
-init_mouse_hw(unit, mode)
+init_mouse_hw(dev_t unit, int mode)
 {
 	unsigned short base_addr  = cominfo[unit]->address;
 
@@ -149,9 +147,10 @@ int track_man[10];
 
 /*ARGSUSED*/
 int
-mouseopen(dev, flags)
+mouseopen(dev, flags, ior)
 	dev_t dev;
 	int flags;
+	io_req_t ior;
 {
 	if (mouse_in_use)
 		return (D_ALREADY_OPEN);
@@ -164,6 +163,7 @@ mouseopen(dev, flags)
 		mousebufsize = 3;
 		serial_mouse_open(dev);
 		init_mouse_hw(dev&7, LC7);
+		break;
 	case MICROSOFT_MOUSE:
 		mousebufsize = 3;
 		serial_mouse_open(dev);
@@ -198,8 +198,7 @@ mouseopen(dev, flags)
 }
 
 void
-serial_mouse_open(dev)
-	dev_t dev;
+serial_mouse_open(dev_t dev)
 {
 	int unit = minor(dev) & 0x7;
 	int mouse_pic = cominfo[unit]->sysdep1;
@@ -219,12 +218,11 @@ serial_mouse_open(dev)
 int mouse_packets = 0;
 
 void
-kd_mouse_open(dev, mouse_pic)
-	dev_t dev;
-	int mouse_pic;
+kd_mouse_open(
+	dev_t 	dev,
+	int 	mouse_pic)
 {
 	spl_t s = splhi();	/* disable interrupts */
-	extern void kdintr();
 
 	oldvect = ivect[mouse_pic];
 	ivect[mouse_pic] = kdintr;
@@ -239,9 +237,9 @@ kd_mouse_open(dev, mouse_pic)
  * and restore the serial port interrupt vector.
  */
 void
-mouseclose(dev, flags)
-	dev_t dev;
-	int flags;
+mouseclose(
+	dev_t 	dev,
+	int 	flags)
 {
 	switch (mouse_type) {
 	case MICROSOFT_MOUSE:
@@ -266,9 +264,9 @@ mouseclose(dev, flags)
 
 /*ARGSUSED*/
 void
-serial_mouse_close(dev, flags)
-	dev_t dev;
-	int flags;
+serial_mouse_close(
+	dev_t 	dev,
+	int 	flags)
 {
 	spl_t o_pri = splhi();		/* mutex with open() */
 	int unit = minor(dev) & 0x7;
@@ -285,9 +283,9 @@ serial_mouse_close(dev, flags)
 }
 
 void
-kd_mouse_close(dev, mouse_pic)
-	dev_t dev;
-	int mouse_pic;
+kd_mouse_close(
+	dev_t 	dev,
+	int 	mouse_pic)
 {
 	spl_t s = splhi();
 
@@ -297,11 +295,11 @@ kd_mouse_close(dev, mouse_pic)
 	splx(s);
 }
 
-io_return_t mousegetstat(dev, flavor, data, count)
-	dev_t		  dev;
-	int		  flavor;
-	int *		  data;		/* pointer to OUT array */
-	unsigned int	  *count;	/* OUT */
+io_return_t mousegetstat(
+	dev_t		  dev,
+	int		  flavor,
+	int *		  data,		/* pointer to OUT array */
+	unsigned int	  *count)	/* OUT */
 {
 	switch (flavor) {
 	    case DEV_GET_SIZE:
@@ -319,15 +317,13 @@ io_return_t mousegetstat(dev, flavor, data, count)
 /*
  * mouseread - dequeue and return any queued events.
  */
-boolean_t	mouse_read_done();	/* forward */
-
 int
-mouseread(dev, ior)
-	dev_t	dev;
-	register io_req_t	ior;
+mouseread(
+	dev_t		dev,
+	io_req_t	ior)
 {
-	register int	err, count;
-	register spl_t	s;
+	int		err, count;
+	spl_t		s;
 
 	/* Check if IO_COUNT is a multiple of the record size. */
 	if (ior->io_count % sizeof(kd_event) != 0)
@@ -350,7 +346,7 @@ mouseread(dev, ior)
 	}
 	count = 0;
 	while (!kdq_empty(&mouse_queue) && count < ior->io_count) {
-	    register kd_event *ev;
+	    kd_event *ev;
 
 	    ev = kdq_get(&mouse_queue);
 	    *(kd_event *)(&ior->io_data[count]) = *ev;
@@ -361,11 +357,10 @@ mouseread(dev, ior)
 	return (D_SUCCESS);
 }
 
-boolean_t mouse_read_done(ior)
-	register io_req_t	ior;
+boolean_t mouse_read_done(io_req_t ior)
 {
-	register int	count;
-	register spl_t	s;
+	int	count;
+	spl_t	s;
 
 	s = SPLKD();
 	if (kdq_empty(&mouse_queue)) {
@@ -377,7 +372,7 @@ boolean_t mouse_read_done(ior)
 
 	count = 0;
 	while (!kdq_empty(&mouse_queue) && count < ior->io_count) {
-	    register kd_event *ev;
+	    kd_event *ev;
 
 	    ev = kdq_get(&mouse_queue);
 	    *(kd_event *)(&ior->io_data[count]) = *ev;
@@ -397,7 +392,7 @@ boolean_t mouse_read_done(ior)
  * mouseintr - Get a byte and pass it up for handling.  Called at SPLKD.
  */
 void
-mouseintr(unit)
+mouseintr(int unit)
 {
 	unsigned short base_addr  = cominfo[unit]->address;
 	unsigned char id, ls;
@@ -445,8 +440,7 @@ int middlegitech = 0;		/* what should the middle button be */
 static u_char mousebuf[MOUSEBUFSIZE];	/* 5-byte packet from mouse */
 
 void
-mouse_handle_byte(ch)
-	u_char ch;
+mouse_handle_byte(u_char ch)
 {
 	if (show_mouse_byte) {
 		printf("%x(%c) ", ch, ch);
@@ -527,8 +521,7 @@ mouse_handle_byte(ch)
 }
 
 void
-mouse_packet_mouse_system_mouse(mousebuf)
-u_char mousebuf[MOUSEBUFSIZE];
+mouse_packet_mouse_system_mouse(u_char mousebuf[MOUSEBUFSIZE])
 {
 	u_char buttons, buttonchanges;
 	struct mouse_motion moved;
@@ -563,8 +556,7 @@ u_char mousebuf[MOUSEBUFSIZE];
  *
  */
 void
-mouse_packet_microsoft_mouse(mousebuf)
-u_char mousebuf[MOUSEBUFSIZE];
+mouse_packet_microsoft_mouse(u_char mousebuf[MOUSEBUFSIZE])
 {
 	u_char buttons, buttonchanges;
 	struct mouse_motion moved;
@@ -656,8 +648,7 @@ void kd_mouse_read_reset(void)
 }
 
 void
-ibm_ps2_mouse_open(dev)
-	dev_t dev;
+ibm_ps2_mouse_open(dev_t dev)
 {
 	spl_t	s = spltty();
 
@@ -700,8 +691,7 @@ ibm_ps2_mouse_open(dev)
 }
 
 void
-ibm_ps2_mouse_close(dev)
-	dev_t dev;
+ibm_ps2_mouse_close(dev_t dev)
 {
 	spl_t	s = spltty();
 
@@ -732,8 +722,7 @@ ibm_ps2_mouse_close(dev)
  *
  */
 void
-mouse_packet_ibm_ps2_mouse(mousebuf)
-u_char mousebuf[MOUSEBUFSIZE];
+mouse_packet_ibm_ps2_mouse(u_char mousebuf[MOUSEBUFSIZE])
 {
 	u_char buttons, buttonchanges;
 	struct mouse_motion moved;
@@ -765,8 +754,7 @@ u_char mousebuf[MOUSEBUFSIZE];
  * Enqueue a mouse-motion event.  Called at SPLKD.
  */
 void
-mouse_moved(where)
-	struct mouse_motion where;
+mouse_moved(struct mouse_motion where)
 {
 	kd_event ev;
 
@@ -776,14 +764,13 @@ mouse_moved(where)
 	mouse_enqueue(&ev);
 }
 
-
 /*
  * Enqueue an event for mouse button press or release.  Called at SPLKD.
  */
 void
-mouse_button(which, direction)
-	kev_type which;
-	u_char direction;
+mouse_button(
+	kev_type 	which,
+	u_char 		direction)
 {
 	kd_event ev;
 
@@ -793,15 +780,13 @@ mouse_button(which, direction)
 	mouse_enqueue(&ev);
 }
 
-
 /*
  * mouse_enqueue - enqueue an event and wake up selecting processes, if
  * any.  Called at SPLKD.
  */
 
 void
-mouse_enqueue(ev)
-	kd_event *ev;
+mouse_enqueue(kd_event *ev)
 {
 	if (kdq_full(&mouse_queue))
 		printf("mouse: queue full\n");
@@ -809,7 +794,7 @@ mouse_enqueue(ev)
 		kdq_put(&mouse_queue, ev);
 
 	{
-	    register io_req_t	ior;
+	    io_req_t	ior;
 	    while ((ior = (io_req_t)dequeue_head(&mouse_read_queue)) != 0)
 		iodone(ior);
 	}

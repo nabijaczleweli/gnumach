@@ -47,43 +47,33 @@
 #include <kern/thread_swap.h>
 #include <kern/timer.h>
 #include <kern/xpr.h>
+#include <kern/bootstrap.h>
 #include <kern/time_stamp.h>
+#include <kern/startup.h>
 #include <vm/vm_kern.h>
 #include <vm/vm_map.h>
 #include <vm/vm_object.h>
 #include <vm/vm_page.h>
+#include <vm/vm_init.h>
+#include <vm/vm_pageout.h>
 #include <machine/machspl.h>
 #include <machine/pcb.h>
 #include <machine/pmap.h>
 #include <machine/model_dep.h>
 #include <mach/version.h>
+#include <device/device_init.h>
 
-
-
-extern void	vm_mem_init();
-extern void	vm_mem_bootstrap();
-extern void	init_timeout();
-extern void	machine_init();
-
-extern void	idle_thread();
-extern void	vm_pageout();
-extern void	reaper_thread();
-extern void	swapin_thread();
-extern void	sched_thread();
-
-extern void	bootstrap_create();
-extern void	device_service_create();
-
-void cpu_launch_first_thread();		/* forward */
-void start_kernel_threads();	/* forward */
+#if MACH_KDB
+#include <device/cons.h>
+#endif /* MACH_KDB */
 
 #if ! MACH_KBD
-boolean_t reboot_on_panic = 1;
+boolean_t reboot_on_panic = TRUE;
 #endif
 
 #if	NCPUS > 1
-extern void	start_other_cpus();
-extern void	action_thread();
+#include <machine/mp_desc.h>
+#include <kern/machine.h>
 #endif	/* NCPUS > 1 */
 
 /* XX */
@@ -96,7 +86,7 @@ extern char *kernel_cmdline;
  *
  *	Assumes that master_cpu is set.
  */
-void setup_main()
+void setup_main(void)
 {
 	thread_t		startup_thread;
 
@@ -113,7 +103,7 @@ void setup_main()
 	}
 #else	/* MACH_KDB */
 	if (strstr (kernel_cmdline, "-H ")) {
-	    reboot_on_panic = 0;
+	    reboot_on_panic = FALSE;
 	}
 #endif	/* MACH_KDB */
 
@@ -165,7 +155,7 @@ void setup_main()
 	 *	Kick off the time-out driven routines by calling
 	 *	them the first time.
 	 */
-	recompute_priorities();
+	recompute_priorities(NULL);
 	compute_mach_factor();
 
 	/*
@@ -208,9 +198,9 @@ void setup_main()
  * Now running in a thread.  Create the rest of the kernel threads
  * and the bootstrap task.
  */
-void start_kernel_threads()
+void start_kernel_threads(void)
 {
-	register int	i;
+	int	i;
 
 	/*
 	 *	Create the idle threads and the other
@@ -276,7 +266,7 @@ void start_kernel_threads()
 }
 
 #if	NCPUS > 1
-void slave_main()
+void slave_main(void)
 {
 	cpu_launch_first_thread(THREAD_NULL);
 }
@@ -286,10 +276,9 @@ void slave_main()
  *	Start up the first thread on a CPU.
  *	First thread is specified for the master CPU.
  */
-void cpu_launch_first_thread(th)
-	register thread_t	th;
+void cpu_launch_first_thread(thread_t th)
 {
-	register int	mycpu;
+	int	mycpu;
 
 	mycpu = cpu_number();
 

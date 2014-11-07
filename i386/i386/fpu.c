@@ -53,6 +53,7 @@
 #include <i386/pio.h>
 #include <i386/pic.h>
 #include <i386/locore.h>
+#include <i386/trap.h>
 #include "cpu_number.h"
 
 #if 0
@@ -68,14 +69,9 @@
 #define ASSERT_IPL(L)
 #endif
 
-extern void i386_exception();
-
 int		fp_kind = FP_387;	/* 80387 present */
 struct kmem_cache	ifps_cache;	/* cache for FPU save area */
 static unsigned long	mxcsr_feature_mask = 0xffffffff;	/* Always AND user-provided mxcsr with this security mask */
-
-void fp_save(thread_t thread);
-void fp_load(thread_t thread);
 
 #if	NCPUS == 1
 volatile thread_t	fp_thread = THREAD_NULL;
@@ -105,7 +101,7 @@ volatile thread_t	fp_intr_thread = THREAD_NULL;
  * Called on each CPU.
  */
 void
-init_fpu()
+init_fpu(void)
 {
 	unsigned short	status, control;
 
@@ -189,7 +185,7 @@ init_fpu()
  * Initialize FP handling.
  */
 void
-fpu_module_init()
+fpu_module_init(void)
 {
 	kmem_cache_init(&ifps_cache, "i386_fpsave_state",
 			sizeof(struct i386_fpsave_state), 16,
@@ -201,8 +197,7 @@ fpu_module_init()
  * Called only when thread terminating - no locking necessary.
  */
 void
-fp_free(fps)
-	struct i386_fpsave_state *fps;
+fp_free(struct i386_fpsave_state *fps)
 {
 ASSERT_IPL(SPL0);
 #if	NCPUS == 1
@@ -296,12 +291,12 @@ twd_fxsr_to_i387 (struct i386_xfp_save *fxsave)
  */
 kern_return_t
 fpu_set_state(thread, state)
-	thread_t	thread;
+	const thread_t		thread;
 	struct i386_float_state *state;
 {
-	register pcb_t	pcb = thread->pcb;
-	register struct i386_fpsave_state *ifps;
-	register struct i386_fpsave_state *new_ifps;
+	pcb_t pcb = thread->pcb;
+	struct i386_fpsave_state *ifps;
+	struct i386_fpsave_state *new_ifps;
 
 ASSERT_IPL(SPL0);
 	if (fp_kind == FP_NO)
@@ -339,8 +334,8 @@ ASSERT_IPL(SPL0);
 	    /*
 	     * Valid state.  Allocate the fp state if there is none.
 	     */
-	    register struct i386_fp_save *user_fp_state;
-	    register struct i386_fp_regs *user_fp_regs;
+	    struct i386_fp_save *user_fp_state;
+	    struct i386_fp_regs *user_fp_regs;
 
 	    user_fp_state = (struct i386_fp_save *) &state->hw_state[0];
 	    user_fp_regs  = (struct i386_fp_regs *)
@@ -378,7 +373,7 @@ ASSERT_IPL(SPL0);
 		ifps->xfp_save_state.fp_dp      = user_fp_state->fp_dp;
 		ifps->xfp_save_state.fp_ds      = user_fp_state->fp_ds;
 		for (i=0; i<8; i++)
-		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs[i], sizeof(user_fp_regs[i]));
+		    memcpy(&ifps->xfp_save_state.fp_reg_word[i], &user_fp_regs->fp_reg_word[i], sizeof(user_fp_regs->fp_reg_word[i]));
 	    } else {
 		ifps->fp_save_state.fp_control = user_fp_state->fp_control;
 		ifps->fp_save_state.fp_status  = user_fp_state->fp_status;
@@ -407,11 +402,11 @@ ASSERT_IPL(SPL0);
  */
 kern_return_t
 fpu_get_state(thread, state)
-	thread_t	thread;
-	register struct i386_float_state *state;
+	const thread_t		thread;
+	struct i386_float_state *state;
 {
-	register pcb_t	pcb = thread->pcb;
-	register struct i386_fpsave_state *ifps;
+	pcb_t pcb = thread->pcb;
+	struct i386_fpsave_state *ifps;
 
 ASSERT_IPL(SPL0);
 	if (fp_kind == FP_NO)
@@ -445,8 +440,8 @@ ASSERT_IPL(SPL0);
 	state->exc_status = 0;
 
 	{
-	    register struct i386_fp_save *user_fp_state;
-	    register struct i386_fp_regs *user_fp_regs;
+	    struct i386_fp_save *user_fp_state;
+	    struct i386_fp_regs *user_fp_regs;
 
 	    state->initialized = ifps->fp_valid;
 
@@ -471,7 +466,7 @@ ASSERT_IPL(SPL0);
 		user_fp_state->fp_dp      = ifps->xfp_save_state.fp_dp;
 		user_fp_state->fp_ds      = ifps->xfp_save_state.fp_ds;
 		for (i=0; i<8; i++)
-		    memcpy(&user_fp_regs[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs[i]));
+		    memcpy(&user_fp_regs->fp_reg_word[i], &ifps->xfp_save_state.fp_reg_word[i], sizeof(user_fp_regs->fp_reg_word[i]));
 	    } else {
 		user_fp_state->fp_control = ifps->fp_save_state.fp_control;
 		user_fp_state->fp_status  = ifps->fp_save_state.fp_status;
@@ -499,7 +494,7 @@ ASSERT_IPL(SPL0);
  *
  * Use 53-bit precision.
  */
-void fpinit()
+void fpinit(void)
 {
 	unsigned short	control;
 
@@ -523,7 +518,7 @@ ASSERT_IPL(SPL0);
  * Coprocessor not present.
  */
 void
-fpnoextflt()
+fpnoextflt(void)
 {
 	/*
 	 * Enable FPU use.
@@ -567,11 +562,11 @@ ASSERT_IPL(SPL0);
  * Re-initialize FPU.  Floating point state is not valid.
  */
 void
-fpextovrflt()
+fpextovrflt(void)
 {
-	register thread_t	thread = current_thread();
-	register pcb_t		pcb;
-	register struct i386_fpsave_state *ifps;
+	thread_t	thread = current_thread();
+	pcb_t		pcb;
+	struct i386_fpsave_state *ifps;
 
 #if	NCPUS == 1
 
@@ -616,9 +611,9 @@ fpextovrflt()
 }
 
 static int
-fphandleerr()
+fphandleerr(void)
 {
-	register thread_t	thread = current_thread();
+	thread_t	thread = current_thread();
 
 	/*
 	 * Save the FPU context to the thread using it.
@@ -663,9 +658,9 @@ fphandleerr()
  * FPU error. Called by exception handler.
  */
 void
-fpexterrflt()
+fpexterrflt(void)
 {
-	register thread_t	thread = current_thread();
+	thread_t	thread = current_thread();
 
 	if (fphandleerr())
 		return;
@@ -688,9 +683,9 @@ fpexterrflt()
  * FPU error. Called by AST.
  */
 void
-fpastintr()
+fpastintr(void)
 {
-	register thread_t	thread = current_thread();
+	thread_t	thread = current_thread();
 
 ASSERT_IPL(SPL0);
 #if	NCPUS == 1
@@ -751,11 +746,10 @@ ASSERT_IPL(SPL0);
  * .	otherwise, thread is running.
  */
 void
-fp_save(thread)
-	register thread_t	thread;
+fp_save(thread_t thread)
 {
-	register pcb_t pcb = thread->pcb;
-	register struct i386_fpsave_state *ifps = pcb->ims.ifps;
+	pcb_t pcb = thread->pcb;
+	struct i386_fpsave_state *ifps = pcb->ims.ifps;
 
 	if (ifps != 0 && !ifps->fp_valid) {
 	    /* registers are in FPU */
@@ -773,11 +767,10 @@ fp_save(thread)
  * Locking not needed; always called on the current thread.
  */
 void
-fp_load(thread)
-	register thread_t	thread;
+fp_load(thread_t thread)
 {
-	register pcb_t pcb = thread->pcb;
-	register struct i386_fpsave_state *ifps;
+	pcb_t pcb = thread->pcb;
+	struct i386_fpsave_state *ifps;
 
 ASSERT_IPL(SPL0);
 	ifps = pcb->ims.ifps;
@@ -828,7 +821,7 @@ ASSERT_IPL(SPL0);
  * Locking not needed; always called on the current thread.
  */
 void
-fp_state_alloc()
+fp_state_alloc(void)
 {
 	pcb_t	pcb = current_thread()->pcb;
 	struct i386_fpsave_state *ifps;

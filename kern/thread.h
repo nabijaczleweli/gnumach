@@ -259,6 +259,13 @@ extern kern_return_t	thread_create(
 	thread_t	*child_thread);
 extern kern_return_t	thread_terminate(
 	thread_t	thread);
+extern kern_return_t	thread_terminate_release(
+	thread_t	thread,
+	task_t		task,
+	mach_port_t	thread_name,
+	mach_port_t	reply_port,
+	vm_offset_t	address,
+	vm_size_t	size);
 extern kern_return_t	thread_suspend(
 	thread_t	thread);
 extern kern_return_t	thread_resume(
@@ -338,14 +345,12 @@ extern kern_return_t	thread_halt(
 	boolean_t	must_halt);
 extern void		thread_halt_self(void);
 extern void		thread_force_terminate(thread_t);
-extern void		thread_set_own_priority(
-	int		priority);
 extern thread_t		kernel_thread(
 	task_t		task,
 	void		(*start)(void),
 	void *		arg);
 
-extern void		reaper_thread(void);
+extern void		reaper_thread(void) __attribute__((noreturn));
 
 #if	MACH_HOST
 extern void		thread_freeze(
@@ -383,5 +388,10 @@ extern void		thread_unfreeze(
 #define	current_task()		(current_thread()->task)
 #define	current_space()		(current_task()->itk_space)
 #define	current_map()		(current_task()->map)
+
+#if MACH_DEBUG
+void stack_init(vm_offset_t stack);
+void stack_finalize(vm_offset_t stack);
+#endif /* MACH_DEBUG */
 
 #endif	/* _KERN_THREAD_H_ */

@@ -49,11 +49,7 @@
 
 #include <device/cons.h>
 
-int comprobe(), commctl();
-void comstart(struct tty *);
-void comstop(), comattach(), comintr();
 static void comparam();
-int comgetstat(), comsetstat();
 
 static vm_offset_t com_std[NCOM] = { 0 };
 struct bus_device *cominfo[NCOM];
@@ -173,9 +169,9 @@ comprobe_general(struct bus_device *dev, int noisy)
  * all of bus_device_init
  */
 int
-comprobe(int port, struct bus_device *dev)
+comprobe(vm_offset_t port, struct bus_ctlr *dev)
 {
-	return comprobe_general(dev, /*noisy*/ 0);
+	return comprobe_general((struct bus_device *)dev, /*noisy*/ 0);
 }
 
 /*
@@ -265,7 +261,7 @@ comcninit(struct consdev *cp)
 	outb(LINE_CTL(addr), iDLAB);
 	outb(BAUD_LSB(addr), divisorreg[RCBAUD] & 0xff);
 	outb(BAUD_MSB(addr), divisorreg[RCBAUD] >>8);
-       outb(LINE_CTL(addr), i8BITS);
+	outb(LINE_CTL(addr), i8BITS);
 	outb(INTR_ENAB(addr), 0);
 	outb(MODEM_CTL(addr), iDTR|iRTS|iOUT2);
 
@@ -323,7 +319,7 @@ boolean_t com_reprobe(
 }
 
 io_return_t comopen(
-	int dev,
+	dev_t dev,
 	int flag,
 	io_req_t ior)
 {
@@ -341,6 +337,8 @@ io_return_t comopen(
 	     *	Try to probe it again
 	     */
 	    if (!com_reprobe(unit))
+		return D_NO_SUCH_DEVICE;
+	    if ((isai = cominfo[unit]) == 0 || isai->alive == 0)
 		return D_NO_SUCH_DEVICE;
 	}
 	tp = &com_tty[unit];
@@ -402,8 +400,8 @@ io_return_t comopen(
 	return result;
 }
 
-io_return_t comclose(dev, flag)
-int dev;
+void comclose(dev, flag)
+dev_t dev;
 int flag;
 {
 	struct tty	*tp = &com_tty[minor(dev)];
@@ -418,18 +416,18 @@ int flag;
 		if (comfifo[minor(dev)] != 0)
 			outb(INTR_ID(addr), 0x00); /* Disable fifos */
 	}
-	return 0;
+	return;
 }
 
 io_return_t comread(dev, ior)
-int	dev;
+dev_t	dev;
 io_req_t ior;
 {
 	return char_read(&com_tty[minor(dev)], ior);
 }
 
 io_return_t comwrite(dev, ior)
-int	dev;
+dev_t	dev;
 io_req_t ior;
 {
 	return char_write(&com_tty[minor(dev)], ior);
@@ -466,11 +464,11 @@ natural_t	*count;		/* out */
 }
 
 io_return_t
-comsetstat(dev, flavor, data, count)
-dev_t		dev;
-int		flavor;
-int *		data;
-natural_t	count;
+comsetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,
+	natural_t	count)
 {
 	io_return_t	result = D_SUCCESS;
 	int 		unit = minor(dev);
@@ -496,10 +494,9 @@ natural_t	count;
 }
 
 void
-comintr(unit)
-int unit;
+comintr(int unit)
 {
-	register struct tty	*tp = &com_tty[unit];
+	struct tty		*tp = &com_tty[unit];
 	u_short			addr = cominfo[unit]->address;
 	static char 		comoverrun = 0;
 	char			c, line, intr_id;
@@ -521,10 +518,35 @@ int unit;
 		case RECi:
 		case CTIi:         /* Character timeout indication */
 			if (tp->t_state&TS_ISOPEN) {
+				int escape = 0;
 				while ((line = inb(LINE_STAT(addr))) & iDR) {
 					c = inb(TXRX(addr));
-					ttyinput(c, tp);
+
+					if (c == 0x1b) {
+						escape = 1;
+						continue;
+					}
+
+#if MACH_KDB
+					if (escape && c == 'D'-('A'-1))
+						/* ctrl-alt-d pressed,
+						   invoke debugger */
+						kdb_kintr();
+					else
+#endif /* MACH_KDB */
+					if (escape) {
+						ttyinput(0x1b, tp);
+						ttyinput(c, tp);
+					}
+					else
+						ttyinput(c, tp);
+
+					escape = 0;
 				}
+
+				if (escape)
+					/* just escape */
+					ttyinput(0x1b, tp);
 			} else
 				tt_open_wakeup(tp);
 			break;
@@ -547,8 +569,7 @@ int unit;
 }
 
 static void
-comparam(unit)
-register int unit;
+comparam(int unit)
 {
 	struct tty	*tp = &com_tty[unit];
 	u_short		addr = (int)tp->t_addr;
@@ -617,10 +638,9 @@ comparm(int unit, int baud, int intr, int mode, int modem)
 int comst_1, comst_2, comst_3, comst_4, comst_5 = 14;
 
 void
-comstart(tp)
-struct tty *tp;
+comstart(struct tty *tp)
 {
-	char nch;
+	int nch;
 #if 0
 	int i;
 #endif
@@ -656,6 +676,8 @@ comst_4++;
 	}
 #else
 	nch = getc(&tp->t_outq);
+	if (nch == -1)
+		return;
 	if ((nch & 0200) && ((tp->t_flags & LITOUT) == 0)) {
 	    timeout((timer_func_t *)ttrstrt, (char *)tp, (nch & 0x7f) + 6);
 	    tp->t_state |= TS_TIMEOUT;
@@ -698,8 +720,9 @@ printf("Tty %p was stuck\n", tp);
  * Set receive modem state from modem status register.
  */
 void
-fix_modem_state(unit, modem_stat)
-int	unit, modem_stat;
+fix_modem_state(
+	int	unit, 
+	int	modem_stat)
 {
 	int	stat = 0;
 
@@ -751,14 +774,14 @@ commodem_intr(
  */
 int
 commctl(
-	register struct tty	*tp,
-	int	bits,
-	int	how)
+	struct tty	*tp,
+	int		bits,
+	int		how)
 {
 	spl_t		s;
 	int		unit;
 	vm_offset_t	dev_addr;
-	register int	b = 0;	/* Suppress gcc warning */
+	int		b = 0;	/* Suppress gcc warning */
 
 	unit = minor(tp->t_dev);
 
@@ -817,9 +840,9 @@ commctl(
 }
 
 void
-comstop(tp, flags)
-register struct tty *tp;
-int	flags;
+comstop(
+	struct tty 	*tp,
+	int		flags)
 {
 	if ((tp->t_state & TS_BUSY) && (tp->t_state & TS_TTSTOP) == 0)
 	    tp->t_state |= TS_FLUSH;
@@ -830,16 +853,16 @@ int	flags;
  * Code to be called from debugger.
  *
  */
-void compr_addr(addr)
+void compr_addr(vm_offset_t addr)
 {
 	/* The two line_stat prints may show different values, since
 	*  touching some of the registers constitutes changing them.
 	*/
-	printf("LINE_STAT(%x) %x\n",
+	printf("LINE_STAT(%lu) %x\n",
 		LINE_STAT(addr), inb(LINE_STAT(addr)));
 
-	printf("TXRX(%x) %x, INTR_ENAB(%x) %x, INTR_ID(%x) %x, LINE_CTL(%x) %x,\n\
-MODEM_CTL(%x) %x, LINE_STAT(%x) %x, MODEM_STAT(%x) %x\n",
+	printf("TXRX(%lu) %x, INTR_ENAB(%lu) %x, INTR_ID(%lu) %x, LINE_CTL(%lu) %x,\n\
+MODEM_CTL(%lu) %x, LINE_STAT(%lu) %x, MODEM_STAT(%lu) %x\n",
 	TXRX(addr), 	 inb(TXRX(addr)),
 	INTR_ENAB(addr), inb(INTR_ENAB(addr)),
 	INTR_ID(addr), 	 inb(INTR_ID(addr)),
@@ -849,7 +872,7 @@ MODEM_CTL(%x) %x, LINE_STAT(%x) %x, MODEM_STAT(%x) %x\n",
 	MODEM_STAT(addr),inb(MODEM_STAT(addr)));
 }
 
-int compr(unit)
+int compr(int unit)
 {
 	compr_addr(cominfo[unit]->address);
 	return(0);

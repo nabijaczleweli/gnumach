@@ -55,9 +55,8 @@
 #include <device/dev_hdr.h>
 #include <device/io_req.h>
 #include <device/memory_object_reply.user.h>
-
-extern vm_offset_t	block_io_mmap();	/* dummy routine to allow
-						   mmap for block devices */
+#include <device/dev_pager.h>
+#include <device/blkio.h>
 
 /*
  *	The device pager routines are called directly from the message
@@ -181,8 +180,8 @@ void dev_pager_hash_init(void)
 }
 
 void dev_pager_hash_insert(
-	ipc_port_t	name_port,
-	dev_pager_t	rec)
+	const ipc_port_t	name_port,
+	const dev_pager_t	rec)
 {
 	dev_pager_entry_t new_entry;
 
@@ -196,7 +195,7 @@ void dev_pager_hash_insert(
 	simple_unlock(&dev_pager_hash_lock);
 }
 
-void dev_pager_hash_delete(ipc_port_t	name_port)
+void dev_pager_hash_delete(const ipc_port_t name_port)
 {
 	queue_t			bucket;
 	dev_pager_entry_t	entry;
@@ -217,7 +216,7 @@ void dev_pager_hash_delete(ipc_port_t	name_port)
 	    kmem_cache_free(&dev_pager_hash_cache, (vm_offset_t)entry);
 }
 
-dev_pager_t dev_pager_hash_lookup(ipc_port_t	name_port)
+dev_pager_t dev_pager_hash_lookup(const ipc_port_t name_port)
 {
 	queue_t			bucket;
 	dev_pager_entry_t	entry;
@@ -241,11 +240,11 @@ dev_pager_t dev_pager_hash_lookup(ipc_port_t	name_port)
 }
 
 kern_return_t	device_pager_setup(
-	mach_device_t	device,
-	int		prot,
-	vm_offset_t	offset,
-	vm_size_t	size,
-	mach_port_t	*pager)
+	const mach_device_t	device,
+	int			prot,
+	vm_offset_t		offset,
+	vm_size_t		size,
+	mach_port_t		*pager)
 {
 	dev_pager_t	d;
 
@@ -318,16 +317,12 @@ void	device_pager_release(memory_object_t	object)
 
 boolean_t	device_pager_debug = FALSE;
 
-boolean_t	device_pager_data_request_done();	/* forward */
-boolean_t	device_pager_data_write_done();		/* forward */
-
-
 kern_return_t	device_pager_data_request(
-	ipc_port_t	pager,
-	ipc_port_t	pager_request,
-	vm_offset_t	offset,
-	vm_size_t	length,
-	vm_prot_t	protection_required)
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
+	vm_offset_t		offset,
+	vm_size_t		length,
+	vm_prot_t		protection_required)
 {
 	dev_pager_t	ds;
 
@@ -335,7 +330,7 @@ kern_return_t	device_pager_data_request(
 		printf("(device_pager)data_request: pager=%p, offset=0x%lx, length=0x%x\n",
 			pager, offset, length);
 
-	ds = dev_pager_hash_lookup((ipc_port_t)pager);
+	ds = dev_pager_hash_lookup(pager);
 	if (ds == DEV_PAGER_NULL)
 		panic("(device_pager)data_request: lookup failed");
 
@@ -344,7 +339,6 @@ kern_return_t	device_pager_data_request(
 
 	if (ds->type == CHAR_PAGER_TYPE) {
 	    vm_object_t			object;
-	    vm_offset_t			device_map_page(void *, vm_offset_t);
 
 	    object = vm_object_lookup(pager_request);
 	    if (object == VM_OBJECT_NULL) {
@@ -357,7 +351,7 @@ kern_return_t	device_pager_data_request(
 
 	    vm_object_page_map(object,
 			       offset, length,
-			       device_map_page, (char *)ds);
+			       device_map_page, (void *)ds);
 
 	    vm_object_deallocate(object);
 	}
@@ -422,13 +416,13 @@ boolean_t device_pager_data_request_done(io_req_t	ior)
 		if (device_pager_debug)
 		    printf("(device_pager)data_request_done: r: 0x%lx\n", ior->io_residual);
 		memset((&ior->io_data[ior->io_count - ior->io_residual]), 0, 
-		      (unsigned) ior->io_residual);
+		      (size_t) ior->io_residual);
 	    }
 	} else {
 	    size_read = ior->io_count - ior->io_residual;
 	}
 
-	start_alloc = trunc_page((vm_offset_t)ior->io_data);
+	start_alloc = trunc_page(ior->io_data);
 	end_alloc   = start_alloc + round_page(ior->io_alloc_size);
 
 	if (ior->io_error == D_SUCCESS) {
@@ -463,8 +457,8 @@ boolean_t device_pager_data_request_done(io_req_t	ior)
 }
 
 kern_return_t device_pager_data_write(
-	ipc_port_t		pager,
-	ipc_port_t		pager_request,
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
 	vm_offset_t		offset,
 	pointer_t		addr,
 	vm_size_t		data_count)
@@ -476,7 +470,7 @@ kern_return_t device_pager_data_write(
 
 	panic("(device_pager)data_write: called");
 
-	ds = dev_pager_hash_lookup((ipc_port_t)pager);
+	ds = dev_pager_hash_lookup(pager);
 	if (ds == DEV_PAGER_NULL)
 		panic("(device_pager)data_write: lookup failed");
 
@@ -519,8 +513,7 @@ kern_return_t device_pager_data_write(
 	return (KERN_SUCCESS);
 }
 
-boolean_t device_pager_data_write_done(ior)
-	io_req_t	ior;
+boolean_t device_pager_data_write_done(io_req_t ior)
 {
 	device_write_dealloc(ior);
 	mach_device_deallocate(ior->io_device);
@@ -529,19 +522,19 @@ boolean_t device_pager_data_write_done(ior)
 }
 
 kern_return_t device_pager_copy(
-	ipc_port_t		pager,
-	ipc_port_t		pager_request,
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
 	vm_offset_t		offset,
 	vm_size_t		length,
-	ipc_port_t		new_pager)
+	const ipc_port_t	new_pager)
 {
 	panic("(device_pager)copy: called");
 }
 
 kern_return_t
 device_pager_supply_completed(
-	ipc_port_t pager,
-	ipc_port_t pager_request,
+	const ipc_port_t pager,
+	const ipc_port_t pager_request,
 	vm_offset_t offset,
 	vm_size_t length,
 	kern_return_t result,
@@ -552,8 +545,8 @@ device_pager_supply_completed(
 
 kern_return_t
 device_pager_data_return(
-	ipc_port_t		pager,
-	ipc_port_t		pager_request,
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
 	vm_offset_t		offset,
 	pointer_t		addr,
 	vm_size_t		data_cnt,
@@ -565,7 +558,7 @@ device_pager_data_return(
 
 kern_return_t
 device_pager_change_completed(
-	ipc_port_t pager,
+	const ipc_port_t pager,
 	boolean_t may_cache,
 	memory_object_copy_strategy_t copy_strategy)
 {
@@ -590,10 +583,10 @@ vm_offset_t device_map_page(
 }
 
 kern_return_t device_pager_init_pager(
-	ipc_port_t	pager,
-	ipc_port_t	pager_request,
-	ipc_port_t	pager_name,
-	vm_size_t	pager_page_size)
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
+	const ipc_port_t	pager_name,
+	vm_size_t		pager_page_size)
 {
 	dev_pager_t	ds;
 
@@ -641,9 +634,9 @@ kern_return_t device_pager_init_pager(
 }
 
 kern_return_t device_pager_terminate(
-	ipc_port_t	pager,
-	ipc_port_t	pager_request,
-	ipc_port_t	pager_name)
+	const ipc_port_t	pager,
+	const ipc_port_t	pager_request,
+	const ipc_port_t	pager_name)
 {
 	dev_pager_t	ds;
 
@@ -683,8 +676,8 @@ kern_return_t device_pager_terminate(
 }
 
 kern_return_t device_pager_data_unlock(
-	ipc_port_t memory_object,
-	ipc_port_t memory_control_port,
+	const ipc_port_t memory_object,
+	const ipc_port_t memory_control_port,
 	vm_offset_t offset,
 	vm_size_t length,
 	vm_prot_t desired_access)
@@ -694,10 +687,10 @@ kern_return_t device_pager_data_unlock(
 }
 
 kern_return_t device_pager_lock_completed(
-	ipc_port_t	memory_object,
-	ipc_port_t	pager_request_port,
-	vm_offset_t	offset,
-	vm_size_t	length)
+	const ipc_port_t	memory_object,
+	const ipc_port_t	pager_request_port,
+	vm_offset_t		offset,
+	vm_size_t		length)
 {
 	panic("(device_pager)lock_completed: called");
 	return (KERN_FAILURE);

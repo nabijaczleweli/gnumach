@@ -54,6 +54,7 @@
 #include <ddb/db_cond.h>
 
 #include <machine/setjmp.h>
+#include <machine/db_interface.h>
 #include <kern/debug.h>
 #include <kern/thread.h>
 #include <ipc/ipc_pset.h> /* 4proto */
@@ -94,17 +95,17 @@ boolean_t	db_ed_style = TRUE;
  */
 int
 db_cmd_search(name, table, cmdp)
-	char *		name;
-	struct db_command	*table;
-	struct db_command	**cmdp;	/* out */
+	const char *		name;
+	const struct db_command	*table;
+	const struct db_command	**cmdp;	/* out */
 {
-	struct db_command	*cmd;
+	const struct db_command	*cmd;
 	int		result = CMD_NONE;
 
 	for (cmd = table; cmd->name != 0; cmd++) {
-	    register char *lp;
-	    register char *rp;
-	    register int  c;
+	    const char *lp;
+	    char *rp;
+	    int  c;
 
 	    lp = name;
 	    rp = cmd->name;
@@ -141,9 +142,9 @@ db_cmd_search(name, table, cmdp)
 
 void
 db_cmd_list(table)
-	struct db_command *table;
+	const struct db_command *table;
 {
-	register struct db_command *cmd;
+	const struct db_command *cmd;
 
 	for (cmd = table; cmd->name != 0; cmd++) {
 	    db_printf("%-12s", cmd->name);
@@ -152,9 +153,9 @@ db_cmd_list(table)
 }
 
 void
-db_command(last_cmdp, cmd_table)
-	struct db_command	**last_cmdp;	/* IN_OUT */
-	struct db_command	*cmd_table;
+db_command(
+	struct db_command	**last_cmdp,	/* IN_OUT */
+	struct db_command	*cmd_table)
 {
 	struct db_command	*cmd;
 	int		t;
@@ -175,7 +176,6 @@ db_command(last_cmdp, cmd_table)
 		db_unread_token(t);
 	}
 	else if (t == tEXCL) {
-	    void db_fncall();
 	    db_fncall();
 	    return;
 	}
@@ -293,19 +293,18 @@ db_command(last_cmdp, cmd_table)
 }
 
 void
-db_command_list(last_cmdp, cmd_table)
-	struct db_command	**last_cmdp;	/* IN_OUT */
-	struct db_command	*cmd_table;
+db_command_list(
+	struct db_command	**last_cmdp,	/* IN_OUT */
+	struct db_command	*cmd_table)
 {
-	void db_skip_to_eol();
-
 	do {
 	    db_command(last_cmdp, cmd_table);
 	    db_skip_to_eol();
-	} while (db_read_token() == tSEMI_COLON && db_cmd_loop_done == 0);
+	} while (db_read_token() == tSEMI_COLON && db_cmd_loop_done == FALSE);
 }
 
 struct db_command db_show_all_cmds[] = {
+	{ "tasks",	db_show_all_tasks,	0,	0 },
 	{ "threads",	db_show_all_threads,	0,	0 },
 	{ "slocks",	db_show_all_slocks,	0,	0 },
 	{ (char *)0 }
@@ -330,10 +329,6 @@ struct db_command db_show_cmds[] = {
 	{ "ipc_port",	db_show_port_id,	0,	0 },
 	{ (char *)0, }
 };
-
-void		db_help_cmd();
-extern void	db_stack_trace_cmd();
-extern void	db_reset_cpu();
 
 struct db_command db_command_table[] = {
 #ifdef DB_MACHINE_COMMANDS
@@ -369,6 +364,7 @@ struct db_command db_command_table[] = {
 	{ "show",	0,			0,	db_show_cmds },
 	{ "reset",	db_reset_cpu,		0,		0 },
 	{ "reboot",	db_reset_cpu,		0,		0 },
+	{ "halt",	db_halt_cpu,		0,		0 },
 	{ (char *)0, }
 };
 
@@ -376,20 +372,19 @@ struct db_command db_command_table[] = {
 
 /* this function should be called to install the machine dependent
    commands. It should be called before the debugger is enabled  */
-void db_machine_commands_install(ptr)
-struct db_command *ptr;
+void db_machine_commands_install(struct db_command *ptr)
 {
   db_command_table[0].more = ptr;
   return;
 }
 
-#endif
+#endif /* DB_MACHINE_COMMANDS */
 
 
 struct db_command	*db_last_command = 0;
 
 void
-db_help_cmd()
+db_help_cmd(void)
 {
 	struct db_command *cmd = db_command_table;
 
@@ -399,8 +394,6 @@ db_help_cmd()
 	    cmd++;
 	}
 }
-
-int	(*ddb_display)();
 
 void
 db_command_loop(void)
@@ -416,10 +409,7 @@ db_command_loop(void)
 	db_prev = db_dot;
 	db_next = db_dot;
 
-	if (ddb_display)
-		(*ddb_display)();
-
-	db_cmd_loop_done = 0;
+	db_cmd_loop_done = FALSE;
 	while (!db_cmd_loop_done) {
 	    (void) _setjmp(db_recover = &db_jmpbuf);
 	    db_macro_level = 0;
@@ -440,13 +430,13 @@ db_command_loop(void)
 }
 
 boolean_t
-db_exec_cmd_nest(cmd, size)
-	char *cmd;
-	int  size;
+db_exec_cmd_nest(
+	char *cmd,
+	int  size)
 {
 	struct db_lex_context lex_context;
 
-	db_cmd_loop_done = 0;
+	db_cmd_loop_done = FALSE;
 	if (cmd) {
 	    db_save_lex_context(&lex_context);
 	    db_switch_input(cmd, size /**OLD, &lex_context OLD**/);
@@ -454,11 +444,11 @@ db_exec_cmd_nest(cmd, size)
 	db_command_list(&db_last_command, db_command_table);
 	if (cmd)
 	    db_restore_lex_context(&lex_context);
-	return(db_cmd_loop_done == 0);
+	return(db_cmd_loop_done == FALSE);
 }
 
 void db_error(s)
-	char *s;
+	const char *s;
 {
 	extern int db_macro_level;
 
@@ -482,7 +472,7 @@ void db_error(s)
  * !expr(arg,arg,arg)
  */
 void
-db_fncall()
+db_fncall(void)
 {
 	db_expr_t	fn_addr;
 #define	MAXARGS		11
@@ -533,12 +523,12 @@ db_fncall()
 	db_printf(" %#N\n", retval);
 }
 
-boolean_t
+boolean_t __attribute__ ((pure))
 db_option(modif, option)
-	char	*modif;
-	int	option;
+	const char	*modif;
+	int		option;
 {
-	register char *p;
+	const char *p;
 
 	for (p = modif; *p; p++)
 	    if (*p == option)

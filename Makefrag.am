@@ -24,6 +24,9 @@ libkernel_a_SOURCES += \
 	ddb/db_access.c \
 	ddb/db_access.h \
 	ddb/db_aout.c \
+	ddb/db_aout.h \
+	ddb/db_elf.c \
+	ddb/db_elf.h \
 	ddb/db_break.c \
 	ddb/db_break.h \
 	ddb/db_command.c \
@@ -42,6 +45,7 @@ libkernel_a_SOURCES += \
 	ddb/db_macro.c \
 	ddb/db_macro.h \
 	ddb/db_mp.c \
+	ddb/db_mp.h \
 	ddb/db_output.c \
 	ddb/db_output.h \
 	ddb/db_print.c \
@@ -59,6 +63,7 @@ libkernel_a_SOURCES += \
 	ddb/db_watch.c \
 	ddb/db_watch.h \
 	ddb/db_write_cmd.c \
+	ddb/db_write_cmd.h \
 	ddb/nlist.h \
 	ddb/stab.h \
 	ddb/tr.h
@@ -93,6 +98,7 @@ libkernel_a_SOURCES += \
 	ipc/ipc_object.h \
 	ipc/ipc_port.c \
 	ipc/ipc_port.h \
+	ipc/ipc_print.h \
 	ipc/ipc_pset.c \
 	ipc/ipc_pset.h \
 	ipc/ipc_right.c \
@@ -131,6 +137,7 @@ libkernel_a_SOURCES += \
 	kern/ast.h \
 	kern/boot_script.h \
 	kern/bootstrap.c \
+	kern/bootstrap.h \
 	kern/counters.c \
 	kern/counters.h \
 	kern/cpu_number.h \
@@ -139,6 +146,7 @@ libkernel_a_SOURCES += \
 	kern/eventcount.c \
 	kern/eventcount.h \
 	kern/exception.c \
+	kern/exception.h \
 	kern/host.c \
 	kern/host.h \
 	kern/ipc_host.c \
@@ -169,6 +177,7 @@ libkernel_a_SOURCES += \
 	kern/printf.c \
 	kern/printf.h \
 	kern/priority.c \
+	kern/priority.h \
 	kern/processor.c \
 	kern/processor.h \
 	kern/profile.c \
@@ -185,6 +194,7 @@ libkernel_a_SOURCES += \
 	kern/sched_prim.h \
 	kern/shuttle.h \
 	kern/startup.c \
+	kern/startup.h \
 	kern/strings.c \
 	kern/syscall_emulation.c \
 	kern/syscall_emulation.h \
@@ -241,6 +251,7 @@ libkernel_a_SOURCES += \
 	vm/vm_fault.c \
 	vm/vm_fault.h \
 	vm/vm_init.c \
+	vm/vm_init.h \
 	vm/vm_kern.c \
 	vm/vm_kern.h \
 	vm/vm_map.c \
@@ -250,6 +261,7 @@ libkernel_a_SOURCES += \
 	vm/vm_page.h \
 	vm/vm_pageout.c \
 	vm/vm_pageout.h \
+	vm/vm_print.h \
 	vm/vm_resident.c \
 	vm/vm_resident.h \
 	vm/vm_types.h \
@@ -269,8 +281,10 @@ EXTRA_DIST += \
 # TODO.  Functions in device/subrs.c should each be moved elsewhere.
 libkernel_a_SOURCES += \
 	device/blkio.c \
+	device/blkio.h \
 	device/buf.h \
 	device/chario.c \
+	device/chario.h \
 	device/cirbuf.h \
 	device/conf.h \
 	device/cons.c \
@@ -281,7 +295,9 @@ libkernel_a_SOURCES += \
 	device/dev_master.h \
 	device/dev_name.c \
 	device/dev_pager.c \
+	device/dev_pager.h \
 	device/device_init.c \
+	device/device_init.h \
 	device/device_port.h \
 	device/device_types_kernel.h \
 	device/ds_routines.c \
@@ -405,9 +421,18 @@ include_mach_eXec_HEADERS = \
 	include/mach/exec/elf.h \
 	include/mach/exec/exec.h
 
-# mach-debug-headers:= $(addprefix mach_debug/, hash_info.h ipc_info.h \
-# 		mach_debug.defs mach_debug_types.defs mach_debug_types.h \
-# 		pc_info.h vm_info.h slab_info.h)
+include_mach_debugdir = $(includedir)/mach_debug
+include_mach_debug_HEADERS = \
+	$(addprefix include/mach_debug/, \
+		hash_info.h \
+		ipc_info.h \
+		mach_debug.defs	\
+		mach_debug_types.defs \
+		mach_debug_types.h \
+		pc_info.h \
+		vm_info.h \
+		slab_info.h \
+	)
 
 # Other headers for the distribution.  We don't install these, because the
 # GNU C library has correct versions for users to use.

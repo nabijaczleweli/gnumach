@@ -38,11 +38,7 @@
 #include <machine/loose_ends.h>
 #include <machine/model_dep.h>
 
-extern void cnputc();
-
-#if	MACH_KDB
-extern int db_breakpoints_inserted;
-#endif
+#include <device/cons.h>
 
 #if NCPUS>1
 simple_lock_data_t Assert_print_lock; /* uninited, we take our chances */
@@ -55,7 +51,7 @@ do_cnputc(char c, vm_offset_t offset)
 }
 
 void
-Assert(char *exp, char *file, int line)
+Assert(const char *exp, const char *file, int line)
 {
 #if NCPUS > 1
   	simple_lock(&Assert_print_lock);
@@ -67,14 +63,11 @@ Assert(char *exp, char *file, int line)
 		exp, file, line);
 #endif
 
-#if	MACH_KDB
-	if (db_breakpoints_inserted)
-#endif
 	Debugger("assertion failure");
 }
 
 void SoftDebugger(message)
-	char *	message;
+	const char *message;
 {
 	printf("Debugger invoked: %s\n", message);
 
@@ -106,7 +99,7 @@ void SoftDebugger(message)
 }
 
 void Debugger(message)
-	char *	message;
+	const char *message;
 {
 #if	!MACH_KDB
 	panic("Debugger invoked, but there isn't one!");
@@ -199,14 +192,12 @@ log(int level, const char *fmt, ...)
 {
 	va_list	listp;
 
-#ifdef lint
-	level++;
-#endif
 	va_start(listp, fmt);
 	_doprnt(fmt, listp, do_cnputc, 0, 0);
 	va_end(listp);
 }
 
+/* GCC references this for stack protection.  */
 unsigned char __stack_chk_guard [ sizeof (vm_offset_t) ] =
 {
 	[ sizeof (vm_offset_t) - 3 ] = '\r',

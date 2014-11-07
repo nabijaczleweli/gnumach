@@ -185,11 +185,11 @@ host_ipc_hash_info(
  */
 
 kern_return_t
-host_ipc_marequest_info(host, maxp, infop, countp)
-	host_t host;
-	unsigned int *maxp;
-	hash_info_bucket_array_t *infop;
-	unsigned int *countp;
+host_ipc_marequest_info(
+	host_t 				host,
+	unsigned int 			*maxp,
+	hash_info_bucket_array_t 	*infop,
+	unsigned int 			*countp)
 {
 	vm_offset_t addr;
 	vm_size_t size = 0; /* '=0' to shut up lint */
@@ -447,7 +447,7 @@ mach_port_space_info(
 				  table_size - rsize_used);
 
 		if (size_used != rsize_used)
-			memset((char *) (table_addr + size_used), 0, 
+			memset((void *) (table_addr + size_used), 0,
 			      rsize_used - size_used);
 
 		kr = vm_map_copyin(ipc_kernel_map, table_addr, rsize_used,
@@ -482,7 +482,7 @@ mach_port_space_info(
 				  tree_size - rsize_used);
 
 		if (size_used != rsize_used)
-			memset((char *) (tree_addr + size_used), 0, 
+			memset((void *) (tree_addr + size_used), 0,
 			      rsize_used - size_used);
 
 		kr = vm_map_copyin(ipc_kernel_map, tree_addr, rsize_used,
@@ -603,8 +603,8 @@ mach_port_kernel_object(
 		return KERN_INVALID_RIGHT;
 	}
 
-	*typep = (unsigned int) ip_kotype(port);
-	*addrp = (vm_offset_t) port->ip_kobject;
+	*typep = ip_kotype(port);
+	*addrp = port->ip_kobject;
 	ip_unlock(port);
 	return KERN_SUCCESS;
 }

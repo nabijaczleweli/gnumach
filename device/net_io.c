@@ -144,7 +144,7 @@ vm_size_t	net_kmsg_size;			/* initialized below */
 ipc_kmsg_t
 net_kmsg_get(void)
 {
-	register ipc_kmsg_t kmsg;
+	ipc_kmsg_t kmsg;
 	spl_t s;
 
 	/*
@@ -196,7 +196,7 @@ net_kmsg_get(void)
 }
 
 void
-net_kmsg_put(register ipc_kmsg_t kmsg)
+net_kmsg_put(const ipc_kmsg_t kmsg)
 {
 	spl_t s;
 
@@ -212,7 +212,7 @@ net_kmsg_put(register ipc_kmsg_t kmsg)
 void
 net_kmsg_collect(void)
 {
-	register ipc_kmsg_t kmsg;
+	ipc_kmsg_t kmsg;
 	spl_t s;
 
 	s = splimp();
@@ -238,7 +238,7 @@ net_kmsg_collect(void)
 void
 net_kmsg_more(void)
 {
-	register ipc_kmsg_t kmsg;
+	ipc_kmsg_t kmsg;
 
 	/*
 	 * Replenish net kmsg pool if low.  We don't have the locks
@@ -301,16 +301,12 @@ struct net_rcv_port {
 	filter_t	filter[NET_MAX_FILTER];
 					/* filter operations */
 };
-typedef struct net_rcv_port *net_rcv_port_t;
 
 struct kmem_cache	net_rcv_cache;	/* cache of net_rcv_port structs */
-
 
 #define NET_HASH_SIZE   256
 #define N_NET_HASH      4
 #define N_NET_HASH_KEYS 4
-
-unsigned int bpf_hash (int, unsigned int *);
 
 /*
  * A single hash entry.
@@ -323,7 +319,6 @@ struct net_hash_entry {
 	int             rcv_qlimit;	/* qlimit for the port */
 	unsigned int	keys[N_NET_HASH_KEYS];
 };
-typedef struct net_hash_entry *net_hash_entry_t;
 
 struct kmem_cache	net_hash_entry_cache;
 
@@ -342,15 +337,12 @@ struct net_hash_header {
         net_hash_entry_t table[NET_HASH_SIZE];
 } filter_hash_header[N_NET_HASH];
 
-typedef struct net_hash_header *net_hash_header_t;
-
 decl_simple_lock_data(,net_hash_header_lock)
 
 #define HASH_ITERATE(head, elt) (elt) = (net_hash_entry_t) (head); do {
 #define HASH_ITERATE_END(head, elt) \
 	(elt) = (net_hash_entry_t) queue_next((queue_entry_t) (elt));	   \
 	} while ((elt) != (head));
-
 
 #define FILTER_ITERATE(if_port_list, fp, nextfp, chain)	\
 	for ((fp) = (net_rcv_port_t) queue_first(if_port_list);	\
@@ -365,40 +357,6 @@ decl_simple_lock_data(,net_hash_header_lock)
 	(dead) = (queue_entry_t)(entry_p);			\
 }
 
-extern boolean_t net_do_filter();	/* CSPF */
-extern int bpf_do_filter();		/* BPF */
-
-int hash_ent_remove (
-   struct ifnet *ifp,
-   net_hash_header_t hp,
-   int used,
-   net_hash_entry_t *head, 
-	net_hash_entry_t entp,
-   queue_entry_t *dead_p);
-
-void net_free_dead_infp (queue_entry_t dead_infp);
-void net_free_dead_entp (queue_entry_t dead_entp);
-
-int bpf_validate(
-    bpf_insn_t f,
-    int bytes,
-    bpf_insn_t *match);
-
-int bpf_eq (
-    bpf_insn_t f1,
-	bpf_insn_t f2,
-    register int bytes);
-
-int net_add_q_info (ipc_port_t rcv_port);
-
-int bpf_match (
-   net_hash_header_t hash,
-   int n_keys,
-   unsigned int *keys,
-   net_hash_entry_t **hash_headpp,
-      net_hash_entry_t *entpp);
-
-
 /*
  *	ethernet_priority:
  *
@@ -411,9 +369,9 @@ int bpf_match (
  */
 
 boolean_t ethernet_priority(kmsg)
-	ipc_kmsg_t kmsg;
+	const ipc_kmsg_t kmsg;
 {
-	register unsigned char *addr =
+	unsigned char *addr =
 		(unsigned char *) net_kmsg(kmsg)->header;
 
 	/*
@@ -454,10 +412,9 @@ mach_msg_type_t packet_type = {
  *	Dequeues a message and delivers it at spl0.
  *	Returns FALSE if no messages.
  */
-boolean_t net_deliver(nonblocking)
-	boolean_t nonblocking;
+boolean_t net_deliver(boolean_t nonblocking)
 {
-	register ipc_kmsg_t kmsg;
+	ipc_kmsg_t kmsg;
 	boolean_t high_priority;
 	struct ipc_kmsg_queue send_list;
 
@@ -510,6 +467,7 @@ boolean_t net_deliver(nonblocking)
 	    /* remember message sizes must be rounded up */
 	    kmsg->ikm_header.msgh_size =
 		    (((mach_msg_size_t) (sizeof(struct net_rcv_msg)
+					- sizeof net_kmsg(kmsg)->sent
 					- NET_RCV_MAX + count)) + 3) &~ 3;
 	    kmsg->ikm_header.msgh_local_port = MACH_PORT_NULL;
 	    kmsg->ikm_header.msgh_kind = MACH_MSGH_KIND_NORMAL;
@@ -562,7 +520,7 @@ boolean_t net_deliver(nonblocking)
  *	net_kmsg_get will do a wakeup.
  */
 
-void net_ast()
+void net_ast(void)
 {
 	spl_t s;
 
@@ -591,7 +549,7 @@ void net_ast()
 	(void) splx(s);
 }
 
-void net_thread_continue()
+void __attribute__ ((noreturn)) net_thread_continue(void)
 {
 	for (;;) {
 		spl_t s;
@@ -617,7 +575,7 @@ void net_thread_continue()
 	}
 }
 
-void net_thread()
+void net_thread(void)
 {
 	spl_t s;
 
@@ -645,10 +603,11 @@ void net_thread()
 }
 
 void
-reorder_queue(first, last)
-	register queue_t	first, last;
+reorder_queue(
+	queue_t		first, 
+	queue_t		last)
 {
-	register queue_entry_t	prev, next;
+	queue_entry_t	prev, next;
 
 	prev = first->prev;
 	next = last->next;
@@ -668,11 +627,11 @@ reorder_queue(first, last)
  * We are already at splimp.
  */
 void
-net_packet(ifp, kmsg, count, priority)
-	register struct ifnet	*ifp;
-	register ipc_kmsg_t	kmsg;
-	unsigned int		count;
-	boolean_t		priority;
+net_packet(
+	struct ifnet		*ifp,
+	ipc_kmsg_t		kmsg,
+	unsigned int		count,
+	boolean_t		priority)
 {
 	boolean_t awake;
 
@@ -732,12 +691,12 @@ int net_filter_queue_reorder = 0; /* non-zero to enable reordering */
  */
 void
 net_filter(kmsg, send_list)
-	register ipc_kmsg_t	kmsg;
+	const ipc_kmsg_t	kmsg;
 	ipc_kmsg_queue_t	send_list;
 {
-	register struct ifnet	*ifp;
-	register net_rcv_port_t	infp, nextfp;
-	register ipc_kmsg_t	new_kmsg;
+	struct ifnet		*ifp;
+	net_rcv_port_t		infp, nextfp;
+	ipc_kmsg_t		new_kmsg;
 
  	net_hash_entry_t	entp, *hash_headp;
  	ipc_port_t		dest;
@@ -857,7 +816,7 @@ net_filter(kmsg, send_list)
 		ipc_kmsg_enqueue(send_list, new_kmsg);
 
 	    {
-		register net_rcv_port_t prevfp;
+		net_rcv_port_t prevfp;
 		int rcount = ++infp->rcv_count;
 
 		/*
@@ -914,14 +873,14 @@ net_filter(kmsg, send_list)
 boolean_t
 net_do_filter(infp, data, data_count, header)
 	net_rcv_port_t	infp;
-	char *		data;
+	const char *	data;
 	unsigned int	data_count;
-	char *		header;
+	const char *	header;
 {
 	int		stack[NET_FILTER_STACK_DEPTH+1];
-	register int	*sp;
-	register filter_t	*fp, *fpe;
-	register unsigned int	op, arg;
+	int		*sp;
+	filter_t	*fp, *fpe;
+	unsigned int	op, arg;
 
 	/*
 	 * The filter accesses the header and data
@@ -1052,13 +1011,13 @@ net_do_filter(infp, data, data_count, header)
  * Check filter for invalid operations or stack over/under-flow.
  */
 boolean_t
-parse_net_filter(filter, count)
-	register filter_t	*filter;
-	unsigned int		count;
+parse_net_filter(
+	filter_t		*filter,
+	unsigned int		count)
 {
-	register int	sp;
-	register filter_t	*fpe = &filter[count];
-	register filter_t	op, arg;
+	int			sp;
+	filter_t		*fpe = &filter[count];
+	filter_t		op, arg;
 
 	/*
 	 * count is at least 1, and filter[0] is used for flags.
@@ -1146,25 +1105,32 @@ parse_net_filter(filter, count)
  * If we are successful, we must consume that right.
  */
 io_return_t
-net_set_filter(ifp, rcv_port, priority, filter, filter_count)
-	struct ifnet	*ifp;
-	ipc_port_t	rcv_port;
-	int		priority;
-	filter_t	*filter;
-	unsigned int	filter_count;
+net_set_filter(
+	struct ifnet	*ifp,
+	ipc_port_t	rcv_port,
+	int		priority,
+	filter_t	*filter,
+	unsigned int	filter_count)
 {
     int				filter_bytes;
     bpf_insn_t			match;
-    register net_rcv_port_t	infp, my_infp;
+    net_rcv_port_t		infp, my_infp;
     net_rcv_port_t		nextfp;
     net_hash_header_t		hhp;
-    register net_hash_entry_t	entp, hash_entp;
+    net_hash_entry_t		entp;
     net_hash_entry_t		*head, nextentp;
     queue_entry_t		dead_infp, dead_entp;
     int				i;
     int				ret, is_new_infp;
     io_return_t			rval;
     boolean_t			in, out;
+
+    /* Initialize hash_entp to NULL to quiet GCC
+     * warning about uninitialized variable. hash_entp is only
+     * used when match != 0; in that case it is properly initialized
+     * by kmem_cache_alloc().
+     */
+    net_hash_entry_t hash_entp = NULL;
 
     /*
      * Check the filter syntax.
@@ -1404,16 +1370,16 @@ clean_and_return:
  * Other network operations
  */
 io_return_t
-net_getstat(ifp, flavor, status, count)
-	struct ifnet	*ifp;
-	dev_flavor_t	flavor;
-	dev_status_t	status;		/* pointer to OUT array */
-	natural_t	*count;		/* OUT */
+net_getstat(
+	struct ifnet	*ifp,
+	dev_flavor_t	flavor,
+	dev_status_t	status,		/* pointer to OUT array */
+	natural_t	*count)		/* OUT */
 {
 	switch (flavor) {
 	    case NET_STATUS:
 	    {
-		register struct net_status *ns = (struct net_status *)status;
+		struct net_status *ns = (struct net_status *)status;
 
 		if (*count < NET_STATUS_COUNT)
 		    return (D_INVALID_OPERATION);
@@ -1431,9 +1397,9 @@ net_getstat(ifp, flavor, status, count)
 	    }
 	    case NET_ADDRESS:
 	    {
-		register int	addr_byte_count;
-		register int	addr_int_count;
-		register int	i;
+		int	addr_byte_count;
+		int	addr_int_count;
+		int	i;
 
 		addr_byte_count = ifp->if_address_size;
 		addr_int_count = (addr_byte_count + (sizeof(int)-1))
@@ -1454,7 +1420,7 @@ printf ("net_getstat: count: %d, addr_int_count: %d\n",
 				      - addr_byte_count));
 
 		for (i = 0; i < addr_int_count; i++) {
-		    register int word;
+		    int word;
 
 		    word = status[i];
 		    status[i] = htonl(word);
@@ -1469,10 +1435,10 @@ printf ("net_getstat: count: %d, addr_int_count: %d\n",
 }
 
 io_return_t
-net_write(ifp, start, ior)
-	register struct ifnet *ifp;
-	int		(*start)();
-	io_req_t	ior;
+net_write(
+	struct 		ifnet *ifp,
+	int		(*start)(),
+	io_req_t	ior)
 {
 	spl_t	s;
 	kern_return_t	rc;
@@ -1523,9 +1489,9 @@ net_write(ifp, start, ior)
  * Initialize the whole package.
  */
 void
-net_io_init()
+net_io_init(void)
 {
-	register vm_size_t	size;
+	vm_size_t		size;
 
 	size = sizeof(struct net_rcv_port);
 	kmem_cache_init(&net_rcv_cache, "net_rcv_port", size, 0,
@@ -1625,19 +1591,20 @@ net_io_init()
  */
 
 int
-bpf_do_filter(infp, p, wirelen, header, hlen, hash_headpp, entpp)
-	net_rcv_port_t	infp;
-	char *		p;		/* packet data */
-	unsigned int	wirelen;	/* data_count (in bytes) */
-	char *		header;
-	unsigned int    hlen;           /* header len (in bytes) */
-	net_hash_entry_t	**hash_headpp, *entpp;	/* out */
+bpf_do_filter(
+	net_rcv_port_t		infp,
+	char *			p,		/* packet data */
+	unsigned int		wirelen,	/* data_count (in bytes) */
+	char *			header,
+	unsigned int    	hlen,           /* header len (in bytes) */
+	net_hash_entry_t	**hash_headpp, 
+	net_hash_entry_t	*entpp)	/* out */
 {
-	register bpf_insn_t pc, pc_end;
-	register unsigned int buflen;
+	bpf_insn_t pc, pc_end;
+	unsigned int buflen;
 
-	register unsigned int A, X;
-	register int k;
+	unsigned int A, X;
+	int k;
 	unsigned int mem[BPF_MEMWORDS];
 
 	/* Generic pointer to either HEADER or P according to the specified offset. */
@@ -1924,13 +1891,13 @@ bpf_do_filter(infp, p, wirelen, header, hlen, hash_headpp, entpp)
  * Otherwise, a bogus program could easily crash the system.
  */
 int
-bpf_validate(f, bytes, match)
-	bpf_insn_t f;
-	int bytes;
-	bpf_insn_t *match;
+bpf_validate(
+	bpf_insn_t 	f,
+	int 		bytes,
+	bpf_insn_t 	*match)
 {
-	register int i, j, len;
-	register bpf_insn_t p;
+	int i, j, len;
+	bpf_insn_t p;
 
 	len = BPF_BYTES2LEN(bytes);
 
@@ -1946,7 +1913,7 @@ bpf_validate(f, bytes, match)
 		 */
 		p = &f[i];
 		if (BPF_CLASS(p->code) == BPF_JMP) {
-			register int from = i + 1;
+			int from = i + 1;
 
 			if (BPF_OP(p->code) == BPF_JA) {
 				if (from + p->k >= len)
@@ -1996,11 +1963,12 @@ bpf_validate(f, bytes, match)
 }
 
 int
-bpf_eq (f1, f2, bytes)
-	register bpf_insn_t f1, f2;
-	register int bytes;
+bpf_eq(
+	bpf_insn_t 	f1, 
+	bpf_insn_t 	f2,
+	int 		bytes)
 {
-	register int count;
+	int count;
 
 	count = BPF_BYTES2LEN(bytes);
 	for (; count--; f1++, f2++) {
@@ -2016,10 +1984,10 @@ bpf_eq (f1, f2, bytes)
 
 unsigned int
 bpf_hash (n, keys)
-	register int n;
-	register unsigned int *keys;
+	int n;
+	const unsigned int *keys;
 {
-	register unsigned int hval = 0;
+	unsigned int hval = 0;
 	
 	while (n--) {
 		hval += *keys++;
@@ -2031,12 +1999,12 @@ bpf_hash (n, keys)
 int
 bpf_match (hash, n_keys, keys, hash_headpp, entpp)
 	net_hash_header_t hash;
-	register int n_keys;
-	register unsigned int *keys;
+	int n_keys;
+	const unsigned int *keys;
 	net_hash_entry_t **hash_headpp, *entpp;
 {
-	register net_hash_entry_t head, entp;
-	register int i;
+	net_hash_entry_t head, entp;
+	int i;
 
 	if (n_keys != hash->n_keys)
 		return FALSE;
@@ -2070,12 +2038,13 @@ bpf_match (hash, n_keys, keys, hash_headpp, entpp)
  */
 
 int
-hash_ent_remove (ifp, hp, used, head, entp, dead_p)
-    struct ifnet	*ifp;
-    net_hash_header_t 	hp;
-    int			used;
-    net_hash_entry_t	*head, entp;
-    queue_entry_t	*dead_p;
+hash_ent_remove(
+    struct ifnet	*ifp,
+    net_hash_header_t 	hp,
+    int			used,
+    net_hash_entry_t	*head,
+    net_hash_entry_t	entp,
+    queue_entry_t	*dead_p)
 {    
 	hp->ref_count--;
 
@@ -2107,8 +2076,7 @@ hash_ent_remove (ifp, hp, used, head, entp, dead_p)
 }    
 
 int
-net_add_q_info (rcv_port)
-	ipc_port_t	rcv_port;
+net_add_q_info(ipc_port_t rcv_port)
 {
 	mach_port_msgcount_t qlimit = 0;
 	    
@@ -2133,8 +2101,7 @@ net_add_q_info (rcv_port)
 }
 
 void
-net_del_q_info (qlimit)
-	int qlimit;
+net_del_q_info(int qlimit)
 {
 	simple_lock(&net_kmsg_total_lock);
 	net_queue_free_min--;
@@ -2151,10 +2118,9 @@ net_del_q_info (qlimit)
  * No locks should be held when called.
  */
 void
-net_free_dead_infp (dead_infp)
-	queue_entry_t dead_infp;
+net_free_dead_infp(queue_entry_t dead_infp)
 {
-	register net_rcv_port_t infp, nextfp;
+	net_rcv_port_t infp, nextfp;
 
 	for (infp = (net_rcv_port_t) dead_infp; infp != 0; infp = nextfp)
 	{
@@ -2173,10 +2139,9 @@ net_free_dead_infp (dead_infp)
  * No locks should be held when called.
  */
 void
-net_free_dead_entp (dead_entp)
-	queue_entry_t dead_entp;
+net_free_dead_entp(queue_entry_t dead_entp)
 {
-	register net_hash_entry_t entp, nextentp;
+	net_hash_entry_t entp, nextentp;
 
 	for (entp = (net_hash_entry_t)dead_entp; entp != 0; entp = nextentp)
 	{

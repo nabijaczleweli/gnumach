@@ -30,7 +30,7 @@
 #ifdef MACH_KMSG
 #include <device/io_req.h>
 #include <device/kmsg.h>
-#endif
+#endif /* MACH_KMSG */
 
 static	boolean_t cn_inited = FALSE;
 static	struct consdev *cn_tab = 0;	/* physical console device info */
@@ -42,8 +42,8 @@ static	struct consdev *cn_tab = 0;	/* physical console device info */
  * is enabled.  This can be useful to debug (or catch panics from) code early
  * in the bootstrap procedure.
  */
-int	(*romgetc)() = 0;
-void	(*romputc)() = 0;
+int	(*romgetc)(char c) = 0;
+void	(*romputc)(char c) = 0;
 
 #if CONSBUFSIZE > 0
 /*
@@ -55,10 +55,10 @@ void	(*romputc)() = 0;
 static	char consbuf[CONSBUFSIZE] = { 0 };
 static	char *consbp = consbuf;
 static	boolean_t consbufused = FALSE;
-#endif
+#endif /* CONSBUFSIZE > 0 */
 
 void
-cninit()
+cninit(void)
 {
 	struct consdev *cp;
 	dev_ops_t cn_ops;
@@ -108,7 +108,7 @@ cninit()
 			} while (cbp != consbp);
 			consbufused = FALSE;
 		}
-#endif
+#endif /* CONSBUFSIZE > 0 */
 		cn_inited = TRUE;
 		return;
 	}
@@ -120,7 +120,7 @@ cninit()
 
 
 int
-cngetc()
+cngetc(void)
 {
 	if (cn_tab)
 		return ((*cn_tab->cn_getc)(cn_tab->cn_dev, 1));
@@ -130,7 +130,7 @@ cngetc()
 }
 
 int
-cnmaygetc()
+cnmaygetc(void)
 {
 	if (cn_tab)
 		return((*cn_tab->cn_getc)(cn_tab->cn_dev, 0));
@@ -180,5 +180,5 @@ cnputc(c)
 		if (consbp >= &consbuf[CONSBUFSIZE])
 			consbp = consbuf;
 	}
-#endif
+#endif /* CONSBUFSIZE > 0 */
 }

@@ -59,9 +59,9 @@ db_expr_t	db_macro_args[DB_MACRO_LEVEL][DB_NARGS];
 
 static struct db_user_macro *
 db_lookup_macro(name)
-	char *name;
+	const char *name;
 {
-	register struct db_user_macro *mp;
+	struct db_user_macro *mp;
 
 	for (mp = db_user_macro; mp < &db_user_macro[DB_NUSER_MACRO]; mp++) {
 	    if (mp->m_name[0] == 0)
@@ -73,11 +73,11 @@ db_lookup_macro(name)
 }
 
 void
-db_def_macro_cmd()
+db_def_macro_cmd(void)
 {
-	register char *p;
-	register int c;
-	register struct db_user_macro *mp, *ep;
+	char *p;
+	int c;
+	struct db_user_macro *mp, *ep;
 
 	if (db_read_token() != tIDENT) {
 	    db_printf("Bad macro name \"%s\"\n", db_tok_string);
@@ -104,9 +104,9 @@ db_def_macro_cmd()
 }
 
 void
-db_del_macro_cmd()
+db_del_macro_cmd(void)
 {
-	register struct db_user_macro *mp;
+	struct db_user_macro *mp;
 
 	if (db_read_token() != tIDENT
 	    || (mp = db_lookup_macro(db_tok_string)) == 0) {
@@ -120,9 +120,9 @@ db_del_macro_cmd()
 }
 
 void
-db_show_macro()
+db_show_macro(void)
 {
-	register struct db_user_macro *mp;
+	struct db_user_macro *mp;
 	int  t;
 	char *name = 0;
 
@@ -141,10 +141,10 @@ db_show_macro()
 
 int
 db_exec_macro(name)
-	char *name;
+	const char *name;
 {
-	register struct db_user_macro *mp;
-	register int n;
+	struct db_user_macro *mp;
+	int n;
 
 	if ((mp = db_lookup_macro(name)) == 0)
 	    return(-1);
@@ -165,13 +165,13 @@ db_exec_macro(name)
 	return(0);
 }
 
-long
+void
 /* ARGSUSED */
-db_arg_variable(vp, valuep, flag, ap)
-	struct db_variable	*vp;
-	db_expr_t		*valuep;
-	int			flag;
-	db_var_aux_param_t	ap;
+db_arg_variable(
+	struct db_variable	*vp,
+	db_expr_t		*valuep,
+	int			flag,
+	db_var_aux_param_t	ap)
 {
 	if (ap->level != 1 || ap->suffix[0] < 1 || ap->suffix[0] > DB_NARGS) {
 	    db_error("Bad $arg variable\n");
@@ -181,7 +181,7 @@ db_arg_variable(vp, valuep, flag, ap)
 	    *valuep = db_macro_args[db_macro_level][ap->suffix[0]-1];
 	else
 	    db_macro_args[db_macro_level][ap->suffix[0]-1] = *valuep;
-	return(0);
+	return;
 }
 
 #endif /* MACH_KDB */

@@ -42,6 +42,7 @@
 #include <kern/assert.h>
 #include <kern/debug.h>
 #include <kern/lock.h>
+#include <kern/slab.h>
 #include <kern/thread.h>
 #include <kern/printf.h>
 #include <vm/pmap.h>
@@ -62,9 +63,6 @@ static struct vm_map	kernel_map_store;
 vm_map_t		kernel_map = &kernel_map_store;
 vm_map_t	kernel_pageable_map;
 
-extern void kmem_alloc_pages();
-extern void kmem_remap_pages();
-
 /*
  *	projected_buffer_allocate
  *
@@ -82,15 +80,14 @@ extern void kmem_remap_pages();
  */
 
 kern_return_t
-projected_buffer_allocate(map, size, persistence, kernel_p, 
-                          user_p, protection, inheritance)
-	vm_map_t map;
-	vm_size_t size;
-        int persistence;
-	vm_offset_t *kernel_p;
-	vm_offset_t *user_p;
-        vm_prot_t protection;
-        vm_inherit_t inheritance;  /*Currently only VM_INHERIT_NONE supported*/
+projected_buffer_allocate(
+	vm_map_t 	map,
+	vm_size_t 	size,
+       int 		persistence,
+	vm_offset_t 	*kernel_p,
+	vm_offset_t 	*user_p,
+       vm_prot_t 	protection,
+       vm_inherit_t 	inheritance)  /*Currently only VM_INHERIT_NONE supported*/
 {
 	vm_object_t object;
 	vm_map_entry_t u_entry, k_entry;
@@ -180,13 +177,13 @@ projected_buffer_allocate(map, size, persistence, kernel_p,
  */
 
 kern_return_t
-projected_buffer_map(map, kernel_addr, size, user_p, protection, inheritance)
-	vm_map_t map;
-	vm_offset_t kernel_addr;
-	vm_size_t size;
-	vm_offset_t *user_p;
-        vm_prot_t protection;
-        vm_inherit_t inheritance;  /*Currently only VM_INHERIT_NONE supported*/
+projected_buffer_map(
+	vm_map_t 	map,
+	vm_offset_t 	kernel_addr,
+	vm_size_t 	size,
+	vm_offset_t 	*user_p,
+       vm_prot_t 	protection,
+       vm_inherit_t 	inheritance)  /*Currently only VM_INHERIT_NONE supported*/
 {
 	vm_map_entry_t u_entry, k_entry;
 	vm_offset_t physical_addr, user_addr;
@@ -253,15 +250,18 @@ projected_buffer_map(map, kernel_addr, size, user_p, protection, inheritance)
  */
 
 kern_return_t
-projected_buffer_deallocate(map, start, end)
-     vm_map_t map;
-     vm_offset_t start, end;
+projected_buffer_deallocate(
+     vm_map_t 		map,
+     vm_offset_t 	start, 
+     vm_offset_t	end)
 {
 	vm_map_entry_t entry, k_entry;
 
+	if (map == VM_MAP_NULL || map == kernel_map)
+		return KERN_INVALID_ARGUMENT;
+
 	vm_map_lock(map);
-     	if (map == VM_MAP_NULL || map == kernel_map ||
-	    !vm_map_lookup_entry(map, start, &entry) ||
+	if (!vm_map_lookup_entry(map, start, &entry) ||
 	    end > entry->vme_end ||
             /*Check corresponding kernel entry*/
 	    (k_entry = entry->projected_on) == 0) {
@@ -303,8 +303,7 @@ projected_buffer_deallocate(map, start, end)
  */
 
 kern_return_t
-projected_buffer_collect(map)
-        vm_map_t map;
+projected_buffer_collect(vm_map_t map)
 {
         vm_map_entry_t entry, next;
 
@@ -330,9 +329,10 @@ projected_buffer_collect(map)
  */
 
 boolean_t
-projected_buffer_in_range(map, start, end)
-        vm_map_t map;
-        vm_offset_t start, end;
+projected_buffer_in_range(
+       vm_map_t 	map,
+       vm_offset_t 	start, 
+	vm_offset_t	end)
 {
         vm_map_entry_t entry;
 
@@ -359,14 +359,15 @@ projected_buffer_in_range(map, start, end)
  */
 
 kern_return_t
-kmem_alloc(map, addrp, size)
-	vm_map_t map;
-	vm_offset_t *addrp;
-	vm_size_t size;
+kmem_alloc(
+	vm_map_t 	map,
+	vm_offset_t 	*addrp,
+	vm_size_t 	size)
 {
 	vm_object_t object;
 	vm_map_entry_t entry;
 	vm_offset_t addr;
+	unsigned int attempts;
 	kern_return_t kr;
 
 	/*
@@ -385,12 +386,22 @@ kmem_alloc(map, addrp, size)
 	size = round_page(size);
 	object = vm_object_allocate(size);
 
+	attempts = 0;
+
+retry:
 	vm_map_lock(map);
 	kr = vm_map_find_entry(map, &addr, size, (vm_offset_t) 0,
 			       VM_OBJECT_NULL, &entry);
 	if (kr != KERN_SUCCESS) {
-		printf_once("no more room for kmem_alloc in %p\n", map);
 		vm_map_unlock(map);
+
+		if (attempts == 0) {
+			attempts++;
+			slab_collect();
+			goto retry;
+		}
+
+		printf_once("no more room for kmem_alloc in %p\n", map);
 		vm_object_deallocate(object);
 		return kr;
 	}
@@ -429,17 +440,18 @@ kmem_alloc(map, addrp, size)
  *	If successful, the pages in the old region are mapped twice.
  *	The old region is unchanged.  Use kmem_free to get rid of it.
  */
-kern_return_t kmem_realloc(map, oldaddr, oldsize, newaddrp, newsize)
-	vm_map_t map;
-	vm_offset_t oldaddr;
-	vm_size_t oldsize;
-	vm_offset_t *newaddrp;
-	vm_size_t newsize;
+kern_return_t kmem_realloc(
+	vm_map_t 	map,
+	vm_offset_t 	oldaddr,
+	vm_size_t 	oldsize,
+	vm_offset_t 	*newaddrp,
+	vm_size_t 	newsize)
 {
 	vm_offset_t oldmin, oldmax;
 	vm_offset_t newaddr;
 	vm_object_t object;
 	vm_map_entry_t oldentry, newentry;
+	unsigned int attempts;
 	kern_return_t kr;
 
 	oldmin = trunc_page(oldaddr);
@@ -451,11 +463,21 @@ kern_return_t kmem_realloc(map, oldaddr, oldsize, newaddrp, newsize)
 	 *	Find space for the new region.
 	 */
 
+	attempts = 0;
+
+retry:
 	vm_map_lock(map);
 	kr = vm_map_find_entry(map, &newaddr, newsize, (vm_offset_t) 0,
 			       VM_OBJECT_NULL, &newentry);
 	if (kr != KERN_SUCCESS) {
 		vm_map_unlock(map);
+
+		if (attempts == 0) {
+			attempts++;
+			slab_collect();
+			goto retry;
+		}
+
 		printf_once("no more room for kmem_realloc in %p\n", map);
 		return kr;
 	}
@@ -519,14 +541,15 @@ kern_return_t kmem_realloc(map, oldaddr, oldsize, newaddrp, newsize)
  */
 
 kern_return_t
-kmem_alloc_wired(map, addrp, size)
-	vm_map_t map;
-	vm_offset_t *addrp;
-	vm_size_t size;
+kmem_alloc_wired(
+	vm_map_t 	map,
+	vm_offset_t 	*addrp,
+	vm_size_t 	size)
 {
 	vm_map_entry_t entry;
 	vm_offset_t offset;
 	vm_offset_t addr;
+	unsigned int attempts;
 	kern_return_t kr;
 
 	/*
@@ -537,12 +560,22 @@ kmem_alloc_wired(map, addrp, size)
 	 */
 
 	size = round_page(size);
+	attempts = 0;
+
+retry:
 	vm_map_lock(map);
 	kr = vm_map_find_entry(map, &addr, size, (vm_offset_t) 0,
 			       kernel_object, &entry);
 	if (kr != KERN_SUCCESS) {
-		printf_once("no more room for kmem_alloc_wired in %p\n", map);
 		vm_map_unlock(map);
+
+		if (attempts == 0) {
+			attempts++;
+			slab_collect();
+			goto retry;
+		}
+
+		printf_once("no more room for kmem_alloc_wired in %p\n", map);
 		return kr;
 	}
 
@@ -591,14 +624,15 @@ kmem_alloc_wired(map, addrp, size)
  */
 
 kern_return_t
-kmem_alloc_aligned(map, addrp, size)
-	vm_map_t map;
-	vm_offset_t *addrp;
-	vm_size_t size;
+kmem_alloc_aligned(
+	vm_map_t 	map,
+	vm_offset_t 	*addrp,
+	vm_size_t 	size)
 {
 	vm_map_entry_t entry;
 	vm_offset_t offset;
 	vm_offset_t addr;
+	unsigned int attempts;
 	kern_return_t kr;
 
 	if ((size & (size - 1)) != 0)
@@ -612,12 +646,22 @@ kmem_alloc_aligned(map, addrp, size)
 	 */
 
 	size = round_page(size);
+	attempts = 0;
+
+retry:
 	vm_map_lock(map);
 	kr = vm_map_find_entry(map, &addr, size, size - 1,
 			       kernel_object, &entry);
 	if (kr != KERN_SUCCESS) {
-		printf_once("no more rooom for kmem_alloc_aligned in %p\n", map);
 		vm_map_unlock(map);
+
+		if (attempts == 0) {
+			attempts++;
+			slab_collect();
+			goto retry;
+		}
+
+		printf_once("no more rooom for kmem_alloc_aligned in %p\n", map);
 		return kr;
 	}
 
@@ -665,10 +709,10 @@ kmem_alloc_aligned(map, addrp, size)
  */
 
 kern_return_t
-kmem_alloc_pageable(map, addrp, size)
-	vm_map_t map;
-	vm_offset_t *addrp;
-	vm_size_t size;
+kmem_alloc_pageable(
+	vm_map_t 	map,
+	vm_offset_t 	*addrp,
+	vm_size_t 	size)
 {
 	vm_offset_t addr;
 	kern_return_t kr;
@@ -696,10 +740,10 @@ kmem_alloc_pageable(map, addrp, size)
  */
 
 void
-kmem_free(map, addr, size)
-	vm_map_t map;
-	vm_offset_t addr;
-	vm_size_t size;
+kmem_free(
+	vm_map_t 	map,
+	vm_offset_t 	addr,
+	vm_size_t 	size)
 {
 	kern_return_t kr;
 
@@ -714,11 +758,12 @@ kmem_free(map, addr, size)
  *	a submap.
  */
 void
-kmem_alloc_pages(object, offset, start, end, protection)
-	register vm_object_t	object;
-	register vm_offset_t	offset;
-	register vm_offset_t	start, end;
-	vm_prot_t		protection;
+kmem_alloc_pages(
+	vm_object_t	object,
+	vm_offset_t	offset,
+	vm_offset_t	start, 
+	vm_offset_t	end,
+	vm_prot_t	protection)
 {
 	/*
 	 *	Mark the pmap region as not pageable.
@@ -726,7 +771,7 @@ kmem_alloc_pages(object, offset, start, end, protection)
 	pmap_pageable(kernel_pmap, start, end, FALSE);
 
 	while (start < end) {
-	    register vm_page_t	mem;
+	    vm_page_t	mem;
 
 	    vm_object_lock(object);
 
@@ -769,11 +814,12 @@ kmem_alloc_pages(object, offset, start, end, protection)
  *	a submap.
  */
 void
-kmem_remap_pages(object, offset, start, end, protection)
-	register vm_object_t	object;
-	register vm_offset_t	offset;
-	register vm_offset_t	start, end;
-	vm_prot_t		protection;
+kmem_remap_pages(
+	vm_object_t	object,
+	vm_offset_t	offset,
+	vm_offset_t	start, 
+	vm_offset_t	end,
+	vm_prot_t	protection)
 {
 	/*
 	 *	Mark the pmap region as not pageable.
@@ -781,7 +827,7 @@ kmem_remap_pages(object, offset, start, end, protection)
 	pmap_pageable(kernel_pmap, start, end, FALSE);
 
 	while (start < end) {
-	    register vm_page_t	mem;
+	    vm_page_t	mem;
 
 	    vm_object_lock(object);
 
@@ -827,11 +873,13 @@ kmem_remap_pages(object, offset, start, end, protection)
  */
 
 void
-kmem_submap(map, parent, min, max, size, pageable)
-	vm_map_t map, parent;
-	vm_offset_t *min, *max;
-	vm_size_t size;
-	boolean_t pageable;
+kmem_submap(
+	vm_map_t 	map, 
+	vm_map_t 	parent,
+	vm_offset_t 	*min, 
+	vm_offset_t 	*max,
+	vm_size_t 	size,
+	boolean_t 	pageable)
 {
 	vm_offset_t addr;
 	kern_return_t kr;
@@ -845,7 +893,7 @@ kmem_submap(map, parent, min, max, size, pageable)
 	 */
 	vm_object_reference(vm_submap_object);
 
-	addr = (vm_offset_t) vm_map_min(parent);
+	addr = vm_map_min(parent);
 	kr = vm_map_enter(parent, &addr, size,
 			  (vm_offset_t) 0, TRUE,
 			  vm_submap_object, (vm_offset_t) 0, FALSE,
@@ -869,9 +917,9 @@ kmem_submap(map, parent, min, max, size, pageable)
  *	Initialize the kernel's virtual memory map, taking
  *	into account all memory allocated up to this time.
  */
-void kmem_init(start, end)
-	vm_offset_t	start;
-	vm_offset_t	end;
+void kmem_init(
+	vm_offset_t	start,
+	vm_offset_t	end)
 {
 	vm_map_setup(kernel_map, pmap_kernel(), VM_MIN_KERNEL_ADDRESS, end,
 		     FALSE);
@@ -907,21 +955,19 @@ void kmem_init(start, end)
  */
 
 kern_return_t
-kmem_io_map_copyout(map, addr, alloc_addr, alloc_size, copy, min_size)
-     vm_map_t 		map;
-     vm_offset_t	*addr;  	/* actual addr of data */
-     vm_offset_t	*alloc_addr;	/* page aligned addr */
-     vm_size_t		*alloc_size;	/* size allocated */
-     vm_map_copy_t	copy;
-     vm_size_t		min_size;	/* Do at least this much */
+kmem_io_map_copyout(
+     vm_map_t 		map,
+     vm_offset_t	*addr,  	/* actual addr of data */
+     vm_offset_t	*alloc_addr,	/* page aligned addr */
+     vm_size_t		*alloc_size,	/* size allocated */
+     vm_map_copy_t	copy,
+     vm_size_t		min_size)	/* Do at least this much */
 {
 	vm_offset_t	myaddr, offset;
 	vm_size_t	mysize, copy_size;
 	kern_return_t	ret;
-	register
 	vm_page_t	*page_list;
 	vm_map_copy_t	new_copy;
-	register
 	int		i;
 
 	assert(copy->type == VM_MAP_COPY_PAGE_LIST);
@@ -1013,10 +1059,10 @@ kmem_io_map_copyout(map, addr, alloc_addr, alloc_size, copy, min_size)
  */
 
 void
-kmem_io_map_deallocate(map, addr, size)
-	vm_map_t	map;
-	vm_offset_t	addr;
-	vm_size_t	size;
+kmem_io_map_deallocate(
+	vm_map_t	map,
+	vm_offset_t	addr,
+	vm_size_t	size)
 {
 	/*
 	 *	Remove the mappings.  The pmap_remove is needed.
@@ -1035,10 +1081,11 @@ kmem_io_map_deallocate(map, addr, size)
  *		and the kernel map/submaps.
  */
 
-int copyinmap(map, fromaddr, toaddr, length)
-	vm_map_t map;
-	char *fromaddr, *toaddr;
-	int length;
+int copyinmap(
+	vm_map_t 	map,
+	char 		*fromaddr, 
+	char		*toaddr,
+	int 		length)
 {
 	if (vm_map_pmap(map) == kernel_pmap) {
 		/* assume a correct copy */
@@ -1061,10 +1108,11 @@ int copyinmap(map, fromaddr, toaddr, length)
  *		and the kernel map/submaps.
  */
 
-int copyoutmap(map, fromaddr, toaddr, length)
-	vm_map_t map;
-	char *fromaddr, *toaddr;
-	int length;
+int copyoutmap(
+	vm_map_t map,
+	char 	*fromaddr, 
+	char	*toaddr,
+	int 	length)
 {
 	if (vm_map_pmap(map) == kernel_pmap) {
 		/* assume a correct copy */

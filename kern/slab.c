@@ -165,7 +165,7 @@
 /*
  * Size of the VM submap from which default backend functions allocate.
  */
-#define KMEM_MAP_SIZE (128 * 1024 * 1024)
+#define KMEM_MAP_SIZE (96 * 1024 * 1024)
 
 /*
  * Shift for the first kalloc cache size.
@@ -289,8 +289,8 @@ vm_map_t kmem_map = &kmem_map_store;
 static unsigned long kmem_gc_last_tick;
 
 #define kmem_error(format, ...)                         \
-    printf("mem: error: %s(): " format "\n", __func__,  \
-           ## __VA_ARGS__)
+    panic("mem: error: %s(): " format "\n", __func__,   \
+          ## __VA_ARGS__)
 
 #define kmem_warn(format, ...)                              \
     printf("mem: warning: %s(): " format "\n", __func__,    \
@@ -662,7 +662,7 @@ static void kmem_cache_error(struct kmem_cache *cache, void *buf, int error,
 {
     struct kmem_buftag *buftag;
 
-    kmem_error("cache: %s, buffer: %p", cache->name, (void *)buf);
+    kmem_warn("cache: %s, buffer: %p", cache->name, (void *)buf);
 
     switch(error) {
     case KMEM_ERR_INVALID:
@@ -702,9 +702,9 @@ static void kmem_cache_error(struct kmem_cache *cache, void *buf, int error,
  */
 static void kmem_cache_compute_sizes(struct kmem_cache *cache, int flags)
 {
-    size_t i, buffers, buf_size, slab_size, free_slab_size, optimal_size;
+    size_t i, buffers, buf_size, slab_size, free_slab_size, optimal_size = 0;
     size_t waste, waste_min;
-    int embed, optimal_embed = optimal_embed;
+    int embed, optimal_embed = 0;
 
     buf_size = cache->buf_size;
 
@@ -745,6 +745,7 @@ static void kmem_cache_compute_sizes(struct kmem_cache *cache, int flags)
     } while ((buffers < KMEM_MIN_BUFS_PER_SLAB)
              && (slab_size < KMEM_SLAB_SIZE_THRESHOLD));
 
+    assert(optimal_size > 0);
     assert(!(flags & KMEM_CACHE_NOOFFSLAB) || optimal_embed);
 
     cache->slab_size = optimal_size;
@@ -1468,7 +1469,7 @@ kern_return_t host_slab_info(host_t host, cache_info_array_t *infop,
     struct kmem_cache *cache;
     cache_info_t *info;
     unsigned int i, nr_caches;
-    vm_size_t info_size = info_size;
+    vm_size_t info_size = 0;
     kern_return_t kr;
 
     if (host == HOST_NULL)

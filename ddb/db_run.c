@@ -59,24 +59,13 @@ int		db_last_inst_count;
 int		db_load_count;
 int		db_store_count;
 
-#ifndef db_set_single_step
-void		db_set_task_single_step(/* db_regs_t *, task_t */);/* forward */
-#else
-#define	db_set_task_single_step(regs,task)	db_set_single_step(regs)
-#endif
-#ifndef db_clear_single_step
-void		db_clear_task_single_step(/* db_regs_t *, task_t */);
-#else
-#define db_clear_task_single_step(regs,task)	db_clear_single_step(regs)
-#endif
-
 boolean_t
-db_stop_at_pc(is_breakpoint, task)
-	boolean_t	*is_breakpoint;
-	task_t		task;
+db_stop_at_pc(
+	boolean_t	*is_breakpoint,
+	task_t		task)
 {
-	register  db_addr_t	pc;
-	register  db_thread_breakpoint_t bkpt;
+	db_addr_t		pc;
+	db_thread_breakpoint_t  bkpt;
 
 	db_clear_task_single_step(DDB_REGS, task);
 	db_clear_breakpoints();
@@ -92,7 +81,7 @@ db_stop_at_pc(is_breakpoint, task)
 	    FIXUP_PC_AFTER_BREAK
 	    pc = PC_REGS(DDB_REGS);
 	}
-#endif
+#endif /* FIXUP_PC_AFTER_BREAK */
 
 	/*
 	 * Now check for a breakpoint at this address.
@@ -131,7 +120,7 @@ db_stop_at_pc(is_breakpoint, task)
 		(!inst_return(ins) || --db_call_depth != 0)) {
 		if (db_sstep_print) {
 		    if (inst_call(ins) || inst_return(ins)) {
-			register int i;
+			int i;
 
 			db_printf("[after %6d /%4d] ",
 				  db_inst_count,
@@ -167,32 +156,32 @@ db_stop_at_pc(is_breakpoint, task)
 }
 
 void
-db_restart_at_pc(watchpt, task)
-	boolean_t watchpt;
-	task_t	  task;
+db_restart_at_pc(
+	boolean_t watchpt,
+	task_t	  task)
 {
-	register db_addr_t pc = PC_REGS(DDB_REGS), brpc;
+	db_addr_t pc = PC_REGS(DDB_REGS);
 
 	if ((db_run_mode == STEP_COUNT) ||
 	    (db_run_mode == STEP_RETURN) ||
 	    (db_run_mode == STEP_CALLT)) {
-	    db_expr_t		ins;
 
 	    /*
 	     * We are about to execute this instruction,
 	     * so count it now.
 	     */
 
-	    ins = db_get_task_value(pc, sizeof(int), FALSE, task);
+	    db_get_task_value(pc, sizeof(int), FALSE, task);
 	    db_inst_count++;
 	    db_load_count += inst_load(ins);
 	    db_store_count += inst_store(ins);
 #ifdef	SOFTWARE_SSTEP
+	    db_addr_t brpc;
 	    /* Account for instructions in delay slots */
-	    brpc = next_instr_address(pc,1,task);
+	    brpc = next_instr_address(pc, 1, task);
 	    if ((brpc != pc) && (inst_branch(ins) || inst_call(ins))) {
 		/* Note: this ~assumes an instruction <= sizeof(int) */
-		ins = db_get_task_value(brpc, sizeof(int), FALSE, task);
+		db_get_task_value(brpc, sizeof(int), FALSE, task);
 		db_inst_count++;
 		db_load_count += inst_load(ins);
 		db_store_count += inst_store(ins);
@@ -217,9 +206,9 @@ db_restart_at_pc(watchpt, task)
 }
 
 void
-db_single_step(regs, task)
-	db_regs_t *regs;
-	task_t	  task;
+db_single_step(
+	db_regs_t *regs,
+	task_t	  task)
 {
 	if (db_run_mode == STEP_CONTINUE) {
 	    db_run_mode = STEP_INVISIBLE;
@@ -260,10 +249,10 @@ db_single_step(regs, task)
 db_breakpoint_t	db_not_taken_bkpt = 0;
 db_breakpoint_t	db_taken_bkpt = 0;
 
-db_breakpoint_t
+db_breakpoint_t __attribute__ ((pure))
 db_find_temp_breakpoint(task, addr)
-	task_t		   task;
-	db_addr_t	   addr;
+	const task_t	task;
+	db_addr_t	addr;
 {
 	if (db_taken_bkpt && (db_taken_bkpt->address == addr) &&
 	    db_taken_bkpt->task == task)
@@ -275,13 +264,13 @@ db_find_temp_breakpoint(task, addr)
 }
 
 void
-db_set_task_single_step(regs, task)
-	register db_regs_t *regs;
-	task_t		   task;
+db_set_task_single_step(
+	db_regs_t 	*regs,
+	task_t		task)
 {
 	db_addr_t pc = PC_REGS(regs), brpc;
-	register unsigned int	 inst;
-	register boolean_t       unconditional;
+	unsigned int	inst;
+	boolean_t       unconditional;
 
 	/*
 	 *	User was stopped at pc, e.g. the instruction
@@ -321,8 +310,8 @@ db_set_task_single_step(regs, task)
 
 void
 db_clear_task_single_step(regs, task)
-	db_regs_t *regs;
-	task_t	  task;
+	const db_regs_t *regs;
+	task_t	  	task;
 {
 	if (db_taken_bkpt != 0) {
 	    db_delete_temp_breakpoint(task, db_taken_bkpt);
@@ -346,7 +335,7 @@ db_single_step_cmd(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	boolean_t	print = FALSE;
 
@@ -374,7 +363,7 @@ db_trace_until_call_cmd(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	boolean_t	print = FALSE;
 
@@ -397,7 +386,7 @@ db_trace_until_matching_cmd(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	boolean_t	print = FALSE;
 
@@ -422,7 +411,7 @@ db_continue_cmd(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	int		have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	if (modif[0] == 'c')
 	    db_run_mode = STEP_COUNT;
@@ -437,7 +426,7 @@ db_continue_cmd(addr, have_addr, count, modif)
 }
 
 boolean_t
-db_in_single_step()
+db_in_single_step(void)
 {
 	return(db_run_mode != STEP_NONE && db_run_mode != STEP_CONTINUE);
 }

@@ -64,7 +64,7 @@ static Act free_acts[ACT_STATIC_KLUDGE];
 Act null_act;
 
 void
-global_act_init()
+global_act_init(void)
 {
 #ifndef ACT_STATIC_KLUDGE
 	kmem_cache_init(&act_cache, "Act", sizeof(struct Act), 0,
@@ -257,7 +257,7 @@ void act_detach(Act *cur_act)
    so RPC entry paths need not check it.
 
    Locking: Act */
-void act_execute_returnhandlers()
+void act_execute_returnhandlers(void)
 {
 	Act *act = current_act();
 
@@ -1013,11 +1013,11 @@ act_set_special_port(Act *act, int which, ipc_port_t port)
  *	Return thread's machine-dependent state.
  */
 kern_return_t
-act_get_state_immediate(act, flavor, old_state, old_state_count)
-	register Act		*act;
-	int			flavor;
-	void			*old_state;	/* pointer to OUT array */
-	unsigned int		*old_state_count;	/*IN/OUT*/
+act_get_state_immediate(
+	Act			*act,
+	int			flavor,
+	void			*old_state,	/* pointer to OUT array */
+	unsigned int		*old_state_count)	/*IN/OUT*/
 {
 	kern_return_t		ret;
 
@@ -1039,11 +1039,11 @@ act_get_state_immediate(act, flavor, old_state, old_state_count)
  *	Change thread's machine-dependent state.
  */
 kern_return_t
-act_set_state_immediate(act, flavor, new_state, new_state_count)
-	register Act		*act;
-	int			flavor;
-	void			*new_state;
-	unsigned int		new_state_count;
+act_set_state_immediate(
+	Act			*act,
+	int			flavor,
+	void			*new_state,
+	unsigned int		new_state_count)
 {
 	kern_return_t		ret;
 
@@ -1061,7 +1061,7 @@ act_set_state_immediate(act, flavor, new_state, new_state_count)
 	return act_set_state(act, flavor, new_state, new_state_count);
 }
 
-void act_count()
+void act_count(void)
 {
 	int i;
 	Act *act;
@@ -1076,7 +1076,7 @@ void act_count()
 	       ACT_STATIC_KLUDGE-i, ACT_STATIC_KLUDGE, ACT_STATIC_KLUDGE-amin);
 }
 
-dump_act(act)
+void dump_act(act)
 	Act *act;
 {
 	act_count();
@@ -1097,8 +1097,7 @@ dump_act(act)
 
 #ifdef ACTWATCH
 Act *
-get_next_act(sp)
-	int sp;
+get_next_act(int sp)
 {
 	static int i;
 	Act *act;
@@ -1114,6 +1113,6 @@ get_next_act(sp)
 			return act;
 	}
 }
-#endif
+#endif /* ACTWATCH */
 
 #endif /* MIGRATING_THREADS */

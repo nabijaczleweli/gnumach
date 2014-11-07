@@ -1,4 +1,2972 @@
+2014-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix link refusal
+	* Makefile.am (clib-routines.o): Refuse to link only when multiarch is
+	detected.
+
+2014-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Refuse to link against a libc with multiarch support
+	We don't have support for this yet.
+
+	* Makefile.am (clib-routines.o): Check for the presence of
+	__init_cpu_features, and in such case refuse to continue.
+
+2014-11-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix build when gcc avoids inlining
+	* ipc/ipc_port.h (ipc_port_flag_protected_payload,
+	ipc_port_flag_protected_payload_set,
+	ipc_port_flag_protected_payload_clear): Use static inline qualifier instead
+	of extern inline.
+
+2014-10-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Revert "Make sure mig is available"
+	This reverts commit b28e05e203e0739fa5db59c5af378b29eea7a232.
+
+2014-10-10  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	doc: restore section `Inherited Ports'
+	Previously, the section `Inherited Ports' was commented out.  This was
+	done, as the functionality was unused by the Hurd.  The functions
+	`mach_ports_register' and `mach_ports_lookup' were never removed, and
+	are exposed to user space.
+
+	This patch brings the documentation back and adds a remark at the top,
+	that the section documents the original intentions for this interface.
+
+	I chose bringing back the documentation over removing the
+	functionality because I like to make use of it as a method for service
+	discovery that is deliberately orthogonal to the way the service
+	lookup is usually done in the Hurd.  This can be used to implement
+	robust low-level debugging facilities.
+
+	* doc/mach.texi: Restore section `Inherited Ports'.
+
+2014-10-01  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Add protected payloads to NEWS
+
+	ipc: provide the protected payload in ipc_kmsg_copyout_header
+	* ipc/ipc_kmsg.c (ipc_kmsg_copyout_header): If a protected payload is
+	set for the destination port, provide it in msgh_protected_payload.
+	* ipc/mach_msg.c (mach_msg_trap): Likewise in the fast paths.
+	* doc/mach.texi (Message Receive): Document message semantics with
+	protected payloads.
+
+	include: define MACH_MSG_TYPE_PROTECTED_PAYLOAD
+	* include/mach/message.h: Define MACH_MSG_TYPE_PROTECTED_PAYLOAD.
+	(MACH_MSG_TYPE_LAST): Adjust accordingly.
+	* doc/mach.texi (Message Format): Document
+	MACH_MSG_TYPE_PROTECTED_PAYLOAD.
+
+	include: add msgh_protected_payload to mach_msg_header_t
+	* include/mach/message.h (mach_msg_header_t): Add
+	  msgh_protected_payload as a union with msgh_local_port.
+	* doc/mach.texi (Message Format): Document msgh_protected_payload.
+
+	ipc: implement mach_port_{set,clear}_protected_payload
+	* include/mach/mach_port.defs: Add mach_port_{set,clear}_protected_payload.
+	* ipc/mach_port.c: Implement mach_port_{set,clear}_protected_payload.
+	* doc/mach.texi (Receive Rights): Document
+	mach_port_{set,clear}_protected_payload.
+
+2014-10-01  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: add protected payload
+	Add a field ip_protected_payload and a flag ip_has_protected_payload
+	to struct ipc_port.
+
+	Clear the protected payload when a receive port is moved from one ipc
+	space to another.  This is done to retain the old behavior of
+	mach_msg, so that a port name is sent in the msgh_local_port field.
+	If the new owner of that receive right wishes to use the protected
+	payload mechanism, it has to be explicitly set again.
+
+	* ipc/ipc_port.h (struct ipc_port): Add field ip_protected_payload.
+	(ipc_port_set_protected_payload): Add function declaration.
+	(ipc_port_clear_protected_payload): Likewise.
+	(ipc_port_flag_protected_payload): Add accessor for the protected
+	payload flag.
+	(ipc_port_flag_protected_payload_set): Likewise.
+	(ipc_port_flag_protected_payload_clear): Likewise.
+	* ipc/ipc_port.c (ipc_port_init): Initialize protected payload.
+	(ipc_port_print): Print protected_payload.
+	(ipc_port_set_protected_payload): New function.
+	(ipc_port_clear_protected_payload): Likewise.
+	(ipc_port_destroy): Clear the payload when moving a receive port.
+	* ipc/ipc_right.c (ipc_right_copyin): Likewise.
+	(ipc_right_copyout): Likewise.
+	* ipc/ipc_object.c (ipc_object_copyin_from_kernel): Likewise.
+	* ipc/ipc_object.h (IO_BITS_PROTECTED_PAYLOAD): New bitmask.
+	(IO_BITS_OTYPE): Adjust accordingly.
+
+2014-09-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: use fast modulo operation in local hash table
+	* ipc/ipc_table.h: Document that table sizes must be powers of two.
+	* ipc/ipc_hash.c (IH_LOCAL_HASH): Use fast modulo operation.
+
+	kern: silence compiler warning about uninitialized variable
+	* kern/slab.c (kmem_cache_compute_sizes): Initialize optimal_size and
+	assert that a size is selected.
+
+	kern: fix type of recompute_priorities
+	* kern/sched_prim.c (recompute_priorities): Fix type.
+	* kern/sched_prim.h (recompute_priorities): Likewise.
+
+2014-09-26  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: create send rights as they are inserted at bootstrap time
+	Previously, it was impossible to hand e.g. the master device port to
+	more than one bootstrap task.  Fix this by creating the send right as
+	it is inserted into the target task.
+
+	* kern/bootstrap.c (bootstrap_create): Do not create the send rights
+	here...
+	(boot_script_insert_right): ... but here.
+
+2014-09-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Update NEWS file
+
+2014-09-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ddb: add support for ELF symbol tables
+	* ddb/db_elf.c: New file.
+	* ddb/db_elf.h: Likewise.
+	* Makefrag.am (libkernel_a_SOURCES): Add db_elf.{c,h}.
+	* ddb/db_sym.c (dummy_db_sym_init): New stub db_sym_init function.
+	(db_sym_switch): Add ELF functions.
+	* ddb/db_sym.h (SYMTAB_ELF): New macro.
+	(elf_db_sym_init): New declaration.
+	* i386/i386at/model_dep.c (c_boot_entry): Get ELF section header
+	information from the multiboot structure, and call elf_db_sym_init.
+
+	ddb: add `show all tasks' command
+	* ddb/db_command.c (db_show_all_cmds): Add `tasks'.
+	* ddb/db_print.c (db_show_all_tasks): New function.
+	* ddb/db_print.h (db_show_all_tasks): New prototype.
+
+2014-09-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Report DR6 to userland
+	* i386/i386/trap.c (user_trap): On T_DEBUG, record the content of dr6 in
+	PCB, and clear it.
+
+2014-09-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make vm_map really ignore `address' when `anywhere' is true
+	As vm_allocate does.
+
+	* vm/vm_user.c (vm_map): When `anywhere' is true, set `address' to the
+	minimum address of the `target_map'.
+
+2014-09-01  Pietro Braione  <schizophonic@tiscali.it>
+
+	Fix printf warning
+	linux/src/drivers/net/sundance.c (start_tx): Fix format string according
+	to parameter.
+
+2014-08-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Tune pageout parameters
+	This targets having always at least 8% free memory instead of just 1%.
+	This has shown improving buildd stability a lot. Also increase the
+	reserved amount to nowadays standards.
+
+	* vm/vm_pageout.c (VM_PAGE_FREE_TARGET): Increase to 10%.
+	(VM_PAGE_FREE_MIN): Increase to 8%.
+	(VM_PAGE_FREE_RESERVED): Increase to 500 pages.
+	(VM_PAGEOUT_RESERVED_INTERNAL): Increase to 150 pages.
+	(VM_PAGEOUT_RESERVED_REALLY): Increase to 100 pages.
+
+2014-08-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Increate the pageout thread priority
+	* vm/vm_pageout.c (vm_pageout): Set the priority to 0.
+
+2014-08-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Bump NR_GRANT_PAGES
+	This has shown needed on buildds with several disks and network
+	interfaces.
+
+	* xen/grant.c (NR_GRANT_PAGES): Increase from 4 to 8.
+
+2014-08-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix computation
+	* i386/i386at/com.c (comintr): Fix computation of '@'.
+
+2014-08-22  Neal H. Walfield  <neal@walfield.org>
+
+	Even less magic-looking control value
+	* i386/i386at/com.c (comintr): Use 'A'-1 instead of '@'.
+
+2014-08-22  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Support invoking the debugger over the serial console
+	* i386/i386at/com.c (comintr): Invoke the debugger if ctrl-alt-d is
+	pressed.
+	* i386/i386at/com.h (kdb_kintr): Add declaration.
+
+2014-07-25  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop debugging prints
+	* i386/i386at/acpi.c (grub_machine_acpi_get_rsdpv2): Drop debugging
+	prints.
+
+2014-07-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Do not unmap page 0 when not needed
+	Since we need it to access some BIOS information, e.g. at ACPI shutdown.  When
+	the kernel VM is not starting at 0, there is already nothing mapped there in
+	user tasks, anyway.
+
+	* i386/i386at/model_dep.c (machine_init) [VM_MIN_KERNEL_ADDRESS != 0]:
+	Do not call pmap_unmap_page_zero.
+	* i386/intel/pmap.c (pmap_unmap_page_zero): Warn that unmapping page
+	zero may break some BIOS functions.
+
+2014-07-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Document that io_map_cached leaks memory
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2014-07-06  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: use ACPI to power off the machine
+	This is a mostly verbatim copy of acpihalt.c from GRUB2 with a little
+	bit of glue code.
+
+	* i386/Makefrag.am (libkernel_a_SOURCES): Add the new files.
+	* i386/grub/acpi.h: Verbatim copy from GRUB2.
+	* i386/grub/compiler.h: Likewise.
+	* i386/grub/cpu/io.h: Likewise.
+	* i386/grub/cpu/time.h: Likewise.
+	* i386/grub/cpu/types.h: Likewise.
+	* i386/grub/err.h: Likewise.
+	* i386/grub/misc.h: Likewise.
+	* i386/grub/mm.h: Likewise.
+	* i386/grub/symbol.h: Likewise.
+	* i386/grub/time.h: Likewise.
+	* i386/grub/types.h: Likewise.
+	* i386/i386at/acpi.c: Likewise.
+	* i386/i386at/acpihalt.c: Likewise.
+	(grub_acpi_halt): Map physical addresses.
+	* i386/i386at/acpihalt.h: New file.
+	* i386/grub/glue.h: Some glue macros.
+	* i386/grub/i18n.h: Stub out i18n.
+	* i386/i386at/grub_glue.c: Some glue code.
+	* i386/i386at/model_dep.c (halt_all_cpus): Use grub_acpi_halt.
+
+2014-07-06  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: add io_map_cached
+	io_map_cached is like io_map, but reuses the old mapping if it is
+	applicable.
+
+	* i386/i386/io_map.c: Add io_map_cached.
+
+2014-06-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	doc: explain the floating point flag in kdb output
+	* doc/mach.texi (Kernel Debugger Commands): Explain the floating point
+	flag.
+
+2014-06-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: remap some keys
+	As a convenience for the nice people using our debugger, remap some
+	keys to the readline-like shortcuts supported by dde.
+
+	* i386/i386at/kd.c (kdcnmaygetc): Remap some keys.
+
+2014-06-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: reformat the key map
+	* i386/i386at/kd.c (key_map): Remove superfluous newlines so that
+	every entry fits into one line.  This way line numbers can be used as
+	an index into the map.
+
+	ddb: use db_thread_stat to format the flags
+	* ddb/db_print.c (db_print_thread): Use db_thread_stat to format the
+	flags.
+
+	ddb: print task names if available
+	* ddb/db_print.c (db_print_task): Print task name if available.
+	* i386/i386/db_interface.c (db_task_name): Likewise.
+	* i386/i386/db_machdep.h (DB_GNUMACH_TASK_NAME): Remove unused definition.
+
+	kern: set the name of the kernel task to 'gnumach'
+	* kern/taks.c (task_init): Set the name of the kernel task to 'gnumach'.
+
+2014-06-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	device: fix net_rcv_msg-messages
+	Previously, all net_rcv_msg-messages sent by net_deliver were
+	malformed.  It never was a problem in practice, since the messages are
+	not complex and thus the kernel does not try to parse the message.
+
+	struct net_rcv_msg contains an additional field of type boolean_t.
+	This field has no associated type descriptor, so it must not be
+	included in the message.
+
+	* device/net_io.c (net_deliver): Account for the extra field in the
+	msgh_size calculation.
+
+2014-05-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing memory clobber
+	* i386/i386/xen.h (mb, rmb, wmb): Add memory clobber.
+
+2014-05-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Rewrite old-style #endif FOO directives
+	* i386/include/mach/i386/cthreads.h: Rewrite old-style #endif FOO
+	directives.
+	* include/device/tape_status.h: Likewise.
+	* include/mach/alert.h: Likewise.
+	* include/mach/boot.h: Likewise.
+	* include/mach/default_pager_types.defs: Likewise.
+	* include/mach/default_pager_types.h: Likewise.
+	* include/mach/multiboot.h: Likewise.
+	* include/mach/notify.defs: Likewise.
+	* include/mach_debug/pc_info.h: Likewise.
+	* kern/act.h: Likewise.
+	* kern/refcount.h: Likewise.
+	* kern/shuttle.h: Likewise.
+
+2014-05-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: fix the embedded type definitions in memory_object.defs
+	In order to use MIG translation functions to lookup memory objects,
+	preprocessor macros have been introduced into the definition of
+	memory_object_t in 50cc5152.
+
+	The procedure definitions contain inlined type definitions in order to
+	change the type of the argument in question (i.e. to make it
+	polymorphic).  The inline definitions however lack the destructor
+	function, leading to reference leaks when a reference is acquired in
+	the intran function.
+
+	* include/mach/memory_object.defs: Add the destructor functions to the
+	inlined type definitions.
+
+2014-05-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ddb: add "halt" command
+	* ddb/db_command.c (db_command_table): Add "halt" command.
+	* i386/i386/db_interface.h (db_halt_cpu): New declaration.
+	* i386/i386at/model_dep.c (db_halt_cpu): New function.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: make struct vm_map fit into a cache line
+	Currently, the size of struct vm_map is 68 bytes.  By using a bit
+	field for the boolean flags, it can be made fit into a cache line.
+
+	* vm/vm_map.h (struct vm_map): Use a bit field for the boolean flags
+	wait_for_space and wiring_required.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: fix MACHINE_SERVER_HEADER
+	Commit b6dab094 introduced a way to include the MIG-generated server
+	files for the machine specific interface in ipc_kobject.c.
+
+	This broke out-of-tree builds.  Here, 'machine' is a symlink to
+	'../i386/i386', it points into the source tree.  The MIG-generated
+	files however are put in the build tree in i386/i386.
+
+	* i386/i386/machine_routines.h (MACHINE_SERVER_HEADER): Fix path.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: include the MIG-generated server headers for MACHINE_SERVER
+	GNU MIG recently gained support for emitting x_server_routine
+	declarations in the generated server header file.  Using this
+	declaration, the x_server_routine functions can be inlined into the
+	ipc_kobject_server function.
+
+	* kern/ipc_kobject.c: Include the MIG-generated server headers for the
+	machine-dependent interfaces.
+	(ipc_kobject_server): Drop the simple declaration of
+	MACHINE_SERVER_ROUTINE.
+	* i386/i386/machine_routines.h (MACHINE_SERVER_HEADER): New
+	definition.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: do not guard the host_slab_info RPC with MACH_VM_DEBUG
+	Previously, the definition of the host_slab_info RPC was guarded with
+	MACH_VM_DEBUG, even though it is not at all concerned with the VM
+	subsystem.  Furthermore, there was no "skip" directive for
+	host_slab_info.
+
+	The function host_slab_info is guarded with MACH_DEBUG.  The server
+	for the RPCs in mach_debug.defs is only used if MACH_DEBUG is
+	defined. There is no need to guard host_slab_info.
+
+	* include/mach_debug/mach_debug.defs (host_slab_info): Unconditionally
+	include the RPC.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Install the mach_debug header files
+	The task_set_name RPC introduced in 877a319c changed
+	include/mach/gnumach.defs to include mach_debug/mach_debug_types.defs.
+	Previously though, the debug headers were not installed.
+
+	* Makefrag.am: Install the mach_debug header files.
+
+2014-04-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	doc: fix the number of priorities
+	The number of priorities has been changed from 32 to 50 in
+	6a234201081156e6d5742e7eeabb68418b518fad.
+
+	* doc/mach.texi: Update accordingly.
+
+2014-04-25  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make sure mig is available
+	* configure.ac (MIG): Error out if MiG was not found.
+
+2014-04-13  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: set the name of tasks created during the bootstrap
+	* kern/bootstrap.c (boot_script_task_create): Set the name of newly
+	created tasks.
+
+2014-04-10  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: fix the definition of device_open
+	Previously, every userspace server implementing the device protocol
+	filtered the device definitions to replace the device_t type with
+	mach_port_send_t to make the device argument of device_open
+	polymorphic.  Rather than doing that, which makes it impossible to use
+	translation functions, fix the definition of device_open.
+
+	* include/device/device.defs (device_open): Redefine the device
+	argument to make it polymorphic unless a outran function is specified.
+
+2014-04-08  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: make the device_t types translation functions mutable
+	Make the intran, outtran and destructor functions mutable using
+	preprocessor macros.  Make it possible to inject imports using the
+	DEVICE_IMPORTS macro.  This way, userspace servers can provide their
+	own translation functions.
+
+	* include/device/device_types.defs: Honor DEVICE_IMPORTS.
+	(device_t): Make the translation mutable using preprocessor macros.
+
+2014-04-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: make the notify_port_t types translation functions mutable
+	Make the intran, outtran and destructor functions mutable using
+	preprocessor macros.  Make it possible to inject imports using the
+	NOTIFY_IMPORTS macro.  This way, userspace servers can provide their
+	own translation functions.
+
+	* include/mach/notify.defs: Honor NOTIFY_IMPORTS.
+	(notify_port_t): Make the translation mutable using preprocessor macros.
+
+2014-04-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Convert from K&R to ANSI
+	Convert from K&R style function definitions to ANSI style
+	function definitions.
+
+	* ddb/db_access.c: Convert function prototypes from K&R to ANSI.
+	* ddb/db_aout.c: Likewise.
+	* ddb/db_break.c: Likewise.
+	* ddb/db_command.c: Likewise.
+	* ddb/db_cond.c: Likewise.
+	* ddb/db_examine.c: Likewise.
+	* ddb/db_expr.c: Likewise.
+	* ddb/db_ext_symtab.c: Likewise.
+	* ddb/db_input.c: Likewise.
+	* ddb/db_lex.c: Likewise.
+	* ddb/db_macro.c: Likewise.
+	* ddb/db_mp.c: Likewise.
+	* ddb/db_output.c: Likewise.
+	* ddb/db_print.c: Likewise.
+	* ddb/db_run.c: Likewise.
+	* ddb/db_sym.c: Likewise.
+	* ddb/db_task_thread.c: Likewise.
+	* ddb/db_trap.c: Likewise.
+	* ddb/db_variables.c: Likewise.
+	* ddb/db_watch.c: Likewise.
+	* device/blkio.c: Likewise.
+	* device/chario.c: Likewise.
+	* device/dev_lookup.c: Likewise.
+	* device/dev_name.c: Likewise.
+	* device/dev_pager.c: Likewise.
+	* device/ds_routines.c: Likewise.
+	* device/net_io.c: Likewise.
+	* device/subrs.c: Likewise.
+	* i386/i386/db_interface.c: Likewise.
+	* i386/i386/fpu.c: Likewise.
+	* i386/i386/io_map.c: Likewise.
+	* i386/i386/loose_ends.c: Likewise.
+	* i386/i386/mp_desc.c: Likewise.
+	* i386/i386/pcb.c: Likewise.
+	* i386/i386/phys.c: Likewise.
+	* i386/i386/trap.c: Likewise.
+	* i386/i386/user_ldt.c: Likewise.
+	* i386/i386at/com.c: Likewise.
+	* i386/i386at/kd.c: Likewise.
+	* i386/i386at/kd_event.c: Likewise.
+	* i386/i386at/kd_mouse.c: Likewise.
+	* i386/i386at/kd_queue.c: Likewise.
+	* i386/i386at/lpr.c: Likewise.
+	* i386/i386at/model_dep.c: Likewise.
+	* i386/i386at/rtc.c: Likewise.
+	* i386/intel/pmap.c: Likewise.
+	* i386/intel/read_fault.c: Likewise.
+	* ipc/ipc_entry.c: Likewise.
+	* ipc/ipc_hash.c: Likewise.
+	* ipc/ipc_kmsg.c: Likewise.
+	* ipc/ipc_marequest.c: Likewise.
+	* ipc/ipc_mqueue.c: Likewise.
+	* ipc/ipc_notify.c: Likewise.
+	* ipc/ipc_port.c: Likewise.
+	* ipc/ipc_right.c: Likewise.
+	* ipc/mach_debug.c: Likewise.
+	* ipc/mach_msg.c: Likewise.
+	* ipc/mach_port.c: Likewise.
+	* ipc/mach_rpc.c: Likewise.
+	* kern/act.c: Likewise.
+	* kern/exception.c: Likewise.
+	* kern/ipc_mig.c: Likewise.
+	* kern/ipc_tt.c: Likewise.
+	* kern/lock_mon.c: Likewise.
+	* kern/mach_clock.c: Likewise.
+	* kern/machine.c: Likewise.
+	* kern/printf.c: Likewise.
+	* kern/priority.c: Likewise.
+	* kern/startup.c: Likewise.
+	* kern/syscall_emulation.c: Likewise.
+	* kern/syscall_subr.c: Likewise.
+	* kern/thread_swap.c: Likewise.
+	* kern/time_stamp.c: Likewise.
+	* kern/timer.c: Likewise.
+	* kern/xpr.c: Likewise.
+	* vm/memory_object.c: Likewise.
+	* vm/vm_debug.c: Likewise.
+	* vm/vm_external.c: Likewise.
+	* vm/vm_fault.c: Likewise.
+	* vm/vm_kern.c: Likewise.
+	* vm/vm_map.c: Likewise.
+	* vm/vm_pageout.c: Likewise.
+	* vm/vm_user.c: Likewise.
+
+2014-04-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix prototype
+	* linux/dev/glue/block.c (device_set_status): Fix prototype.
+
+2014-04-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Use explicit prototypes for struct dev_ops fields
+	* device/conf.h: Include <sys/types.h>, <mach/port.h>, <mach/vm_prot.h>.
+	Predefine struct io_req, io_req_t and io_return_t.
+	(dev_ops): Add explicit prototypes for d_open, d_close, d_read, d_write,
+	d_getstat, d_setstat, d_mmap, d_port_death.
+	(nulldev_open, nulldev_close, nulldev_read, nulldev_write,
+	nulldev_getstat, nulldev_setstat, nulldev_portdeath): Add prototypes.
+	(nomap): Fix prototype.
+	* device/dev_name.c (nulldev_open, nulldev_close, nulldev_read,
+	nulldev_write, nulldev_getstat, nulldev_setstat, nulldev_portdeath): New
+	functions.
+	(nomap): Fix prototype.
+	* device/ds_routines.c (dev_close): Pass 0 as flag parameter.
+	* device/kmsg.c (kmsgclose): Drop return value.
+	* device/kmsg.h (kmsgclose): Fix prototype.
+	* i386/i386at/com.c (comopen): Fix prototype.
+	(comclose): Fix prototype, drop return value.
+	(comread, comwrite): Fix prototype.
+	* i386/i386at/com.h (comopen, comclose, comread, comwrite): Fix
+	prototype.
+	* i386/i386at/conf.c (dev_ops): Use nulldev_open, nulldev_close,
+	nulldev_read, nulldev_write, nulldev_getstat, nulldev_setstat,
+	nulldev_portdeath where appropriate.
+	* i386/i386at/kd.c (kdclose, kdread, kdwrite, kdmmap): Fix prototype.
+	* i386/i386at/kd.h (kdclose, kdread, kdwrite, kdmmap): Likewise.
+	* i386/i386at/kd_event.c (kbdopen): Likewise.
+	* i386/i386at/kd_event.h (kbdopen): Likewise.
+	* i386/i386at/kd_mouse.c (mouseopen): Likewise.
+	* i386/i386at/kd_mouse.h (mouseopen): Likewise.
+	* i386/i386at/lpr.c (lpropen, lprclose, lprread, lprwrite): Likewise.
+	* i386/i386at/lpr.h (lpropen, lprclose, lprread, lprwrite): Likewise.
+	* i386/i386at/mem.c (memmmap): Likewise.
+	* i386/i386at/mem.h (memmmap): Likewise.
+	* i386/i386at/model_dep.c (timemmap): Likewise.
+	* i386/i386at/model_dep.h (timemmap): Likewise.
+	* kern/mach_clock.c (timeopen, timeclose): Likewise.
+	* kern/mach_clock.h: Include <sys/types.h>, predefine struct io_req and
+	io_req_t.
+	(timeopen, timeclose): Fix prototype.
+
+2014-03-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Assume EGA/VGA card
+	CGA and MONO cards are more than hard to find nowadays, and some buggy BIOSes
+	claim running them nowadays...
+
+	* i386/i386at/kd.c (kd_xga_init): Do not handle CGA and MONO cases any
+	more, which thus default to EGA/VGA.
+
+2014-03-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Really default to EGA/VGA on unknown CMOS values
+	* i386/i386at/kd.c (kd_xga_init): Use CM_EGA_VGA behavior as default
+	case for unknown values of CMOS data.
+
+2014-03-26  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix formatting of multiboot modules
+	Previously, bootstrap_create would print the multiboot modules with
+	padding applied to the end of the line.  As multiboot modules as used
+	by the Hurd span more than one line.  This makes the list of modules
+	hard to read and it looks unclean, more like an accident.
+	Furthermore, it is not clear what the intend of this was, as the
+	padding is applied at the end of the line, with no further information
+	printed thereafter.
+
+	* kern/bootstrap.c (bootstrap_create): Remove variable maxlen and len,
+	update printfs.
+
+2014-03-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: make the memory_object_t types translation functions mutable
+	Make the intran, outtran and destructor functions mutable using
+	preprocessor macros.  Make it possible to inject imports using the
+	MEMORY_OBJECT_IMPORTS macro.  This way, userspace servers can provide
+	their own translation functions.
+
+	* include/mach/mach_types.defs (memory_object_t): Make the translation
+	mutable using preprocessor macros.
+	* include/mach/memory_object.defs: Likewise for the inlined type declarations.
+	Honor MEMORY_OBJECT_IMPORTS.
+	* include/mach/memory_object_default.defs: Likewise.
+
+2014-03-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2014-03-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix overflow
+	We were filling much more than the mapwindows array, thus overwriting in
+	at least debugger variables.
+
+	* i386/intel/pmap.c (pmap_bootstrap): Make sure to limit mapwindows
+	initialization within PMAP_NMAPWINDOWS.
+
+2014-03-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	xen: fix error handling
+	Previously, the error KERN_RESOURCE_SHORTAGE was not properly
+	propagated.
+
+	Found using the Clang Static Analyzer.
+
+	* xen/block.c (device_open): Fix error handling, remove unused label.
+	* xen/net.c (device_open): Likewise.
+
+2014-03-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Only complain once per boot about Xen console smash
+	* xen/console.c (hypputc): Make `complain' variable static.
+
+2014-03-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Increase possible number of AHCI devices to 8
+	by reducing possible number of partitions to 32.
+
+	* linux/dev/drivers/block/ahci.c (MAX_PORTS): Set to 8.
+	(PARTN_BITS): Set to 5.
+
+2014-03-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2014-03-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Keep two virtual pages as mapping windows to access physical memory
+	PCI devices expose their memory etc. way beyond last_phys_addr. Userland
+	drivers opening /dev/mem need to open those too, even if phystokv() will
+	not work for them.
+
+	* i386/intel/pmap.h (pmap_mapwindow_t): New type.
+	(pmap_get_mapwindow, pmap_put_mapwindow): New prototypes.
+	(PMAP_NMAPWINDOWS): New macro.
+	* i386/intel/pmap.c (mapwindows): New array.
+	(pmap_get_mapwindow, pmap_put_mapwindow): New functions.
+	(pmap_bootstrap, pmap_virtual_space): Reserve virtual pages for the mapping
+	windows.
+	* i386/i386/phys.c: Include <i386/model_dep.h>
+	(INTEL_PTE_W, INTEL_PTE_R): New macros
+	(pmap_zero_page, pmap_copy_page, copy_to_phys, copy_from_phys): Use
+	`pmap_get_mapwindow' to temporarily map physical pages beyond last_phys_addr.
+
+2014-02-26  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix mig_strncpy
+	Previously, the function mig_strncpy would always zero-terminate the
+	destination string.  Make mig_strncpy behave like mig_strncpy and
+	strncpy in the glibc.  Also fix the implementation of mig_strncpy to
+	return the length of the written string to align the implementation
+	with the declaration in include/mach/mig_support.h.
+
+	* kern/ipc_mig.c (mig_strncpy): Do not zero-terminate the destination
+	string.  Return length of destination string.
+
+2014-02-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+	AHCI driver cleanups
+	* linux/dev/drivers/block/ahci.c (struct port): Add id and is_cd fields.
+	(ahci_end_request): Only print error if quiet flag of the request is not
+	set.
+	(ahci_do_port_request): Upgrade sector parameter to 64 bit. Include
+	those bits in the LBA48 request.
+	(ahci_do_request): Upgrade sector count to 64bit. Only print errors if
+	quiet flag of the request is not set.
+	(ahci_probe_port): Move identify code...
+	(ahci_identify): ... to new function. Handle WIN_PIDENTIFY case to
+	recognize ATAPI devices.
+	(ahci_probe_port): Also try WIN_PIDENTIFY command.
+	(ahci_geninit): Avoid checking partition table on empty devices.
+
+2014-02-19  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: skip routines related to migrating threads
+	* include/mach/mach_port.defs: Skip the routines mach_port_set_rpcinfo
+	  and mach_port_create_act if MIGRATING_THREADS is not defined.
+
+2014-02-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Reduce kmem_map to make room for kentry_data_size
+	* kern/slab.c (KMEM_MAP_SIZE): Decrease from 128MiB to 96MiB.
+
+2014-02-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make open return ENXIO on missing CD-ROM
+	* linux/src/drivers/block/ide-cd.c (ide_cdrom_open): Return -ENXIO when
+	CD sense failed.
+
+	Add quiet flag to CD I/O
+	* linux/src/drivers/block/ide-cd.c (cdrom_queue_packet_command): Add `quiet'
+	parameter, copied into the request.
+	(cdrom_decode_status): Do not print I/O error when `quiet' field of
+	request is non-zero.
+	(cdrom_end_request): Do not print sense results when `quiet' field of
+	request is non-zero.
+	(cdrom_check_status, cdrom_read_capacity, cdrom_read_tocentry): Pass 1 to
+	`cdrom_queue_packet_command''s `quiet' parameter.
+	(cdrom_lockdoor, cdrom_eject, cdrom_pause, cdrom_startstop,
+	cdrom_read_subchannel, cdrom_mode_sense, cdrom_mode_select,
+	cdrom_play_lba_range_1, cdrom_read_block, cdrom_load_unload,
+	ide_cdrom_ioctl): Pass 0 to `cdrom_queue_packet_command''s `quiet' parameter.
+
+	Add missing initialization
+	* linux/src/drivers/block/ide.c (ide_init_drive_cmd): Initialize `quiet'
+	field of request to 0;
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2014-02-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add quiet flag to block I/O
+	This avoids grub & such making Mach print flurries of floppy errors.
+
+	* linux/dev/include/linux/blkdev.h (request): Add `quiet' field.
+	* linux/dev/include/linux/blk.h (end_request): Print I/O error only if
+	the `quiet' field of the request is 0.
+	* linux/dev/include/linux/fs.h (ll_rw_block): Add `quiet' parameter.
+	* linux/dev/glue/block.c (ll_rw_block): Add `quiet' parameter, copied into
+	the request.
+	(bread, rdwr_partial, rdwr_full): Pass 0 to `ll_rw_block''s `quiet' parameter.
+	* linux/dev/drivers/block/floppy.c (floppy_revalidate): Pass 1 to
+	`ll_rw_block''s `quiet' parameter.
+
+2014-02-06  Richard Braun  <rbraun@sceen.net>
+
+	vm: trigger garbage collection on kernel memory pressure
+	In addition to physical pages, the slab allocator also consumes kernel
+	virtual memory, so reclaim pages on failure to allocate from a kernel map.
+	This method isn't foolproof but helps alleviate fragmentation.
+
+	* vm/vm_kern.c (kmem_alloc): Call slab_collect and retry allocation
+	once on failure.
+	(kmem_realloc): Likewise.
+	(kmem_alloc_wired): Likewise.
+	(kmem_alloc_wired): Likewise.
+	(kmem_alloc_aligned): Likewise.
+
+2014-02-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Remove duplicate typedef
+	* device/net_io.c (net_rcv_port_t, net_hash_entry_t, net_hash_header_t):
+	Remove duplicate typedefs.
+
+2014-02-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	doc: document task_set_name
+	* doc/mach.texi (Task Information): Document the new task_set_name
+	procedure.
+
+2014-02-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: add task_set_name
+	task_set_name sets the name of a task.  This is a debugging aid.  The
+	name will be used in error messages printed by the kernel.
+
+	* include/mach/gnumach.defs (task_set_name): New procedure.
+
+2014-02-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: implement task_set_name
+	task_set_name sets the name of a task.  This is a debugging aid.  The
+	name will be used in error messages printed by the kernel.
+
+	* kern/task.c (task_set_name): New function.
+	* kern/task.h (task_set_name): New declaration.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix comstart when the queue is empty
+	Found by Coverity
+
+	* i386/i386at/com.c (comstart): Make `nch' an int.  When `getc' returns
+	-1, just return.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix potential NULL dereference
+	Found by Coverity
+
+	* i386/i386/user_ldt.c (i386_get_ldt): Fetch `pcb' field of `thread'
+	only after looking for `thread' being NULL.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix potential NULL dereference
+	* vm/vm_kern.c (projected_buffer_deallocate): Look for `map' being NULL
+	or kernel_map before locking it.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix potential NULL dereference
+	Found by Coverity
+
+	* i386/i386/db_trace.c (db_find_kthread): Handle case when task is NULL.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix potential NULL dereference
+	Found by Coverity.
+
+	* i386/i386at/com.c (comopen): On com_reprobe() returning success, check
+	for `isai' again.
+
+2014-02-04  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	xen: fix buffer size
+	Previously, only strlen(device_name) bytes were allocated, missing one
+	byte for the terminating zero.
+
+	* xen/block.c (hyp_block_init): Fix buffer size.
+
+2014-02-04  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ddb: safely copy symbol names into the symtab structure
+	Use strncpy instead of strcpy to copy the name of a symbol into the
+	symtab structure.  Make sure that the string is properly terminated.
+
+	Found using Coverity.
+
+	* ddb/db_sym.c (db_add_symbol_table): Use strncpy instead of strcpy,
+	ensure string termination.
+
+2014-02-04  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: make kmem_error panic
+	The slab allocator relies on the fact that kmem_cache_error does not
+	return.  Previously, kmem_error was using printf.  Use panic instead.
+
+	Found using the Clang Static Analyzer.
+
+	* kern/slab.c (kmem_error): Use panic instead of printf.
+
+2014-02-04  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: use kmem_warn instead of kmem_error in kmem_cache_error
+	* kern/slab.c (kmem_cache_error): Use kmem_warn instead of kmem_error
+	to print the cache name and its address.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix FPU state copy size
+	* i386/i386/fpu.c (fpu_set_state, fpu_get_state): Fix size of
+	`user_fp_regs' access.
+
+	Make empty while loops more prominent
+	* i386/i386at/kd.c (kdintr, kd_senddata, kd_sendcmd, kd_getgata,
+	kd_cmdreg_read, kd_cmdreg_write, kd_mouse_drain): Move semi colon of
+	empty while loops on a single line to make it more visible.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix FPU state access
+	Found by coverity.
+
+	* i386/i386/fpu.c (fpu_set_state, fpu_get_state): Fix out of bound
+	`user_fp_regs' access.
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix typo
+	* i386/i386at/kd_mouse.c (mouseopen): Fix typo.
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2014-02-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing break
+	Found by Coverity
+
+	* i386/i386at/kd_mouse.c (mouseopen): Add missing break.
+
+2014-02-01  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: add a fixed-size string type for debugging purposes
+	* include/mach/debug.defs: New file.
+	* include/mach/debug.h: Likewise.
+
+	ipc: use the name of the task for error messages
+	* ipc/mach_port.c (mach_port_destroy): Use the name of the task for
+	error messages.
+	(mach_port_deallocate): Likewise.
+
+	kern: add a name field to struct task
+	* kern/task.c (task_create): Initialize name with the address of the task.
+	* kern/task.h (TASK_NAME_SIZE): New definition.
+	(struct task): Add field name.
+
+	kern: add snprintf
+	* kern/printf.c (snprintf): New function.
+	* kern/printf.h (snprintf): New declaration.
+
+2014-01-16  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: include the mig-generated server headers in ipc_kobject.c
+	GNU MIG recently gained support for emitting x_server_routine
+	declarations in the generated server header file.  Using this
+	declaration, the x_server_routine functions can be inlined into the
+	ipc_kobject_server function.
+
+	* kern/ipc_kobject.c: Include the mig-generated server headers.
+
+2014-01-16  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: remove the declaration of memory_object_create_proxy
+	It is not clear to me why the declaration was put there in the first
+	place.  It is not used anywhere, and it conflicts with the declaration
+	generated by mig.
+
+	* vm/memory_object_proxy.h (memory_object_create_proxy): Remove declaration.
+
+2014-01-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: align kmem_cache objects using __cacheline_aligned
+	* kern/slab.h (struct kmem_cache): Align kmem_cache objects using
+	__cacheline_aligned.
+
+	include: add new file for cache-related definitions
+	* include/cache.h (__cacheline_aligned): This macro can be used to
+	align statically allocated objects so that they start at a cache line.
+
+2014-01-06  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: optimize the layout of struct kmem_cache
+	* kern/slab.h (struct kmem_cache): Reorder the fields so that all hot
+	fields are within the first cache line.
+
+2014-01-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: explain the significance of the chosen length
+	* kern/slab.h (KMEM_CACHE_NAME_SIZE): Explain the significance of the
+	chosen length.
+
+2014-01-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	linux: fix bit tests
+	The pattern is !x&y. An expression of this form is almost always
+	meaningless, because it combines a boolean operator with a bit
+	operator. In particular, if the rightmost bit of y is 0, the result
+	will always be 0.
+
+	Fixed using coccinelle.
+
+	// !x&y combines boolean negation with bitwise and
+	//
+	// Confidence: High
+	// Copyright: (C) Gilles Muller, Julia Lawall, EMN, DIKU.  GPLv2.
+	// URL: http://www.emn.fr/x-info/coccinelle/rules/notand.html
+	// Options:
+
+	@@ expression E1,E2; @@
+	(
+	  !E1 & !E2
+	|
+	- !E1 & E2
+	+ !(E1 & E2)
+	)
+
+	* linux/src/drivers/scsi/FlashPoint.c: Fix bit tests.
+
+2014-01-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	linux: fix bit tests
+	The pattern is !x&y. An expression of this form is almost always
+	meaningless, because it combines a boolean operator with a bit
+	operator. In particular, if the rightmost bit of y is 0, the result
+	will always be 0.
+
+	Fixed using coccinelle.
+
+	// !x&y combines boolean negation with bitwise and
+	//
+	// Confidence: High
+	// Copyright: (C) Gilles Muller, Julia Lawall, EMN, DIKU.  GPLv2.
+	// URL: http://www.emn.fr/x-info/coccinelle/rules/notand.html
+	// Options:
+
+	@@ expression E; constant C; @@
+	(
+	  !E & !C
+	|
+	- !E & C
+	+ !(E & C)
+	)
+
+	* linux/src/drivers/net/tlan.c: Fix bit tests.
+	* linux/src/drivers/scsi/AM53C974.c: Likewise.
+	* linux/src/drivers/scsi/FlashPoint.c: Likewise.
+	* linux/src/drivers/scsi/NCR5380.c: Likewise.
+	* linux/src/drivers/scsi/t128.c: Likewise.
+
+2014-01-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: make struct kmem_cache fit into two cache lines
+	Previously, the size of struct kmem_cache was 136 bytes, just eight
+	bytes larger than 128 bytes, which is typically two cache lines on
+	today's CPUs.
+
+	By reducing the size of the name field which holds a human-readable
+	description by eight bytes to 24 bytes, the struct kmem_cache can be
+	made fit into two cache lines.  This change should not affect the
+	usefulness of this field.  For reference, the length of the largest
+	hard-coded name is 17.
+
+	* kern/slab.h (KMEM_CACHE_NAME_SIZE): Define to 24.
+
+2014-01-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: reduce the size of struct task
+	* kern/task.h (struct task): Reduce the size of struct task by
+	2 * sizeof boolean_t by using a bit field for the boolean flags.
+
+2014-01-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: reduce the size of struct vm_page
+	Previously, the bit field left 31 bits unused.  By reducing the size
+	of wire_count by one bit, the size of the whole struct is reduced by
+	four bytes.
+
+	* vm/vm_page.h (struct vm_page): Reduce the size of wire_count to 15
+	bits.
+
+2014-01-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: merge the two bit fields in struct vm_page
+	* vm/vm_page.h (struct vm_page): Merge the two bit fields.
+
+2014-01-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: remove NS32000-specific padding from struct vm_page
+	Apparently, the NS32000 was a 32-bit CPU from the 1990ies.  The string
+	"ns32000" appears nowhere else in the source.
+
+	* vm/vm_page.h (struct vm_page): Remove NS32000-specific padding.
+
+2014-01-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make sure cursor is initialized
+	* i386/i386at/kd.c (kd_xga_init): Add start, stop variables, read them
+	from CRT registers, make sure the cursor is enabled and is not reduced
+	to 0, and write them back to CRT registers.
+	* i386/i386at/kd.h (C_START, C_STOP): New macros.
+
+2014-01-01  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/include/mach/i386/mach_i386_types.h: add comments after else and endif
+	* i386/include/mach/i386/mach_i386_types.h (MACH_KERNEL): Add comments after else and endif.
+
+	Add comment after endif
+	* i386/i386/io_perm.h (_I386_IO_PERM_H_): Add comment after endif.
+
+2013-12-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2013-12-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Mark pure functions with attribute pure
+
+	kern/strings.c (strlen): mark with attribute pure
+	* kern/strings.c (strlen): Mark with attribute pure.
+
+	ddb/db_watch.c (db_watchpoint_cmd): remove forward declaration
+	* ddb/db_watch.c (db_watchpoint_cmd) (db_option): Remove forward declaration.
+
+2013-12-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Declare void argument lists (part 2)
+	Declare void argument lists that were not declared in the first
+	part of this patch and
+
+	* kern/sched_prim.h (recompute_priorities): Fix prototype.
+	* kern/startup.c (setup_main) (recompute_priorities): Fix call.
+
+2013-12-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: add missing includes
+	* i386/i386at/kd_event.h: Add missing includes.
+
+2013-12-17  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: avoid the casts in enqueue_head() and enqueue_tail()
+	* kern/eventcount.c (simpler_thread_setrun) (enqueue_head) (th): Avoid the cast.
+	* kern/thread.c (thread_halt_self) (enqueue_tail) (thread): Likewise.
+	* kern/thread_swap.c (thread_swapin) (enqueue_tail) (thread): Likewise.
+
+	Mark functions that don't return with attribute noreturn
+
+	vm: qualify pointers whose dereferenced values are constant with const
+
+	util: qualify pointers whose dereferenced values are constant with const
+
+	kern: qualify pointers whose dereferenced values are constant with const
+
+	ipc: qualify pointers whose dereferenced values are constant with const
+
+	i386: qualify pointers whose dereferenced values are constant with const
+
+	device: qualify pointers whose dereferenced values are constant with const
+
+	Cleanup of the copyin() and copyout() calls
+	* device/ds_routines.c (device_write_trap) (copyin) (data): Cast to (void *). Argument is an address.
+	(device_write_trap) (copyin) (io_data): Don't cast.
+	(device_writev_trap) (copyin) (iovec, stack_iovec): Likewise.
+	(device_writev_trap) (copyin) (data, p): Cast to (void *). Arguments are addresses.
+	* kern/bootstrap.c (build_args_and_stack) (copyout) (arg_count, string_pos, zero): Don't cast.
+	* kern/ipc_mig.c (syscall_vm_map) (copyin, copyout) (addr, address): Likewise.
+	(syscall_vm_allocate) (copyin, copyout) (addr, address): Likewise.
+	(syscall_task_create) (copyout) (name, child_task): Likewise.
+	(syscall_mach_port_allocate) (copyout) (name, namep): Likewise.
+	* kern/time_stamp.c (copyout) (temp, tsp): Likewise.
+
+2013-12-17  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/sched_prim.h: remove unnecessary __GNUC__ #ifdef
+	Attribute noreturn is used irrespective of __GNUC__. Remove
+	unnecessary #ifdef.
+
+	* kern/sched_prim.h [__GNUC__]: Remove #ifdef.
+
+2013-12-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	xen: add missing includes
+	* xen/console.h: Add missing includes.
+
+2013-12-16  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: quiet GCC warnings about set but unused variables
+	* kern/lock.h (simple_lock_data_empty): Define.
+	(decl_simple_lock_data, simple_unlock): Likewise.
+	* kern/sched_prim.c (lock): Declare.
+	[MACH_SLOCKS]: Remove #ifs.
+	* kern/task.c (task_lock, task_unlock): Remove address operator.
+
+	Quiet GCC warning about uninitialized variable
+	* ddb/db_command.h (db_error): Mark with attribute noreturn.
+	* i386/i386/setjmp.h (_longjmp): Likewise.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_trace.c: use (long *) instead of an (int *)
+	* i386/i386/db_trace.c (db_lookup_i386_kreg) (kregp): Use (long *) instead of an (int *).
+
+	device/dev_pager.c (device_pager_data_request_done): cast to size_t instead to unsigned
+	* device/dev_pager.c (device_pager_data_request_done) (memset) (io_residual): Cast to size_t instead to unsigned.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/dev_pager.c: remove unnecessary casts
+	Variable pager is already of ipc_port_t type.
+
+	* device/dev_pager.c: Remove unnecessary casts.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/sched_prim.c: avoid casts
+	Avoid the casts by passing the address of the links thread
+	structure member to enqueue_tail().
+
+	* kern/sched_prim.c: Avoid casts.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb: qualify pointers whose dereferenced values are constant with const
+
+2013-12-15  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix gcc signedness warning
+	Thanks Marin Ramesa and Richard Braun for investigating.
+
+	* i386/i386at/kd.c (kdintr): Make `char_idx' and `max' unsigned.
+	(kdstate2idx): Make function take and return unsigned ints for the state.
+	* i386/i386at/kd.h (kdstate2idx): Likewise.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Type definition
+	* i386/i386/ast_check.c (init_ast_check, cause_ast_check): Define return type.
+	* i386/i386/pic.c (intnull, prtnull): Define argument types.
+	* i386/i386at/com.c (compr_addr): Likewise.
+	(compr): Likewise.
+	(compr_addr): Fix printf format.
+	* i386/i386at/kd.c (kd_cmdreg_write, kd_kbd_magic): Define argument types.
+	* i386/i386at/kd_mouse.c (init_mouse_hw): Likewise.
+	* ipc/mach_port.c (sact_count): Define return type.
+	* ipc/mach_rpc.c (mach_port_rpc_sig): Define argument types.
+	* kern/act.c (dump_act): Define return type.
+	* kern/lock_mon.c (simple_lock, simple_lock_try, simple_unlock, lip, lock_info_sort, lock_info_clear, print_lock_info): Define return type.
+	(time_lock): Define return type and argument type.
+	* kern/timer.c (time_trap_uexit): Define argument type.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_expr.c (db_mult_expr): initialize lhs
+	Initialize lhs to zero to avoid uninitialized usage in db_unary().
+
+	* ddb/db_expr.c (db_mult_expr) (lhs): Initialize to zero.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c (db_delete_cmd): remove unnecessary initialization
+	Now that we have returns there are no more warnings from GCC about
+	uninitialized variable. Remove unnecessary initialization of variable
+	bkpt.
+
+	* ddb/db_break.c (db_delete_cmd) (bkpt): Remove unnecessary initialization.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c (db_find_breakpoint_here): remove unnecessary casts
+	Variable addr and member address are already of db_addr_t type which
+	is type defined as vm_offset_t.
+
+	* ddb/db_break.c (db_find_breakpoint_here) (DB_PHYS_EQ) (addr, address): Remove unecessary casts.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	vm/vm_resident.c (vm_page_print): remove unnecessary casts
+	Members offset and phys_addr are of vm_offset_t types.
+
+	* vm/vm_resident.c (vm_page_print) (offset, phys_addr): Remove unnecessary casts.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	vm/vm_kern.c (kmem_submap): remove unnecessary cast
+	The return value from vm_map_min() is already of vm_offset_t type.
+
+	* vm/vm_kern.c (kmem_submap) (addr): Remove unnecessary cast.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/ldt.c: remove forward declaration
+	* i386/i386/ldt.c (syscall): Remove forward declaration.
+	Include locore.h.
+	* i386/i386/locore.h (syscall): Add prototype.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/mach_clock.c: update comment
+	This is mach_clock.c, not clock_prim.c.
+
+	* kern/mach_clock.c: Update comment.
+
+2013-12-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Declare void argument lists
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/kd_mouse.c (kd_mouse_open): remove forward declaration
+	* i386/i386at/kd_mouse.c (kd_mouse_open) (kdintr): Remove forward declaration.
+
+	i386/i386at/kd.c (kdinit): remove forward declaration
+	* i386/i386at/kd.c (kdinit) (kd_xga_init): Remove forward declaration.
+	* i386/i386at/kd.h (kd_xga_init): Add prototype.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/kd.c (kdmmap): remove unnecessary cast
+	Variable off is already an unsigned int.
+
+	* i386/i386at/kd.c (kdmmap) (off): Remove unnecessary cast.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/kd.c: remove forward declarations
+	* i386/i386at/kd.c (kd_getdata, state2leds, kdstart, kdstop): Remove forward declarations.
+	* i386/i386at/kd.h (kd_getdata, state2leds, kdstart, kdstop): Add prototypes.
+	Include device/tty.h.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_trace.c (db_i386_stack_trace): remove unnecessary cast
+	Argument to INKERNEL() is already cast to vm_offset_t in the macro itself.
+
+	* i386/i386/db_trace.c (db_i386_stack_trace) (INKERNEL) (callpc): Don't cast to unsigned long.
+	(db_i386_stack_trace) (INKERNEL) (frame): Likewise.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_trace.c: remove forward declaration
+	* i386/Makefrag.am: List i386/i386/db_trace.h.
+	* i386/i386/db_trace.c: Include machine/db_trace.h.
+	(db_i386_stack_trace): Remove forward declaration.
+	* i386/i386/db_trace.h: New file.
+	Add copyright.
+	[_I386_DB_TRACE_H_]: Add ifndef.
+	(i386_frame): Declare forward.
+	(db_i386_stack_trace): Add prototype.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/mach_debug.c (mach_port_kernel_object): remove unnecessary cast
+	Member ip_kobject is of type vm_offset_t.
+
+	* ipc/mach_debug.c (mach_port_kernel_object) (ip_kobject): Remove unnecessary cast.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/mach_debug.c (mach_port_kernel_object): remove unnecessary cast
+	Return value from ip_kotype is an unsigned int.
+
+	* ipc/mach_debug.c (mach_port_kernel_object) (ip_kotype): Remove unnecessary cast.
+
+2013-12-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Cleanup of the memcpy(), memmove(), memcmp() and memset() calls
+	Addresses were cast to (void *). Pointers uncasted.
+
+	* device/ds_routines.c (ds_read_done) (memset) (start_sent): Cast to (void *) instead to (char *). Argument is an address.
+	(ds_read_done) (memset) (end_data): Likewise.
+	* i386/i386/pcb.c (thread_getstatus) (memcpy) (pm): Don't cast. Argument is a pointer.
+	(thread_getstatus) (memcpy) (iopb): Likewise.
+	* i386/i386at/immc.c (immc_cnputc) (memmove): Cast first argument to (void *). Argument is an address.
+	(immc_cnputc) (memmove): Cast second argument to (void *). Argument is an address.
+	(immc_cnputc) (memset): Cast first argument to (void *). Argument is an address.
+	* i386/i386at/model_dep.c (i386at_init) (memcpy) (phystokv): Cast to (void *) instead to (char *). Argument is an address.
+	* i386/intel/pmap.c (pmap_init) (memset) (addr): Likewise.
+	* ipc/mach_debug.c (mach_port_space_info) (memset) (table_addr + size_used): Likewise.
+	(mach_port_space_info) (memset) (tree_addr + size_used): Likewise.
+	* kern/host.c (host_processor_sets) (memcpy) (newaddr): Likewise.
+	(host_processor_sets) (memcpy) (addr): Likewise.
+	* kern/xpr.c (xprbootstrap) (memset) (addr): Likewise.
+	* vm/vm_debug.c (mach_vm_object_pages) (memset) (addr + size_used): Likewise.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/subrs.c: use io_req_t instead of struct buf
+	Struct buf is not defined. Use io_req_t instead of it.
+
+	* device/subrs.c (harderr) (bp): Change name to ior and use io_req_t as type instead of (struct buf *).
+	(harderr) (minor): Use io_unit instead of b_dev.
+	(harderr): Use io_recnum instead of b_blkno.
+	(gateblk): Use io_req_t as return value instead of (struct buf *).
+	(brelse) (bp): Change name to ior and use io_req_t as type instead of (struct buf *).
+	(brelse) (ior): Remove variable.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/net_io.c: remove forward declarations
+	* device/net_io.c (bpf_hash, net_do_filter, bpf_do_filter, hash_ent_remove, net_free_dead_infp, net_free_dead_entp, bpf_validate, bpf_eq, net_add_q_info, bpf_match): Remove forward declarations.
+	* device/net_io.h (net_rcv_port, net_hash_entry, net_hash_header): Declare forward.
+	(bpf_hash, net_do_filter, bpf_do_filter, hash_ent_remove, net_free_dead_infp, net_free_dead_entp, bpf_validate, bpf_eq, net_add_q_info, bpf_match): Add prototypes.
+
+	device/dev_pager.c: remove forward declarations
+	* device/dev_pager.c (device_pager_data_request_done, device_pager_data_write_done): Remove forward declarations.
+	* device/dev_pager.h (device_pager_data_request_done, device_pager_data_write_done): Add prototypes.
+
+	device/dev_pager.c: remove forward declaration
+	* Makefrag.am: Include device/blkio.h.
+	* device/blkio.h: New file.
+	Add copyright.
+	[_DEVICE_BLKIO_H_]: Add ifndef.
+	(block_io_mmap): Add prototype.
+	* device/dev_pager.c: Include device/blkio.h.
+	(block_io_mmap): Remove forward declaration.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/dev_pager.c (device_pager_data_request_done): remove unnecessary cast
+	The argument to trunc_page() is already cast to vm_offset_t in the
+	macro itself.
+
+	* device/dev_pager.c (device_pager_data_request_done) (trunc_page) (io_data): Don't cast to vm_offset_t.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/dev_pager.c (device_pager_data_request): cast to (void *) instead to (char *)
+	* device/dev_pager.c (device_pager_data_request) (vm_object_page_map) (ds): Cast to (void *) instead to (char *).
+
+	device/dev_pager.c (device_pager_data_request): remove forward declaration
+	* Makefrag.am: Include device/dev_pager.h.
+	* device/dev_pager.c: Likewise.
+	(device_map_page): Remove forward declaration.
+	* device/dev_pager.h: New file.
+	Add copyright.
+	[_DEVICE_DEV_PAGER_H_]: Add ifndef.
+	(device_map_page): Add prototype.
+
+	device/cons.c: fix argument list
+	* device/cons.c (romgetc, romputc): Fix argument list.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/cirbuf.c (cb_free): use vm_size_t instead of an int
+	This is more in line with the call to kfree() in cb_free().
+
+	* device/cirbuf.c (cb_free) (size): Use vm_size_t instead of an int.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/cirbuf.c (cb_alloc): use vm_size_t instead of an int
+	This is more in line with the call to kalloc() in cb_alloc().
+
+	* device/chario.c (tty_inq_size, tty_outq_size): Use unsigned int instead if an int.
+	* device/cirbuf.c (cb_alloc) (buf_size): Use vm_size_t instead of an int.
+	* device/cirbuf.h (cb_alloc) (buf_size): Likewise.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/chario.c: trivial stylistic fix for consistency
+	* device/chario.c: Trivial stylistic fix for consistency.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.c: use vm_offset_t instead of an unsigned int
+	This is more in line with how the function db_user_to_kernel_address() is
+	called. In this way there is one cast less and several GCC warnings are
+	silenced.
+
+	* i386/i386/db_interface.c (db_set_hw_watchpoint) (kern_addr): Use vm_offset_t instead of an unsigned int.
+	(db_user_to_kernel_address) (kaddr): Likewise.
+	(db_user_to_kernel_address) (ptetokv): Don't cast return value.
+	(db_read_bytes) (kern_addr): Use vm_offset_t instead of an unsigned int.
+	(db_write_bytes_user_space) (kern_addr): Likewise.
+	(db_task_name) (vaddr, kaddr): Likewise.
+	* i386/i386/db_interface.h (db_user_to_kernel_address) (kaddr): Likewise.
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/kd_event.c (kbdsetstat): fix difference in signedness
+	* i386/i386at/kd_event.c (X_kdb_enter_init, X_kdb_exit_init): Cast first arguments to (unsigned int *).
+
+2013-12-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386: move prototypes to fix implicit declaration of function
+	This fixes the implicit declarations in kern/machine.c and kern/debug.c.
+
+	* i386/i386/model_dep.h (halt_cpu, halt_all_cpus): Add prototypes.
+	* i386/i386at/model_dep.h (halt_cpu, halt_all_cpus): Remove prototypes.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_trap.c (db_task_trap): remove forward declarations
+	* ddb/db_break.h (db_check_breakpoint_valid): Add prototype.
+	* ddb/db_trap.c (db_init_default_thread, db_check_breakpoint_valid): Remove forward declarations.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Use db_addr_t instead of db_expr_t
+	In this way everything falls into place and there is one cast less.
+
+	Function db_task_printsym() is already always called with the cast to
+	db_addr_t in the first argument.
+
+	* ddb/db_aout.c (aout_db_line_at_pc): Use db_addr_t instead of db_expr_t.
+	(aout_db_search_by_addr): Don't cast to vm_offset_t. Argument is already
+	db_addr_t.
+	* ddb/db_aout.h (aout_db_line_at_pc): Use db_addr_t instead of db_expr_t.
+	* ddb/db_sym.c (db_task_printsym): Likewise.
+	(db_line_at_pc): Likewise.
+	* ddb/db_sym.h (db_task_printsym): Likewise.
+	(db_line_at_pc): Likewise.
+	* i386/i386/db_trace.c (db_task_printsym): Cast to db_addr_t instead of db_expr_t.
+	Member swap_func is a pointer to void.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_print.c: use unsigned long instead of an unsigned int
+	Variable db_maxoff is in other files declared as unsigned long.
+
+	* ddb/db_print.c (db_maxoff): Use unsigned long instead of an unsigned int.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_mp.c: definition of db_console() only if CONSOLE_ON_MASTER
+	Function db_console() is called only if CONSOLE_ON_MASTER.
+
+	If it stays this way, db_console() will not compile. I don't know
+	if it should be removed. Maybe someone will rewrite it.
+
+	* ddb/db_mp.c (db_console): Definition only if CONSOLE_ON_MASTER.
+	* ddb/db_mp.h [CONSOLE_ON_MASTER] (db_console): Add prototype.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_mp.c: use boolean instead of an int
+	* ddb/db_mp.c (db_enter_debug): Use boolean instead of an int.
+
+	ddb/db_examine.c: trivial stylistic fix for consistency
+	* ddb/db_examine.c: Trivial stylistic fix for consistency.
+
+	ddb/db_examine.c (db_examine_cmd): remove forward declaration
+	* ddb/db_examine.c (db_option): Remove forward declaration.
+
+	ddb/db_command.c (db_command): remove forward declaration
+	* ddb/db_command.c (db_fncall): Remove forward declaration.
+
+	ddb/db_command.c: use boolean values
+	* ddb/db_command.c (db_cmd_loop_done): Use boolean values.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/kd.c: use io_req instead of uio
+	Struct uio is nowhere defined and in device/buf.h the string uio is defined
+	as io_req. Remove all declarations of uio structure and use io_req_t instead
+	of it.
+
+	* device/buf.h (uio, io_req): Remove definition.
+	* i386/i386at/kd.c: Remove comment.
+	(kdread): Use io_req_t.
+	(kdwrite): Likewise.
+	* i386/i386at/kd.h (kdread, kdwrite): Use io_req_t as argument type.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c (db_find_thread_breakpoint_here): remove unnecessary cast
+	Variable addr is already of type db_addr_t.
+
+	* ddb/db_break.c (db_find_thread_breakpoint_here) (addr): Don't cast to db_addr_t.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c (db_add_thread_breakpoint): fix argument list
+	* ddb/db_break.c (db_add_thread_breakpoint): Fix argument list.
+
+	ddb/db_aout.c (aout_db_lookup): remove forward declaration
+	* ddb/db_aout.c (db_sym_parse_and_lookup): Remove forward declaration.
+	* ddb/db_sym.h (db_sym_parse_and_lookup): Add prototype.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_aout.c (aout_db_qualified_search): use DB_SYM_NULL as return value
+	Function aout_db_qualified_search() returns db_sym_t. Use DB_SYM_NULL as
+	return value instead of zero.
+
+	* ddb/db_aout.c (aout_db_qualified_search): Use DB_SYM_NULL as return value.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.c: remove forward declaration
+	* i386/i386/db_interface.c (db_write_bytes_user_space): Remove forward declaration.
+	* i386/i386/db_interface.h (db_write_bytes_user_space): Add prototype.
+
+	i386/i386at/lpr.c: fix initalization from incompatible pointer type
+	* i386/i386at/lpr.c (lprprobe): Modify argument types.
+	* i386/i386at/lpr.h (lprprobe): Likewise.
+
+	i386/i386at/com.c: fix assignment from incompatible pointer type
+	* device/tty.h (tty): Modify so that correct argument list and return type is listed.
+
+	i386/i386at/com.c: fix initialization from incompatible pointer type
+	* i386/i386at/com.c (comprobe): Modify argument types.
+	(comprobe): Cast from (struct bus_ctrl *) to (struct bus_device *).
+	comprobe_general() uses only a small subset of members, so it's all
+	the same which struct it is.
+	* i386/i386at/com.h (comprobe): Modify argument types.
+
+	kern/startup.c: use boolean values
+	* kern/startup.c (reboot_on_panic): Use boolean values.
+
+	vm/vm_map.c: use boolean instead of an int
+	* vm/vm_map.c (vm_map_pmap_enter_print, vm_map_pmap_enter_enable): Use boolean instead of an int.
+
+	vm/vm_object.c: remove unused variable
+	* vm/vm_object.c (vm_object_terminate_remove_all): Remove unused variable.
+
+	vm/vm_pageout.c: remove forward declarations
+	* vm/vm_pageout.c (vm_pageout_continue, vm_pageout_scan_continue): Remove forward declarations.
+	* vm/vm_pageout.h (vm_pageout_continue, vm_pageout_scan_continue): Add prototypes.
+
+	i386/i386at/pic_isa.c: remove forward declaration
+	* i386/Makefrag.am: Include i386/i386/hardclock.h.
+	* i386/i386/hardclock.h: New file.
+	Add copyright.
+	[_I386_HARDCLOCK_H_]: Add ifndef.
+	(hardclock): Add prototype.
+	* i386/i386at/pic_isa.c (hardclock): Remove forward declaration.
+	Include i386/hardclock.h.
+
+	i386/i386at/model_dep.c: fix argument list
+	* i386/i386at/model_dep.c (timemmap): Fix argument list.
+
+	i386/i386at/lpr.c: fix argument list
+	* i386/i386at/lpr.c (lprprobe): Fix argument list.
+
+	ddb/db_output.c: remove forward declaration
+	* ddb/db_input.h (db_check_interrupt): Add prototype.
+	* ddb/db_output.c: Include ddb/db_input.h.
+	(db_check_interrupt): Remove forward declaration.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/act.h: remove unnecessary include
+	File kern/act.h includes itself. Remove this include.
+
+	* kern/act.h: Don't include kern/act.h.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Cleanup of the prototypes
+	* device/cirbuf.h (nqdb): Remove prototype without definition.
+	* device/conf.h (dev_set_indirect): Likewise.
+	* kern/boot_script.h (boot_script_read_file): Likewise.
+	* kern/eventcount.h (evc_notify_abort): Remove duplicate prototype.
+	* kern/thread.h (thread_set_own_priority): Likewise.
+	* kern/thread_swap.h (thread_swapout): Remove prototype without definition.
+	* kern/timer.h (softclock): Remove duplicate prototype.
+	* vm/pmap.h (pmap_resident_count, pmap_access, pmap_phys_address, pmap_phys_to_frame): Remove prototypes without function definition.
+	* vm/vm_page.h (vm_set_page_size): Likewise.
+
+	vm/vm_page.h: remove unused variables
+	* vm/vm_page.h (first_phys_addr, last_phys_addr): Remove unused variables.
+
+	kern/syscall_sw.c: use boolean instead of an int
+	* kern/syscall_sw.c (kern_invalid_debug): Use boolean instead of an int.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/refcount.h: remove unnecessary include
+	File kern/refcount.h includes itself. Remove this include.
+
+	* kern/refcount.h: Don't include kern/refcount.h.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/rbtree.h: remove unnecessary include
+	File kern/rbtree.h includes itself. Remove this include.
+
+	* kern/rbtree.h: Don't include kern/rbtree.h.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/priority.c: update comment
+	This is priority.c. Not clock_prim.c.
+
+	* kern/priority.c: Update comment.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/pc_sample.c: remove unused variables
+	* kern/pc_sample.c (pc_sampling_enabled, pc_sampling_lock): Remove unused variables.
+
+	kern/lock_mon.c: remove dead assignments
+	* kern/lock_mon.c (scurval, ssum, sli): Remove variables.
+	(scurval, ssum, sli): Remove dead assignments.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/lock_mon.c: use spl_t instead of an int
+	Variable curr_ipl is in other files declared as spl_t.
+
+	* kern/lock_mon.c (curr_ipl): Use spl_t instead of an int.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/act.h: remove prototype without definition
+	* kern/act.h (act_create_kernel): Remove prototype without definition.
+
+2013-12-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add comment
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/port.h: update comment
+	This is ipc/port.h. Not ipc/ipc_port.h.
+
+	* ipc/port.h: Update comment.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/mach_port.c: use boolean instead of an int
+	* ipc/mach_port.c (mach_port_deallocate_debug): Use boolean instead of an int.
+
+	ipc/ipc_init.c: qualify constant with const
+	* ipc/ipc_init.c (ipc_kernel_map_size): Qualify constant with const.
+
+	i386/intel/pmap.c: remove unused variable
+	* i386/intel/pmap.c (end): Remove unused variable.
+
+	i386/intel/pmap.c: use boolean instead of an int
+	* i386/intel/pmap.c (pmap_debug): Use boolean instead of an int.
+
+	time: remove unused variable
+	* i386/i386at/rtc.c (tz): Remove unused variable.
+	* xen/time.c (tz): Remove unused variable.
+
+	i386/i386at/rtc.c: use boolean instead of an int
+	* i386/i386at/rtc.c (first_rtcopen_ever): Use boolean instead of an int.
+
+	i386/i386at/kd.c: use boolean instead of an unsigned int
+	* i386/i386at/kd.c (kd_bellstate): Use boolean instead of an unsigned int.
+
+	i386/i386at/kd.c: use boolean instead of an int
+	* i386/i386at/kd.c (mouse_in_use): Use boolean instead of an int.
+	Remove duplicate declaration.
+
+	i386/i386at/model_dep.c, kd.c: use boolean instead of an int
+	* i386/i386at/kd.c (rebootflag): Use boolean instead of an int.
+	Remove duplicate variable declaration.
+	* i386/i386at/model_dep.c (rebootflag): Use boolean instead of an int.
+
+	i386/i386at/immc.c, kd.c: use boolean instead of an int
+	* i386/i386at/immc.c (immediate_console_enable): Use boolean instead of an int.
+	* i386/i386at/kd.c (immediate_console_enable): Likewise.
+
+	i386/i386/user_ldt.c: remove unused variable
+	* i386/i386/user_ldt.c (acc_type): Remove unused variable.
+
+	i386/i386/trap.c: remove unused variables
+	* i386/i386/trap.c (v86_assist_on, v86_unsafe_ok, v86_do_sti_cli, v86_do_sti_immediate, cli_count, sti_count): Remove unused variables.
+
+	i386/i386/trap.c: remove unused variable
+	* i386/i386/trap.c (brb): Remove unused variable.
+
+	i386/i386/pit.c: remove unused variables
+	* i386/i386/pit.c (pitctr1_port, pitctr2_port): Remove unused variables.
+
+	i386/i386/pic.c: remove unused variables
+	* i386/i386/pic.c (nintr, npics): Remove unused variables.
+
+	i386/i386/mp_desc.c: remove unused variable
+	* i386/i386/mp_desc.c (avail_start): Remove unused variable.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/ipl.h: remove ifdef and add ifndef
+	This code is used even if KERNEL is not defined. Remove the ifdef.
+
+	* i386/i386/ipl.h [_I386_IPL_H_]: Add ifndef.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.c: use boolean instead of an int
+	* i386/i386/db_interface.c (kernel_dr): Use boolean instead of an int.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/tty.h, chario.h: move prototype
+	Now that we have device/chario.h move the chario_init() prototype
+	from device/tty.h to device/chario.h.
+
+	* device/chario.h (chario_init): Add prototype.
+	* device/device_init.c: Include device/chario.h.
+	* device/tty.h (chario_init): Remove prototype.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/kmsg.c: use boolean instead of an int
+	* device/kmsg.c (kmsg_init_done): Use boolean instead of an int.
+
+	device/kmsg.c: use boolean instead of an int
+	* device/kmsg.c (kmsg_in_use): Use boolean instead of an int.
+
+	device/if_ether.h: remove unused variable
+	* device/if_ether.h (etherbroadcastaddr): Remove unused variable.
+	* device/subrs.c (etherbroadcastaddr): Remove initialization.
+
+	device/dev_lookup.c: remove unused lock
+	* device/dev_lookup.c (dev_port_lock): Remove unused lock.
+
+	device/cirbuf.c: use boolean instead of an int
+	* device/cirbuf.c (cb_check_enable): Use boolean instead of an int.
+
+	device/chario.c: use boolean instead of an int
+	* device/chario.c (pdma_default): Use boolean instead of an int.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_output.c: remove duplicate function
+	Function kdbprintf() and db_printf() are the same function. Remove
+	kdbprintf() and define kdbprintf to db_printf.
+
+	* ddb/db_output.c (kdbprintf): Remove function.
+	* ddb/db_output.h: Define kdbprintf to db_printf.
+	(kdbprintf): Remove prototype.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_output.c: remove call to nonexistent db_printf_enter()
+	* ddb/db_output.c [db_printf_enter] (db_printf_enter): Remove call to nonexistent function.
+
+	ddb/db_command.h: remove duplicate variable declaration
+	* ddb/db_command.h (db_recover): Remove duplicate variable declaration.
+
+	ddb/db_command.c: remove forward declaration
+	* ddb/db_command.c (db_skip_to_eol): Remove forward declaration.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/setjmp.h: remove ifdef
+	Function _longjmp() is used even if __GNUC__ is not defined. Avoid
+	implicit declaration in that case by removing the ifdef.
+
+	* i386/i386/setjmp.h [__GNUC__] (_longjmp): Remove ifdef.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/machine.c: remove __volatile__
+	Shutdown can be optimised. Remove __volatile__.
+
+	* kern/machine.c [__GNUC__] (processor_doshutdown): Remove volatile function qualifier.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/ipc_port.c: trivial stylistic fix for consistency
+	* ipc/ipc_port.c (indent): Trivial stylistic fix for consistency.
+
+2013-12-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make unsigned character constants unsigned
+	Thanks Marin Ramesa for the report.
+
+	* i386/i386at/kd.h (K_DONE, NC, K_SCAN): Make constants unsigned.
+
+2013-12-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Always make Assert trigger debugger
+	* kern/debug.c (Assert): Always call Debugger, even if db_breakpoints_insert
+	is not set.
+
+2013-12-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix implicit declaration of function
+	Thanks Marin Ramesa for the report.
+
+	* device/ds_routines.h (device_deallocate): Move declaration to...
+	* include/device/device_types.h (device_deallocate): ... here.
+
+2013-12-08  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device/device_types_kernel.h: remove redeclaration of dev_port_lookup()
+	* device/device_types_kernel.h (dev_port_lookup): Remove prototype.
+
+	Add ifndefs
+	* i386/i386at/cram.h [_CRAM_H_]: Add ifndef.
+	* i386/i386at/disk.h [_DISK_H_]: Likewise.
+	* i386/i386at/i8250.h [_I8250_H_]: Likewise.
+	* i386/include/mach/i386/asm.h [_MACH_I386_ASM_H_]: Likewise.
+	* i386/include/mach/i386/disk.h [_MACH_I386_DISK_H_]: Likewise.
+
+	Add comments after endifs
+	* device/cons.c [MACH_KMSG]: Likewise.
+	[CONSBUFSIZE > 0]: Likewise.
+	* i386/i386/trap.c [MACH_KDB]: Likewise.
+	[MACH_PV_PAGETABLES]: Likewise.
+	* i386/i386at/kd.c [ENABLE_IMMEDIATE_CONSOLE]: Likewise.
+	* ipc/ipc_kmsg_queue.h [_IPC_KMSG_QUEUE_H_]: Likewise.
+	* kern/act.c [ACTWATCH]: Likewise.
+	* kern/refcount.h [MACHINE_REFCOUNT]: Likewise.
+	* kern/task.c [FAST_TAS]: Likewise.
+
+2013-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing include
+	* ddb/db_variables.h: Include <machine/db_machdep.h>.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at/com.h: include chips/busses.h for struct bus_device
+	* i386/i386at/com.h: Include chips/busses.h.
+
+	ddb/db_variables.c: fix near initialization
+	* ddb/db_task_thread.c (db_set_default_thread): New parameter.
+	* ddb/db_task_thread.h (db_set_default_thread): Likewise.
+
+	kern/mach_clock.c: remove forward declaration
+	* Makefrag.am: Include kern/priority.h.
+	* kern/mach_clock.c (thread_quantum_update): Remove forward declaration.
+	Include kern/priority.h.
+	* kern/priority.h: New file.
+	Add copyright.
+	[_KERN_PRIORITY_H_]: Add ifndef.
+	(thread_quantum_update): Add prototype.
+
+	ipc/mach_port.c: remove forward declaration
+	* ipc/mach_port.c (mach_port_get_receive_status): Remove forward declaration.
+	* ipc/mach_port.h (mach_port_get_receive_status): Add prototype.
+
+	ipc/ipc_entry.c: remove forward declaration
+	* ipc/ipc_entry.c (db_ipc_object_by_name): Remove forward declaration.
+	* ipc/ipc_entry.h (db_ipc_object_by_name): Add prototype.
+
+	i386/i386at/model_dep.c: remove forward declaration
+	* i386/i386at/model_dep.c (init_alloc_aligned): Remove forward declaration.
+	* i386/i386at/model_dep.h (init_alloc_aligned): Add prototype.
+
+	kern/time_stamp.c: remove multimax code
+	* kern/time_stamp.c [multimax]: Remove code.
+
+2013-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Remove unnecessary file
+	* i386/Makefrag.am: Don't include i386/include/mach/i386/rpc.h.
+	* i386/include/mach/i386/rpc.h: Remove file.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	vm/vm_user.c: remove forward declaration
+	* vm/vm_user.c (vm_map_machine_attribute): Remove forward declaration.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	vm/vm_resident.c: correct comment
+	This is vm_resident.c, not vm_page.c.
+
+	* vm/vm_resident.c: Correct comment.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	vm/vm_map.c: remove forward declarations
+	* vm/vm_map.c (_vm_map_clip_start, _vm_map_copy_clip_start, _vm_map_clip_end, _vm_map_copy_clip_end): Remove forward declarations.
+	* vm/vm_map.h (_vm_map_clip_end): Correct prototype.
+
+	vm/vm_kern.c: remove forward declarations
+	* vm/vm_kern.c (kmem_alloc_pages, kmem_remap_pages): Remove forward declarations.
+	* vm/vm_kern.h (kmem_alloc_pages, kmem_remap_pages): Add prototypes.
+
+	vm/vm_fault.c: remove forward declaration
+	* vm/vm_fault.c (vm_fault_wire_fast): Remove forward declaration.
+	* vm/vm_fault.h (vm_fault_wire_fast): Add prototype.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc/ipc_kmsg.h: update comment
+	Struct ipc_kmsg_queue is not defined in kern/thread.h.
+
+	* ipc/ipc_kmsg.h: Update comment.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: remove forward declaration
+	* kern/xpr.c (db_printf): Remove forward declaration.
+	[MACH_KDB] Include ddb/db_output.h.
+
+	kern/thread.c: remove forward declaration
+	* i386/i386/pcb.h (pcb_module_init): Add prototype.
+	* kern/thread.c (pcb_module_init): Remove forward declaration.
+
+	kern/task.c: remove forward declarations
+	* ipc/ipc_mqueue.h: Include ipc/ipc_kmsg_queue.h.
+	* kern/ipc_kobject.h: Move includes into ifndef.
+	* kern/syscall_emulation.h: Include kern/task.h.
+	(eml_init, eml_task_reference, eml_task_deallocate): Add prototypes.
+	* kern/task.c: Include kern/syscall_emulation.h.
+	(eml_init, eml_task_reference, eml_task_deallocate): Remove forward declarations
+
+	kern/syscall_sw.c: remove forward declarations
+	* kern/eventcount.h (evc_wait_clear): Add prototype.
+	* kern/ipc_mig.h: Include device/device_types.h.
+	(syscall_vm_map, syscall_vm_allocate, syscall_vm_deallocate, syscall_task_create, syscall_task_terminate, syscall_task_suspend, syscall_task_set_special_port, syscall_mach_port_allocate, syscall_mach_port_deallocate, syscall_mach_port_insert_right, syscall_mach_port_allocate_name, syscall_thread_depress_abort, syscall_device_write_request, syscall_device_writev_request): Add prototypes.
+	* kern/syscall_sw.c (syscall_vm_map, syscall_vm_allocate, syscall_vm_deallocate, syscall_task_create, syscall_task_terminate, syscall_task_suspend, syscall_task_set_special_port, syscall_mach_port_allocate, syscall_mach_port_deallocate, syscall_mach_port_insert_right, syscall_mach_port_allocate_name, syscall_thread_depress_abort, evc_wait, evc_wait_clear, syscall_device_write_request, syscall_device_writev_request): Remove forward declarations.
+	Include kern/ipc_mig.h.
+	Include kern/eventcount.h.
+
+	kern/syscall_subr.c: remove forward declaration
+	* kern/syscall_subr.c (thread_depress_priority): Remove forward declaration.
+	* kern/syscall_subr.h (thread_depress_priority): Add prototype.
+
+	kern/startup.c: remove forward declarations
+	* Makefrag.am: Include kern/bootstrap.h.
+	Include vm/vm_init.h.
+	Include device/device_init.h.
+	* device/device_init.h: New file.
+	Add copyright.
+	[_DEVICE_DEVICE_INIT_H_]: Add ifndef.
+	(device_service_create): Add prototype.
+	* i386/i386/mp_desc.h (start_other_cpus): Add prototype.
+	* kern/bootstrap.h: New file.
+	Add copyright.
+	[_KERN_BOOTSTRAP_H_]: Add ifndef.
+	(bootstrap_create): Add prototype.
+	* kern/sched_prim.h (idle_thread, sched_thread): Add prototypes.
+	* kern/startup.c: Include kern/bootstrap.h.
+	Include kern/startup.h.
+	Include vm/vm_init.h.
+	Include vm/vm_pageout.h.
+	Include device/device_init.h.
+	(vm_mem_init, vm_mem_bootstrap, init_timeout, machine_init, idle_thread, vm_pageout, reaper_thread, swapin_thread, sched_thread, bootstrap_create, device_service_create, cpu_launch_first_thread, start_kernel_threads, start_other_cpus, action_thread): Remove forward declarations.
+	[NCPUS > 1] Include machine/mp_desc.h and kern/machine.h.
+	* kern/startup.h: Include kern/thread.h.
+	(cpu_launch_first_thread, start_kernel_threads): Add prototypes.
+	* vm/vm_init.h: New file.
+	Add copyright.
+	[_VM_VM_INIT_H_]: Add ifndef.
+	(vm_mem_init, vm_mem_bootstrap): Add prototypes.
+	* vm/vm_pageout.h (vm_pageout): Add prototype.
+
+	kern/sched_prim.c: remove forward declarations
+	* kern/sched_prim.c (set_pri, do_thread_scan, choose_pset_thread, checkrq, thread_check): Remove forward declarations.
+	* kern/sched_prim.h (set_pri, do_thread_scan, choose_pset_thread, checkrq, thread_check): Add prototypes.
+
+	kern/processor.c: remove forward declarations
+	* kern/processor.c (quantum_set, pset_init, processor_init): Remove forward declarations.
+	* kern/processor.h (quantum_set, pset_init, processor_init): Add prototypes.
+
+	kern/ipc_mig.c: remove forward declarations
+	* device/ds_routines.h (ds_device_write_trap, ds_device_writev_trap): Add prototypes.
+	* kern/ipc_mig.c (ds_device_write_trap, ds_device_writev_trap): Remove forward declarations.
+
+	kern/debug.c: remove forward declaration
+	* kern/debug.c (cnputc): Remove forward declaration.
+	Include device/cons.h.
+
+	kern/bootstrap.c: remove forward declarations
+	* i386/i386/pcb.h: Include mach/thread_status.h.
+	Include machine/thread.h.
+	* kern/bootstrap.c: Include machine/pcb.h.
+	(user_stack_low, set_user_regs): Remove forward declarations.
+
+	ipc/mach_msg.c: remove forward declarations
+	* ipc/mach_msg.c: Include kern/exception.h.
+	(exception_raise_continue, exception_raise_continue_fast): Remove forward declarations.
+	* kern/exception.h: Include ipc/ipc_types.h.
+	Include ipc/ipc_kmsg.h.
+
+	ipc/ipc_table.c: remove forward declaration
+	* ipc/ipc_table.c (ipc_table_fill): Remove forward declaration.
+	* ipc/ipc_table.h (ipc_table_fill): Add prototype.
+
+	ipc/ipc_kmsg.c: remove forward declarations
+	* ipc/ipc_kmsg.c (copyinmap, copyoutmap, ipc_msg_print): Remove forward declarations.
+	* ipc/ipc_kmsg.h (ipc_msg_print): Add prototype.
+
+	i386/intel/pmap.c: remove forward declarations
+	* i386/intel/pmap.c (pmap_remove_range, signal_cpus): Remove forward declarations.
+	* i386/intel/pmap.h (pmap_remove_range, signal_cpus): Add prototypes.
+
+2013-12-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop duplicate declaration
+	* i386/i386/model_dep.h (halt_cpu, halt_all_cpus): Remove duplicate
+	declaration.
+	* i386/i386at/model_dep.h (halt_cpu, halt_all_cpus): Add comments.
+
+2013-12-04  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386at: remove forward declarations
+	* Makefrag.am: Include kern/startup.h.
+	* i386/i386at/model_dep.c: Include kern/startup.h.
+	Include i386at/model_dep.h.
+	(setup_main, halt_all_cpus, halt_cpu, inittodr): Remove forward declarations.
+	* i386/i386at/model_dep.h  (halt_all_cpus, halt_cpu, inittodr): Add prototypes.
+	* kern/startup.h: New file.
+	Add copyright.
+	[_KERN_STARTUP_H_]: Add ifndef.
+	(setup_main): Add prototype.
+
+	i386/i386at/kd_mouse.c: remove forward declarations
+	* i386/i386at/kd_mouse.c (mouseintr, mouse_enqueue, mouse_read_done): Remove forward declarations.
+	(mouseintr): Define argument type.
+	* i386/i386at/kd_mouse.h (mouseintr, mouse_enqueue, mouse_read_done): Add prototypes.
+
+	i386/i386at/kd_event.c: remove forward declarations
+	* i386/i386at/kd_event.c (kbd_enqueue, X_kdb_enter_init, X_kdb_exit_init, kbd_read_done): Remove forward declarations.
+	* i386/i386at/kd_event.h (kbd_enqueue, X_kdb_enter_init, X_kdb_exit_init, kbd_read_done): Add prototypes.
+
+	i386/i386at/kd.c: remove forward declarations
+	* i386/i386at/kd.c (kd_enqsc, kdcheckmagic, do_modifier, bmpch2bit, bmppaintcsr, bit2fbptr): Remove forward declarations.
+	* i386/i386at/kd.h: Include device/buf.h.
+	Include i386at/kdsoft.h.
+	(kdcheckmagic, do_modifier, bmpch2bit, bmppaintcsr, bit2fbptr): Add prototypes.
+	* i386/i386at/kd_event.h (kd_enqsc): Add prototype.
+
+	i386/i386at/conf.c: remove forward declarations
+	* i386/Makefrag.am: Include i386/i386at/model_dep.h and i386/i386at/mem.h.
+	* i386/i386at/com.h (comgetstat, comsetstat): Declare as extern.
+	(comopen, comclose, comread, comwrite, comportdeath): Add prototypes.
+	* i386/i386at/conf.c: Include kern/mach_clock.h and i386at/model_dep.h.
+	(timeopen, timeclose, timemmap): Remove forward declarations.
+	(kdopen, kdclose, kdread, kdwrite, kdgetstat, kdsetstat, kdportdeath, kdmmap): Likewise.
+	(comopen, comclose, comread, comwrite, comportdeath, comgetstat, comsetstat): Likewise.
+	(lpropen, lprclose, lprread, lprwrite, lprportdeath, lprgetstat, lprsetstat): Likewise.
+	(kbdopen, kbdclose, kbdread, kbdgetstat, kbdsetstat): Likewise.
+	(mouseopen, mouseclose, mouseread, mousegetstat): Likewise.
+	(memmmap): Likewise.
+	(kmsgopen, kmsgclose, kmsgread, kmsggetstat): Likewise.
+	(hypcnopen, hypcnclose, hypcnread, hypcnwrite, hypcnportdeath, hypcngetstat, hypcnsetstat): Likewise.
+	Include i386at/kd.h.
+	Include i386at/com.h.
+	Include i386at/lpr.h.
+	Include i386at/kd_event.h.
+	Include i386at/kd_mouse.h.
+	Include i386at/mem.h.
+	Include device/kmsg.h.
+	Include xen/console.h.
+	* i386/i386at/kd.h: Include device/io_req.h.
+	(kdopen, kdclose, kdread, kdwrite, kdgetstat, kdsetstat, kdportdeath, kdmmap): Add prototypes.
+	* i386/i386at/kd_event.h (kbdopen, kbdclose, kbdread, kbdgetstat, kbdsetstat): Likewise.
+	* i386/i386at/kd_mouse.h (mouseopen, mouseclose, mouseread, mousegetstat): Likewise.
+	* i386/i386at/lpr.h (lpropen, lprclose, lprread, lprwrite, lprportdeath): Likewise.
+	(lprgetstat, lprsetstat): Declare as extern.
+	* i386/i386at/mem.h: New file.
+	Add copyright.
+	[_MEM_H_]: Add ifndef.
+	(memmmap): Add prototype.
+	* i386/i386at/model_dep.c: Include i386/i386at/model_dep.h.
+	(timemmap): Fix argument list.
+	* i386/i386at/model_dep.h: New file.
+	Add copyright.
+	[_MODEL_DEP_H_]: Add ifndef.
+	(timemmap): Add prototype.
+	* kern/mach_clock.h (timeopen, timeclose): Add prototypes.
+	* xen/console.h (hypcnopen, hypcnclose, hypcnread, hypcnwrite, hypcnportdeath, hypcngetstat, hypcnsetstat): Add prototypes.
+
+	i386/i386at/autoconf.c, com.c, lpr.c: remove forward declarations
+	* i386/i386/autoconf.c (comintr, lprintr): Remove forward declarations.
+	Include i386at/com.h.
+	Include i386at/lprreg.h.
+	* i386/i386at/com.c (comprobe, commctl, comstart, comstop, comattach, comintr, comgetstat, comsetstat): Remove forward declarations.
+	* i386/i386at/com.h: Include device/tty.h.
+	(comprobe, commctl, comstart, comstop, comattach, comintr, comgetstat, comsetstat): Add prototypes.
+	* i386/i386at/lpr.c (lprprobe, lprstop, lprintr, lprstart, lprattach, lprgetstat, lprsetstat, lprpr_addr): Remove forward declarations.
+	(lprprobe): Fix argument list.
+	(lprpr): Define argument type.
+	lprpr_addr): Likewise.
+	* i386/i386at/lprreg.h (lprprobe, lprstop, lprintr, lprstart, lprattach, lprgetstat, lprsetstat, lprpr_addr): Add prototypes.
+
+	kern/exception.c: remove forward declarations
+	* i386/i386/trap.h (thread_kdb_return): Add prototype.
+	* kern/exception.c (thread_kdb_return, db_printf): Remove forward declarations.
+	Include machine/trap.h.
+	Include ddb/db_output.h.
+
+	kern: new header file exception.h
+	* Makefrag.am: Include kern/exception.h.
+	* i386/i386/trap.c: Include kern/exception.h.
+	(exception, thread_exception_return): Remove forward declarations.
+	* kern/exception.c: Include kern/exception.h.
+	(exception, exception_try_task, exception_no_server, exception_raise, exception_parse_reply, exception_raise_continue, exception_raise_continue_slow, exception_raise_continue_fast): Remove forward declarations.
+	* kern/exception.h: New file.
+	Add copyright.
+	[_KERN_EXCEPTION_H_]: Add ifndef.
+	(exception, exception_try_task, exception_no_server, exception_raise, exception_parse_reply, exception_raise_continue, exception_raise_continue_slow, exception_raise_continue_fast): Add prototypes.
+
+	i386/i386/pcb.c: remove forward declarations
+	* i386/i386/pcb.c (Load_context, Switch_context, Thread_continue, user_ldt_free): Remove forward declarations.
+	* i386/i386/pcb.h (Load_context, Switch_context, Thread_continue): Add prototypes.
+	* i386/i386/user_ldt.h (user_ldt_free): Add prototype.
+
+	i386/i386/io_perm.c: remove forward declaration
+	* i386/i386/io_perm.c: Include pcb.h.
+	(update_ktss_iopb): Remove forward declaration.
+	* i386/i386/pcb.h (update_ktss_iopb): Add prototype.
+
+	i386/i386/fpu.c, trap.c: remove forward declarations
+	* i386/i386/fpu.c: Include i386/trap.h.
+	(void i386_exception, fp_save, fp_load): Remove forward declaration.
+	* i386/i386/trap.c (void i386_exception): Remove forward declaration.
+	* i386/i386/trap.h (void i386_exception): Add prototype.
+
+	i386/i386/db_trace.c: remove forward declaration
+	* i386/i386/db_interface.h: Include ddb/db_variables.h.
+	(db_i386_reg_value): Add prototype.
+	* i386/i386/db_trace.c (db_i386_reg_value): Remove forward declaration.
+
+	device/device_init.c: remove forward declarations
+	* device/dev_lookup.c: Include device/ds_routines.h.
+	* device/device_init.c: Include device/ds_routines.h.
+	Include device/net_io.h.
+	(mach_device_init, dev_lookup_init, net_io_init, device_pager_init, io_done_thread, net_thread): Remove forward declarations.
+	* device/ds_routines.h (mach_device_init, dev_lookup_init, device_pager_init, io_done_thread): Add prototypes.
+	* device/net_io.h (net_io_init, net_thread): Add prototypes.
+
+	ddb/db_variables.c: remove forward declarations
+	* ddb/db_task_thread.h: Include ddb/db_variables.h.
+	(db_set_default_thread, db_get_task_thread): Add prototypes.
+	* ddb/db_variables: Include ddb/db_macro.h.
+	(db_set_default_thread, db_get_task_thread, db_arg_variable): Remove forward declarations.
+
+	ddb/db_trap.c: remove forward declarations
+	* ddb/db_run.h (db_restart_at_pc, db_stop_at_pc): Add prototypes.
+	* ddb/db_trap.c (db_restart_at_pc, db_stop_at_pc): Remove forward declarations.
+	Include ddb/db_run.h.
+
+	ddb/db_command.c: remove useless forward declaration without definition
+	* ddb/db_command.c (ddb_display): Remove forward declaration.
+	Remove ddb_display call.
+
+	ddb/db_command.c: remove forward declaration
+	* ddb/db_command.c (db_reset_cpu): Remove forward declaration.
+	* i386/i386/db_interface.h (db_reset_cpu): Add prototype.
+	* i386/i386at/model_dep.c: Include i386/db_interface.h.
+
+	ddb/db_sym.c: fix argument list
+	* ddb/db_sym.c (dummy_db_free_symbol): Fix argument list.
+
+	ddb/db_sym.c: remove useless forward declarations without definitions
+	* ddb/db_sym.c (coff_db_sym_init, coff_db_line_at_pc, db_sym_t coff_db_lookup, coff_db_search_symbol, coff_db_symbol_values): Remove forward declarations.
+	(x_db): Modify field definition.
+
+	ddb: new header file db_aout.h
+	* Makefrag.am: Include ddb/db_aout.h.
+	* ddb/db_aout.c: Include ddb/db_aout.h.
+	* ddb/db_aout.h: New file.
+	Add copyright.
+	[_DDB_DB_AOUT_H_]: Add ifndef.
+	Include ddb/db_sym.h.
+	Include machine/db_machdep.h.
+	(aout_db_line_at_pc, aout_db_lookup, aout_db_search_symbol, aout_db_symbol_values): Add prototypes.
+	* ddb/db_sym.c: Include ddb/db_aout.h.
+	(db_search_in_task_symbol, aout_db_line_at_pc, aout_db_lookup, aout_db_search_symbol, aout_db_symbol_values): Remove forward declarations.
+	* ddb/db_sym.h (db_search_in_task_symbol): Add prototype.
+
+	ddb/db_aout.c: trivial stylistic fix for consistency
+	* ddb/db_aout.c: Trivial stylistic fix for consistency.
+
+	ddb/db_run.c: add comment after endif
+	* ddb/db_run.c [FIXUP_PC_AFTER_BREAK]: Add comment after endif.
+
+	ddb/db_mp.c: add comment after else and endif
+	* ddb/db_mp.c [CONSOLE_ON_MASTER]: Add comment after else and endif.
+
+	ddb/db_input.c: add comment after endif
+	* ddb/db_input.c [DB_HISTORY_SIZE]: Add comment after endif.
+
+	ddb/db_command.c: remove forward declarations
+	* ddb/db_command.c: Include machine/db_interface.h.
+	(db_help_cmd, db_stack_trace_cmd): Remove forward declarations.
+	* ddb/db_command.h (db_help_cmd): Add prototype.
+	* i386/i386/db_interface.h (db_stack_trace_cmd): Add prototype.
+
+	device/net_io.c: initialize hash_entp to NULL
+	* device/net_io.c (hash_entp): Initialize to NET_HASH_ENTRY_NULL.
+
+2013-11-24  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Modify struct db_variable
+	* ddb/db_macro.c (db_arg_variable): Make function void.
+	* ddb/db_macro.h (db_arg_variable): Declare void return.
+	* ddb/db_task_thread.c (db_set_default_thread): Make function void.
+	(db_get_task_thread): Make function void.
+	* ddb/db_variables.c (db_set_default_thread, db_get_task_thread, db_arg_variable): Declare void return.
+	(db_read_write_variable): Use void in initialization.
+	* ddb/db_variables.h (db_variable): Make third member return void.
+	[FCN_NULL]: Define void.
+	* i386/i386/db_trace.c (db_i386_reg_value): Make function void.
+
+	device: new header file chario.h
+	* Makefrag.am: Include device/chario.h.
+	* device/chario.c (queue_delayed_reply, tty_output, char_open_done, char_read_done, char_write_done): Remove forward declarations.
+	* device/chario.h: New file.
+	Add copyright.
+	[_DEVICE_CHARIO_H_]: Add ifndef.
+	Include device/tty.h.
+	(queue_delayed_reply, tty_output, char_open_done, char_read_done, char_write_done): Add prototypes.
+
+	ddb/db_examine.c: trivial stylistic fix for consistency
+	* ddb/db_examine.c: Trivial stylistic fix for consistency.
+
+	ddb: move forward declarations into a header file
+	* ddb/db_examine.c (db_disasm, db_search): Remove forward declarations.
+	* ddb/db_examine.h (db_disasm, db_search): Add prototypes.
+
+	ddb: move forward declaration into a header file
+	* ddb/db_sym.c (db_lookup): Remove forward declaration.
+	* ddb/db_sym.h (db_lookup): Add prototype.
+
+	ddb: create new header file db_mp.h
+	* Makefrag.am: Include ddb/db_mp.h.
+	* ddb/db_mp.c (remote_db, lock_db, unlock_db): Remove forward declarations.
+	* ddb/db_mp.h: New file.
+	Add copyright.
+	[_DDB_DB_MP_H_]: Add ifndef.
+	(remote_db, lock_db, unlock_db): Add prototypes.
+
+	ddb: move forward declarations into a header file
+	* ddb/db_run.c (db_set_task_single_step, db_clear_task_single_step): Remove forward declarations.
+	* ddb/db_run.h (db_set_task_single_step, db_clear_task_single_step): Add prototypes.
+
+2013-11-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Simplify test
+	* ddb/db_sym.c (db_name_is_ambiguous): Simplify test for value returned by
+	X_db_lookup.
+
+	Drop spurious volatile qualifier
+	* kern/processor.h (processor_doshutdown): Drop spurious volatile qualifier.
+
+2013-11-24  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: move forward declarations into a header file
+	* kern/machine.c (processor_doaction, processor_doshutdown): Remove forward declarations.
+	* kern/processor.h (processor_doaction, processor_doshutdown): Add prototypes.
+
+	kern: move forward declaration into a header file
+	* kern/eventcount.c [NCPUS] (simpler_thread_setrun): Remove forward declaration.
+	* kern/eventcount.h [NCPUS] (simpler_thread_setrun): Add prototype.
+
+	kern: move forward declaration into a header file
+	* kern/timer.c (timer_init): Remove forward declaration.
+	* kern/timer.h (timer_init): Add prototype.
+
+	kern: move forward declaration into a header file
+	* kern/mach_clock.c (softclock): Remove forward declaration.
+	* kern/timer.h (softclock): Add prototype.
+
+	kern: move forward declarations into a header file
+	* kern/thread.c [MACH_DEBUG] (stack_init, stack_finalize): Remove forward declarations.
+	* kern/thread.h [MACH_DEBUG] (stack_init, stack_finalize): Add prototypes.
+
+	vm: move forward declarations into a header file
+	* vm/vm_map.c (vm_map_delete, vm_map_copyout_page_list, vm_map_copy_page_discard, vm_map_lookup_entry): Remove forward declarations.
+	* vm/vm_map.h (vm_map_delete, vm_map_copyout_page_list, vm_map_copy_page_discard, vm_map_lookup_entry): Add prototypes.
+
+	vm: move forward declarations into a header file
+	* vm/vm_object.c (memory_object_release, vm_object_deactivate_pages, vm_object_copy_delayed): Remove forward declarations.
+	* vm/vm_object.h (memory_object_release, vm_object_deactivate_pages, vm_object_copy_delayed): Add prototypes.
+
+2013-11-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2013-11-24  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Remove leftover register qualifiers
+	* ddb/db_break.c: Remove register qualifiers.
+	* i386/i386/pcb.c: Likewise.
+	* i386/i386at/com.c: Likewise.
+	* i386/i386at/lpr.c: Likewise.
+	* i386/intel/pmap.c: Likewise.
+	* kern/machine.c: Likewise.
+	* kern/queue.h: Likewise.
+	* kern/sched_prim.c: Likewise.
+	* kern/sched_prim.h: Likewise.
+	* kern/timer.c: Likewise.
+	* vm/vm_fault.c: Likewise.
+	* vm/vm_resident.h: Likewise.
+
+2013-11-24  Richard Braun  <rbraun@sceen.net>
+
+	New RPC for thread destruction
+	A new call, thread_terminate_release, is added to support self
+	destruction in threading libraries.
+
+	* include/mach/gnumach.defs (thread_terminate_release): New
+	simpleroutine declaration.
+	* kern/thread.c: Include vm/vm_user.h and ipc/mach_port.h.
+	(thread_terminate_release): New function.
+	* kern/thread.h (thread_terminate_release): New prototype.
+
+2013-11-24  Richard Braun  <rbraun@sceen.net>
+
+	Export mach_port_destroy declaration
+	* ipc/mach_port.h (mach_port_destroy): Add prototype.
+
+2013-11-22  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c: remove duplicate include
+	* ddb/db_break.c: Don't include ddb/db_access.h.
+
+2013-11-21  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.h: fix implicit declaration of function
+	* i386/i386/db_interface.h (cnpollc): Add prototype.
+
+	ddb/db_sym.c: move assignment outside if
+	* ddb/db_sym.c: Move assignment outside of if.
+	(db_lookup): New variable.
+
+	i386/i386at/kd.h: fix implicit declaration of function
+	* i386/i386at/kd.h [MACH_KDB] (kdb_kintr): Add prototype.
+
+	ddb/db_break.c: fix implicit declaration of functions
+	* ddb/db_break.c: Include machine/db_interface.h.
+
+2013-11-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/trap.c: fix implicit declaration of function
+	* i386/i386/trap.c: Include machine/db_interface.h.
+
+	i386/i386/db_trace.c: don't cast to db_addr_t
+	* i386/i386/db_trace.c (db_check_thread_address_valid): Don't cast argument 1 to db_addr_t.
+
+2013-11-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Comment out db_search_null
+	* i386/i386/db_interface.c (db_search_null) [!GNU]: Do not define
+	db_search_null.
+
+2013-11-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.c: add comments after else and endif
+	* i386/i386/db_interface.c [GNU]: Add comments after else and endif.
+
+2013-11-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_interface.c: remove return value
+	Void function returns with FALSE. Remove return value.
+
+	* i386/i386/db_interface.c (db_task_name): Remove return value.
+
+2013-11-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/i386/db_trace.c: fix implicit declaration of function
+	* i386/i386/db_trace.c: Include machine/db_interface.h.
+
+	i386/i386/db_interface.c: fix implicit declaration of function
+	* i386/i386/db_interface.c: Include string.h.
+
+	i386/i386/db_interface.c: fix implicit declaration of function
+	* i386/i386/db_interface.c: Include vm/vm_fault.h.
+
+	Fix implicit declaration of function
+	* ddb/db_sym.c (aout_db_sym_init): Remove forward declaration.
+	* ddb/db_sym.h (aout_db_sym_init): Add prototype.
+	* i386/i386at/model_dep.c (aout_db_sym_init): Fix call.
+	[MACH_KDB]: Include ddb/db_sym.h.
+	[MACH_KDB]: Add comment after else and endif.
+
+	kern/xpr.c: quiet warning about uninitialized variable
+	* kern/xpr.c (s): Initialize.
+
+	kern/startup.c: fix implicit declaration of function
+	* kern/startup.c [MACH_KDB]: Include device/cons.h.
+
+	ipc/ipc_print.h: include ipc/ipc_pset.h for ipc_pset_t
+	* ipc/ipc_print.h: Include ipc/ipc_pset.h for ipc_pset_t.
+
+	ddb/db_variables.c: fix initializations from incompatible pointer type
+	* ddb/db_variables.c (db_set_default_thread, db_get_task_thread, db_arg_variable, fcn): Declare long return type.
+
+	ddb/db_run.c: move declaration of brpc into SOFTWARE_SSTEP
+	* ddb/db_run.c (brpc): Move declaration into SOFTWARE_SSTEP code.
+
+	ddb/db_run.c: trivial stylistic fix for consistency
+	* ddb/db_run.c: Trivial stylistic fix for consistency.
+
+	ddb/db_run.c: remove set but unused variable
+	* ddb/db_run.c (ins): Remove variable.
+
+	ddb: fix implicit declaration of function
+	* ddb/db_variables.c (db_read_write_variable): Remove forward declaration.
+	* ddb/db_variables.h (db_read_write_variable): Add prototype.
+
+	ddb/db_examine.c: add missing cast
+	ddb/db_examine.c (addr, count): Cast to (db_expr_t *).
+
+	Add comment
+	* ddb/db_command.c [DB_MACHINE_COMMANDS]: Add comment after endif.
+
+2013-11-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop volatile function qualifier
+	* i386/i386/setjmp.h (_longjmp): Drop volatile function qualifier.
+
+2013-11-20  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/db_break.c: quiet GCC warning about uninitialized variable
+	* ddb/db_break.c (bkpt): Initialize.
+
+2013-11-19  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/slab.c: initialize info_size
+	info_size is initialized to a random value. Quiet the warning by
+	initializing to zero.
+
+	* kern/slab.c (info_size): Initialize to zero.
+
+2013-11-19  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern/slab.c: initialize optimal_embed
+	optimal_embed is initialized to a random value. Quiet the warning by
+	initializing to zero.
+
+	* kern/slab.c (optimal_embed): Initialize to zero.
+
+2013-11-19  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Add copyright
+	* ddb/db_write_cmd.h: Add copyright.
+	* ipc/ipc_print.h: Likewise.
+	* vm/vm_print.h: Likewise.
+
+2013-11-18  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Add ifndefs
+	Finish up with the addition of ifndefs.
+
+	* device/buf.h: Add ifndef.
+	* device/dev_master.h: Likewise.
+	* include/device/tty_status.h: Likewise.
+	* include/mach/version.h: Likewise.
+	* ipc/ipc_machdep.h: Likewise.
+
+2013-11-17  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ddb/stab.h: add ifndef
+	* ddb/stab.h: Add ifndef.
+
+	ddb/db_write_cmd.c: remove register qualifiers
+	* ddb/db_write_cmd.c: Remove register qualifiers.
+
+	ddb/db_watch.c: remove register qualifiers
+	* ddb/db_watch.c: Remove register qualifiers.
+
+	ddb/db_variables.c: remove register qualifiers
+	* ddb/db_variables.c: Remove register qualifiers.
+
+	ddb/db_task_thread.c: remove register qualifiers
+	* ddb/db_task_thread.c: Remove register qualifiers.
+
+	ddb/db_sym.h: add comment after endif
+	* ddb/db_sym.h: Add comment after endif.
+
+	ddb/db_sym.c: remove register qualifiers
+	* ddb/db_sym.c: Remove register qualifiers.
+
+	ddb/db_run.h: add ifndef
+	* ddb/db_run.h: Add ifndef.
+
+	ddb/db_run.c: remove register qualifiers
+	* ddb/db_run.c: Remove register qualifiers.
+
+	ddb/db_print.c: remove register qualifiers
+	* ddb/db_print.c: Remove register qualifiers.
+
+	ddb/db_output.h: add ifndef
+	* ddb/db_output.h: Add ifndef.
+
+	ddb/db_output.c: remove register qualifiers
+	* ddb/db_output.c: Remove register qualifiers.
+
+	ddb/db_mp.c: remove register qualifier
+	* ddb/db_mp.c: Remove register qualifier.
+
+	ddb/db_macro.c: remove register qualifiers
+	* ddb/db_macro.c: Remove register qualifiers.
+
+	ddb/db_lex.h: add ifndef
+	* ddb/db_lex.h: Add ifndef.
+
+	ddb/db_lex.c: remove register qualifiers
+	* ddb/db_lex.c: Remove register qualifiers.
+
+	ddb/db_input.c: remove register qualifiers
+	* ddb/db_input.c: Remove register qualifiers.
+
+	ddb/db_expr.c: remove register qualifier
+	* ddb/db_expr.c: Remove register qualifier.
+
+	ddb/db_examine.c: remove register qualifiers
+	* ddb/db_examine.c: Remove register qualifiers.
+
+	ddb/db_cond.c: remove register qualifiers
+	* ddb/db_cond.c: Remove register qualifiers.
+
+	ddb/db_command.h: add ifndef
+	* ddb/db_command.h: Add ifndef.
+
+	ddb/db_command.c: remove register qualifiers
+	* ddb/db_command.c: Remove register qualifiers.
+
+	ddb/db_break.c: remove register qualifiers
+	* ddb/db_break.c: Remove register qualifiers.
+
+	ddb/db_aout.c: remove register qualifiers
+	* ddb/db_aout.c: Remove register qualifiers.
+
+	ddb/db_access.h: add ifndef
+	* ddb/db_access.h: Add ifndef.
+
+	ddb/db_access.c: remove register qualifiers
+	* ddb/db_access.c: Remove register qualifiers.
+
+2013-11-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Remove dead code
+	Thanks Marin Ramesa for the report.
+
+	* i386/i386/user_ldt.c (selector_check): Remove function.
+	* i386/i386/user_ldt.h (S_CODE, S_STACK, S_DATA): Remove macros.
+	(selector_check): Remove declaration.
+
+2013-11-15  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	i386/intel/read_fault.c: remove register qualifier
+	* i386/intel/read_fault.c: Remove register qualifier.
+
+	i386/intel/pmap.h: remove register qualifiers
+	* i386/intel/pmap.h: Remove register qualifiers.
+
+	i386/intel/pmap.c: remove register qualifiers
+	* i386/intel/pmap.c: Remove register qualifiers.
+
+	i386/i386at/rtc.h: remove register qualifiers
+	* i386/i386at/rtc.h: Remove register qualifiers.
+
+	i386/i386at/rtc.c: remove register qualifier
+	* i386/i386at/rtc.c: Remove register qualifier.
+
+	i386/i386at/lpr.c: remove register qualifier
+	* i386/i386at/lpr.c: Remove register qualifier.
+
+	i386/i386at/kd_mouse.c: remove register qualifiers
+	* i386/i386at/kd_mouse.c: Remove register qualifiers.
+
+	i386/i386at/kd.c: remove register qualifiers
+	* i386/i386at/kd.c: Remove register qualifiers.
+
+	i386/i386at/kd_event.c: remove register qualifiers
+	* i386/i386at/kd_event.c: Remove register qualifiers.
+
+	i386/i386at/int_init.h: add comment after endif
+	* i386/i386at/int_init.h (__ASSEMBLER__): Add comment after endif.
+
+	i386/i386at/idt.h: add comment after endif
+	* i386/i386at/idt.h (__ASSEMBLER__): Add comment after endif.
+
+	i386/i386at/com.c: remove register qualifiers
+	* i386/i386at/com.c: Remove register qualifiers.
+
+	i386/i386at/com.c: trivial stylistic fix for consistency
+	* i386/i386at/com.c: Trivial stylistic fix for consistency.
+
+	i386/i386at/autoconf.c: remove register qualifiers
+	* i386/i386at/autoconf.c: Remove register qualifiers.
+
+	i386/i386/trap.c: remove register qualifiers
+	* i386/i386/trap.c: Remove register qualifiers.
+
+	i386/i386/thread.h: add comment after endif
+	* i386/i386/thread.h (LINUX_DEV): Add comment after endif.
+
+	i386/i386/pic.h: add comment after endif
+	* i386/i386/pic.h (__ASSEMBLER__): Add comment after endif.
+
+	i386/i386/pcb.c: remove register qualifiers
+	* i386/i386/pcb.c: Remove register qualifiers.
+
+	i386/i386/mp_desc.c: remove register qualifiers
+	* i386/i386/mp_desc.c: Remove register qualifiers.
+
+	i386/i386/machine_routines.h: add comment after endif
+	* i386/i386/machine_routines.h (_I386_MACHINE_ROUTINES_H_): Add comment after endif.
+
+	i386/i386/loose_ends.c: remove unused variable
+	* i386/i386/loose_ends.c (boothowto): Remove unused variable.
+
+	i386/i386/loose_ends.c: add comment after endif
+	* i386/i386/loose_ends.c (NDEBUG): Add comment after endif.
+
+	i386/i386/lock.h: remove register quaalifier
+	* i386/i386/lock.h: Remove register qualifier.
+
+	i386/i386/kttd_interface.c: trivial stylistic fix for consistency
+	* i386/i386/kttd_interface.c: Trivial stylistic fix for consistency.
+
+	i386/i386/hardclock.c: add comment after endif
+	* i386/i386/hardclock.c (LINUX_DEV): Add comment after endif.
+
+	i386/i386/fpu.h: remove register qualifiers
+	* i386/i386/fpu.h: Remove register qualifiers.
+
+	i386/i386/fpu.c: remove register qualifiers
+	* i386/i386/fpu.c: Remove register qualifiers.
+
+	i386/i386/db_trace.c: qualify constants with const
+	* i386/i386/db_trace.c: Qualify constants with const.
+
+	i386/i386/db_trace.c: remove register qualifiers
+	* i386/i386/db_trace.c: Remove register qualifiers.
+
+	i386/i386/db_interface.c: remove register qualifiers
+	* i386/i386/db_interface.c: Remove register qualifiers.
+
+	Fix typo
+
+	i386/i386/vm_tuning.h: remove file
+	* i386/Makefrag.am: Remove i386/i386/vm_tuning.h.
+	* i386/i386/vm_tuning.h: Remove file.
+	* vm/vm_pageout.c: Don't include i386/i386/vm_tuning.h.
+
+	i386/i386at: add ifndefs
+	* i386/i386at/kd_queue.h: Add ifndef.
+	* i386/i386at/kdsoft.h: Likewise.
+	* i386/i386at/lprreg.h: Likewise.
+	* i386/i386at/rtc.h: Likewise.
+
+	chips/busses.c: remove register qualifiers
+	* chips/busses.c: Remove register qualifiers.
+
+	chips/busses.c: use boolean instead of an int
+	* chips/busses.c (found): Constrain range of values to a boolean.
+
+	vm/vm_user.c: remove register qualifiers
+	* vm/vm_user.c: Remove register qualifiers.
+
+	vm/vm_resident.c: remove register qualifiers
+	* vm/vm_resident.c: Remove register qualifiers.
+
+	vm/vm_pageout.c: remove register qualifiers
+	* vm/vm_pageout.c: Remove register qualifiers.
+
+	vm/vm_object.c: remove register qualifiers
+	* vm/vm_object.c: Remove register qualifiers.
+
+	vm/vm_map.c: remove register qualifiers
+	* vm/vm_map.c: Remove register qualifiers.
+
+	vm/vm_map.c: trivial stylistic fix for consistency
+	* vm/vm_map.c: Trivial stylistic fix for consistency.
+
+	vm/vm_kern.c: remove register qualifiers
+	* vm/vm_kern.c: Remove register qualifiers.
+
+	vm/vm_fault.c: remove register qualifiers
+	* vm/vm_fault.c: Remove register qualifiers.
+
+	vm/vm_fault.c: remove unused variable
+	* vm/vm_fault.c: Remove unused variable.
+
+	vm/memory_object_proxy.h: fix definition
+	* vm/memory_object_proxy.h (_VM_MEMORY_OBJECT_PROXY_H_): Fix definition.
+
+	vm/memory_object.c: remove register qualifiers
+	* vm/memory_object.c: Remove register qualifiers.
+
+2013-11-13  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: remove register qualifiers
+	* kern/xpr.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/timer.h: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/timer.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/thread_swap.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/thread.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/task.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/syscall_subr.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/syscall_emulation.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/strings.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/startup.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/sched_prim.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/sched.h: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/queue.h: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/queue.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/processor.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/priority.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/printf.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/pc_sample.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/machine.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/mach_factor.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/mach_clock.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/lock_mon.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/lock.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/ipc_tt.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/ipc_sched.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/ipc_mig.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/host.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/exception.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/eventcount.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/bootstrap.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/ast.c: Remove register qualifiers.
+
+	kern: remove register qualifiers
+	* kern/act.c: Remove register qualifiers.
+
+2013-11-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc: remove register qualifiers
+	* ipc/ipc_thread.h: Remove register qualifiers.
+
+	ipc: remove register qualifiers
+	* ipc/mach_msg.c: Remove register qualifiers.
+
+	ipc: qualify constants with const
+	* ipc/ipc_table.c: Qualify constants with const.
+
+	ipc: trivial stylistic fix for consistency
+	* ipc/ipc_pset.c: Trivial stylistic fix for consistency.
+
+2013-11-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2013-11-11  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	ipc: remove register qualifiers
+	* ipc/ipc_kmsg.c: Remove register qualifiers.
+
+2013-11-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix the error handling in exec_load
+	Found using the Clang Static Analyzer.
+
+	* kern/elf-load.c (exec_load): Properly propagate errors.
+
+2013-11-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	kern: comment unused variable
+	Variable reply_port is never used. There is indication in the comments
+	that it might be used in future function call, so comment it.
+
+	* kern/ipc_mig.c (syscall_device_writev_request): Comment variable.
+
+2013-11-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	device: initialize to zero offset
+	Initialize addr to zero offset to quiet warnings about uninitialized
+	deallocation.
+
+	* device/chario.c (addr): Initialize to zero.
+
+2013-11-10  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	remove register qualifiers
+	* device/subrs.c: Remove register qualifiers.
+
+	remove register qualifiers
+	* device/net_io.c: Remove register qualifiers.
+
+	remove definitions of ETHERMTU and ETHERMIN
+	* device/if_ether.h (ETHERMTU, ETHERMIN): Remove unused definitions.
+
+	remove register qualifiers
+	* device/blkio.c: Remove register qualifiers.
+
+2013-11-09  Vladimir 'φ-coder/phcoder' Serbinenko  <phcoder@gmail.com>
+
+	Fix overflow in Xen clock computation
+	* xen/time.c (hyp_get_stime): Split `delta` into `delta_high` and
+	`delta_low`, as it may overflow 4 second timing nowadays.
+
+2013-11-09  Marin Ramesa  <mpr@hi.t-com.hr>
+
+	Remove lint code
+
+2013-10-10  Richard Braun  <rbraun@sceen.net>
+
+	Increase kernel map entry pool size
+	* vm/vm_map.h (KENTRY_DATA_SIZE): Set to 256 pages.
+
+2013-09-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add files missing in distrib tarball
+	* Makefrag.am (libkernel_a_SOURCES): Add ddb/db_write_cmd.h,
+	ipc/ipc_print.h, vm/vm_print.h
+	* linux/Makefrag.am (EXTRA_DIST): Add linux/src/drivers/scsi/FlashPoint.c,
+	linux/src/drivers/scsi/eata_pio_proc.c, linux/src/drivers/scsi/scsiiom.c.
+
 2013-09-27  Thomas Schwinge  <thomas@codesourcery.com>
+
+	Merge remote-tracking branch 'savannah/master' into master
 
 	GNU Mach 1.4.
 	* version.m4 (AC_PACKAGE_VERSION): Set to 1.4.
@@ -20,6 +2988,11 @@
 
 	* README: Simplify build instructions.
 	Follow-up to commit 471e5b080f7790c2cf95e3069d9fed1173c9ec17.
+
+2013-09-27  Svante Signell  <srs@kth.se>
+
+	Fix typo
+	* README: Fix typo.
 
 2013-09-26  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 

@@ -72,14 +72,14 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 boolean_t
 kdq_empty(q)
-	kd_event_queue *q;
+	const kd_event_queue *q;
 {
 	return(q->firstfree == q->firstout);
 }
 
 boolean_t
 kdq_full(q)
-	kd_event_queue *q;
+	const kd_event_queue *q;
 {
 	return(q_next(q->firstfree) == q->firstout);
 }
@@ -98,8 +98,7 @@ kdq_put(q, ev)
 }
 
 kd_event *
-kdq_get(q)
-	kd_event_queue *q;
+kdq_get(kd_event_queue *q)
 {
 	kd_event *result = q->events + q->firstout;
 
@@ -108,8 +107,7 @@ kdq_get(q)
 }
 
 void
-kdq_reset(q)
-	kd_event_queue *q;
+kdq_reset(kd_event_queue *q)
 {
 	q->firstout = q->firstfree = 0;
 }

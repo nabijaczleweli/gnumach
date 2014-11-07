@@ -37,6 +37,8 @@
 #include <ddb/db_output.h>
 #include <ddb/db_sym.h>
 #include <ddb/db_task_thread.h>
+#include <ddb/db_aout.h>
+#include <ddb/db_elf.h>
 
 #include <vm/vm_map.h>	/* vm_map_t */
 
@@ -50,21 +52,19 @@ int db_nsymtab = 0;
 
 db_symtab_t	*db_last_symtab;
 
-db_sym_t	db_lookup();	/* forward */
-
 /*
  * Add symbol table, with given name, to list of symbol tables.
  */
 boolean_t
-db_add_symbol_table(type, start, end, name, ref, map_pointer)
-	int type;
-	char *start;
-	char *end;
-	char *name;
-	char *ref;
-	char *map_pointer;
+db_add_symbol_table(
+	int  type,
+	char *start,
+	char *end,
+	char *name,
+	char *ref,
+	char *map_pointer)
 {
-	register db_symtab_t *st;
+	db_symtab_t *st;
 	extern vm_map_t kernel_map;
 
 	if (db_nsymtab >= MAXNOSYMTABS)
@@ -76,7 +76,8 @@ db_add_symbol_table(type, start, end, name, ref, map_pointer)
 	st->end = end;
 	st->private = ref;
 	st->map_pointer = (map_pointer == (char *)kernel_map)? 0: map_pointer;
-	strcpy(st->name, name);
+	strncpy(st->name, name, sizeof st->name - 1);
+	st->name[sizeof st->name - 1] = '\0';
 
 	db_nsymtab++;
 
@@ -89,13 +90,13 @@ db_add_symbol_table(type, start, end, name, ref, map_pointer)
  *  Note: return value points to static data whose content is
  *  overwritten by each call... but in practice this seems okay.
  */
-static char *
+static char * __attribute__ ((pure))
 db_qualify(symname, symtabname)
-	char		*symname;
-	register char	*symtabname;
+	const char	*symname;
+	const char	*symtabname;
 {
 	static char     tmp[256];
-	register char	*s;
+	char		*s;
 
 	s = tmp;
 	while ((*s++ = *symtabname++)) {
@@ -109,7 +110,7 @@ db_qualify(symname, symtabname)
 
 
 boolean_t
-db_eqname( char* src, char* dst, char c )
+db_eqname( const char* src, const char* dst, char c )
 {
 	if (!strcmp(src, dst))
 	    return (TRUE);
@@ -119,9 +120,9 @@ db_eqname( char* src, char* dst, char c )
 }
 
 boolean_t
-db_value_of_name(name, valuep)
-	char		*name;
-	db_expr_t	*valuep;
+db_value_of_name(
+	char		*name,
+	db_expr_t	*valuep)
 {
 	db_sym_t	sym;
 
@@ -141,14 +142,13 @@ db_value_of_name(name, valuep)
  * otherwise, all symbol tables will be searched.
  */
 db_sym_t
-db_lookup(symstr)
-	char *symstr;
+db_lookup(char *symstr)
 {
 	db_sym_t sp;
-	register int i;
+	int i;
 	int symtab_start = 0;
 	int symtab_end = db_nsymtab;
-	register char *cp;
+	char *cp;
 
 	/*
 	 * Look for, remove, and remember any symbol table specifier.
@@ -193,13 +193,13 @@ db_lookup(symstr)
  * with parsed file name, symbol name and line number.
  */
 db_sym_t
-db_sym_parse_and_lookup(func, symtab, symstr)
-	db_sym_t	(*func)();
-	db_symtab_t	*symtab;
-	char		*symstr;
+db_sym_parse_and_lookup(
+	db_sym_t	(*func)(),
+	db_symtab_t	*symtab,
+	char		*symstr)
 {
-	register 	char *p;
-	register 	int n;
+	char 		*p;
+	int 		n;
 	int	 	n_name;
 	int	 	line_number;
 	char	 	*file_name = 0;
@@ -265,19 +265,17 @@ out:
 boolean_t db_qualify_ambiguous_names = FALSE;
 
 boolean_t
-db_name_is_ambiguous(sym_name)
-	char		*sym_name;
+db_name_is_ambiguous(char *sym_name)
 {
-	register int	i;
-	register
+	int		i;
 	boolean_t	found_once = FALSE;
 
 	if (!db_qualify_ambiguous_names)
 		return FALSE;
 
 	for (i = 0; i < db_nsymtab; i++) {
-	  	db_sym_t sp;
-		if (sp = X_db_lookup(&db_symtabs[i], sym_name)) {
+		db_sym_t sp = X_db_lookup(&db_symtabs[i], sym_name);
+		if (sp) {
 			if (found_once)
 			{
 				db_free_symbol(sp);
@@ -289,9 +287,6 @@ db_name_is_ambiguous(sym_name)
 	}
 	return FALSE;
 }
-
-
-db_sym_t db_search_in_task_symbol();
 
 /*
  * Find the closest symbol to val, and return its name
@@ -305,11 +300,11 @@ db_sym_t db_search_in_task_symbol();
  *
  */
 db_sym_t
-db_search_task_symbol(val, strategy, offp, task)
-	register db_addr_t	val;
-	db_strategy_t		strategy;
-	db_addr_t		*offp; /* better be unsigned */
-	task_t			task;
+db_search_task_symbol(
+	db_addr_t		val,
+	db_strategy_t		strategy,
+	db_addr_t		*offp, /* better be unsigned */
+	task_t			task)
 {
   db_sym_t ret;
 
@@ -334,15 +329,15 @@ db_search_task_symbol(val, strategy, offp, task)
 }
 
 db_sym_t
-db_search_in_task_symbol(val, strategy, offp, task)
-	register db_addr_t	val;
-	db_strategy_t		strategy;
-	db_addr_t		*offp;
-	task_t			task;
+db_search_in_task_symbol(
+	db_addr_t		val,
+	db_strategy_t		strategy,
+	db_addr_t		*offp,
+	task_t			task)
 {
-  register vm_size_t diff;
+  vm_size_t 	diff;
   vm_size_t	newdiff;
-  register int	i;
+  int		i;
   db_symtab_t	*sp;
   db_sym_t	ret = DB_SYM_NULL, sym;
   vm_map_t	map_for_val;
@@ -402,11 +397,11 @@ db_search_in_task_symbol(val, strategy, offp, task)
  * Return name and value of a symbol
  */
 void
-db_symbol_values(stab, sym, namep, valuep)
-	db_symtab_t	*stab;
-	db_sym_t	sym;
-	char		**namep;
-	db_expr_t	*valuep;
+db_symbol_values(
+	db_symtab_t	*stab,
+	db_sym_t	sym,
+	char		**namep,
+	db_expr_t	*valuep)
 {
 	db_expr_t	value;
 	char		*name;
@@ -449,7 +444,7 @@ unsigned long	db_maxoff = 0x4000;
 
 void
 db_task_printsym(off, strategy, task)
-	db_expr_t	off;
+	db_addr_t	off;
 	db_strategy_t	strategy;
 	task_t		task;
 {
@@ -494,7 +489,7 @@ db_line_at_pc( sym, filename, linenum, pc)
 	db_sym_t	sym;
 	char		**filename;
 	int		*linenum;
-	db_expr_t	pc;
+	db_addr_t	pc;
 {
 	return (db_last_symtab) ?
 		X_db_line_at_pc( db_last_symtab, sym, filename, linenum, pc) :
@@ -512,15 +507,11 @@ void db_free_symbol(db_sym_t s)
  * Switch into symbol-table specific routines
  */
 
-extern boolean_t aout_db_sym_init(), aout_db_line_at_pc();
-extern db_sym_t aout_db_lookup(), aout_db_search_symbol();
-extern void aout_db_symbol_values();
+void dummy_db_free_symbol(db_sym_t symbol) { }
+boolean_t dummy_db_sym_init(char *a, char *b, char *c, char *d) {
+  return FALSE;
+}
 
-extern boolean_t coff_db_sym_init(), coff_db_line_at_pc();
-extern db_sym_t coff_db_lookup(), coff_db_search_symbol();
-extern void coff_db_symbol_values();
-
-void dummy_db_free_symbol(sym_t) { }
 
 struct db_sym_switch x_db[] = {
 
@@ -532,15 +523,17 @@ struct db_sym_switch x_db[] = {
 	  aout_db_line_at_pc, aout_db_symbol_values, dummy_db_free_symbol },
 #endif	/* DB_NO_AOUT */
 
-#ifdef	DB_NO_COFF
 	{ 0,},
-#else	/* DB_NO_COFF */
-	{ coff_db_sym_init, coff_db_lookup, coff_db_search_symbol,
-	  coff_db_line_at_pc, coff_db_symbol_values, dummy_db_free_symbol },
-#endif	/* DB_NO_COFF */
 
 	/* Machdep, not inited here */
-	{ 0,}
+	{ 0,},
+
+#ifdef	DB_NO_ELF
+	{ 0,},
+#else	/* DB_NO_ELF */
+	{ dummy_db_sym_init, elf_db_lookup, elf_db_search_symbol,
+	  elf_db_line_at_pc, elf_db_symbol_values, dummy_db_free_symbol },
+#endif	/* DB_NO_ELF */
 
 };
 

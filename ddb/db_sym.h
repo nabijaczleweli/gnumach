@@ -46,6 +46,7 @@ typedef struct {
 #define	SYMTAB_AOUT	0
 #define	SYMTAB_COFF	1
 #define	SYMTAB_MACHDEP	2
+#define	SYMTAB_ELF	3
 	char		*start;		/* symtab location */
 	char		*end;
 	char		*private;	/* optional machdep pointer */
@@ -161,10 +162,10 @@ extern void	db_symbol_values( db_symtab_t *stab,
 	db_search_task_symbol(val,strgy,offp,0)
 
 /* strcmp, modulo leading char */
-extern boolean_t	db_eqname( char* src, char* dst, char c );
+extern boolean_t	db_eqname( const char* src, const char* dst, char c );
 
 /* print closest symbol to a value */
-extern void	db_task_printsym( db_expr_t off,
+extern void	db_task_printsym( db_addr_t off,
 				  db_strategy_t strategy,
 				  task_t task);
 
@@ -205,7 +206,7 @@ extern struct db_sym_switch {
 				db_sym_t	sym,
 				char		**file,
 				int		*line,
-				db_expr_t	pc
+				db_addr_t	pc
 				);
 
 	void		(*symbol_values)(
@@ -235,6 +236,35 @@ extern boolean_t db_line_at_pc(
 	db_sym_t sym,
 	char **filename,
 	int *linenum,
-	db_expr_t pc);
+	db_addr_t pc);
 
-#endif
+extern boolean_t aout_db_sym_init(
+	char *symtab,
+	char *esymtab,
+	char *name,
+	char *task_addr);
+
+extern boolean_t elf_db_sym_init (
+	unsigned shdr_num,
+	vm_size_t shdr_size,
+	vm_offset_t shdr_addr,
+	unsigned shdr_shndx,
+	char *name,
+	char *task_addr);
+
+db_sym_t	db_lookup(char *);
+
+db_sym_t
+db_search_in_task_symbol(
+	db_addr_t		val,
+	db_strategy_t		strategy,
+	db_addr_t		*offp,
+	task_t			task);
+
+extern db_sym_t
+db_sym_parse_and_lookup(
+	db_sym_t	(*func)(),
+	db_symtab_t	*symtab,
+	char		*symstr);
+
+#endif /* _DDB_DB_SYM_H_ */

@@ -47,12 +47,12 @@
 host_data_t	realhost;
 
 kern_return_t host_processors(
-	host_t			host,
+	const host_t		host,
 	processor_array_t	*processor_list,
 	natural_t		*countp)
 {
-	register int		i;
-	register processor_t	*tp;
+	int			i;
+	processor_t		*tp;
 	vm_offset_t		addr;
 	unsigned int		count;
 
@@ -95,12 +95,12 @@ kern_return_t host_processors(
 }
 
 kern_return_t	host_info(
-	host_t		host,
+	const host_t	host,
 	int		flavor,
 	host_info_t	info,
 	natural_t	*count)
 {
-	register integer_t	i, *slot_ptr;
+	integer_t	i, *slot_ptr;
 
 	if (host == HOST_NULL)
 		return KERN_INVALID_ARGUMENT;
@@ -109,7 +109,7 @@ kern_return_t	host_info(
 
 	case HOST_BASIC_INFO:
 	    {
-		register host_basic_info_t	basic_info;
+		host_basic_info_t	basic_info;
 
 		/*
 		 *	Basic information about this host.
@@ -152,7 +152,7 @@ kern_return_t	host_info(
 
 	case HOST_SCHED_INFO:
 	    {
-		register host_sched_info_t	sched_info;
+		host_sched_info_t	sched_info;
 		extern int	min_quantum;
 					/* minimum quantum, in microseconds */
 
@@ -174,7 +174,7 @@ kern_return_t	host_info(
 
 	case HOST_LOAD_INFO:
 	    {
-		register host_load_info_t load_info;
+		host_load_info_t load_info;
 		extern long avenrun[3], mach_factor[3];
 
 		if (*count < HOST_LOAD_INFO_COUNT)
@@ -204,7 +204,7 @@ kern_return_t	host_info(
  */
 
 kern_return_t host_kernel_version(
-	host_t			host,
+	const host_t		host,
 	kernel_version_t	out_version)
 {
 	extern char	version[];
@@ -225,7 +225,7 @@ kern_return_t host_kernel_version(
 #if	MACH_HOST
 kern_return_t
 host_processor_sets(
-	host_t				host,
+	const host_t			host,
 	processor_set_name_array_t	*pset_list,
 	natural_t			*count)
 {
@@ -302,7 +302,7 @@ host_processor_sets(
 			return KERN_RESOURCE_SHORTAGE;
 		}
 
-		memcpy((char *) newaddr, (char *) addr, size_needed);
+		memcpy((void *) newaddr, (void *) addr, size_needed);
 		kfree(addr, size);
 		psets = (processor_set_t *) newaddr;
 	}
@@ -324,7 +324,7 @@ host_processor_sets(
  */
 kern_return_t
 host_processor_sets(
-	host_t				host,
+	const host_t			host,
 	processor_set_name_array_t	*pset_list,
 	natural_t			*count)
 {
@@ -362,7 +362,7 @@ host_processor_sets(
  */
 kern_return_t
 host_processor_set_priv(
-	host_t		host,
+	const host_t	host,
 	processor_set_t	pset_name,
 	processor_set_t	*pset)
 {

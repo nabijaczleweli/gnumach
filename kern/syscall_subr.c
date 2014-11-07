@@ -48,8 +48,6 @@
 #include <mach/policy.h>
 #endif	/* MACH_FIXPRI */
 
-
-
 /*
  *	swtch and swtch_pri both attempt to context switch (logic in
  *	thread_block no-ops the context switch if nothing would happen).
@@ -63,12 +61,9 @@
  *	returned, the thread should make one more check on the
  *	lock and then be a good citizen and really suspend.
  */
-
-void thread_depress_priority(thread_t, mach_msg_timeout_t);
-
 void swtch_continue(void)
 {
-	register processor_t	myprocessor;
+	processor_t	myprocessor;
 
 	myprocessor = current_processor();
 	thread_syscall_return(myprocessor->runq.count > 0 ||
@@ -78,7 +73,7 @@ void swtch_continue(void)
 
 boolean_t swtch(void)
 {
-	register processor_t	myprocessor;
+	processor_t	myprocessor;
 
 #if	NCPUS > 1
 	myprocessor = current_processor();
@@ -96,8 +91,8 @@ boolean_t swtch(void)
 
 void swtch_pri_continue(void)
 {
-	register thread_t	thread = current_thread();
-	register processor_t	myprocessor;
+	thread_t	thread = current_thread();
+	processor_t	myprocessor;
 
 	if (thread->depress_priority >= 0)
 		(void) thread_depress_abort(thread);
@@ -107,15 +102,10 @@ void swtch_pri_continue(void)
 	/*NOTREACHED*/
 }
 
-boolean_t  swtch_pri(pri)
-	int pri;
+boolean_t  swtch_pri(int pri)
 {
-	register thread_t	thread = current_thread();
-	register processor_t	myprocessor;
-
-#ifdef	lint
-	pri++;
-#endif	/* lint */
+	thread_t	thread = current_thread();
+	processor_t	myprocessor;
 
 #if	NCPUS > 1
 	myprocessor = current_processor();
@@ -142,7 +132,7 @@ boolean_t  swtch_pri(pri)
 
 void thread_switch_continue(void)
 {
-	register thread_t	cur_thread = current_thread();
+	thread_t	cur_thread = current_thread();
 
 	/*
 	 *  Restore depressed priority
@@ -161,13 +151,13 @@ void thread_switch_continue(void)
  *	Fixed priority threads that call this get what they asked for
  *	even if that violates priority order.
  */
-kern_return_t thread_switch(thread_name, option, option_time)
-mach_port_t thread_name;
-int option;
-mach_msg_timeout_t option_time;
+kern_return_t thread_switch(
+	mach_port_t 		thread_name,
+	int 			option,
+	mach_msg_timeout_t 	option_time)
 {
-    register thread_t		cur_thread = current_thread();
-    register processor_t	myprocessor;
+    thread_t			cur_thread = current_thread();
+    processor_t			myprocessor;
     ipc_port_t			port;
 
     /*
@@ -208,8 +198,8 @@ mach_msg_timeout_t option_time;
 	     *	Get corresponding thread.
 	     */
 	    if (ip_active(port) && (ip_kotype(port) == IKOT_THREAD)) {
-		register thread_t thread;
-		register spl_t s;
+		thread_t thread;
+		spl_t s;
 
 		thread = (thread_t) port->ip_kobject;
 		/*
@@ -289,9 +279,9 @@ mach_msg_timeout_t option_time;
  *      of zero will result in no timeout being scheduled.
  */
 void
-thread_depress_priority(thread, depress_time)
-register thread_t thread;
-mach_msg_timeout_t depress_time;
+thread_depress_priority(
+	thread_t 		thread,
+	mach_msg_timeout_t 	depress_time)
 {
     unsigned int ticks;
     spl_t	s;
@@ -327,8 +317,7 @@ mach_msg_timeout_t depress_time;
  *	Timeout routine for priority depression.
  */
 void
-thread_depress_timeout(thread)
-register thread_t thread;
+thread_depress_timeout(thread_t thread)
 {
     spl_t	s;
 
@@ -356,8 +345,7 @@ register thread_t thread;
  *	Prematurely abort priority depression if there is one.
  */
 kern_return_t
-thread_depress_abort(thread)
-register thread_t	thread;
+thread_depress_abort(thread_t thread)
 {
     spl_t	s;
 

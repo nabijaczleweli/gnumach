@@ -44,19 +44,11 @@
 #include <i386/pio.h>
 #include <chips/busses.h>
 #include <i386at/autoconf.h>
-#include <i386at/lprreg.h>
+#include <i386at/lpr.h>
   
-
 /* 
  * Driver information for auto-configuration stuff.
  */
-
-int	lprprobe();
-void	lprstop();
-void	lprintr(), lprstart();
-void	lprattach(struct bus_device *);
-int lprgetstat(), lprsetstat();
-void lprpr_addr();
 
 struct bus_device *lprinfo[NLPR];	/* ??? */
 
@@ -71,7 +63,8 @@ int lpr_alive[NLPR];
 
 int
 lprprobe(port, dev)
-struct bus_device *dev;
+vm_offset_t port;
+struct bus_ctlr *dev;
 {
 	u_short	addr = (u_short) dev->address;
 	int	unit = dev->unit;
@@ -113,7 +106,7 @@ void lprattach(struct bus_device *dev)
 
 int
 lpropen(dev, flag, ior)
-int dev;
+dev_t dev;
 int flag;
 io_req_t ior;
 {
@@ -142,7 +135,7 @@ u_short addr;
 
 void
 lprclose(dev, flag)
-int dev;
+dev_t dev;
 int flag;
 {
 int 		unit = minor(dev);
@@ -158,7 +151,7 @@ u_short		addr = 	(u_short) lprinfo[unit]->address;
 
 int
 lprread(dev, ior)
-int	dev;
+dev_t	dev;
 io_req_t ior;
 {
 	return char_read(&lpr_tty[minor(dev)], ior);
@@ -166,7 +159,7 @@ io_req_t ior;
 
 int
 lprwrite(dev, ior)
-int	dev;
+dev_t	dev;
 io_req_t ior;
 {
 	return char_write(&lpr_tty[minor(dev)], ior);
@@ -199,11 +192,11 @@ natural_t	*count;		/* out */
 }
 
 io_return_t
-lprsetstat(dev, flavor, data, count)
-dev_t		dev;
-int		flavor;
-int *		data;
-natural_t	count;
+lprsetstat(
+	dev_t		dev,
+	int		flavor,
+	int *		data,
+	natural_t	count)
 {
 	io_return_t	result = D_SUCCESS;
 	int 		unit = minor(dev);
@@ -218,10 +211,9 @@ natural_t	count;
 	return (D_SUCCESS);
 }
 
-void lprintr(unit)
-int unit;
+void lprintr(int unit)
 {
-	register struct tty *tp = &lpr_tty[unit];
+	struct tty *tp = &lpr_tty[unit];
 
 	if ((tp->t_state & TS_ISOPEN) == 0)
 	  return;
@@ -233,8 +225,7 @@ int unit;
 	lprstart(tp);
 }   
 
-void lprstart(tp)
-struct tty *tp;
+void lprstart(struct tty *tp)
 {
 	spl_t s = spltty();
 	u_short addr = (natural_t) tp->t_addr;
@@ -274,22 +265,22 @@ struct tty *tp;
 }
 
 void
-lprstop(tp, flags)
-register struct tty *tp;
-int	flags;
+lprstop(
+	struct tty 	*tp,
+	int		flags)
 {
 	if ((tp->t_state & TS_BUSY) && (tp->t_state & TS_TTSTOP) == 0)
 		tp->t_state |= TS_FLUSH;
 }
 int
-lprpr(unit)
+lprpr(int unit)
 {
 	lprpr_addr(lprinfo[unit]->address);
 	return 0;
 }
 
 void
-lprpr_addr(addr)
+lprpr_addr(unsigned short addr)
 {
 	printf("DATA(%x) %x, STATUS(%x) %x, INTR_ENAB(%x) %x\n",
 		DATA(addr), inb(DATA(addr)),

@@ -94,11 +94,11 @@ ipc_port_timestamp(void)
  */
 
 kern_return_t
-ipc_port_dnrequest(port, name, soright, indexp)
-	ipc_port_t port;
-	mach_port_t name;
-	ipc_port_t soright;
-	ipc_port_request_index_t *indexp;
+ipc_port_dnrequest(
+	ipc_port_t 			port,
+	mach_port_t 			name,
+	ipc_port_t 			soright,
+	ipc_port_request_index_t 	*indexp)
 {
 	ipc_port_request_t ipr, table;
 	ipc_port_request_index_t index;
@@ -142,8 +142,7 @@ ipc_port_dnrequest(port, name, soright, indexp)
  */
 
 kern_return_t
-ipc_port_dngrow(port)
-	ipc_port_t port;
+ipc_port_dngrow(ipc_port_t port)
 {
 	ipc_table_size_t its;
 	ipc_port_request_t otable, ntable;
@@ -275,9 +274,9 @@ ipc_port_dncancel(
 
 void
 ipc_port_pdrequest(
-	ipc_port_t	port,
-	ipc_port_t	notify,
-	ipc_port_t	*previousp)
+	ipc_port_t		port,
+	const ipc_port_t	notify,
+	ipc_port_t		*previousp)
 {
 	ipc_port_t previous;
 
@@ -382,8 +381,7 @@ ipc_port_set_qlimit(
  */
 
 ipc_mqueue_t
-ipc_port_lock_mqueue(port)
-	ipc_port_t port;
+ipc_port_lock_mqueue(ipc_port_t port)
 {
 	if (port->ip_pset != IPS_NULL) {
 		ipc_pset_t pset = port->ip_pset;
@@ -413,9 +411,9 @@ ipc_port_lock_mqueue(port)
  */
 
 void
-ipc_port_set_seqno(port, seqno)
-	ipc_port_t port;
-	mach_port_seqno_t seqno;
+ipc_port_set_seqno(
+	ipc_port_t 		port,
+	mach_port_seqno_t 	seqno)
 {
 	ipc_mqueue_t mqueue;
 
@@ -423,6 +421,44 @@ ipc_port_set_seqno(port, seqno)
 	port->ip_seqno = seqno;
 	imq_unlock(mqueue);
 }
+
+/*
+ *	Routine:	ipc_port_set_protected_payload
+ *	Purpose:
+ *		Changes a port's protected payload.
+ *	Conditions:
+ *		The port is locked and active.
+ */
+
+void
+ipc_port_set_protected_payload(ipc_port_t port, unsigned long payload)
+{
+	ipc_mqueue_t mqueue;
+
+	mqueue = ipc_port_lock_mqueue(port);
+	port->ip_protected_payload = payload;
+	ipc_port_flag_protected_payload_set(port);
+	imq_unlock(mqueue);
+}
+
+/*
+ *	Routine:	ipc_port_clear_protected_payload
+ *	Purpose:
+ *		Clear a port's protected payload.
+ *	Conditions:
+ *		The port is locked and active.
+ */
+
+void
+ipc_port_clear_protected_payload(ipc_port_t port)
+{
+	ipc_mqueue_t mqueue;
+
+	mqueue = ipc_port_lock_mqueue(port);
+	ipc_port_flag_protected_payload_clear(port);
+	imq_unlock(mqueue);
+}
+
 
 /*
  *	Routine:	ipc_port_clear_receiver
@@ -493,6 +529,8 @@ ipc_port_init(
 	port->ip_seqno = 0;
 	port->ip_msgcount = 0;
 	port->ip_qlimit = MACH_PORT_QLIMIT_DEFAULT;
+	ipc_port_flag_protected_payload_clear(port);
+	port->ip_protected_payload = 0;
 
 	ipc_mqueue_init(&port->ip_messages);
 	ipc_thread_queue_init(&port->ip_blocked);
@@ -615,6 +653,7 @@ ipc_port_destroy(
 		/* make port be in limbo */
 		port->ip_receiver_name = MACH_PORT_NULL;
 		port->ip_destination = IP_NULL;
+		ipc_port_flag_protected_payload_clear(port);
 		ip_unlock(port);
 
 		if (!ipc_port_check_circularity(port, pdrequest)) {
@@ -1135,8 +1174,7 @@ ipc_port_release_receive(
  */
 
 ipc_port_t
-ipc_port_alloc_special(space)
-	ipc_space_t space;
+ipc_port_alloc_special(ipc_space_t space)
 {
 	ipc_port_t port;
 
@@ -1212,11 +1250,16 @@ ipc_port_dealloc_special(
 
 void
 ipc_port_print(port)
-	ipc_port_t port;
+	const ipc_port_t port;
 {
 	printf("port 0x%x\n", port);
 
 	indent += 2;
+
+	iprintf("flags ");
+	printf("has_protected_payload=%d",
+	       ipc_port_flag_protected_payload(port));
+	printf("\n");
 
 	ipc_object_print(&port->ip_object);
 	iprintf("receiver=0x%x", port->ip_receiver);
@@ -1240,7 +1283,9 @@ ipc_port_print(port)
 	printf(", sndrs=0x%x", port->ip_blocked.ithq_base);
 	printf(", kobj=0x%x\n", port->ip_kobject);
 
-	indent -=2;
+	iprintf("protected_payload=%p\n", (void *) port->ip_protected_payload);
+
+	indent -= 2;
 }
 
 #endif	/* MACH_KDB */

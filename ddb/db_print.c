@@ -53,21 +53,21 @@
 #include <ddb/db_task_thread.h>
 #include <ddb/db_print.h>
 
-extern unsigned int	db_maxoff;
+extern unsigned long	db_maxoff;
 
 /* ARGSUSED */
 void
-db_show_regs(addr, have_addr, count, modif)
-	db_expr_t	addr;
-	boolean_t	have_addr;
-	db_expr_t	count;
-	char		*modif;
+db_show_regs(
+	db_expr_t	addr,
+	boolean_t	have_addr,
+	db_expr_t	count,
+	char		*modif)
 {
-	register struct db_variable *regp;
+	struct 		db_variable *regp;
 	db_expr_t	value;
 	db_addr_t	offset;
 	char *		name;
-	register	int i;
+	int 		i;
 	struct db_var_aux_param aux_param;
 	task_t		task = TASK_NULL;
 
@@ -127,10 +127,10 @@ db_show_regs(addr, have_addr, count, modif)
 
 char *
 db_thread_stat(thread, status)
-	register thread_t thread;
-	char	 *status;
+	const thread_t 	thread;
+	char	 	*status;
 {
-	register char *p = status;
+	char *p = status;
 
 	*p++ = (thread->state & TH_RUN)  ? 'R' : '.';
 	*p++ = (thread->state & TH_WAIT) ? 'W' : '.';
@@ -144,10 +144,10 @@ db_thread_stat(thread, status)
 }
 
 void
-db_print_thread(thread, thread_id, flag)
-	thread_t thread;
-	int	 thread_id;
-	int	 flag;
+db_print_thread(
+	thread_t thread,
+	int	 thread_id,
+	int	 flag)
 {
 	if (flag & OPTION_USER) {
 	    char status[8];
@@ -194,12 +194,8 @@ db_print_thread(thread, thread_id, flag)
 			  2*sizeof(vm_offset_t), thread);
 	    else
 		db_printf("(%0*X) ", 2*sizeof(vm_offset_t), thread);
-	    db_printf("%c%c%c%c%c",
-		      (thread->state & TH_RUN)  ? 'R' : ' ',
-		      (thread->state & TH_WAIT) ? 'W' : ' ',
-		      (thread->state & TH_SUSP) ? 'S' : ' ',
-		      (thread->state & TH_UNINT)? 'N' : ' ',
-		      db_thread_fp_used(thread) ? 'F' : ' ');
+	    char status[8];
+	    db_printf("%s", db_thread_stat(thread, status));
 	    if (thread->state & TH_SWAPPED) {
 		if (thread->swap_func) {
 		    db_printf("(");
@@ -220,10 +216,10 @@ db_print_thread(thread, thread_id, flag)
 }
 
 void
-db_print_task(task, task_id, flag)
-	task_t	task;
-	int	task_id;
-	int	flag;
+db_print_task(
+	task_t	task,
+	int	task_id,
+	int	flag)
 {
 	thread_t thread;
 	int thread_id;
@@ -258,7 +254,12 @@ db_print_task(task, task_id, flag)
 	} else {
 	    if (flag & OPTION_TASK_TITLE)
 		db_printf("    TASK        THREADS\n");
-	    db_printf("%3d (%0*X): ", task_id, 2*sizeof(vm_offset_t), task);
+	    if (task->name[0])
+		db_printf("%3d %s (%0*X): ", task_id, task->name,
+			  2*sizeof(vm_offset_t), task);
+	    else
+		db_printf("%3d (%0*X): ", task_id,
+			  2*sizeof(vm_offset_t), task);
 	    if (task->thread_count == 0) {
 		db_printf("no threads\n");
 	    } else {
@@ -275,13 +276,37 @@ db_print_task(task, task_id, flag)
 	}
 }
 
+void
+db_show_all_tasks(db_expr_t addr,
+		  boolean_t have_addr,
+		  db_expr_t count,
+		  const char *modif)
+{
+	task_t task;
+	int task_id = 0;
+	processor_set_t pset;
+
+	db_printf(" ID %-*s NAME [THREADS]\n", 2*sizeof(vm_offset_t), "TASK");
+
+	queue_iterate(&all_psets, pset, processor_set_t, all_psets)
+	    queue_iterate(&pset->tasks, task, task_t, pset_tasks) {
+		db_printf("%3d %0*X %s [%d]\n",
+			  task_id,
+			  2*sizeof(vm_offset_t),
+			  task,
+			  task->name,
+			  task->thread_count);
+		task_id++;
+	    }
+}
+
 /*ARGSUSED*/
 void
 db_show_all_threads(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	boolean_t	have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	task_t task;
 	int task_id;
@@ -332,7 +357,7 @@ db_show_one_thread(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	boolean_t	have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	int		flag;
 	int		thread_id;
@@ -378,7 +403,7 @@ db_show_one_task(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	boolean_t	have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	int		flag;
 	int		task_id;
@@ -410,7 +435,7 @@ db_show_one_task(addr, have_addr, count, modif)
 
 int
 db_port_iterate(thread, func)
-	thread_t thread;
+	const thread_t thread;
 	void (*func)();
 {
 	ipc_entry_t entry;
@@ -431,12 +456,12 @@ db_port_iterate(thread, func)
 }
 
 ipc_port_t
-db_lookup_port(thread, id)
-	thread_t thread;
-	int id;
+db_lookup_port(
+	thread_t 	thread,
+	int 		id)
 {
-	register ipc_space_t space;
-	register ipc_entry_t entry;
+	ipc_space_t space;
+	ipc_entry_t entry;
 
 	if (thread == THREAD_NULL)
 	    return(0);
@@ -452,7 +477,7 @@ db_lookup_port(thread, id)
 static void
 db_print_port_id(id, port, bits, n)
 	int id;
-	ipc_port_t port;
+	const ipc_port_t port;
 	unsigned bits;
 	int n;
 {
@@ -466,7 +491,7 @@ db_print_port_id(id, port, bits, n)
 static void
 db_print_port_id_long(
 	int id,
-	ipc_port_t port,
+	const ipc_port_t port,
 	unsigned bits,
 	int n)
 {
@@ -484,7 +509,7 @@ db_show_port_id(addr, have_addr, count, modif)
 	db_expr_t	addr;
 	boolean_t	have_addr;
 	db_expr_t	count;
-	char *		modif;
+	const char *	modif;
 {
 	thread_t thread;
 

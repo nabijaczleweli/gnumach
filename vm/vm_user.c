@@ -56,11 +56,11 @@ vm_statistics_data_t	vm_stat;
  *	vm_allocate allocates "zero fill" memory in the specfied
  *	map.
  */
-kern_return_t vm_allocate(map, addr, size, anywhere)
-	register vm_map_t	map;
-	register vm_offset_t	*addr;
-	register vm_size_t	size;
-	boolean_t		anywhere;
+kern_return_t vm_allocate(
+	vm_map_t	map,
+	vm_offset_t	*addr,
+	vm_size_t	size,
+	boolean_t	anywhere)
 {
 	kern_return_t	result;
 
@@ -97,10 +97,10 @@ kern_return_t vm_allocate(map, addr, size, anywhere)
  *	vm_deallocate deallocates the specified range of addresses in the
  *	specified address map.
  */
-kern_return_t vm_deallocate(map, start, size)
-	register vm_map_t	map;
-	vm_offset_t		start;
-	vm_size_t		size;
+kern_return_t vm_deallocate(
+	vm_map_t		map,
+	vm_offset_t		start,
+	vm_size_t		size)
 {
 	if (map == VM_MAP_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -115,11 +115,11 @@ kern_return_t vm_deallocate(map, start, size)
  *	vm_inherit sets the inheritance of the specified range in the
  *	specified map.
  */
-kern_return_t vm_inherit(map, start, size, new_inheritance)
-	register vm_map_t	map;
-	vm_offset_t		start;
-	vm_size_t		size;
-	vm_inherit_t		new_inheritance;
+kern_return_t vm_inherit(
+	vm_map_t		map,
+	vm_offset_t		start,
+	vm_size_t		size,
+	vm_inherit_t		new_inheritance)
 {
 	if (map == VM_MAP_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -149,12 +149,12 @@ kern_return_t vm_inherit(map, start, size, new_inheritance)
  *	specified map.
  */
 
-kern_return_t vm_protect(map, start, size, set_maximum, new_protection)
-	register vm_map_t	map;
-	vm_offset_t		start;
-	vm_size_t		size;
-	boolean_t		set_maximum;
-	vm_prot_t		new_protection;
+kern_return_t vm_protect(
+	vm_map_t		map,
+	vm_offset_t		start,
+	vm_size_t		size,
+	boolean_t		set_maximum,
+	vm_prot_t		new_protection)
 {
 	if ((map == VM_MAP_NULL) || 
 		(new_protection & ~(VM_PROT_ALL|VM_PROT_NOTIFY)))
@@ -172,9 +172,9 @@ kern_return_t vm_protect(map, start, size, set_maximum, new_protection)
 			      set_maximum));
 }
 
-kern_return_t vm_statistics(map, stat)
-	vm_map_t	map;
-	vm_statistics_data_t	*stat;
+kern_return_t vm_statistics(
+	vm_map_t		map,
+	vm_statistics_data_t	*stat)
 {
 	if (map == VM_MAP_NULL)
 		return(KERN_INVALID_ARGUMENT);
@@ -217,15 +217,13 @@ kern_return_t vm_cache_statistics(
  * Handle machine-specific attributes for a mapping, such
  * as cachability, migrability, etc.
  */
-kern_return_t vm_machine_attribute(map, address, size, attribute, value)
-	vm_map_t	map;
-	vm_address_t	address;
-	vm_size_t	size;
-	vm_machine_attribute_t	attribute;
-	vm_machine_attribute_val_t* value;		/* IN/OUT */
+kern_return_t vm_machine_attribute(
+	vm_map_t	map,
+	vm_address_t	address,
+	vm_size_t	size,
+	vm_machine_attribute_t	attribute,
+	vm_machine_attribute_val_t* value)		/* IN/OUT */
 {
-	extern kern_return_t	vm_map_machine_attribute();
-
 	if (map == VM_MAP_NULL)
 		return(KERN_INVALID_ARGUMENT);
 
@@ -237,12 +235,12 @@ kern_return_t vm_machine_attribute(map, address, size, attribute, value)
 	return vm_map_machine_attribute(map, address, size, attribute, value);
 }
 
-kern_return_t vm_read(map, address, size, data, data_size)
-	vm_map_t	map;
-	vm_address_t	address;
-	vm_size_t	size;
-	pointer_t	*data;
-	vm_size_t	*data_size;
+kern_return_t vm_read(
+	vm_map_t	map,
+	vm_address_t	address,
+	vm_size_t	size,
+	pointer_t	*data,
+	vm_size_t	*data_size)
 {
 	kern_return_t	error;
 	vm_map_copy_t	ipc_address;
@@ -261,11 +259,11 @@ kern_return_t vm_read(map, address, size, data, data_size)
 	return(error);
 }
 
-kern_return_t vm_write(map, address, data, size)
-	vm_map_t	map;
-	vm_address_t	address;
-	pointer_t	data;
-	vm_size_t	size;
+kern_return_t vm_write(
+	vm_map_t	map,
+	vm_address_t	address,
+	pointer_t	data,
+	vm_size_t	size)
 {
 	if (map == VM_MAP_NULL)
 		return KERN_INVALID_ARGUMENT;
@@ -274,11 +272,11 @@ kern_return_t vm_write(map, address, data, size)
 				     FALSE /* interruptible XXX */);
 }
 
-kern_return_t vm_copy(map, source_address, size, dest_address)
-	vm_map_t	map;
-	vm_address_t	source_address;
-	vm_size_t	size;
-	vm_address_t	dest_address;
+kern_return_t vm_copy(
+	vm_map_t	map,
+	vm_address_t	source_address,
+	vm_size_t	size,
+	vm_address_t	dest_address)
 {
 	vm_map_copy_t copy;
 	kern_return_t kr;
@@ -306,26 +304,19 @@ kern_return_t vm_copy(map, source_address, size, dest_address)
  *	Routine:	vm_map
  */
 kern_return_t vm_map(
-		target_map,
-		address, size, mask, anywhere,
-		memory_object, offset,
-		copy,
-		cur_protection, max_protection,	inheritance)
-	vm_map_t	target_map;
-	vm_offset_t	*address;
-	vm_size_t	size;
-	vm_offset_t	mask;
-	boolean_t	anywhere;
-	ipc_port_t	memory_object;
-	vm_offset_t	offset;
-	boolean_t	copy;
-	vm_prot_t	cur_protection;
-	vm_prot_t	max_protection;
-	vm_inherit_t	inheritance;
+	vm_map_t	target_map,
+	vm_offset_t	*address,
+	vm_size_t	size,
+	vm_offset_t	mask,
+	boolean_t	anywhere,
+	ipc_port_t	memory_object,
+	vm_offset_t	offset,
+	boolean_t	copy,
+	vm_prot_t	cur_protection,
+	vm_prot_t	max_protection,
+	vm_inherit_t	inheritance)
 {
-	register
 	vm_object_t	object;
-	register
 	kern_return_t	result;
 
 	if ((target_map == VM_MAP_NULL) ||
@@ -345,7 +336,10 @@ kern_return_t vm_map(
 	if (size == 0)
 		return KERN_INVALID_ARGUMENT;
 
-	*address = trunc_page(*address);
+	if (anywhere)
+		*address = vm_map_min(target_map);
+	else
+		*address = trunc_page(*address);
 	size = round_page(size);
 
 	if (!IP_VALID(memory_object)) {
@@ -415,8 +409,8 @@ kern_return_t vm_map(
  *	[ To unwire the pages, specify VM_PROT_NONE. ]
  */
 kern_return_t vm_wire(host, map, start, size, access)
-	host_t			host;
-	register vm_map_t	map;
+	const host_t		host;
+	vm_map_t		map;
 	vm_offset_t		start;
 	vm_size_t		size;
 	vm_prot_t		access;

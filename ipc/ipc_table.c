@@ -42,20 +42,11 @@
 #include <kern/slab.h>
 #include <vm/vm_kern.h>
 
-/*
- * Forward declarations
- */
-void ipc_table_fill(
-	ipc_table_size_t	its,
-	unsigned int		num,
-	unsigned int		min,
-	vm_size_t		elemsize);
-
 ipc_table_size_t ipc_table_entries;
-unsigned int ipc_table_entries_size = 512;
+const unsigned int ipc_table_entries_size = 512;
 
 ipc_table_size_t ipc_table_dnrequests;
-unsigned int ipc_table_dnrequests_size = 64;
+const unsigned int ipc_table_dnrequests_size = 64;
 
 void
 ipc_table_fill(

@@ -37,6 +37,7 @@
 #include <i386/model_dep.h>
 #include <intel/read_fault.h>
 #include <machine/machspl.h>	/* for spl_t */
+#include <machine/db_interface.h>
 
 #include <mach/exception.h>
 #include <mach/kern_return.h>
@@ -54,6 +55,7 @@
 #include <kern/task.h>
 #include <kern/sched.h>
 #include <kern/sched_prim.h>
+#include <kern/exception.h>
 
 #if MACH_KDB
 #include <ddb/db_run.h>
@@ -62,21 +64,16 @@
 
 #include "debug.h"
 
-extern void exception() __attribute__ ((noreturn));
-extern void thread_exception_return() __attribute__ ((noreturn));
-
-extern void i386_exception()  __attribute__ ((noreturn));
-
 #if	MACH_KDB
 boolean_t	debug_all_traps_with_kdb = FALSE;
 extern struct db_watchpoint *db_watchpoint_list;
 extern boolean_t db_watchpoints_inserted;
 
 void
-thread_kdb_return()
+thread_kdb_return(void)
 {
-	register thread_t thread = current_thread();
-	register struct i386_saved_state *regs = USER_REGS(thread);
+	thread_t thread = current_thread();
+	struct i386_saved_state *regs = USER_REGS(thread);
 
 	if (kdb_trap(regs->trapno, regs->err, regs)) {
 		thread_exception_return();
@@ -91,11 +88,10 @@ boolean_t debug_all_traps_with_kttd = TRUE;
 #endif	/* MACH_TTD */
 
 void
-user_page_fault_continue(kr)
-	kern_return_t kr;
+user_page_fault_continue(kern_return_t kr)
 {
-	register thread_t thread = current_thread();
-	register struct i386_saved_state *regs = USER_REGS(thread);
+	thread_t thread = current_thread();
+	struct i386_saved_state *regs = USER_REGS(thread);
 
 	if (kr == KERN_SUCCESS) {
 #if	MACH_KDB
@@ -150,23 +146,19 @@ char *trap_name(unsigned int trapnum)
 	return trapnum < TRAP_TYPES ? trap_type[trapnum] : "(unknown)";
 }
 
-
-boolean_t	brb = TRUE;
-
 /*
  * Trap from kernel mode.  Only page-fault errors are recoverable,
  * and then only in special circumstances.  All other errors are
  * fatal.
  */
-void kernel_trap(regs)
-	register struct i386_saved_state *regs;
+void kernel_trap(struct i386_saved_state *regs)
 {
-	int	code;
-	int	subcode;
-	register int	type;
+	int		code;
+	int		subcode;
+	int		type;
 	vm_map_t	map;
 	kern_return_t	result;
-	register thread_t	thread;
+	thread_t	thread;
 	extern char _start[], etext[];
 
 	type = regs->trapno;
@@ -275,7 +267,7 @@ dump_ss(regs);
 		     * Certain faults require that we back up
 		     * the EIP.
 		     */
-		    register struct recovery *rp;
+		    struct recovery *rp;
 
                     /* Linear searching; but the list is small enough.  */
 		    for (rp = retry_table; rp < retry_table_end; rp++) {
@@ -292,7 +284,7 @@ dump_ss(regs);
 		 * for this fault, go there.
 		 */
 		{
-		    register struct recovery *rp;
+		    struct recovery *rp;
 
                     /* Linear searching; but the list is small enough.  */
 		    for (rp = recover_table;
@@ -351,14 +343,13 @@ dump_ss(regs);
  *	Trap from user mode.
  *	Return TRUE if from emulated system call.
  */
-int user_trap(regs)
-	register struct i386_saved_state *regs;
+int user_trap(struct i386_saved_state *regs)
 {
 	int	exc = 0;	/* Suppress gcc warning */
 	int	code;
 	int	subcode;
-	register int	type;
-	register thread_t thread = current_thread();
+	int	type;
+	thread_t thread = current_thread();
 
 	if ((vm_offset_t)thread < phys_last_addr) {
 		printf("user_trap: bad thread pointer 0x%p\n", thread);
@@ -403,7 +394,12 @@ printf("user trap %d error %d sub %08x\n", type, code, subcode);
 		    if (kdb_trap(type, regs->err, regs))
 			return 0;
 		}
-#endif
+#endif /* MACH_KDB */
+		/* Make the content of the debug status register (DR6)
+		   available to user space.  */
+		if (thread->pcb)
+		    thread->pcb->ims.ids.dr[6] = get_dr6() & 0x600F;
+		set_dr6(0);
 		exc = EXC_BREAKPOINT;
 		code = EXC_I386_SGL;
 		break;
@@ -425,7 +421,7 @@ printf("user trap %d error %d sub %08x\n", type, code, subcode);
 			return 0;
 		}
 	    }
-#endif
+#endif /* MACH_KDB */
 		exc = EXC_BREAKPOINT;
 		code = EXC_I386_BPT;
 		break;
@@ -524,7 +520,7 @@ printf("user trap %d error %d sub %08x\n", type, code, subcode);
 			}
 			return 0;
 		}
-#endif
+#endif /* MACH_PV_PAGETABLES */
 
 	    case T_FLOATING_POINT_ERROR:
 		fpexterrflt();
@@ -561,18 +557,7 @@ printf("user trap %d error %d sub %08x\n", type, code, subcode);
 	/*NOTREACHED*/
 }
 
-/*
- *	V86 mode assist for interrupt handling.
- */
-boolean_t v86_assist_on = TRUE;
-boolean_t v86_unsafe_ok = FALSE;
-boolean_t v86_do_sti_cli = TRUE;
-boolean_t v86_do_sti_immediate = FALSE;
-
 #define	V86_IRET_PENDING 0x4000
-
-int cli_count = 0;
-int sti_count = 0;
 
 /*
  * Handle AST traps for i386.
@@ -580,7 +565,7 @@ int sti_count = 0;
  * AT-bus machines.
  */
 void
-i386_astintr()
+i386_astintr(void)
 {
 	int	mycpu = cpu_number();
 
@@ -619,10 +604,10 @@ i386_astintr()
  * emulator.
  */
 void
-i386_exception(exc, code, subcode)
-	int	exc;
-	int	code;
-	int	subcode;
+i386_exception(
+	int	exc,
+	int	code,
+	int	subcode)
 {
 	spl_t	s;
 
@@ -643,11 +628,11 @@ i386_exception(exc, code, subcode)
  */
 unsigned
 interrupted_pc(t)
-	thread_t t;
+	const thread_t t;
 {
-	register struct i386_saved_state *iss;
+	struct i386_saved_state *iss;
 
  	iss = USER_REGS(t);
  	return iss->eip;
 }
-#endif	/* MACH_PCSAMPLE > 0*/
+#endif	/* MACH_PCSAMPLE > 0 */

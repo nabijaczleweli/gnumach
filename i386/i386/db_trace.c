@@ -35,6 +35,8 @@
 
 #include <machine/db_machdep.h>
 #include <machine/machspl.h>
+#include <machine/db_interface.h>
+#include <machine/db_trace.h>
 
 #include <ddb/db_access.h>
 #include <ddb/db_command.h>
@@ -44,13 +46,6 @@
 #include <ddb/db_task_thread.h>
 
 #include "trap.h"
-
-long
-db_i386_reg_value(
-	struct db_variable	*vp,
-	db_expr_t		*valuep,
-	int			flag,
-	struct db_var_aux_param	*ap);		/* forward */
 
 /*
  * Machine register set.
@@ -112,10 +107,10 @@ struct i386_kregs {
 
 long *
 db_lookup_i386_kreg(
-	char	*name,
-	int	*kregp)
+	const char *name,
+	const long *kregp)
 {
-	register struct i386_kregs *kp;
+	struct i386_kregs *kp;
 
 	for (kp = i386_kregs; kp->name; kp++) {
 	    if (strcmp(name, kp->name) == 0)
@@ -124,7 +119,7 @@ db_lookup_i386_kreg(
 	return 0;
 }
 
-long
+void
 db_i386_reg_value(
 	struct	db_variable	*vp,
 	db_expr_t		*valuep,
@@ -133,7 +128,7 @@ db_i386_reg_value(
 {
 	long			*dp = 0;
 	db_expr_t		null_reg = 0;
-	register thread_t	thread = ap->thread;
+	thread_t		thread = ap->thread;
 	extern unsigned		int_stack_high;
 
 	if (db_option(ap->modif, 'u')) {
@@ -205,7 +200,7 @@ db_find_trace_symbols(void)
 /*
  * Figure out how many arguments were passed into the frame at "fp".
  */
-int db_numargs_default = 5;
+const int db_numargs_default = 5;
 
 int
 db_numargs(
@@ -264,7 +259,7 @@ db_nextframe(
 	struct i386_frame **fp,		/* in/out */
 	db_addr_t	  *ip,		/* out */
 	long 		  frame_type,	/* in */
-	thread_t	  thread)	/* in */
+	const thread_t	  thread)	/* in */
 {
 	struct i386_saved_state *saved_regs;
 	struct interrupt_frame *ifp;
@@ -318,14 +313,6 @@ db_nextframe(
 	}
 }
 
-void
-db_i386_stack_trace(
-	thread_t	th,
-	struct i386_frame *frame,
-	db_addr_t	callpc,
-	db_expr_t	count,
-	int		flags);		/* forward */
-
 #define	F_USER_TRACE	1
 #define F_TRACE_THREAD	2
 
@@ -334,7 +321,7 @@ db_stack_trace_cmd(
 	db_expr_t	addr,
 	boolean_t	have_addr,
 	db_expr_t	count,
-	char		*modif)
+	const char	*modif)
 {
 	boolean_t	trace_thread = FALSE;
 	struct i386_frame *frame;
@@ -343,8 +330,8 @@ db_stack_trace_cmd(
 	thread_t	th;
 
 	{
-	    register char *cp = modif;
-	    register char c;
+	    const char *cp = modif;
+	    char c;
 
 	    while ((c = *cp++) != 0) {
 		if (c == 't')
@@ -361,7 +348,7 @@ db_stack_trace_cmd(
 	} else if (trace_thread) {
 	    if (have_addr) {
 		th = (thread_t) addr;
-		if (!db_check_thread_address_valid((db_addr_t)th))
+		if (!db_check_thread_address_valid(th))
 		    return;
 	    } else {
 		th = db_default_thread;
@@ -381,10 +368,10 @@ db_stack_trace_cmd(
 		    return;
 		}
 		if ((th->state & TH_SWAPPED) || th->kernel_stack == 0) {
-		    register struct i386_saved_state *iss = &th->pcb->iss;
+		    struct i386_saved_state *iss = &th->pcb->iss;
 
 		    db_printf("Continuation ");
-		    db_task_printsym((db_expr_t)th->swap_func,
+		    db_task_printsym((db_addr_t)th->swap_func,
 				      DB_STGY_PROC,
 				      th->task);
 		    db_printf("\n");
@@ -392,7 +379,7 @@ db_stack_trace_cmd(
 		    frame = (struct i386_frame *) (iss->ebp);
 		    callpc = (db_addr_t) (iss->eip);
 		} else {
-		    register struct i386_kernel_state *iks;
+		    struct i386_kernel_state *iks;
 		    iks = STACK_IKS(th->kernel_stack);
 		    frame = (struct i386_frame *) (iks->k_ebp);
 		    callpc = (db_addr_t) (iks->k_eip);
@@ -412,7 +399,7 @@ db_stack_trace_cmd(
 
 void
 db_i386_stack_trace(
-	thread_t	th,
+	const thread_t	th,
 	struct i386_frame *frame,
 	db_addr_t	callpc,
 	db_expr_t	count,
@@ -438,18 +425,18 @@ db_i386_stack_trace(
 	if (!db_trace_symbols_found)
 	    db_find_trace_symbols();
 
-	if (!INKERNEL((unsigned long)callpc) && !INKERNEL((unsigned long)frame)) {
+	if (!INKERNEL(callpc) && !INKERNEL(frame)) {
 	    db_printf(">>>>> user space <<<<<\n");
 	    user_frame++;
 	}
 
 	lastframe = 0;
 	while (count-- && frame != 0) {
-	    register int narg;
+	    int 	narg;
 	    char *	name;
 	    db_expr_t	offset;
 
-	    if (INKERNEL((unsigned long)callpc) && user_frame == 0) {
+	    if (INKERNEL(callpc) && user_frame == 0) {
 		db_addr_t call_func = 0;
 
 		db_sym_t sym_tmp;
@@ -474,7 +461,7 @@ db_i386_stack_trace(
 		    frame_type = 0;
 		    narg = db_numargs(frame, task);
 		}
-	    } else if (INKERNEL((unsigned long)callpc) ^ INKERNEL((unsigned long)frame)) {
+	    } else if (INKERNEL(callpc) ^ INKERNEL(frame)) {
 		frame_type = 0;
 		narg = -1;
 	    } else {
@@ -519,7 +506,7 @@ db_i386_stack_trace(
 		break;
 	    }
 	    if (!INKERNEL(lastframe) ||
-		(!INKERNEL((unsigned long)callpc) && !INKERNEL((unsigned long)frame)))
+		(!INKERNEL(callpc) && !INKERNEL(frame)))
 		user_frame++;
 	    if (user_frame == 1) {
 		db_printf(">>>>> user space <<<<<\n");
@@ -546,6 +533,8 @@ db_find_kthread(
 	task_t		task)
 {
 	thread_t thread;
+	if (task == TASK_NULL)
+		task = db_current_task();
 
 	queue_iterate(&task->thread_list, thread, thread_t, thread_list) {
 		vm_offset_t	usp = thread->pcb->iss.uesp/*ebp works*/;
@@ -571,18 +560,18 @@ static void db_cproc_state(
 
 /* offsets in a cproc structure */
 /* TODO: longs? */
-int db_cproc_next_offset = 0 * 4;
-int db_cproc_incarnation_offset = 1 * 4;
-int db_cproc_list_offset = 2 * 4;
-int db_cproc_wait_offset = 3 * 4;
-int db_cproc_context_offset = 5 * 4;
-int db_cproc_state_offset = 7 * 4;
-int db_cproc_stack_base_offset = 10 * 4 + sizeof(mach_msg_header_t);
-int db_cproc_stack_size_offset = 11 * 4 + sizeof(mach_msg_header_t);
+const int db_cproc_next_offset = 0 * 4;
+const int db_cproc_incarnation_offset = 1 * 4;
+const int db_cproc_list_offset = 2 * 4;
+const int db_cproc_wait_offset = 3 * 4;
+const int db_cproc_context_offset = 5 * 4;
+const int db_cproc_state_offset = 7 * 4;
+const int db_cproc_stack_base_offset = 10 * 4 + sizeof(mach_msg_header_t);
+const int db_cproc_stack_size_offset = 11 * 4 + sizeof(mach_msg_header_t);
 
 /* offsets in a cproc_switch context structure */
-int db_cprocsw_framep_offset = 3 * 4;
-int db_cprocsw_pc_offset = 4 * 4;
+const int db_cprocsw_framep_offset = 3 * 4;
+const int db_cprocsw_pc_offset = 4 * 4;
 
 #include <machine/setjmp.h>
 
@@ -646,7 +635,7 @@ void db_trace_cproc(
 }
 
 void db_all_cprocs(
-	task_t		task,
+	const task_t	task,
 	db_expr_t	cproc_list)
 {
 	jmp_buf_t	db_jmpbuf;

@@ -37,9 +37,9 @@ extern vm_offset_t kernel_virtual_start;
  * Mach VM is running.
  */
 vm_offset_t
-io_map(phys_addr, size)
-	vm_offset_t	phys_addr;
-	vm_size_t	size;
+io_map(
+	vm_offset_t	phys_addr,
+	vm_size_t	size)
 {
 	vm_offset_t	start;
 
@@ -57,4 +57,36 @@ io_map(phys_addr, size)
 	(void) pmap_map_bd(start, phys_addr, phys_addr + round_page(size),
 			VM_PROT_READ|VM_PROT_WRITE);
 	return (start);
+}
+
+/*
+ * Allocate and map memory for devices that may need to be mapped before
+ * Mach VM is running.
+ *
+ * This maps the all pages containing [PHYS_ADDR:PHYS_ADDR + SIZE].
+ * For contiguous requests to those pages will reuse the previously
+ * established mapping.
+ *
+ * Warning: this leaks memory maps for now, do not use it yet for something
+ * else than Mach shutdown.
+ */
+vm_offset_t
+io_map_cached(
+	vm_offset_t	phys_addr,
+	vm_size_t	size)
+{
+  static vm_offset_t base;
+  static vm_size_t length;
+  static vm_offset_t map;
+
+  if (! map
+      || (phys_addr < base)
+      || (base + length < phys_addr + size))
+    {
+      base = trunc_page(phys_addr);
+      length = round_page(phys_addr - base + size);
+      map = io_map(base, length);
+    }
+
+  return map + (phys_addr - base);
 }

@@ -48,6 +48,7 @@
 #include <kern/debug.h>
 #include <kern/mach_clock.h>
 #include <kern/printf.h>
+#include <kern/startup.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <vm/vm_page.h>
@@ -67,6 +68,8 @@
 #include <i386at/int_init.h>
 #include <i386at/kd.h>
 #include <i386at/rtc.h>
+#include <i386at/model_dep.h>
+#include <i386at/acpihalt.h>
 #ifdef	MACH_XEN
 #include <xen/console.h>
 #include <xen/store.h>
@@ -77,11 +80,22 @@
 /* Location of the kernel's symbol table.
    Both of these are 0 if none is available.  */
 #if MACH_KDB
+#include <ddb/db_sym.h>
+#include <i386/db_interface.h>
+
+/* a.out symbol table */
 static vm_offset_t kern_sym_start, kern_sym_end;
-#else
+
+/* ELF section header */
+static unsigned elf_shdr_num;
+static vm_size_t elf_shdr_size;
+static vm_offset_t elf_shdr_addr;
+static unsigned elf_shdr_shndx;
+
+#else /* MACH_KDB */
 #define kern_sym_start	0
 #define kern_sym_end	0
-#endif
+#endif /* MACH_KDB */
 
 /* These indicate the total extent of physical memory addresses we're using.
    They are page-aligned.  */
@@ -123,14 +137,7 @@ static vm_size_t avail_remaining;
 
 extern char	version[];
 
-extern void	setup_main();
-
-void		halt_all_cpus (boolean_t reboot) __attribute__ ((noreturn));
-void		halt_cpu (void) __attribute__ ((noreturn));
-
-void		inittodr();	/* forward */
-
-int		rebootflag = 0;	/* exported to kdintr */
+boolean_t	rebootflag = FALSE;	/* exported to kdintr */
 
 /* XX interrupt stack pointer and highwater mark, for locore.S.  */
 vm_offset_t int_stack_top, int_stack_high;
@@ -138,8 +145,6 @@ vm_offset_t int_stack_top, int_stack_high;
 #ifdef LINUX_DEV
 extern void linux_init(void);
 #endif
-
-boolean_t init_alloc_aligned(vm_size_t size, vm_offset_t *addrp);
 
 /*
  * Find devices.  The system is alive.
@@ -184,10 +189,14 @@ void machine_init(void)
 	*(unsigned short *)phystokv(0x472) = 0x1234;
 #endif	/* MACH_HYP */
 
+#if VM_MIN_KERNEL_ADDRESS == 0
 	/*
 	 * Unmap page 0 to trap NULL references.
+	 *
+	 * Note that this breaks accessing some BIOS areas stored there.
 	 */
 	pmap_unmap_page_zero();
+#endif
 }
 
 /* Conserve power on processor CPU.  */
@@ -201,7 +210,7 @@ void machine_idle (int cpu)
 #endif	/* MACH_HYP */
 }
 
-void machine_relax ()
+void machine_relax (void)
 {
 	asm volatile ("rep; nop" : : : "memory");
 }
@@ -223,8 +232,7 @@ void halt_cpu(void)
 /*
  * Halt the system or reboot.
  */
-void halt_all_cpus(reboot)
-	boolean_t	reboot;
+void halt_all_cpus(boolean_t reboot)
 {
 	if (reboot) {
 #ifdef	MACH_HYP
@@ -233,10 +241,11 @@ void halt_all_cpus(reboot)
 	    kdreboot();
 	}
 	else {
-	    rebootflag = 1;
+	    rebootflag = TRUE;
 #ifdef	MACH_HYP
 	    hyp_halt();
 #endif	/* MACH_HYP */
+	    grub_acpi_halt();
 	    printf("In tight loop: hit ctl-alt-del to reboot\n");
 	    (void) spl0();
 	}
@@ -245,6 +254,11 @@ void halt_all_cpus(reboot)
 }
 
 void exit(int rc)
+{
+	halt_all_cpus(0);
+}
+
+void db_halt_cpu(void)
 {
 	halt_all_cpus(0);
 }
@@ -374,7 +388,7 @@ i386at_init(void)
 		int len = strlen ((char*)phystokv(boot_info.cmdline)) + 1;
 		assert(init_alloc_aligned(round_page(len), &addr));
 		kernel_cmdline = (char*) phystokv(addr);
-		memcpy(kernel_cmdline, (char*)phystokv(boot_info.cmdline), len);
+		memcpy(kernel_cmdline, (void *)phystokv(boot_info.cmdline), len);
 		boot_info.cmdline = addr;
 	}
 
@@ -565,6 +579,17 @@ void c_boot_entry(vm_offset_t bi)
 		       kern_sym_start, kern_sym_end,
 		       symtab_size, strtab_size);
 	}
+
+	if ((boot_info.flags & MULTIBOOT_ELF_SHDR)
+	    && boot_info.syms.e.num)
+	{
+		elf_shdr_num = boot_info.syms.e.num;
+		elf_shdr_size = boot_info.syms.e.size;
+		elf_shdr_addr = (vm_offset_t)phystokv(boot_info.syms.e.addr);
+		elf_shdr_shndx = boot_info.syms.e.shndx;
+
+		printf("ELF section header table at %08lx\n", elf_shdr_addr);
+	}
 #endif	/* MACH_KDB */
 #endif	/* MACH_XEN */
 
@@ -581,7 +606,14 @@ void c_boot_entry(vm_offset_t bi)
 	 */
 	if (kern_sym_start)
 	{
-		aout_db_sym_init(kern_sym_start, kern_sym_end, "mach", 0);
+		aout_db_sym_init((char *)kern_sym_start, (char *)kern_sym_end, "mach", (char *)0);
+	}
+
+	if (elf_shdr_num)
+	{
+		elf_db_sym_init(elf_shdr_num,elf_shdr_size,
+				elf_shdr_addr, elf_shdr_shndx,
+				"mach", NULL);
 	}
 #endif	/* MACH_KDB */
 
@@ -620,14 +652,12 @@ void c_boot_entry(vm_offset_t bi)
 #include <mach/time_value.h>
 
 int
-timemmap(dev,off,prot)
+timemmap(dev, off, prot)
+	dev_t dev;
+	vm_offset_t off;
 	vm_prot_t prot;
 {
 	extern time_value_t *mtime;
-
-#ifdef	lint
-	dev++; off++;
-#endif	/* lint */
 
 	if (prot & VM_PROT_WRITE) return (-1);
 
@@ -841,8 +871,7 @@ init_alloc_aligned(vm_size_t size, vm_offset_t *addrp)
 	return TRUE;
 }
 
-boolean_t pmap_next_page(addrp)
-	vm_offset_t *addrp;
+boolean_t pmap_next_page(vm_offset_t *addrp)
 {
 	return init_alloc_aligned(PAGE_SIZE, addrp);
 }
@@ -859,8 +888,7 @@ pmap_grab_page(void)
 	return addr;
 }
 
-boolean_t pmap_valid_page(x)
-	vm_offset_t x;
+boolean_t pmap_valid_page(vm_offset_t x)
 {
 	/* XXX is this OK?  What does it matter for?  */
 	return (((phys_first_addr <= x) && (x < phys_last_addr))

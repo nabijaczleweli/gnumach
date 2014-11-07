@@ -192,6 +192,16 @@ extern void pmap_clear_bootstrap_pagetable(pt_entry_t *addr);
 #define	set_pmap(pmap)	set_cr3(kvtophys((vm_offset_t)(pmap)->dirbase))
 #endif	/* PAE */
 
+typedef struct {
+	pt_entry_t	*entry;
+	vm_offset_t	vaddr;
+} pmap_mapwindow_t;
+
+extern pmap_mapwindow_t *pmap_get_mapwindow(pt_entry_t entry);
+extern void pmap_put_mapwindow(pmap_mapwindow_t *map);
+
+#define PMAP_NMAPWINDOWS 2
+
 #if	NCPUS > 1
 /*
  *	List of cpus that are actively using mapped memory.  Any
@@ -227,7 +237,7 @@ extern	pmap_t	kernel_pmap;
  *	Machine dependent routines that are used only for i386/i486.
  */
 
-pt_entry_t *pmap_pte(pmap_t pmap, vm_offset_t addr);
+pt_entry_t *pmap_pte(const pmap_t pmap, vm_offset_t addr);
 
 /*
  *	Macros for speed.
@@ -282,7 +292,7 @@ pt_entry_t *pmap_pte(pmap_t pmap, vm_offset_t addr);
 }
 
 #define PMAP_ACTIVATE_USER(pmap, th, my_cpu)	{			\
-	register pmap_t		tpmap = (pmap);				\
+	pmap_t		tpmap = (pmap);					\
 									\
 	if (tpmap == kernel_pmap) {					\
 	    /*								\
@@ -324,7 +334,7 @@ pt_entry_t *pmap_pte(pmap_t pmap, vm_offset_t addr);
 }
 
 #define PMAP_DEACTIVATE_USER(pmap, thread, my_cpu)	{		\
-	register pmap_t		tpmap = (pmap);				\
+	pmap_t		tpmap = (pmap);					\
 									\
 	/*								\
 	 *	Do nothing if this is the kernel pmap.			\
@@ -395,7 +405,7 @@ pt_entry_t *pmap_pte(pmap_t pmap, vm_offset_t addr);
 }
 
 #define	PMAP_ACTIVATE_USER(pmap, th, my_cpu)	{			\
-	register pmap_t		tpmap = (pmap);				\
+	pmap_t		tpmap = (pmap);					\
 	(void) (th);							\
 	(void) (my_cpu);						\
 									\
@@ -450,6 +460,20 @@ extern void pmap_copy_page (vm_offset_t, vm_offset_t);
  *  Convert a kernel virtual address to a physical address
  */
 extern vm_offset_t kvtophys (vm_offset_t);
+
+void pmap_remove_range(
+	pmap_t			pmap,
+	vm_offset_t		va,
+	pt_entry_t		*spte,
+	pt_entry_t		*epte);
+
+#if NCPUS > 1
+void signal_cpus(
+	cpu_set		use_list,
+	pmap_t		pmap,
+	vm_offset_t	start,
+	vm_offset_t	end);
+#endif	/* NCPUS > 1 */
 
 #endif	/* __ASSEMBLER__ */
 

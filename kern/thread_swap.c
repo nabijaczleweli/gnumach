@@ -86,8 +86,7 @@ void swapper_init(void)
  *	our callers have already tried that route.
  */
 
-void thread_swapin(thread)
-	thread_t	thread;
+void thread_swapin(thread_t thread)
 {
 	switch (thread->state & TH_SWAP_STATE) {
 	    case TH_SWAPPED:
@@ -97,7 +96,7 @@ void thread_swapin(thread)
 		thread->state = (thread->state & ~TH_SWAP_STATE)
 				| TH_SW_COMING_IN;
 		swapper_lock();
-		enqueue_tail(&swapin_queue, (queue_entry_t) thread);
+		enqueue_tail(&swapin_queue, &(thread->links));
 		swapper_unlock();
 		thread_wakeup((event_t) &swapin_queue);
 		break;
@@ -124,8 +123,7 @@ void thread_swapin(thread)
  *	it on a run queue.  No locks should be held on entry, as it is
  *	likely that this routine will sleep (waiting for stack allocation).
  */
-void thread_doswapin(thread)
-	register thread_t thread;
+void thread_doswapin(thread_t thread)
 {
 	spl_t	s;
 
@@ -154,10 +152,10 @@ void thread_doswapin(thread)
  *	This procedure executes as a kernel thread.  Threads that need to
  *	be swapped in are swapped in by this thread.
  */
-void swapin_thread_continue(void)
+void __attribute__((noreturn)) swapin_thread_continue(void)
 {
 	for (;;) {
-		register thread_t thread;
+		thread_t thread;
 		spl_t s;
 
 		s = splsched();

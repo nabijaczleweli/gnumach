@@ -54,4 +54,17 @@ extern void mouse_packet_mouse_system_mouse (u_char *mousebuf);
 
 extern void mouse_packet_ibm_ps2_mouse (u_char *mousebuf);
 
+extern int mouseopen(dev_t dev, int flags, io_req_t ior);
+extern void mouseclose(dev_t dev, int flags);
+extern int mouseread(dev_t dev, io_req_t ior);
+
+extern io_return_t mousegetstat(
+	dev_t		  dev,
+	int		  flavor,
+	int 		  *data,
+	unsigned int	  *count);
+
+void mouseintr(int unit);
+boolean_t mouse_read_done(io_req_t ior);
+
 #endif /* _KD_MOUSE_H_ */

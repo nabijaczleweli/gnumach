@@ -27,7 +27,7 @@
  * the rights to redistribute these changes.
  */
 /*
- *	File:	clock_prim.c
+ *	File:	priority.c
  *	Author:	Avadis Tevanian, Jr.
  *	Date:	1986
  *
@@ -74,16 +74,16 @@
  *	Called only from clock_interrupt().
  */
 
-void thread_quantum_update(mycpu, thread, nticks, state)
-	register int		mycpu;
-	register thread_t	thread;
-	int			nticks;
-	int			state;
+void thread_quantum_update(
+	int			mycpu,
+	thread_t		thread,
+	int			nticks,
+	int			state)
 {
-	register int			quantum;
-	register processor_t		myprocessor;
+	int				quantum;
+	processor_t			myprocessor;
 #if	NCPUS > 1
-	register processor_set_t	pset;
+	processor_set_t			pset;
 #endif
 	spl_t				s;
 

@@ -70,17 +70,7 @@ int		sched_usec;
 
 thread_t	sched_thread_id;
 
-void set_pri(thread_t, int, boolean_t);
-void do_thread_scan(void);
-
-thread_t	choose_pset_thread();
-
 timer_elt_data_t recompute_priorities_timer;
-
-#if	DEBUG
-void checkrq(run_queue_t, char *);
-void thread_check(thread_t, run_queue_t);
-#endif
 
 /*
  *	State machine
@@ -150,7 +140,7 @@ decl_simple_lock_data(,	wait_lock[NUMQUEUES])
 
 void wait_queue_init(void)
 {
-	register int i;
+	int i;
 
 	for (i = 0; i < NUMQUEUES; i++) {
 		queue_init(&wait_queue[i]);
@@ -199,8 +189,8 @@ void thread_timeout(
 void thread_set_timeout(
 	int	t)	/* timeout interval in ticks */
 {
-	register thread_t	thread = current_thread();
-	register spl_t s;
+	thread_t	thread = current_thread();
+	spl_t 		s;
 
 	s = splsched();
 	thread_lock(thread);
@@ -215,7 +205,7 @@ void thread_set_timeout(
  * Set up thread timeout element when thread is created.
  */
 void thread_timeout_setup(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	thread->timer.fcn = thread_timeout;
 	thread->timer.param = thread;
@@ -233,12 +223,10 @@ void assert_wait(
 	event_t		event,
 	boolean_t	interruptible)
 {
-	register queue_t	q;
-	register int		index;
-	register thread_t	thread;
-#if	MACH_SLOCKS
-	register simple_lock_t	lock;
-#endif	/* MACH_SLOCKS */
+	queue_t			q;
+	int			index;
+	thread_t		thread;
+	decl_simple_lock_data( , *lock);
 	spl_t			s;
 
 	thread = current_thread();
@@ -250,12 +238,10 @@ void assert_wait(
 	if (event != 0) {
 		index = wait_hash(event);
 		q = &wait_queue[index];
-#if	MACH_SLOCKS
 		lock = &wait_lock[index];
-#endif	/* MACH_SLOCKS */
 		simple_lock(lock);
 		thread_lock(thread);
-		enqueue_tail(q, (queue_entry_t) thread);
+		enqueue_tail(q, &(thread->links));
 		thread->wait_event = event;
 		if (interruptible)
 			thread->state |= TH_WAIT;
@@ -288,16 +274,14 @@ void assert_wait(
  *				interruptible.
  */
 void clear_wait(
-	register thread_t	thread,
+	thread_t		thread,
 	int			result,
 	boolean_t		interrupt_only)
 {
-	register int		index;
-	register queue_t	q;
-#if	MACH_SLOCKS
-	register simple_lock_t	lock;
-#endif	/* MACH_SLOCKS */
-	register event_t	event;
+	int			index;
+	queue_t			q;
+	decl_simple_lock_data( , *lock);
+	event_t			event;
 	spl_t			s;
 
 	s = splsched();
@@ -316,9 +300,7 @@ void clear_wait(
 		thread_unlock(thread);
 		index = wait_hash(event);
 		q = &wait_queue[index];
-#if	MACH_SLOCKS
 		lock = &wait_lock[index];
-#endif	/* MACH_SLOCKS */
 		simple_lock(lock);
 		/*
 		 *	If the thread is still waiting on that event,
@@ -335,7 +317,7 @@ void clear_wait(
 		simple_unlock(lock);
 	}
 	if (event == 0) {
-		register int	state = thread->state;
+		int	state = thread->state;
 
 		reset_timeout_check(&thread->timer);
 
@@ -376,7 +358,7 @@ void clear_wait(
 }
 
 static inline void __attribute__((noreturn))
-state_panic(thread_t thread, const char *caller)
+state_panic(const thread_t thread, const char *caller)
 {
   panic ("%s: thread %x has unexpected state %x",
 	 caller, thread, thread->state);
@@ -394,21 +376,17 @@ void thread_wakeup_prim(
 	boolean_t	one_thread,
 	int		result)
 {
-	register queue_t	q;
-	register int		index;
-	register thread_t	thread, next_th;
-#if	MACH_SLOCKS
-	register simple_lock_t	lock;
-#endif  /* MACH_SLOCKS */
+	queue_t			q;
+	int			index;
+	thread_t		thread, next_th;
+	decl_simple_lock_data( , *lock);
 	spl_t			s;
-	register int		state;
+	int			state;
 
 	index = wait_hash(event);
 	q = &wait_queue[index];
 	s = splsched();
-#if	MACH_SLOCKS
 	lock = &wait_lock[index];
-#endif	/* MACH_SLOCKS */
 	simple_lock(lock);
 	thread = (thread_t) queue_first(q);
 	while (!queue_end(q, (queue_entry_t)thread)) {
@@ -490,8 +468,8 @@ void thread_sleep(
  *	xxx - DO NOT export this to users.
  */
 void thread_bind(
-	register thread_t	thread,
-	processor_t		processor)
+	thread_t	thread,
+	processor_t	processor)
 {
 	spl_t		s;
 
@@ -509,9 +487,9 @@ void thread_bind(
  */
 
 thread_t thread_select(
-	register processor_t myprocessor)
+	processor_t myprocessor)
 {
-	register thread_t thread;
+	thread_t thread;
 
 	myprocessor->first_quantum = TRUE;
 	/*
@@ -523,7 +501,7 @@ thread_t thread_select(
 		myprocessor->quantum = min_quantum;
 	}
 	else {
-		register processor_set_t pset;
+		processor_set_t pset;
 
 #if	MACH_HOST
 		pset = myprocessor->processor_set;
@@ -559,7 +537,7 @@ thread_t thread_select(
 			}
 		}
 		else {
-			register queue_t	q;
+			queue_t	q;
 
 			/*
 			 *	If there is a thread at hint, grab it,
@@ -622,9 +600,9 @@ thread_t thread_select(
  */
 
 boolean_t thread_invoke(
-	register thread_t old_thread,
-	continuation_t	  continuation,
-	register thread_t new_thread)
+	thread_t 	old_thread,
+	continuation_t	continuation,
+	thread_t 	new_thread)
 {
 	/*
 	 *	Check for invoking the same thread.
@@ -829,9 +807,9 @@ boolean_t thread_invoke(
  *	Called at splsched.
  */
 void thread_continue(
-	register thread_t old_thread)
+	thread_t old_thread)
 {
-	register continuation_t	continuation = current_thread()->swap_func;
+	continuation_t	continuation = current_thread()->swap_func;
 
 	/*
 	 *	We must dispatch the old thread and then
@@ -865,9 +843,9 @@ void thread_continue(
 void thread_block(
 	continuation_t	continuation)
 {
-	register thread_t thread = current_thread();
-	register processor_t myprocessor = cpu_to_processor(cpu_number());
-	register thread_t new_thread;
+	thread_t thread = current_thread();
+	processor_t myprocessor = cpu_to_processor(cpu_number());
+	thread_t new_thread;
 	spl_t s;
 
 	check_simple_locks();
@@ -906,10 +884,10 @@ void thread_block(
  */
 void thread_run(
 	continuation_t		continuation,
-	register thread_t	new_thread)
+	thread_t		new_thread)
 {
-	register thread_t thread = current_thread();
-	register processor_t myprocessor = cpu_to_processor(cpu_number());
+	thread_t thread = current_thread();
+	processor_t myprocessor = cpu_to_processor(cpu_number());
 	spl_t s;
 
 	check_simple_locks();
@@ -928,7 +906,7 @@ void thread_run(
  */
 
 void thread_dispatch(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	/*
 	 *	If we are discarding the thread's stack, we must do it
@@ -1053,10 +1031,10 @@ shift_data_t	wait_shift[32] = {
  */
 
 void compute_priority(
-	register thread_t	thread,
+	thread_t		thread,
 	boolean_t		resched)
 {
-	register int	pri;
+	int	pri;
 
 #if	MACH_FIXPRI
 	if (thread->policy == POLICY_TIMESHARE) {
@@ -1085,9 +1063,9 @@ void compute_priority(
  */
 
 void compute_my_priority(
-	register thread_t	thread)
+	thread_t	thread)
 {
-	register int temp_pri;
+	int temp_pri;
 
 	do_priority_computation(thread,temp_pri);
 	thread->sched_pri = temp_pri;
@@ -1132,11 +1110,11 @@ void recompute_priorities(void *param)
  *	can only be called by the thread on itself.
  */
 void update_priority(
-	register thread_t	thread)
+	thread_t	thread)
 {
-	register unsigned int	ticks;
-	register shift_t	shiftp;
-	register int		temp_pri;
+	unsigned int	ticks;
+	shift_t		shiftp;
+	int		temp_pri;
 
 	ticks = sched_tick - thread->sched_stamp;
 
@@ -1196,7 +1174,7 @@ void update_priority(
 #if	DEBUG
 #define run_queue_enqueue(rq, th)					\
 	MACRO_BEGIN							\
-	    register unsigned int	whichq;				\
+	    unsigned int	whichq;					\
 									\
 	    whichq = (th)->sched_pri;					\
 	    if (whichq >= NRQS) {					\
@@ -1206,7 +1184,7 @@ void update_priority(
 									\
 	    simple_lock(&(rq)->lock);	/* lock the run queue */	\
 	    checkrq((rq), "thread_setrun: before adding thread");	\
-	    enqueue_tail(&(rq)->runq[whichq], (queue_entry_t) (th));	\
+	    enqueue_tail(&(rq)->runq[whichq], &((th)->links));		\
 									\
 	    if (whichq < (rq)->low || (rq)->count == 0) 		\
 		 (rq)->low = whichq;	/* minimize */			\
@@ -1220,7 +1198,7 @@ void update_priority(
 #else	/* DEBUG */
 #define run_queue_enqueue(rq, th)					\
 	MACRO_BEGIN							\
-	    register unsigned int	whichq;				\
+	    unsigned int	whichq;					\
 									\
 	    whichq = (th)->sched_pri;					\
 	    if (whichq >= NRQS) {					\
@@ -1229,7 +1207,7 @@ void update_priority(
 	    }								\
 									\
 	    simple_lock(&(rq)->lock);	/* lock the run queue */	\
-	    enqueue_tail(&(rq)->runq[whichq], (queue_entry_t) (th));	\
+	    enqueue_tail(&(rq)->runq[whichq], &((th)->links));		\
 									\
 	    if (whichq < (rq)->low || (rq)->count == 0) 		\
 		 (rq)->low = whichq;	/* minimize */			\
@@ -1249,13 +1227,13 @@ void update_priority(
  */
 
 void thread_setrun(
-	register thread_t	th,
+	thread_t		th,
 	boolean_t		may_preempt)
 {
-	register processor_t	processor;
-	register run_queue_t	rq;
+	processor_t	processor;
+	run_queue_t	rq;
 #if	NCPUS > 1
-	register processor_set_t	pset;
+	processor_set_t	pset;
 #endif	/* NCPUS > 1 */
 
 	/*
@@ -1423,7 +1401,7 @@ void set_pri(
 	int		pri,
 	boolean_t	resched)
 {
-	register struct run_queue	*rq;
+	struct run_queue	*rq;
 
 	rq = rem_runq(th);
 	th->sched_pri = pri;
@@ -1448,7 +1426,7 @@ void set_pri(
 struct run_queue *rem_runq(
 	thread_t		th)
 {
-	register struct run_queue	*rq;
+	struct run_queue	*rq;
 
 	rq = th->runq;
 	/*
@@ -1514,10 +1492,10 @@ thread_t choose_thread(
 	processor_t myprocessor)
 {
 	thread_t th;
-	register queue_t q;
-	register run_queue_t runq;
-	register int i;
-	register processor_set_t pset;
+	queue_t q;
+	run_queue_t runq;
+	int i;
+	processor_set_t pset;
 
 	runq = &myprocessor->runq;
 
@@ -1558,13 +1536,13 @@ thread_t choose_thread(
  */
 
 thread_t choose_pset_thread(
-	register processor_t	myprocessor,
+	processor_t		myprocessor,
 	processor_set_t		pset)
 {
-	register run_queue_t runq;
-	register thread_t th;
-	register queue_t q;
-	register int i;
+	run_queue_t runq;
+	thread_t th;
+	queue_t q;
+	int i;
 
 	runq = &pset->runq;
 
@@ -1640,14 +1618,14 @@ int	no_dispatch_count = 0;
  *	to execute.
  */
 
-void idle_thread_continue(void)
+void __attribute__((noreturn)) idle_thread_continue(void)
 {
-	register processor_t myprocessor;
-	register volatile thread_t *threadp;
-	register volatile int *gcount;
-	register volatile int *lcount;
-	register thread_t new_thread;
-	register int state;
+	processor_t myprocessor;
+	volatile thread_t *threadp;
+	volatile int *gcount;
+	volatile int *lcount;
+	thread_t new_thread;
+	int state;
 	int mycpu;
 	spl_t s;
 
@@ -1746,7 +1724,7 @@ retry:
 			thread_run(idle_thread_continue, new_thread);
 		}
 		else if (state == PROCESSOR_IDLE) {
-			register processor_set_t pset;
+			processor_set_t pset;
 
 			pset = myprocessor->processor_set;
 			simple_lock(&pset->idle_lock);
@@ -1797,7 +1775,7 @@ retry:
 
 void idle_thread(void)
 {
-	register thread_t self = current_thread();
+	thread_t self = current_thread();
 	spl_t s;
 
 	stack_privilege(self);
@@ -1900,10 +1878,10 @@ boolean_t
 do_runq_scan(
 	run_queue_t	runq)
 {
-	register spl_t		s;
-	register queue_t	q;
-	register thread_t	thread;
-	register int		count;
+	spl_t		s;
+	queue_t		q;
+	thread_t	thread;
+	int		count;
 
 	s = splsched();
 	simple_lock(&runq->lock);
@@ -1964,11 +1942,11 @@ if (do_thread_scan_debug)
 
 void do_thread_scan(void)
 {
-	register spl_t		s;
-	register boolean_t	restart_needed = 0;
-	register thread_t	thread;
+	spl_t		s;
+	boolean_t	restart_needed = 0;
+	thread_t	thread;
 #if	MACH_HOST
-	register processor_set_t	pset;
+	processor_set_t	pset;
 #endif	/* MACH_HOST */
 
 	do {
@@ -2012,12 +1990,12 @@ void do_thread_scan(void)
 #if	DEBUG
 void checkrq(
 	run_queue_t	rq,
-	char		*msg)
+	const char	*msg)
 {
-	register queue_t	q1;
-	register int		i, j;
-	register queue_entry_t	e;
-	register int		low;
+	queue_t		q1;
+	int		i, j;
+	queue_entry_t	e;
+	int		low;
 
 	low = -1;
 	j = 0;
@@ -2048,10 +2026,10 @@ void checkrq(
 }
 
 void thread_check(
-	register thread_t	th,
-	register run_queue_t	rq)
+	thread_t	th,
+	run_queue_t	rq)
 {
-	register unsigned int 	whichq;
+	unsigned int 	whichq;
 
 	whichq = th->sched_pri;
 	if (whichq >= NRQS) {

@@ -213,8 +213,7 @@ ipc_task_terminate(
  */
 
 void
-ipc_thread_init(thread)
-	thread_t thread;
+ipc_thread_init(thread_t thread)
 {
 	ipc_port_t kport;
 
@@ -243,8 +242,7 @@ ipc_thread_init(thread)
  */
 
 void
-ipc_thread_enable(thread)
-	thread_t thread;
+ipc_thread_enable(thread_t thread)
 {
 	ipc_port_t kport;
 
@@ -264,8 +262,7 @@ ipc_thread_enable(thread)
  */
 
 void
-ipc_thread_disable(thread)
-	thread_t thread;
+ipc_thread_disable(thread_t thread)
 {
 	ipc_port_t kport;
 
@@ -286,8 +283,7 @@ ipc_thread_disable(thread)
  */
 
 void
-ipc_thread_terminate(thread)
-	thread_t thread;
+ipc_thread_terminate(thread_t thread)
 {
 	ipc_port_t kport;
 
@@ -387,9 +383,9 @@ retrieve_thread_self(thread)
 
 ipc_port_t
 retrieve_task_self_fast(
-	register task_t		task)
+	task_t		task)
 {
-	register ipc_port_t port;
+	ipc_port_t port;
 
 	assert(task == current_task());
 
@@ -424,10 +420,9 @@ retrieve_task_self_fast(
  */
 
 ipc_port_t
-retrieve_thread_self_fast(thread)
-	register thread_t thread;
+retrieve_thread_self_fast(thread_t thread)
 {
-	register ipc_port_t port;
+	ipc_port_t port;
 
 	assert(thread == current_thread());
 
@@ -648,9 +643,9 @@ task_get_special_port(
 
 kern_return_t
 task_set_special_port(
-	task_t		task,
-	int		which,
-	ipc_port_t	port)
+	task_t			task,
+	int			which,
+	const ipc_port_t 	port)
 {
 	ipc_port_t *whichp;
 	ipc_port_t old;
@@ -705,10 +700,10 @@ task_set_special_port(
  */
 
 kern_return_t
-thread_get_special_port(thread, which, portp)
-	thread_t thread;
-	int which;
-	ipc_port_t *portp;
+thread_get_special_port(
+	thread_t 	thread,
+	int 		which,
+	ipc_port_t 	*portp)
 {
 	ipc_port_t *whichp;
 	ipc_port_t port;
@@ -758,10 +753,10 @@ thread_get_special_port(thread, which, portp)
  */
 
 kern_return_t
-thread_set_special_port(thread, which, port)
-	thread_t thread;
-	int which;
-	ipc_port_t port;
+thread_set_special_port(
+	thread_t 	thread,
+	int 		which,
+	ipc_port_t 	port)
 {
 	ipc_port_t *whichp;
 	ipc_port_t old;
@@ -890,10 +885,10 @@ mach_ports_register(
  */
 
 kern_return_t
-mach_ports_lookup(task, portsp, portsCnt)
-	task_t task;
-	ipc_port_t **portsp;
-	mach_msg_type_number_t *portsCnt;
+mach_ports_lookup(
+	task_t 			task,
+	ipc_port_t 		**portsp,
+	mach_msg_type_number_t 	*portsCnt)
 {
 	vm_offset_t memory;
 	vm_size_t size;
@@ -1003,8 +998,7 @@ convert_port_to_space(
  */
 
 vm_map_t
-convert_port_to_map(port)
-	ipc_port_t port;
+convert_port_to_map(ipc_port_t port)
 {
 	vm_map_t map = VM_MAP_NULL;
 
@@ -1032,8 +1026,7 @@ convert_port_to_map(port)
  */
 
 thread_t
-convert_port_to_thread(port)
-	ipc_port_t port;
+convert_port_to_thread(ipc_port_t port)
 {
 	thread_t thread = THREAD_NULL;
 
@@ -1061,8 +1054,7 @@ convert_port_to_thread(port)
  */
 
 ipc_port_t
-convert_task_to_port(task)
-	task_t task;
+convert_task_to_port(task_t task)
 {
 	ipc_port_t port;
 
@@ -1088,8 +1080,7 @@ convert_task_to_port(task)
  */
 
 ipc_port_t
-convert_thread_to_port(thread)
-	thread_t thread;
+convert_thread_to_port(thread_t thread)
 {
 	ipc_port_t port;
 
@@ -1113,8 +1104,7 @@ convert_thread_to_port(thread)
  */
 
 void
-space_deallocate(space)
-	ipc_space_t space;
+space_deallocate(ipc_space_t space)
 {
 	if (space != IS_NULL)
 		is_release(space);

@@ -38,12 +38,12 @@
 
 
 
-io_return_t block_io(strat, max_count, ior)
-	void			(*strat)();
-	void			(*max_count)();
-	register io_req_t	ior;
+io_return_t block_io(
+	void			(*strat)(),
+	void			(*max_count)(),
+	io_req_t		ior)
 {
-	register kern_return_t	rc;
+	kern_return_t		rc;
 	boolean_t		wait = FALSE;
 
 	/*
@@ -88,8 +88,7 @@ io_return_t block_io(strat, max_count, ior)
  */
 #define MAX_PHYS        (256 * 1024)
 
-void minphys(ior)
-	register io_req_t	ior;
+void minphys(io_req_t ior)
 {
 	if ((ior->io_op & (IO_WRITE | IO_READ | IO_OPEN)) == IO_WRITE)
 	    return;
@@ -102,7 +101,7 @@ void minphys(ior)
  * Dummy routine placed in device switch entries to indicate that
  * block device may be mapped.
  */
-vm_offset_t block_io_mmap()
+vm_offset_t block_io_mmap(void)
 {
 	return (0);
 }

@@ -45,6 +45,9 @@ NEGLIGENCE, OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#ifndef _RTC_H_
+#define _RTC_H_
+
 #define RTC_ADDR	0x70	/* I/O port address for register select */
 #define RTC_DATA	0x71	/* I/O port address for data read/write */
 
@@ -114,7 +117,7 @@ struct rtc_st {
  */
 #define load_rtc(regs) \
 {\
-	register int i; \
+	int i; \
 	\
 	for (i = 0; i < RTC_NREG; i++) { \
 		outb(RTC_ADDR, i); \
@@ -127,7 +130,7 @@ struct rtc_st {
  */ 
 #define save_rtc(regs) \
 { \
-	register int i; \
+	int i; \
 	for (i = 0; i < RTC_NREGP; i++) { \
 		outb(RTC_ADDR, i); \
 		outb(RTC_DATA, regs[i]);\
@@ -136,3 +139,5 @@ struct rtc_st {
 
 extern int readtodc(u_int *tp);
 extern int writetodc(void);
+
+#endif /* _RTC_H_ */

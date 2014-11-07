@@ -334,7 +334,7 @@ ipc_pset_destroy(
 
 void
 ipc_pset_print(
-	ipc_pset_t	pset)
+	const ipc_pset_t pset)
 {
 	printf("pset 0x%x\n", pset);
 
@@ -345,7 +345,7 @@ ipc_pset_print(
 	iprintf("kmsgs = 0x%x", pset->ips_messages.imq_messages.ikmq_base);
 	printf(",rcvrs = 0x%x\n", pset->ips_messages.imq_threads.ithq_base);
 
-	indent -=2;
+	indent -= 2;
 }
 
 #endif	/* MACH_KDB */

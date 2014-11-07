@@ -42,6 +42,7 @@
 #include <ddb/db_command.h>
 #include <ddb/db_lex.h>
 #include <ddb/db_output.h>
+#include <ddb/db_input.h>
 
 /*
  *	Character output - tracks position in line.
@@ -74,15 +75,13 @@ int	db_tab_stop_width = 8;		/* how wide are tab stops? */
 int	db_max_line = DB_MAX_LINE;	/* output max lines */
 int	db_max_width = DB_MAX_WIDTH;	/* output line width */
 
-extern void	db_check_interrupt();
-
 /*
  * Force pending whitespace.
  */
 void
 db_force_whitespace(void)
 {
-	register int last_print, next_tab;
+	int last_print, next_tab;
 
 	last_print = db_last_non_space;
 	while (last_print < db_output_position) {
@@ -100,9 +99,9 @@ db_force_whitespace(void)
 }
 
 static void
-db_more()
+db_more(void)
 {
-	register  char *p;
+	char *p;
 	boolean_t quit_output = FALSE;
 
 	for (p = "--db_more--"; *p; p++)
@@ -133,8 +132,7 @@ db_more()
  * Output character.  Buffer whitespace.
  */
 void
-db_putchar(c)
-	int	c;		/* character to output */
+db_putchar(int c)		/* character to output */
 {
 	if (db_max_line >= DB_MIN_MAX_LINE && db_output_line >= db_max_line-1)
 	    db_more();
@@ -189,7 +187,7 @@ db_id_putc(char c, vm_offset_t dummy)
 /*
  * Return output position
  */
-int
+int __attribute__ ((pure))
 db_print_position(void)
 {
 	return (db_output_position);
@@ -210,21 +208,6 @@ db_printf(const char *fmt, ...)
 {
 	va_list	listp;
 
-#ifdef	db_printf_enter
-	db_printf_enter();	/* optional multiP serialization */
-#endif
-	va_start(listp, fmt);
-	_doprnt(fmt, listp, db_id_putc, db_radix, 0);
-	va_end(listp);
-}
-
-/* alternate name */
-
-/*VARARGS1*/
-void
-kdbprintf(const char *fmt, ...)
-{
-	va_list	listp;
 	va_start(listp, fmt);
 	_doprnt(fmt, listp, db_id_putc, db_radix, 0);
 	va_end(listp);

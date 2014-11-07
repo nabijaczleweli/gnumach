@@ -38,6 +38,7 @@
 
 #include <ddb/db_command.h>
 #include <ddb/db_run.h>
+#include <ddb/db_mp.h>
 
 /*
  * Routines to interlock access to the kernel debugger on
@@ -52,12 +53,7 @@ int	db_active[NCPUS] = { 0 };	/* count recursive entries
 int	db_slave[NCPUS] = { 0 };	/* nonzero if cpu interrupted
 					   by another cpu in debugger */
 
-int	db_enter_debug = 0;
-
-void	remote_db();		/* forward */
-void	lock_db();
-void	unlock_db();
-
+boolean_t	db_enter_debug = FALSE;
 
 /*
  * Called when entering kernel debugger.
@@ -67,7 +63,7 @@ void	unlock_db();
  */
 
 boolean_t
-db_enter()
+db_enter(void)
 {
 	int	mycpu = cpu_number();
 
@@ -112,7 +108,7 @@ db_enter()
  * Leave debugger.
  */
 void
-db_leave()
+db_leave(void)
 {
 	int	mycpu = cpu_number();
 
@@ -147,9 +143,9 @@ db_leave()
  */
 
 void
-remote_db() {
+remote_db(void) {
 	int	my_cpu = cpu_number();
-	register int	i;
+	int	i;
 
 	for (i = 0; i < NCPUS; i++) {
 	    if (i != my_cpu &&
@@ -214,8 +210,7 @@ remote_db() {
  * switch to another cpu
  */
 void
-db_on(cpu)
-	int	cpu;
+db_on(int cpu)
 {
 	/*
 	 * Save ddb global variables
@@ -254,7 +249,7 @@ db_on(cpu)
  * in kernel debugger and wants to stop other CPUs
  */
 void
-remote_db_enter()
+remote_db_enter(void)
 {
 	db_slave[cpu_number()]++;
 	kdb_kintr();
@@ -271,7 +266,7 @@ remote_db_enter()
  * is active on another cpu.
  */
 void
-lock_db()
+lock_db(void)
 {
 	int	my_cpu = cpu_number();
 
@@ -280,7 +275,7 @@ lock_db()
 	    if (my_cpu == master_cpu) {
 		db_console();
 	    }
-#endif
+#endif /* CONSOLE_ON_MASTER */
 	    if (db_cpu != -1 && db_cpu != my_cpu)
 		continue;
 
@@ -292,9 +287,9 @@ lock_db()
 	    else {
 		simple_lock(&db_lock);
 	    }
-#else
+#else /* CONSOLE_ON_MASTER */
 	    simple_lock(&db_lock);
-#endif
+#endif /* CONSOLE_ON_MASTER */
 	    if (db_cpu == -1 || db_cpu == my_cpu)
 		break;
 	    simple_unlock(&db_lock);
@@ -302,14 +297,14 @@ lock_db()
 }
 
 void
-unlock_db()
+unlock_db(void)
 {
 	simple_unlock(&db_lock);
 }
 
-#ifdef sketch
+#if CONSOLE_ON_MASTER
 void
-db_console()
+db_console(void)
 {
 			if (i_bit(CBUS_PUT_CHAR, my_word)) {
 				volatile u_char c = cbus_ochar;
@@ -330,7 +325,7 @@ db_console()
 				db_cpu = my_cpu;
 			}
 }
-#endif	/* sketch */
+#endif	/* CONSOLE_ON_MASTER */
 
 #endif	/* NCPUS > 1 */
 

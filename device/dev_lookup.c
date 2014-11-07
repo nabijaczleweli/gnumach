@@ -43,6 +43,7 @@
 #include <kern/ipc_kobject.h>
 
 #include <device/device_emul.h>
+#include <device/ds_routines.h>
 
 /*
  * Device structure routines: reference counting, port->device.
@@ -70,7 +71,7 @@ struct kmem_cache	dev_hdr_cache;
  */
 void
 dev_number_enter(device)
-	mach_device_t	device;
+	const mach_device_t	device;
 {
 	queue_t	q;
 
@@ -84,7 +85,7 @@ dev_number_enter(device)
  */
 void
 dev_number_remove(device)
-	mach_device_t	device;
+	const mach_device_t	device;
 {
 	queue_t	q;
 
@@ -98,7 +99,7 @@ dev_number_remove(device)
  */
 mach_device_t
 dev_number_lookup(ops, devnum)
-	dev_ops_t	ops;
+	const dev_ops_t	ops;
 	int		devnum;
 {
 	queue_t	q;
@@ -119,8 +120,7 @@ dev_number_lookup(ops, devnum)
  * table.
  */
 mach_device_t
-device_lookup(name)
-	char *		name;
+device_lookup(char *name)
 {
 	dev_ops_t	dev_ops;
 	int		dev_minor;
@@ -197,8 +197,7 @@ device_lookup(name)
  * Add a reference to the device.
  */
 void
-mach_device_reference(device)
-	mach_device_t	device;
+mach_device_reference(mach_device_t device)
 {
 	simple_lock(&device->ref_lock);
 	device->ref_count++;
@@ -210,8 +209,7 @@ mach_device_reference(device)
  * structure if no references are left.
  */
 void
-mach_device_deallocate(device)
-	mach_device_t	device;
+mach_device_deallocate(mach_device_t device)
 {
 	simple_lock(&device->ref_lock);
 	if (--device->ref_count > 0) {
@@ -242,15 +240,12 @@ mach_device_deallocate(device)
 /*
  * port-to-device lookup routines.
  */
-decl_simple_lock_data(,
-	dev_port_lock)
 
 /*
  * Enter a port-to-device mapping.
  */
 void
-dev_port_enter(device)
-	mach_device_t	device;
+dev_port_enter(mach_device_t device)
 {
 	mach_device_reference(device);
 
@@ -268,8 +263,7 @@ dev_port_enter(device)
  * Remove a port-to-device mapping.
  */
 void
-dev_port_remove(device)
-	mach_device_t	device;
+dev_port_remove(mach_device_t device)
 {
 	ipc_kobject_set(device->port, IKO_NULL, IKOT_NONE);
 	mach_device_deallocate(device);
@@ -280,8 +274,7 @@ dev_port_remove(device)
  * Doesn't consume the naked send right; produces a device reference.
  */
 device_t
-dev_port_lookup(port)
-	ipc_port_t	port;
+dev_port_lookup(ipc_port_t port)
 {
 	device_t	device;
 
@@ -307,7 +300,7 @@ dev_port_lookup(port)
  */
 ipc_port_t
 convert_device_to_port(device)
-	device_t	device;
+	const device_t	device;
 {
 	if (device == DEVICE_NULL)
 	    return IP_NULL;
@@ -322,9 +315,9 @@ convert_device_to_port(device)
  * return FALSE.
  */
 boolean_t
-dev_map(routine, port)
-	boolean_t	(*routine)();
-	mach_port_t	port;
+dev_map(
+	boolean_t	(*routine)(),
+	mach_port_t	port)
 {
 	int		i;
 	queue_t		q;
@@ -363,7 +356,7 @@ dev_map(routine, port)
  * Initialization
  */
 void
-dev_lookup_init()
+dev_lookup_init(void)
 {
 	int	i;
 
@@ -371,8 +364,6 @@ dev_lookup_init()
 
 	for (i = 0; i < NDEVHASH; i++)
 	    queue_init(&dev_number_hash_table[i]);
-
-	simple_lock_init(&dev_port_lock);
 
 	kmem_cache_init(&dev_hdr_cache, "mach_device",
 			sizeof(struct mach_device), 0, NULL, NULL, NULL, 0);

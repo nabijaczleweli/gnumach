@@ -28,6 +28,8 @@
 
 #include <mach/std_types.h>
 #include <device/cons.h>
+#include <device/tty.h>
+#include <chips/busses.h>
 
 /*
  * Set receive modem state from modem status register.
@@ -47,5 +49,36 @@ extern int comcnprobe(struct consdev *cp);
 extern int comcninit(struct consdev *cp);
 extern int comcngetc(dev_t dev, int wait);
 extern int comcnputc(dev_t dev, int c);
+extern void comintr(int unit);
+
+int comprobe(vm_offset_t port, struct bus_ctlr *dev);
+int commctl(struct tty *tp, int bits, int how);
+void comstart(struct tty *tp);
+void comstop(struct tty *tp, int flags);
+void comattach(struct bus_device *dev);
+
+extern io_return_t
+comgetstat(
+	dev_t		dev,
+	int		flavor,
+	int		*data,
+	natural_t	*count);
+
+extern io_return_t
+comsetstat(
+	dev_t		dev,
+	int		flavor,
+	int 		*data,
+	natural_t	count);
+
+#if MACH_KDB
+extern void kdb_kintr(void);
+#endif /* MACH_KDB */
+
+extern io_return_t comopen(dev_t dev, int flag, io_req_t ior);
+extern void comclose(dev_t dev, int flag);
+extern io_return_t comread(dev_t dev, io_req_t ior);
+extern io_return_t comwrite(dev_t dev, io_req_t ior);
+extern io_return_t comportdeath(dev_t dev, mach_port_t port);
 
 #endif /* _COM_H_ */

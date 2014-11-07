@@ -27,6 +27,8 @@
 #ifndef _DDB_DB_TASK_THREAD_H_
 #define _DDB_DB_TASK_THREAD_H_
 
+#include <ddb/db_variables.h>
+
 #include <kern/task.h>
 #include <kern/thread.h>
 
@@ -41,11 +43,25 @@
 extern task_t	db_default_task;		/* default target task */
 extern thread_t	db_default_thread;		/* default target thread */
 
-extern int		db_lookup_task(task_t);
-extern int		db_lookup_thread(thread_t);
-extern int		db_lookup_task_thread(task_t, thread_t);
-extern boolean_t	db_check_thread_address_valid(thread_t);
+extern int		db_lookup_task(const task_t);
+extern int		db_lookup_thread(const thread_t);
+extern int		db_lookup_task_thread(const task_t, const thread_t);
+extern boolean_t	db_check_thread_address_valid(const thread_t);
 extern boolean_t	db_get_next_thread(thread_t *, int);
 extern void		db_init_default_thread(void);
+
+extern void
+db_set_default_thread(
+	struct db_variable 	*vp,
+	db_expr_t		*valuep,
+	int			flag,
+	db_var_aux_param_t	ap);
+
+extern void
+db_get_task_thread(
+	struct db_variable	*vp,
+	db_expr_t		*valuep,
+	int			flag,
+	db_var_aux_param_t	ap);
 
 #endif  /* _DDB_DB_TASK_THREAD_H_ */

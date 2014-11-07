@@ -57,9 +57,11 @@
 #include <kern/slab.h>
 #include <kern/mach_clock.h>
 #include <vm/vm_kern.h>
+#include <vm/vm_user.h>
 #include <ipc/ipc_kmsg.h>
 #include <ipc/ipc_port.h>
 #include <ipc/mach_msg.h>
+#include <ipc/mach_port.h>
 #include <machine/machspl.h>		/* for splsched */
 #include <machine/pcb.h>
 #include <machine/thread.h>		/* for MACHINE_STACK */
@@ -72,15 +74,10 @@ struct kmem_cache thread_cache;
 queue_head_t		reaper_queue;
 decl_simple_lock_data(,	reaper_lock)
 
-extern void		pcb_module_init(void);
-
 /* private */
 struct thread	thread_template;
 
 #if	MACH_DEBUG
-void stack_init(vm_offset_t stack);	/* forward */
-void stack_finalize(vm_offset_t stack);	/* forward */
-
 #define	STACK_MARKER	0xdeadbeefU
 boolean_t		stack_check_usage = FALSE;
 decl_simple_lock_data(,	stack_usage_lock)
@@ -149,7 +146,7 @@ boolean_t stack_alloc_try(
 	thread_t	thread,
 	void		(*resume)(thread_t))
 {
-	register vm_offset_t stack;
+	vm_offset_t stack;
 
 	stack_lock();
 	stack = stack_free_list;
@@ -230,7 +227,7 @@ void stack_alloc(
 void stack_free(
 	thread_t thread)
 {
-	register vm_offset_t stack;
+	vm_offset_t stack;
 
 	stack = stack_detach(thread);
 
@@ -253,7 +250,7 @@ void stack_free(
 
 void stack_collect(void)
 {
-	register vm_offset_t stack;
+	vm_offset_t stack;
 	spl_t s;
 
 	s = splsched();
@@ -285,7 +282,7 @@ void stack_collect(void)
  */
 
 void stack_privilege(
-	register thread_t thread)
+	thread_t thread)
 {
 	/*
 	 *	This implementation only works for the current thread.
@@ -398,11 +395,11 @@ void thread_init(void)
 }
 
 kern_return_t thread_create(
-	register task_t	parent_task,
+	task_t	parent_task,
 	thread_t	*child_thread)		/* OUT */
 {
-	register thread_t	new_thread;
-	register processor_set_t	pset;
+	thread_t	new_thread;
+	processor_set_t	pset;
 
 	if (parent_task == TASK_NULL)
 		return KERN_INVALID_ARGUMENT;
@@ -575,11 +572,11 @@ kern_return_t thread_create(
 unsigned int thread_deallocate_stack = 0;
 
 void thread_deallocate(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	spl_t		s;
-	register task_t	task;
-	register processor_set_t	pset;
+	task_t		task;
+	processor_set_t	pset;
 
 	time_value_t	user_time, system_time;
 
@@ -710,7 +707,7 @@ void thread_deallocate(
 }
 
 void thread_reference(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	spl_t		s;
 
@@ -744,10 +741,10 @@ void thread_reference(
  *	since it needs a kernel stack to execute.)
  */
 kern_return_t thread_terminate(
-	register thread_t	thread)
+	thread_t	thread)
 {
-	register thread_t	cur_thread = current_thread();
-	register task_t		cur_task;
+	thread_t		cur_thread = current_thread();
+	task_t			cur_task;
 	spl_t			s;
 
 	if (thread == THREAD_NULL)
@@ -850,6 +847,28 @@ kern_return_t thread_terminate(
 	return KERN_SUCCESS;
 }
 
+kern_return_t thread_terminate_release(
+	thread_t thread,
+	task_t task,
+	mach_port_t thread_name,
+	mach_port_t reply_port,
+	vm_offset_t address,
+	vm_size_t size)
+{
+	if (task == NULL)
+		return KERN_INVALID_ARGUMENT;
+
+	mach_port_deallocate(task->itk_space, thread_name);
+
+	if (reply_port != MACH_PORT_NULL)
+		mach_port_destroy(task->itk_space, reply_port);
+
+	if ((address != 0) || (size != 0))
+		vm_deallocate(task->map, address, size);
+
+	return thread_terminate(thread);
+}
+
 /*
  *	thread_force_terminate:
  *
@@ -859,7 +878,7 @@ kern_return_t thread_terminate(
  */
 void
 thread_force_terminate(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	boolean_t	deallocate_here;
 	spl_t s;
@@ -901,11 +920,11 @@ thread_force_terminate(
  *
  */
 kern_return_t thread_halt(
-	register thread_t	thread,
+	thread_t	thread,
 	boolean_t		must_halt)
 {
-	register thread_t	cur_thread = current_thread();
-	register kern_return_t	ret;
+	thread_t	cur_thread = current_thread();
+	kern_return_t	ret;
 	spl_t	s;
 
 	if (thread == cur_thread)
@@ -1104,7 +1123,7 @@ kern_return_t thread_halt(
 	}
 }
 
-void	walking_zombie(void)
+void __attribute__((noreturn)) walking_zombie(void)
 {
 	panic("the zombie walks!");
 }
@@ -1115,7 +1134,7 @@ void	walking_zombie(void)
  */
 void	thread_halt_self(void)
 {
-	register thread_t	thread = current_thread();
+	thread_t	thread = current_thread();
 	spl_t	s;
 
 	if (thread->ast & AST_TERMINATE) {
@@ -1130,7 +1149,7 @@ void	thread_halt_self(void)
 
 		s = splsched();
 		simple_lock(&reaper_lock);
-		enqueue_tail(&reaper_queue, (queue_entry_t) thread);
+		enqueue_tail(&reaper_queue, &(thread->links));
 		simple_unlock(&reaper_lock);
 
 		thread_lock(thread);
@@ -1169,7 +1188,7 @@ void	thread_halt_self(void)
  *	suspends is maintained.
  */
 void thread_hold(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	spl_t			s;
 
@@ -1191,11 +1210,11 @@ void thread_hold(
  */
 kern_return_t
 thread_dowait(
-	register thread_t	thread,
+	thread_t		thread,
 	boolean_t		must_halt)
 {
-	register boolean_t	need_wakeup;
-	register kern_return_t	ret = KERN_SUCCESS;
+	boolean_t		need_wakeup;
+	kern_return_t		ret = KERN_SUCCESS;
 	spl_t			s;
 
 	if (thread == current_thread())
@@ -1295,7 +1314,7 @@ thread_dowait(
 }
 
 void thread_release(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	spl_t			s;
 
@@ -1314,9 +1333,9 @@ void thread_release(
 }
 
 kern_return_t thread_suspend(
-	register thread_t	thread)
+	thread_t	thread)
 {
-	register boolean_t	hold;
+	boolean_t		hold;
 	spl_t			spl;
 
 	if (thread == THREAD_NULL)
@@ -1360,9 +1379,9 @@ kern_return_t thread_suspend(
 
 
 kern_return_t thread_resume(
-	register thread_t	thread)
+	thread_t	thread)
 {
-	register kern_return_t	ret;
+	kern_return_t		ret;
 	spl_t			s;
 
 	if (thread == THREAD_NULL)
@@ -1398,7 +1417,7 @@ kern_return_t thread_resume(
  *	Return thread's machine-dependent state.
  */
 kern_return_t thread_get_state(
-	register thread_t	thread,
+	thread_t		thread,
 	int			flavor,
 	thread_state_t		old_state,	/* pointer to OUT array */
 	natural_t		*old_state_count)	/*IN/OUT*/
@@ -1422,7 +1441,7 @@ kern_return_t thread_get_state(
  *	Change thread's machine-dependent state.
  */
 kern_return_t thread_set_state(
-	register thread_t	thread,
+	thread_t		thread,
 	int			flavor,
 	thread_state_t		new_state,
 	natural_t		new_state_count)
@@ -1443,7 +1462,7 @@ kern_return_t thread_set_state(
 }
 
 kern_return_t thread_info(
-	register thread_t	thread,
+	thread_t		thread,
 	int			flavor,
 	thread_info_t		thread_info_out,    /* pointer to OUT array */
 	natural_t		*thread_info_count) /*IN/OUT*/
@@ -1455,7 +1474,7 @@ kern_return_t thread_info(
 		return KERN_INVALID_ARGUMENT;
 
 	if (flavor == THREAD_BASIC_INFO) {
-	    register thread_basic_info_t	basic_info;
+	    thread_basic_info_t	basic_info;
 
 	    /* Allow *thread_info_count to be one smaller than the
 	       usual amount, because creation_time is a new member
@@ -1541,7 +1560,7 @@ kern_return_t thread_info(
 	    return KERN_SUCCESS;
 	}
 	else if (flavor == THREAD_SCHED_INFO) {
-	    register thread_sched_info_t	sched_info;
+	    thread_sched_info_t	sched_info;
 
 	    if (*thread_info_count < THREAD_SCHED_INFO_COUNT) {
 		return KERN_INVALID_ARGUMENT;
@@ -1583,7 +1602,7 @@ kern_return_t thread_info(
 }
 
 kern_return_t	thread_abort(
-	register thread_t	thread)
+	thread_t	thread)
 {
 	if (thread == THREAD_NULL || thread == current_thread()) {
 		return KERN_INVALID_ARGUMENT;
@@ -1674,10 +1693,10 @@ thread_t kernel_thread(
  *	This kernel thread runs forever looking for threads to destroy
  *	(when they request that they be destroyed, of course).
  */
-void reaper_thread_continue(void)
+void __attribute__((noreturn)) reaper_thread_continue(void)
 {
 	for (;;) {
-		register thread_t thread;
+		thread_t thread;
 		spl_t s;
 
 		s = splsched();
@@ -1792,12 +1811,12 @@ thread_unfreeze(
 
 void
 thread_doassign(
-	register thread_t		thread,
-	register processor_set_t	new_pset,
+	thread_t			thread,
+	processor_set_t			new_pset,
 	boolean_t			release_freeze)
 {
-	register processor_set_t	pset;
-	register boolean_t		old_empty, new_empty;
+	processor_set_t			pset;
+	boolean_t			old_empty, new_empty;
 	boolean_t			recompute_pri = FALSE;
 	spl_t				s;
 	
@@ -2100,8 +2119,8 @@ thread_policy(
 	int		data)
 {
 #if	MACH_FIXPRI
-	register kern_return_t	ret = KERN_SUCCESS;
-	register int	temp;
+	kern_return_t	ret = KERN_SUCCESS;
+	int		temp;
 	spl_t		s;
 #endif	/* MACH_FIXPRI */
 
@@ -2304,7 +2323,7 @@ void consider_thread_collect(void)
 #if	MACH_DEBUG
 
 vm_size_t stack_usage(
-	register vm_offset_t stack)
+	vm_offset_t stack)
 {
 	int i;
 
@@ -2321,7 +2340,7 @@ vm_size_t stack_usage(
  */
 
 void stack_init(
-	register vm_offset_t stack)
+	vm_offset_t stack)
 {
 	if (stack_check_usage) {
 	    int i;
@@ -2337,7 +2356,7 @@ void stack_init(
  */
 
 void stack_finalize(
-	register vm_offset_t stack)
+	vm_offset_t stack)
 {
 	if (stack_check_usage) {
 	    vm_size_t used = stack_usage(stack);
@@ -2430,8 +2449,8 @@ kern_return_t processor_set_stack_usage(
 	vm_size_t maxusage;
 	vm_offset_t maxstack;
 
-	register thread_t *threads;
-	register thread_t tmp_thread;
+	thread_t *threads;
+	thread_t tmp_thread;
 
 	unsigned int actual;	/* this many things */
 	unsigned int i;
@@ -2549,7 +2568,7 @@ kern_return_t processor_set_stack_usage(
 void
 thread_stats(void)
 {
-	register thread_t thread;
+	thread_t thread;
 	int total = 0, rpcreply = 0;
 
 	queue_iterate(&default_pset.threads, thread, thread_t, pset_threads) {

@@ -48,8 +48,7 @@ struct db_cond {
 } db_cond[DB_MAX_COND];
 
 void
-db_cond_free(bkpt)
-	db_thread_breakpoint_t bkpt;
+db_cond_free(db_thread_breakpoint_t bkpt)
 {
 	if (bkpt->tb_cond > 0) {
 	    db_cond[bkpt->tb_cond-1].c_size = 0;
@@ -59,10 +58,9 @@ db_cond_free(bkpt)
 }
 
 boolean_t
-db_cond_check(bkpt)
-	db_thread_breakpoint_t bkpt;
+db_cond_check(db_thread_breakpoint_t bkpt)
 {
-	register  struct db_cond *cp;
+	struct db_cond *cp;
 	db_expr_t value;
 	int	  t;
 	jmp_buf_t db_jmpbuf;
@@ -105,10 +103,10 @@ db_cond_check(bkpt)
 
 void
 db_cond_print(bkpt)
-	db_thread_breakpoint_t bkpt;
+	const db_thread_breakpoint_t bkpt;
 {
-	register char *p, *ep;
-	register struct db_cond *cp;
+	char *p, *ep;
+	struct db_cond *cp;
 
 	if (bkpt->tb_cond <= 0)
 	    return;
@@ -123,11 +121,11 @@ db_cond_print(bkpt)
 }
 
 void
-db_cond_cmd()
+db_cond_cmd(void)
 {
-	register  int c;
-	register  struct db_cond *cp;
-	register  char *p;
+	int c;
+	struct db_cond *cp;
+	char *p;
 	db_expr_t value;
 	db_thread_breakpoint_t bkpt;
 

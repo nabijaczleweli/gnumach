@@ -320,4 +320,10 @@ extern kern_return_t processor_set_threads(
 		natural_t	*count);
 #endif
 
+void processor_doaction(processor_t processor);
+void processor_doshutdown(processor_t processor);
+void quantum_set(processor_set_t pset);
+void pset_init(processor_set_t pset);
+void processor_init(processor_t pr, int slot_num);
+
 #endif	/* _KERN_PROCESSOR_H_ */

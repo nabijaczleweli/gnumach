@@ -30,20 +30,18 @@
 #define MACH_ASSERT 1
 #else
 #define MACH_ASSERT 0
-#endif
+#endif /* NDEBUG */
 
 	/*
 	 * For now we will always go to single user mode, since there is
 	 * no way pass this request through the boot.
 	 */
-int boothowto = 0;
 
 /* Someone with time should write code to set cpuspeed automagically */
 int cpuspeed = 4;
 #define	DELAY(n)	{ volatile int N = cpuspeed * (n); while (--N > 0); }
 void
-delay(n)
-	int n;
+delay(int n)
 {
 	DELAY(n);
 }
@@ -55,8 +53,8 @@ delay(n)
  * levels of return pc information.
  */
 void machine_callstack(
-	unsigned long	*buf,
-	int		callstack_max)
+	const unsigned long	*buf,
+	int			callstack_max)
 {
 }
 

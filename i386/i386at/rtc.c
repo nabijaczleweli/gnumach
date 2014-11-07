@@ -53,10 +53,10 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <i386/pio.h>
 #include <i386at/rtc.h>
 
-static int first_rtcopen_ever = 1;
+static boolean_t first_rtcopen_ever = TRUE;
 
 void
-rtcinit()
+rtcinit(void)
 {
 	outb(RTC_ADDR, RTC_A);
 	outb(RTC_DATA, RTC_DIV2 | RTC_RATE6);
@@ -66,12 +66,11 @@ rtcinit()
 
 
 int
-rtcget(regs)
-unsigned char	*regs;
+rtcget(unsigned char *regs)
 {
 	if (first_rtcopen_ever) {
 		rtcinit();
-		first_rtcopen_ever = 0;
+		first_rtcopen_ever = FALSE;
 	}
 	outb(RTC_ADDR, RTC_D);
 	if ((inb(RTC_DATA) & RTC_VRT) == 0) return(-1);
@@ -83,14 +82,13 @@ unsigned char	*regs;
 }
 
 void
-rtcput(regs)
-unsigned char 	*regs;
+rtcput(unsigned char *regs)
 {
-	register unsigned char	x;
+	unsigned char	x;
 
 	if (first_rtcopen_ever) {
 		rtcinit();
-		first_rtcopen_ever = 0;
+		first_rtcopen_ever = FALSE;
 	}
 	outb(RTC_ADDR, RTC_B);
 	x = inb(RTC_DATA);
@@ -103,34 +101,29 @@ unsigned char 	*regs;
 
 
 extern struct timeval time;
-extern struct timezone tz;
 
 static int month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 int
-yeartoday(year)
-int year;
+yeartoday(int year)
 {
 	return((year%4) ? 365 : 366);
 }
 
 int
-hexdectodec(n)
-char n;
+hexdectodec(char n)
 {
 	return(((n>>4)&0x0F)*10 + (n&0x0F));
 }
 
 char
-dectohexdec(n)
-int n;
+dectohexdec(int n)
 {
 	return((char)(((n/10)<<4)&0xF0) | ((n%10)&0x0F));
 }
 
 int
-readtodc(tp)
-	u_int	*tp;
+readtodc(u_int *tp)
 {
 	struct rtc_st rtclk;
 	time_t n;
@@ -172,7 +165,7 @@ readtodc(tp)
 }
 
 int
-writetodc()
+writetodc(void)
 {
 	struct rtc_st rtclk;
 	time_t n;

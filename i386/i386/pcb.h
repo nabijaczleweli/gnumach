@@ -28,6 +28,8 @@
 
 #include <sys/types.h>
 #include <mach/exec/exec.h>
+#include <mach/thread_status.h>
+#include <machine/thread.h>
 
 extern void pcb_init (thread_t thread);
 
@@ -56,7 +58,7 @@ extern vm_offset_t user_stack_low (vm_size_t stack_size);
 extern vm_offset_t set_user_regs (
    vm_offset_t stack_base,
    vm_offset_t stack_size,
-   struct exec_info *exec_info,
+   const struct exec_info *exec_info,
    vm_size_t   arg_size);
 
 extern void load_context (thread_t new);
@@ -69,5 +71,15 @@ extern void stack_attach (
 extern vm_offset_t stack_detach (thread_t thread);
 
 extern void switch_ktss (pcb_t pcb);
+
+extern void update_ktss_iopb (unsigned char *new_iopb, io_port_t size);
+
+extern thread_t Load_context (thread_t new);
+
+extern thread_t Switch_context (thread_t old, void (*continuation)(), thread_t new);
+
+extern void Thread_continue (void);
+
+extern void pcb_module_init (void);
 
 #endif /* _I386_PCB_H_ */
