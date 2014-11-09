@@ -1,3 +1,19 @@
+2014-11-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: add a payload-aware intran mutator for device_t
+	* include/device/device_types.defs (device_t): Add a payload-aware
+	intran mutator.
+
+	include: add a payload-aware intran mutator for notify_port_t
+	* include/mach/notify.defs (notify_port_t): Add a payload-aware intran
+	mutator.
+
+	include: add a payload-aware intran mutator for memory_object_t
+	* include/mach/mach_types.defs (memory_object_t): Add a payload-aware
+	intran mutator.
+	* include/mach/memory_object.defs: Likewise in the inlined type
+	declarations.
+
 2014-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Fix link refusal
