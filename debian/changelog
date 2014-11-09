@@ -1,8 +1,10 @@
 gnumach (2:1.4+git20141109-1) unstable; urgency=medium
 
-  * New upstream snapshot.
+  * New upstream snapshot. Fixes protected payload support.
+  * patches/git-R-vm_map.patch: Revert upstream commit for now, it seems to
+    interact badly with paging.
 
- -- Samuel Thibault <sthibault@debian.org>  Sun, 09 Nov 2014 18:14:00 +0000
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 09 Nov 2014 22:03:06 +0000
 
 gnumach (2:1.4+git20141107-1) unstable; urgency=medium
 

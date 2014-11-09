@@ -3,3 +3,4 @@
 50_initrd.patch
 60_bigmem.patch
 70_dde.patch
+git-R-vm_map.patch
