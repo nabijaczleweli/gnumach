@@ -1,3 +1,9 @@
+gnumach (2:1.4+git20141109-2) unstable; urgency=medium
+
+  * patches/git-nodma.patch: Add nodma option.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 13 Nov 2014 00:30:10 +0000
+
 gnumach (2:1.4+git20141109-1) unstable; urgency=medium
 
   * New upstream snapshot. Fixes protected payload support.
