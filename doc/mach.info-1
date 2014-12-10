@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 5.2 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 8 November 2014, of 'The GNU
-Mach Reference Manual', for version 1.4+git20141109.
+   This is edition 0.4, last updated on 10 November 2014, of 'The GNU
+Mach Reference Manual', for version 1.4+git20141211.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 8 November 2014, of 'The GNU
-Mach Reference Manual', for version 1.4+git20141109.
+   This is edition 0.4, last updated on 10 November 2014, of 'The GNU
+Mach Reference Manual', for version 1.4+git20141211.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -3347,14 +3347,14 @@ File: mach.info,  Node: Mapping Memory Objects,  Next: Memory Statistics,  Prev:
      memory exception.
 
      TARGET_TASK is the task to be affected.  The starting address is
-     ADDRESS.  If the ANYWHERE option is used, this address is ignored.
-     The address actually allocated will be returned in ADDRESS.  SIZE
-     is the number of bytes to allocate (rounded by the system in a
-     machine dependent way).  The alignment restriction is specified by
-     MASK.  Bits asserted in this mask must not be asserted in the
-     address returned.  If ANYWHERE is set, the kernel should find and
-     allocate any region of the specified size, and return the address
-     of the resulting region in ADDRESS.
+     ADDRESS.  If the ANYWHERE option is used, this address is used as a
+     starting hint.  The address actually allocated will be returned in
+     ADDRESS.  SIZE is the number of bytes to allocate (rounded by the
+     system in a machine dependent way).  The alignment restriction is
+     specified by MASK.  Bits asserted in this mask must not be asserted
+     in the address returned.  If ANYWHERE is set, the kernel should
+     find and allocate any region of the specified size, and return the
+     address of the resulting region in ADDRESS.
 
      MEMORY_OBJECT is the port that represents the memory object: used
      by user tasks in 'vm_map'; used by the make requests for data or

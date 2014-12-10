@@ -1,3 +1,165 @@
+2014-12-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Ship missing file
+	* Makefrag.am (EXTRA_DIST): Add kern/task_notify.cli.
+
+2014-12-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: add X_IMPORTS to ipc definitions
+	This makes it possible to inject imports.
+
+	* include/mach/gnumach.defs: Make it possible to inject imports.
+	* include/mach/mach.defs: Likewise.
+	* include/mach/mach_host.defs: Likewise.
+
+2014-12-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: provide notifications about new tasks
+	These notifications are sent to the port registered via
+	`register_new_task_notification' and provide a robust parental
+	relation between tasks to a userspace server.
+
+	* Makefrag.am: Add task_notify.defs.
+	* include/mach/gnumach.defs: Add register_new_task_notification.
+	* include/mach/task_notify.defs: New file.
+	* kern/task.c (new_task_notification): New variable.
+	(task_create): Send new task notifications.
+	(register_new_task_notification): Add server function.
+	* kern/task_notify.cli: New file.
+
+2014-12-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Retire procedure `old_mach_port_get_receive_status'
+	Retire the compatibility RPC `old_mach_port_get_receive_status' that
+	works like `mach_port_get_receive_status' but returns an
+	`old_mach_port_status' object that lacks the `mps_seqno' field.
+
+	Do not remove the type yet, so we do not break anyones build.  The RPC
+	stubs currently distributed with the glibc require it.
+
+	* include/mach/mach_port.defs (old_mach_port_get_receive_status): Drop RPC.
+	* include/mach/mach_types.defs (old_mach_port_status_t): Drop type.
+	* include/mach/port.h (old_mach_port_status_t): Add note to remove
+	this for the 1.6 release.
+	* ipc/mach_port.c (old_mach_port_get_receive_status): Drop function.
+
+2014-12-07  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix pthread_create warning on translator termination
+	This was due to task_terminate not actually properly suspending threads
+	before disable the task port, which was thus preventing pthread_create
+	from being able to create a stack. Thanks Gabriele Giacone for finding
+	out a reproducer of this.
+
+	* kern/task.h (task_hold_locked): New declaration.
+	* kern/task.c (task_hold): Move the locked part of the code into...
+	(task_hold_locked): ... new function.
+	(task_terminate): Call task_hold_locked just before deactivating the
+	task. Call ipc_task_disable after waiting for threads to actually
+	suspend with task_dowait.
+
+2014-12-01  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: disable all counters by default
+	Make all five non-conditional counters conditional ones.  Casual
+	checking revealed that the hits-to-miss ratio is excellent.
+
+	* kern/counters.c: Make all counters conditional.
+	* kern/counters.h: Likewise.
+	* kern/ipc_sched.c: Likewise.
+	* kern/sched_prim.c: Likewise.
+
+2014-11-28  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: make `mach_port_t' payload-aware
+	Honor a new macro `MACH_PAYLOAD_TO_PORT' to inject a translation
+	function mapping payloads to port names in the definition of
+	`mach_port_t'.
+
+	* include/mach/std_types.defs (mach_port_t): Honor
+	`MACH_PAYLOAD_TO_PORT'.
+	* include/device/device.defs (reply_port_t): Likewise.
+	* include/device/device_reply.defs (reply_port_t): Likewise.
+	* include/device/device_request.defs (reply_port_t): Likewise.
+
+2014-11-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix programming PIT counter
+	* linux/dev/arch/i386/kernel/irq.c (init_IRQ): Properly mask 8 bits of
+	PIT counter.
+
+2014-11-21  David Michael  <fedora.dm0@gmail.com>
+
+	Correct GCC's -Wformat-security issues
+	* linux/pcmcia-cs/clients/axnet_cs.c (axdev_init): Add a format string
+	literal where printk only has a single variable argument.
+	* linux/src/drivers/net/3c507.c (el16_probe1): Likewise.
+	* linux/src/drivers/net/3c509.c (el3_probe): Likewise.
+	* linux/src/drivers/net/3c515.c (init_module): Likewise.
+	(tc515_probe): Likewise.
+	* linux/src/drivers/net/ac3200.c (ac_probe1): Likewise.
+	* linux/src/drivers/net/apricot.c (apricot_probe): Likewise.
+	* linux/src/drivers/net/at1700.c (at1700_probe1): Likewise.
+	* linux/src/drivers/net/de4x5.c (de4x5_hw_init): Likewise.
+	* linux/src/drivers/net/de600.c (de600_probe): Likewise.
+	* linux/src/drivers/net/de620.c (de620_probe): Likewise.
+	* linux/src/drivers/net/depca.c (depca_hw_init): Likewise.
+	* linux/src/drivers/net/e2100.c (e21_probe1): Likewise.
+	* linux/src/drivers/net/eepro.c (eepro_probe1): Likewise.
+	* linux/src/drivers/net/eepro100.c (speedo_found1): Likewise.
+	* linux/src/drivers/net/eexpress.c (eexp_hw_probe): Likewise.
+	* linux/src/drivers/net/ewrk3.c (ewrk3_hw_init): Likewise.
+	* linux/src/drivers/net/fmv18x.c (fmv18x_probe1): Likewise.
+	* linux/src/drivers/net/hp-plus.c (hpp_probe1): Likewise.
+	* linux/src/drivers/net/hp.c (hp_probe1): Likewise.
+	* linux/src/drivers/net/lance.c (lance_probe1): Likewise.
+	* linux/src/drivers/net/ne.c (ne_probe1): Likewise.
+	* linux/src/drivers/net/pcnet32.c (pcnet32_probe1): Likewise.
+	* linux/src/drivers/net/seeq8005.c (seeq8005_probe1): Likewise.
+	* linux/src/drivers/net/smc-ultra.c (ultra_probe1): Likewise.
+	* linux/src/drivers/net/smc-ultra32.c (ultra32_probe1): Likewise.
+	* linux/src/drivers/net/wd.c (wd_probe1): Likewise.
+
+2014-11-16  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Only set debug registers when they are used
+	* i386/i386/db_interface.c (zero_dr): New variable
+	(db_load_context): Do not set debug registers to zero when they are already
+	zero.
+	(db_dr): When kernel debug registers get zero, record that the debug
+	registers have been zeroed.
+
+2014-11-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add nodma options
+	Some very slow qemu instances would eventually trigger DMA timeouts,
+	let's give a way to disable DMA there, it does not actually slow down
+	operations anyway.
+
+	* linux/src/drivers/block/ide.h (ide_drive_s): Add nodma field.
+	* linux/src/drivers/block/ide.c (do_identify): Do not call
+	dmaproc(ide_dma_check) when nodma is 1.
+	(ide_setup): Add nodma option.
+
+2014-11-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Pass ide and hd kernel options to ide driver
+	* linux/dev/drivers/block/genhd.c: Include <linux/hdreg.h> and
+	<alloca.h>
+	(device_setup): Look for ide and hd options, and call ide_setup with
+	them.
+	* linux/src/drivers/block/ide.c (ide_setup) [MACH]: Parse hd[0-7] instead
+	of hd[a-h].
+
+2014-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix documentation for vm_map
+	doc/mach.texi (vm_map): Document that vm_map uses the address as a
+	starting hint even when anywhere is TRUE.
+
+	Revert "Make vm_map really ignore `address' when `anywhere' is true"
+	This reverts commit 5ae510e35c54009626999a88f0f1cb34d6dfc94f.
+
 2014-11-03  Justus Winter  <4winter@informatik.uni-hamburg.de>
 
 	include: add a payload-aware intran mutator for device_t

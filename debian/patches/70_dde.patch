@@ -1,16 +1,16 @@
-Index: gnumach-1.4+git20141107/Makefrag.am
+Index: gnumach/Makefrag.am
 ===================================================================
---- gnumach-1.4+git20141107.orig/Makefrag.am
-+++ gnumach-1.4+git20141107/Makefrag.am
+--- gnumach.orig/Makefrag.am
++++ gnumach/Makefrag.am
 @@ -220,6 +220,7 @@ EXTRA_DIST += \
  	kern/mach.srv \
  	kern/mach4.srv \
  	kern/gnumach.srv \
 +	kern/experimental.srv \
  	kern/mach_debug.srv \
- 	kern/mach_host.srv
- 
-@@ -302,6 +303,7 @@ libkernel_a_SOURCES += \
+ 	kern/mach_host.srv \
+ 	kern/task_notify.cli
+@@ -303,6 +304,7 @@ libkernel_a_SOURCES += \
  	device/device_types_kernel.h \
  	device/ds_routines.c \
  	device/ds_routines.h \
@@ -18,7 +18,7 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  	device/if_ether.h \
  	device/if_hdr.h \
  	device/io_req.h \
-@@ -373,6 +375,7 @@ include_mach_HEADERS = \
+@@ -375,6 +377,7 @@ include_mach_HEADERS = \
  	include/mach/memory_object_default.defs \
  	include/mach/notify.defs \
  	include/mach/std_types.defs \
@@ -26,7 +26,7 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  	include/mach/alert.h \
  	include/mach/boolean.h \
  	include/mach/boot.h \
-@@ -514,6 +517,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
+@@ -523,6 +526,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
  	kern/gnumach.server.defs.c \
@@ -34,7 +34,7 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
-@@ -526,6 +530,9 @@ nodist_libkernel_a_SOURCES += \
+@@ -535,6 +539,9 @@ nodist_libkernel_a_SOURCES += \
  	kern/gnumach.server.h \
  	kern/gnumach.server.c \
  	kern/gnumach.server.msgids \
@@ -44,7 +44,7 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  	kern/mach_debug.server.h \
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
-@@ -535,6 +542,7 @@ nodist_libkernel_a_SOURCES += \
+@@ -544,6 +551,7 @@ nodist_libkernel_a_SOURCES += \
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/gnumach.server.defs
@@ -52,10 +52,10 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  #	kern/mach_debug.server.defs
  #	kern/mach_host.server.defs
  
-Index: gnumach-1.4+git20141107/device/ds_routines.c
+Index: gnumach/device/ds_routines.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/device/ds_routines.c
-+++ gnumach-1.4+git20141107/device/ds_routines.c
+--- gnumach.orig/device/ds_routines.c
++++ gnumach/device/ds_routines.c
 @@ -318,6 +318,43 @@ ds_device_map (device_t dev, vm_prot_t p
  				offset, size, pager, unmap);
  }
@@ -125,10 +125,10 @@ Index: gnumach-1.4+git20141107/device/ds_routines.c
  struct device_emulation_ops mach_device_emulation_ops =
  {
    (void*) mach_device_reference,
-Index: gnumach-1.4+git20141107/device/ds_routines.h
+Index: gnumach/device/ds_routines.h
 ===================================================================
---- gnumach-1.4+git20141107.orig/device/ds_routines.h
-+++ gnumach-1.4+git20141107/device/ds_routines.h
+--- gnumach.orig/device/ds_routines.h
++++ gnumach/device/ds_routines.h
 @@ -83,4 +83,7 @@ io_return_t ds_device_writev_trap(
  	io_buf_vec_t 	*iovec,
  	vm_size_t 	count);
@@ -137,10 +137,10 @@ Index: gnumach-1.4+git20141107/device/ds_routines.h
 +extern ipc_port_t intr_rcv_ports[16];
 +
  #endif	/* DS_ROUTINES_H */
-Index: gnumach-1.4+git20141107/device/intr.c
+Index: gnumach/device/intr.c
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/device/intr.c
++++ gnumach/device/intr.c
 @@ -0,0 +1,198 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
@@ -340,18 +340,18 @@ Index: gnumach-1.4+git20141107/device/intr.c
 +  return TRUE;
 +}
 +#endif	/* MACH_XEN */
-Index: gnumach-1.4+git20141107/kern/experimental.srv
+Index: gnumach/kern/experimental.srv
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/kern/experimental.srv
++++ gnumach/kern/experimental.srv
 @@ -0,0 +1,3 @@
 +#define KERNEL_SERVER 1
 +
 +#include <mach/experimental.defs>
-Index: gnumach-1.4+git20141107/include/mach/experimental.defs
+Index: gnumach/include/mach/experimental.defs
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/include/mach/experimental.defs
++++ gnumach/include/mach/experimental.defs
 @@ -0,0 +1,100 @@
 +/* 
 + * Mach Operating System
@@ -453,10 +453,10 @@ Index: gnumach-1.4+git20141107/include/mach/experimental.defs
 +	out	vaddr		: vm_address_t;
 +	out	paddr		: vm_address_t;
 +		size		: vm_size_t);
-Index: gnumach-1.4+git20141107/include/device/intr.h
+Index: gnumach/include/device/intr.h
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/include/device/intr.h
++++ gnumach/include/device/intr.h
 @@ -0,0 +1,17 @@
 +#ifndef __INTR_H__
 +
@@ -475,10 +475,10 @@ Index: gnumach-1.4+git20141107/include/device/intr.h
 +#define MACH_INTR_NOTIFY 424242
 +
 +#endif
-Index: gnumach-1.4+git20141107/kern/startup.c
+Index: gnumach/kern/startup.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/kern/startup.c
-+++ gnumach-1.4+git20141107/kern/startup.c
+--- gnumach.orig/kern/startup.c
++++ gnumach/kern/startup.c
 @@ -79,6 +79,7 @@ boolean_t reboot_on_panic = TRUE;
  /* XX */
  extern vm_offset_t phys_first_addr, phys_last_addr;
@@ -497,10 +497,10 @@ Index: gnumach-1.4+git20141107/kern/startup.c
  
  #if	NCPUS > 1
  	/*
-Index: gnumach-1.4+git20141107/linux/dev/arch/i386/kernel/irq.c
+Index: gnumach/linux/dev/arch/i386/kernel/irq.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/linux/dev/arch/i386/kernel/irq.c
-+++ gnumach-1.4+git20141107/linux/dev/arch/i386/kernel/irq.c
+--- gnumach.orig/linux/dev/arch/i386/kernel/irq.c
++++ gnumach/linux/dev/arch/i386/kernel/irq.c
 @@ -83,6 +83,7 @@ struct linux_action
    void *dev_id;
    struct linux_action *next;
@@ -624,11 +624,11 @@ Index: gnumach-1.4+git20141107/linux/dev/arch/i386/kernel/irq.c
    
    retval = setup_x86_irq (irq, action);
    if (retval)
-Index: gnumach-1.4+git20141107/vm/vm_user.c
+Index: gnumach/vm/vm_user.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/vm/vm_user.c
-+++ gnumach-1.4+git20141107/vm/vm_user.c
-@@ -434,3 +434,117 @@ kern_return_t vm_wire(host, map, start,
+--- gnumach.orig/vm/vm_user.c
++++ gnumach/vm/vm_user.c
+@@ -431,3 +431,117 @@ kern_return_t vm_wire(host, map, start,
  				    round_page(start+size),
  				    access);
  }
@@ -746,11 +746,11 @@ Index: gnumach-1.4+git20141107/vm/vm_user.c
 +	kfree ((vm_offset_t) pages, npages * sizeof (vm_page_t));
 +	return KERN_SUCCESS;
 +}
-Index: gnumach-1.4+git20141107/linux/dev/drivers/block/genhd.c
+Index: gnumach/linux/dev/drivers/block/genhd.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/linux/dev/drivers/block/genhd.c
-+++ gnumach-1.4+git20141107/linux/dev/drivers/block/genhd.c
-@@ -786,7 +786,9 @@ void device_setup(void)
+--- gnumach.orig/linux/dev/drivers/block/genhd.c
++++ gnumach/linux/dev/drivers/block/genhd.c
+@@ -812,7 +812,9 @@ void device_setup(void)
  #ifdef MACH
  	linux_intr_pri = SPL6;
  #endif
@@ -761,10 +761,10 @@ Index: gnumach-1.4+git20141107/linux/dev/drivers/block/genhd.c
  #endif
  #ifndef MACH
  	console_map_init();
-Index: gnumach-1.4+git20141107/kern/ipc_kobject.c
+Index: gnumach/kern/ipc_kobject.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/kern/ipc_kobject.c
-+++ gnumach-1.4+git20141107/kern/ipc_kobject.c
+--- gnumach.orig/kern/ipc_kobject.c
++++ gnumach/kern/ipc_kobject.c
 @@ -159,6 +159,7 @@ ipc_kobject_server(request)
  	 * to perform the kernel function
  	 */

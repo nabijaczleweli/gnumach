@@ -1207,6 +1207,7 @@ nodist_lib_dep_tr_for_defs_a_OBJECTS = vm/lib_dep_tr_for_defs_a-memory_object_us
 	vm/lib_dep_tr_for_defs_a-memory_object_default.user.defs.$(OBJEXT) \
 	device/lib_dep_tr_for_defs_a-device_reply.user.defs.$(OBJEXT) \
 	device/lib_dep_tr_for_defs_a-memory_object_reply.user.defs.$(OBJEXT) \
+	kern/lib_dep_tr_for_defs_a-task_notify.user.defs.$(OBJEXT) \
 	device/lib_dep_tr_for_defs_a-device.server.defs.$(OBJEXT) \
 	device/lib_dep_tr_for_defs_a-device_pager.server.defs.$(OBJEXT) \
 	ipc/lib_dep_tr_for_defs_a-mach_port.server.defs.$(OBJEXT) \
@@ -1500,7 +1501,7 @@ nodist_libkernel_a_OBJECTS = version.$(OBJEXT) \
 	vm/memory_object_default.user.$(OBJEXT) \
 	device/device_reply.user.$(OBJEXT) \
 	device/memory_object_reply.user.$(OBJEXT) \
-	device/device.server.$(OBJEXT) \
+	kern/task_notify.user.$(OBJEXT) device/device.server.$(OBJEXT) \
 	device/device_pager.server.$(OBJEXT) \
 	ipc/mach_port.server.$(OBJEXT) kern/mach.server.$(OBJEXT) \
 	kern/mach4.server.$(OBJEXT) kern/gnumach.server.$(OBJEXT) \
@@ -2439,11 +2440,12 @@ DIST_SUBDIRS =
 #
 EXTRA_DIST = gensym.awk ipc/mach_port.srv kern/mach.srv kern/mach4.srv \
 	kern/gnumach.srv kern/mach_debug.srv kern/mach_host.srv \
-	vm/memory_object_default.cli vm/memory_object_user.cli \
-	device/device.srv device/device_pager.srv \
-	device/device_reply.cli device/memory_object_reply.cli include \
-	$(am__append_13) $(am__append_20) $(am__append_24) \
-	$(am__append_26) $(am__append_30) $(am__append_41) \
+	kern/task_notify.cli vm/memory_object_default.cli \
+	vm/memory_object_user.cli device/device.srv \
+	device/device_pager.srv device/device_reply.cli \
+	device/memory_object_reply.cli include $(am__append_13) \
+	$(am__append_20) $(am__append_24) $(am__append_26) \
+	$(am__append_30) $(am__append_41) \
 	linux/src/drivers/scsi/NCR5380.c \
 	linux/src/drivers/scsi/NCR5380.h linux/src/drivers/net/8390.h \
 	linux/src/drivers/net/kern_compat.h linux/pcmcia-cs/glue/ds.c \
@@ -2615,19 +2617,20 @@ nodist_libkernel_a_SOURCES = version.c vm/memory_object_user.user.h \
 	device/device_reply.user.msgids \
 	device/memory_object_reply.user.h \
 	device/memory_object_reply.user.c \
-	device/memory_object_reply.user.msgids device/device.server.h \
-	device/device.server.c device/device.server.msgids \
-	device/device_pager.server.h device/device_pager.server.c \
-	device/device_pager.server.msgids ipc/mach_port.server.h \
-	ipc/mach_port.server.c ipc/mach_port.server.msgids \
-	kern/mach.server.h kern/mach.server.c kern/mach.server.msgids \
-	kern/mach4.server.h kern/mach4.server.c \
-	kern/mach4.server.msgids kern/gnumach.server.h \
-	kern/gnumach.server.c kern/gnumach.server.msgids \
-	kern/mach_debug.server.h kern/mach_debug.server.c \
-	kern/mach_debug.server.msgids kern/mach_host.server.h \
-	kern/mach_host.server.c kern/mach_host.server.msgids \
-	$(am__append_122)
+	device/memory_object_reply.user.msgids kern/task_notify.user.h \
+	kern/task_notify.user.c kern/task_notify.user.msgids \
+	device/device.server.h device/device.server.c \
+	device/device.server.msgids device/device_pager.server.h \
+	device/device_pager.server.c device/device_pager.server.msgids \
+	ipc/mach_port.server.h ipc/mach_port.server.c \
+	ipc/mach_port.server.msgids kern/mach.server.h \
+	kern/mach.server.c kern/mach.server.msgids kern/mach4.server.h \
+	kern/mach4.server.c kern/mach4.server.msgids \
+	kern/gnumach.server.h kern/gnumach.server.c \
+	kern/gnumach.server.msgids kern/mach_debug.server.h \
+	kern/mach_debug.server.c kern/mach_debug.server.msgids \
+	kern/mach_host.server.h kern/mach_host.server.c \
+	kern/mach_host.server.msgids $(am__append_122)
 gnumach_o_LDADD = libkernel.a $(am__append_6) $(am__append_100)
 gnumach_SOURCES = 
 gnumach_LINKFLAGS = $(am__append_123) $(am__append_126)
@@ -2653,11 +2656,11 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  \
 	vm/memory_object_default.user.defs.c \
 	device/device_reply.user.defs.c \
 	device/memory_object_reply.user.defs.c \
-	device/device.server.defs.c device/device_pager.server.defs.c \
-	ipc/mach_port.server.defs.c kern/mach.server.defs.c \
-	kern/mach4.server.defs.c kern/gnumach.server.defs.c \
-	kern/mach_debug.server.defs.c kern/mach_host.server.defs.c \
-	$(am__append_121)
+	kern/task_notify.user.defs.c device/device.server.defs.c \
+	device/device_pager.server.defs.c ipc/mach_port.server.defs.c \
+	kern/mach.server.defs.c kern/mach4.server.defs.c \
+	kern/gnumach.server.defs.c kern/mach_debug.server.defs.c \
+	kern/mach_host.server.defs.c $(am__append_121)
 # Preprocess only.
 lib_dep_tr_for_defs_a_CPPFLAGS = $(AM_CPPFLAGS) \
 	-E
@@ -2690,6 +2693,7 @@ include_mach_HEADERS = \
 	include/mach/mach.defs \
 	include/mach/mach4.defs \
 	include/mach/gnumach.defs \
+	include/mach/task_notify.defs \
 	include/mach/mach_host.defs \
 	include/mach/mach_port.defs \
 	include/mach/mach_types.defs \
@@ -3006,6 +3010,14 @@ device/lib_dep_tr_for_defs_a-device_reply.user.defs.$(OBJEXT):  \
 	device/$(am__dirstamp) device/$(DEPDIR)/$(am__dirstamp)
 device/lib_dep_tr_for_defs_a-memory_object_reply.user.defs.$(OBJEXT):  \
 	device/$(am__dirstamp) device/$(DEPDIR)/$(am__dirstamp)
+kern/$(am__dirstamp):
+	@$(MKDIR_P) kern
+	@: > kern/$(am__dirstamp)
+kern/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) kern/$(DEPDIR)
+	@: > kern/$(DEPDIR)/$(am__dirstamp)
+kern/lib_dep_tr_for_defs_a-task_notify.user.defs.$(OBJEXT):  \
+	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
 device/lib_dep_tr_for_defs_a-device.server.defs.$(OBJEXT):  \
 	device/$(am__dirstamp) device/$(DEPDIR)/$(am__dirstamp)
 device/lib_dep_tr_for_defs_a-device_pager.server.defs.$(OBJEXT):  \
@@ -3018,12 +3030,6 @@ ipc/$(DEPDIR)/$(am__dirstamp):
 	@: > ipc/$(DEPDIR)/$(am__dirstamp)
 ipc/lib_dep_tr_for_defs_a-mach_port.server.defs.$(OBJEXT):  \
 	ipc/$(am__dirstamp) ipc/$(DEPDIR)/$(am__dirstamp)
-kern/$(am__dirstamp):
-	@$(MKDIR_P) kern
-	@: > kern/$(am__dirstamp)
-kern/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) kern/$(DEPDIR)
-	@: > kern/$(DEPDIR)/$(am__dirstamp)
 kern/lib_dep_tr_for_defs_a-mach.server.defs.$(OBJEXT):  \
 	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
 kern/lib_dep_tr_for_defs_a-mach4.server.defs.$(OBJEXT):  \
@@ -3432,6 +3438,8 @@ device/device_reply.user.$(OBJEXT): device/$(am__dirstamp) \
 	device/$(DEPDIR)/$(am__dirstamp)
 device/memory_object_reply.user.$(OBJEXT): device/$(am__dirstamp) \
 	device/$(DEPDIR)/$(am__dirstamp)
+kern/task_notify.user.$(OBJEXT): kern/$(am__dirstamp) \
+	kern/$(DEPDIR)/$(am__dirstamp)
 device/device.server.$(OBJEXT): device/$(am__dirstamp) \
 	device/$(DEPDIR)/$(am__dirstamp)
 device/device_pager.server.$(OBJEXT): device/$(am__dirstamp) \
@@ -4267,6 +4275,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach4.server.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach_debug.server.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach_host.server.defs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lock_mon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/mach.server.Po@am__quote@
@@ -4291,6 +4300,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/syscall_subr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/syscall_sw.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/task.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/task_notify.user.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/thread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/thread_swap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/time_stamp.Po@am__quote@
@@ -4571,6 +4581,20 @@ device/lib_dep_tr_for_defs_a-memory_object_reply.user.defs.obj: device/memory_ob
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='device/memory_object_reply.user.defs.c' object='device/lib_dep_tr_for_defs_a-memory_object_reply.user.defs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o device/lib_dep_tr_for_defs_a-memory_object_reply.user.defs.obj `if test -f 'device/memory_object_reply.user.defs.c'; then $(CYGPATH_W) 'device/memory_object_reply.user.defs.c'; else $(CYGPATH_W) '$(srcdir)/device/memory_object_reply.user.defs.c'; fi`
+
+kern/lib_dep_tr_for_defs_a-task_notify.user.defs.o: kern/task_notify.user.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT kern/lib_dep_tr_for_defs_a-task_notify.user.defs.o -MD -MP -MF kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Tpo -c -o kern/lib_dep_tr_for_defs_a-task_notify.user.defs.o `test -f 'kern/task_notify.user.defs.c' || echo '$(srcdir)/'`kern/task_notify.user.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Tpo kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='kern/task_notify.user.defs.c' object='kern/lib_dep_tr_for_defs_a-task_notify.user.defs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o kern/lib_dep_tr_for_defs_a-task_notify.user.defs.o `test -f 'kern/task_notify.user.defs.c' || echo '$(srcdir)/'`kern/task_notify.user.defs.c
+
+kern/lib_dep_tr_for_defs_a-task_notify.user.defs.obj: kern/task_notify.user.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT kern/lib_dep_tr_for_defs_a-task_notify.user.defs.obj -MD -MP -MF kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Tpo -c -o kern/lib_dep_tr_for_defs_a-task_notify.user.defs.obj `if test -f 'kern/task_notify.user.defs.c'; then $(CYGPATH_W) 'kern/task_notify.user.defs.c'; else $(CYGPATH_W) '$(srcdir)/kern/task_notify.user.defs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Tpo kern/$(DEPDIR)/lib_dep_tr_for_defs_a-task_notify.user.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='kern/task_notify.user.defs.c' object='kern/lib_dep_tr_for_defs_a-task_notify.user.defs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o kern/lib_dep_tr_for_defs_a-task_notify.user.defs.obj `if test -f 'kern/task_notify.user.defs.c'; then $(CYGPATH_W) 'kern/task_notify.user.defs.c'; else $(CYGPATH_W) '$(srcdir)/kern/task_notify.user.defs.c'; fi`
 
 device/lib_dep_tr_for_defs_a-device.server.defs.o: device/device.server.defs.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT device/lib_dep_tr_for_defs_a-device.server.defs.o -MD -MP -MF device/$(DEPDIR)/lib_dep_tr_for_defs_a-device.server.defs.Tpo -c -o device/lib_dep_tr_for_defs_a-device.server.defs.o `test -f 'device/device.server.defs.c' || echo '$(srcdir)/'`device/device.server.defs.c

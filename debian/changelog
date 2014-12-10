@@ -1,3 +1,11 @@
+gnumach (2:1.4+git20141211-1) unstable; urgency=medium
+
+  * New upstream snapshot.
+    - patches/git-R-vm_map.patch,git-nodma.patch: Remove patches, merged
+    upstream.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 10 Dec 2014 23:37:24 +0000
+
 gnumach (2:1.4+git20141109-2) unstable; urgency=medium
 
   * patches/git-nodma.patch: Add nodma option.
