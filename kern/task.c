@@ -50,11 +50,15 @@
 #include <kern/sched_prim.h>	/* for thread_wakeup */
 #include <kern/ipc_tt.h>
 #include <kern/syscall_emulation.h>
+#include <kern/task_notify.user.h>
 #include <vm/vm_kern.h>		/* for kernel_map, ipc_kernel_map */
 #include <machine/machspl.h>	/* for splsched */
 
 task_t	kernel_task = TASK_NULL;
 struct kmem_cache task_cache;
+
+/* Where to send notifications about newly created tasks.  */
+ipc_port_t new_task_notification = NULL;
 
 void task_init(void)
 {
@@ -169,6 +173,14 @@ kern_return_t task_create(
 
 	snprintf (new_task->name, sizeof new_task->name, "%p", new_task);
 
+	if (new_task_notification != NULL) {
+		task_reference (new_task);
+		task_reference (parent_task);
+		mach_notify_new_task (new_task_notification,
+				      convert_task_to_port (new_task),
+				      convert_task_to_port (parent_task));
+	}
+
 	ipc_task_enable(new_task);
 
 	*child_task = new_task;
@@ -272,6 +284,7 @@ kern_return_t task_terminate(
 			thread_terminate(cur_thread);
 			return KERN_FAILURE;
 		}
+		task_hold_locked(task);
 		task->active = FALSE;
 		queue_remove(list, cur_thread, thread_t, thread_list);
 		thread_unlock(cur_thread);
@@ -325,6 +338,7 @@ kern_return_t task_terminate(
 			task_unlock(task);
 			return KERN_FAILURE;
 		}
+		task_hold_locked(task);
 		task->active = FALSE;
 		task_unlock(task);
 	}
@@ -335,9 +349,8 @@ kern_return_t task_terminate(
 	 *	If this is the current task, the current thread will
 	 *	be left running.
 	 */
-	ipc_task_disable(task);
-	(void) task_hold(task);
 	(void) task_dowait(task,TRUE);			/* may block */
+	ipc_task_disable(task);
 
 	/*
 	 *	Terminate each thread in the task.
@@ -402,20 +415,18 @@ kern_return_t task_terminate(
  *	Suspend execution of the specified task.
  *	This is a recursive-style suspension of the task, a count of
  *	suspends is maintained.
+ *
+ *	CONDITIONS: the task is locked and active.
  */
-kern_return_t task_hold(
+void task_hold_locked(
 	task_t	task)
 {
 	queue_head_t	*list;
 	thread_t	thread, cur_thread;
 
-	cur_thread = current_thread();
+	assert(task->active);
 
-	task_lock(task);
-	if (!task->active) {
-		task_unlock(task);
-		return KERN_FAILURE;
-	}
+	cur_thread = current_thread();
 
 	task->suspend_count++;
 
@@ -429,6 +440,26 @@ kern_return_t task_hold(
 		if (thread != cur_thread)
 			thread_hold(thread);
 	}
+}
+
+/*
+ *	task_hold:
+ *
+ *	Suspend execution of the specified task.
+ *	This is a recursive-style suspension of the task, a count of
+ *	suspends is maintained.
+ */
+kern_return_t task_hold(
+	task_t	task)
+{
+	task_lock(task);
+	if (!task->active) {
+		task_unlock(task);
+		return KERN_FAILURE;
+	}
+
+	task_hold_locked(task);
+
 	task_unlock(task);
 	return KERN_SUCCESS;
 }
@@ -1229,4 +1260,25 @@ task_ras_control(
     task_unlock(task);
 #endif /* FAST_TAS */
     return ret;
+}
+
+/*
+ *	register_new_task_notification
+ *
+ *	Register a port to which a notification about newly created
+ *	tasks are sent.
+ */
+kern_return_t
+register_new_task_notification(
+	const host_t host,
+	ipc_port_t notification)
+{
+	if (host == HOST_NULL)
+		return KERN_INVALID_HOST;
+
+	if (new_task_notification != NULL)
+		return KERN_NO_ACCESS;
+
+	new_task_notification = notification;
+	return KERN_SUCCESS;
 }

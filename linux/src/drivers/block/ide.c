@@ -2526,7 +2526,7 @@ static inline void do_identify (ide_drive_t *drive, byte cmd)
 					drive->media = ide_tape;
 					drive->present = 1;
 					drive->removable = 1;
-					if (drive->autotune != 2 && HWIF(drive)->dmaproc != NULL) {
+					if (drive->autotune != 2 && HWIF(drive)->dmaproc != NULL && !drive->nodma) {
 						if (!HWIF(drive)->dmaproc(ide_dma_check, drive))
 							printk(", DMA");
 					}
@@ -2653,7 +2653,7 @@ static inline void do_identify (ide_drive_t *drive, byte cmd)
 		if (drive->mult_req || ((id->multsect_valid & 1) && id->multsect))
 			drive->special.b.set_multmode = 1;
 	}
-	if (drive->autotune != 2 && HWIF(drive)->dmaproc != NULL) {
+	if (drive->autotune != 2 && HWIF(drive)->dmaproc != NULL && !drive->nodma) {
 		if (!(HWIF(drive)->dmaproc(ide_dma_check, drive))) {
 			if ((id->field_valid & 4) && (id->dma_ultra & (id->dma_ultra >> 8) & 7))
 				printk(", UDMA");
@@ -3108,6 +3108,7 @@ static int match_parm (char *s, const char *keywords[], int vals[], int max_vals
  *				Not fully supported by all chipset types,
  *				and quite likely to cause trouble with
  *				older/odd IDE drives.
+ * "hdx=nodma"		: disallow DMA for the drive
  *
  * "idebus=xx"		: inform IDE driver of VESA/PCI bus speed in Mhz,
  *				where "xx" is between 20 and 66 inclusive,
@@ -3152,7 +3153,11 @@ void ide_setup (char *s)
 	ide_hwif_t *hwif;
 	ide_drive_t *drive;
 	unsigned int hw, unit;
+#ifdef MACH
+	const char max_drive = '0' + ((MAX_HWIFS * MAX_DRIVES) - 1);
+#else
 	const char max_drive = 'a' + ((MAX_HWIFS * MAX_DRIVES) - 1);
+#endif
 	const char max_hwif  = '0' + (MAX_HWIFS - 1);
 
 	printk("ide_setup: %s", s);
@@ -3161,11 +3166,19 @@ void ide_setup (char *s)
 	/*
 	 * Look for drive options:  "hdx="
 	 */
+#ifdef MACH
+	if (s[0] == 'h' && s[1] == 'd' && s[2] >= '0' && s[2] <= max_drive) {
+#else
 	if (s[0] == 'h' && s[1] == 'd' && s[2] >= 'a' && s[2] <= max_drive) {
+#endif
 		const char *hd_words[] = {"none", "noprobe", "nowerr", "cdrom",
 				"serialize", "autotune", "noautotune",
-				"slow", "ide-scsi", NULL};
+				"slow", "ide-scsi", "nodma", NULL};
+#ifdef MACH
+		unit = s[2] - '0';
+#else
 		unit = s[2] - 'a';
+#endif
 		hw   = unit / MAX_DRIVES;
 		unit = unit % MAX_DRIVES;
 		hwif = &ide_hwifs[hw];
@@ -3199,6 +3212,9 @@ void ide_setup (char *s)
 				goto done;
 			case -9: /* "ide-scsi" */
 				drive->ide_scsi = 1;
+				goto done;
+			case -10: /* "nodma" */
+				drive->nodma = 1;
 				goto done;
 			case 3: /* cyl,head,sect */
 				drive->media	= ide_disk;
