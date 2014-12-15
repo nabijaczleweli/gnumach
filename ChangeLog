@@ -1,3 +1,14 @@
+2014-12-15  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make spl7 just clear IF instead of setting the PIC mask
+	* i386/i386/spl.S (spl7): Just set curr_ipl and cli.
+	(splx) [MACH_KDB || MACH_TTD]: When curr_ipl is 7, make sure that IF is cleared.
+	(splx): When staying at ipl7, do not enable interrupts.
+	(spl) [MACH_KDB || MACH_TTD]: When curr_ipl is 7, make sure that IF is cleared.
+	(spl): When new ipl is 7, branch to spl7.
+	* i386/i386/locore.S (TIME_TRAP_UENTRY, TIME_TRAP_SENTRY): Save flags, and
+	restore them instead of blindly using sti.
+
 2014-12-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Ship missing file
