@@ -72,10 +72,23 @@ typedef struct ipc_kmsg {
 #define	ikm_plus_overhead(size)	((vm_size_t)((size) + IKM_OVERHEAD))
 #define	ikm_less_overhead(size)	((mach_msg_size_t)((size) - IKM_OVERHEAD))
 
+#if	MACH_IPC_TEST
 /*
- * XXX	For debugging.
+ *	For debugging.
  */
 #define IKM_BOGUS		((ipc_kmsg_t) 0xffffff10)
+
+#define	ikm_mark_bogus(kmsg)						\
+MACRO_BEGIN								\
+	(kmsg)->ikm_next = IKM_BOGUS;					\
+	(kmsg)->ikm_prev = IKM_BOGUS;					\
+MACRO_END
+
+#else	/* MACH_IPC_TEST */
+
+#define	ikm_mark_bogus(kmsg)	;
+
+#endif	/* MACH_IPC_TEST */
 
 /*
  *	We keep a per-processor cache of kernel message buffers.
@@ -92,9 +105,12 @@ extern ipc_kmsg_t	ipc_kmsg_cache[NCPUS];
 /*
  *	The size of the kernel message buffers that will be cached.
  *	IKM_SAVED_KMSG_SIZE includes overhead; IKM_SAVED_MSG_SIZE doesn't.
+ *
+ *	We use the page size for IKM_SAVED_KMSG_SIZE to make sure the
+ *	page is pinned to a single processor.
  */
 
-#define	IKM_SAVED_KMSG_SIZE	((vm_size_t) 256)
+#define	IKM_SAVED_KMSG_SIZE	PAGE_SIZE
 #define	IKM_SAVED_MSG_SIZE	ikm_less_overhead(IKM_SAVED_KMSG_SIZE)
 
 #define	ikm_alloc(size)							\
@@ -195,9 +211,7 @@ MACRO_BEGIN								\
 		_next->ikm_prev = _prev;				\
 		_prev->ikm_next = _next;				\
 	}								\
-  	/* XXX Debug paranoia */					\
-  	kmsg->ikm_next = IKM_BOGUS;					\
-  	kmsg->ikm_prev = IKM_BOGUS;					\
+	ikm_mark_bogus (kmsg);						\
 MACRO_END
 
 #define	ipc_kmsg_enqueue_macro(queue, kmsg)				\

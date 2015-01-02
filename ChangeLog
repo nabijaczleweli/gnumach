@@ -1,3 +1,36 @@
+2015-01-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Handle kernel traps happening before starting userland
+	* i386/i386/trap.c (kernel_trap): When current_thread is null, assume that
+	we are in kernel land.
+
+2014-12-16  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: gracefully handle bogus sample pc sequence number
+	If a sequence number larger than the sample control sequence number is
+	supplied, `nsamples' becomes negative.  Handle this gracefully.
+
+	* kern/pc_sample.c (get_sampled_pcs): Handle bogus sequence number.
+
+2014-12-16  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: guard test code with `MACH_IPC_TEST'
+	* ipc/ipc_kmsg.h (ikm_mark_bogus): New macro.
+	(ipc_kmsg_rmqueue_first_macro): Use `ikm_mark_bogus'.
+	* ipc/ipc_kmsg.c (ipc_kmsg_rmqueue): Likewise.
+
+2014-12-16  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: tune size of cached kernel message buffers
+	The previous limit was 256 bytes.  That seems a little crummy by
+	todays standards, and we are frequently sending bigger packets
+	(e.g. every RPC containing a string_t on Hurd).
+
+	Use the page size for IKM_SAVED_KMSG_SIZE to make sure the page is
+	pinned to a single processor.
+
+	* ipc/ipc_kmsg.h (IKM_SAVED_KMSG_SIZE): Define to `PAGE_SIZE'.
+
 2014-12-15  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Make spl7 just clear IF instead of setting the PIC mask
