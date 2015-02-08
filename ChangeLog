@@ -1,3 +1,28 @@
+2015-01-22  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: warn about more port management bugs
+	* ipc/mach_port.c (mach_port_destroy): Simplify expression.  Reword warning.
+	(mach_port_deallocate): Likewise.
+	(mach_port_mod_refs): Also warn about errors when using this function.
+
+2015-01-02  Stefan Weil  <sw@weilnetz.de>
+
+	vm: Fix typo in comment (found by codespell)
+
+	kern: Fix typos in comments (found by codespell)
+
+	ipc: Fix typo in comment (found by codespell)
+
+	include: Fix typos in comments (found by codespell)
+
+	i386: Fix typos in comments (found by codespell)
+
+	device: Fix typos in comments (found by codespell)
+
+	Makefile.am: Fix typos and grammar in comment
+
+	ddb: Fix typos in comments (found by codespell)
+
 2015-01-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Handle kernel traps happening before starting userland
