@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 5.2 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 10 November 2014, of 'The GNU
-Mach Reference Manual', for version 1.4+git20150208.
+   This is edition 0.4, last updated on 11 March 2015, of 'The GNU Mach
+Reference Manual', for version 1.4+git20150409.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -39,126 +39,126 @@ END-INFO-DIR-ENTRY
 
 
 Indirect:
-mach.info-1: 1642
-mach.info-2: 302547
+mach.info-1: 1639
+mach.info-2: 302538
 
 Tag Table:
 (Indirect)
-Node: Top1642
-Node: Introduction11282
-Node: Audience12113
-Node: Features13148
-Node: Overview14975
-Node: History16168
-Node: Installing16313
-Node: Binary Distributions17538
-Node: Compilation18346
-Node: Configuration19579
-Node: Cross-Compilation35990
-Node: Bootstrap36771
-Ref: Bootstrap-Footnote-137214
-Node: Bootloader37451
-Ref: Bootloader-Footnote-138731
-Node: Modules38817
-Node: Inter Process Communication39644
-Node: Major Concepts40267
-Node: Messaging Interface44072
-Node: Mach Message Call44802
-Node: Message Format48117
-Node: Exchanging Port Rights59309
-Ref: Exchanging Port Rights-Footnote-164871
-Node: Memory65043
-Ref: Memory-Footnote-168137
-Node: Message Send68479
-Ref: Message Send-Footnote-175501
-Node: Message Receive75784
-Ref: Message Receive-Footnote-185436
-Node: Atomicity85717
-Node: Port Manipulation Interface88491
-Node: Port Creation90046
-Node: Port Destruction94835
-Node: Port Names97978
-Node: Port Rights102225
-Node: Ports and other Tasks106014
-Node: Receive Rights110107
-Node: Port Sets117038
-Node: Request Notifications119441
-Node: Inherited Ports124245
-Node: Virtual Memory Interface127929
-Node: Memory Allocation129182
-Node: Memory Deallocation131707
-Node: Data Transfer133171
-Node: Memory Attributes136697
-Node: Mapping Memory Objects146116
-Node: Memory Statistics149425
-Node: External Memory Management150999
-Node: Memory Object Server151704
-Node: Memory Object Creation154413
-Node: Memory Object Termination158419
-Node: Memory Objects and Data161358
-Node: Memory Object Locking178504
-Node: Memory Object Attributes184399
-Node: Default Memory Manager190236
-Node: Threads and Tasks195958
-Node: Thread Interface196295
-Node: Thread Creation197291
-Node: Thread Termination198408
-Node: Thread Information198879
-Node: Thread Settings204978
-Node: Thread Execution206212
-Node: Scheduling213505
-Node: Thread Priority213860
-Node: Hand-Off Scheduling216494
-Node: Scheduling Policy221619
-Node: Thread Special Ports222951
-Node: Exceptions225397
-Node: Task Interface226267
-Node: Task Creation227279
-Node: Task Termination228614
-Node: Task Information229216
-Node: Task Execution236118
-Node: Task Special Ports240531
-Node: Syscall Emulation244385
-Node: Profiling245616
-Node: Host Interface249379
-Node: Host Ports250364
-Node: Host Information252437
-Node: Host Time257820
-Node: Host Reboot260487
-Node: Processors and Processor Sets261039
-Node: Processor Set Interface262017
-Node: Processor Set Ports262784
-Node: Processor Set Access263614
-Node: Processor Set Creation265874
-Node: Processor Set Destruction266901
-Node: Tasks and Threads on Sets267822
-Node: Processor Set Priority272989
-Node: Processor Set Policy274279
-Node: Processor Set Info275893
-Node: Processor Interface279706
-Node: Hosted Processors280431
-Node: Processor Control281422
-Node: Processors and Sets282888
-Node: Processor Info284766
-Node: Device Interface287508
-Node: Device Reply Server289123
-Node: Device Open290415
-Node: Device Close292538
-Node: Device Read293117
-Node: Device Write296036
-Node: Device Map298841
-Node: Device Status299732
-Node: Device Filter302547
-Node: Kernel Debugger308294
-Node: Operation309021
-Node: Commands311998
-Node: Variables325783
-Node: Expressions327171
-Node: Copying328520
-Node: Documentation License347749
-Node: GNU Free Documentation License348338
-Node: CMU License370737
-Node: Concept Index371972
-Node: Function and Data Index375818
+Node: Top1639
+Node: Introduction11276
+Node: Audience12107
+Node: Features13142
+Node: Overview14969
+Node: History16162
+Node: Installing16307
+Node: Binary Distributions17532
+Node: Compilation18340
+Node: Configuration19573
+Node: Cross-Compilation35984
+Node: Bootstrap36765
+Ref: Bootstrap-Footnote-137208
+Node: Bootloader37445
+Ref: Bootloader-Footnote-138725
+Node: Modules38811
+Node: Inter Process Communication39638
+Node: Major Concepts40261
+Node: Messaging Interface44066
+Node: Mach Message Call44796
+Node: Message Format48111
+Node: Exchanging Port Rights59303
+Ref: Exchanging Port Rights-Footnote-164865
+Node: Memory65037
+Ref: Memory-Footnote-168131
+Node: Message Send68473
+Ref: Message Send-Footnote-175495
+Node: Message Receive75778
+Ref: Message Receive-Footnote-185430
+Node: Atomicity85711
+Node: Port Manipulation Interface88485
+Node: Port Creation90040
+Node: Port Destruction94829
+Node: Port Names97972
+Node: Port Rights102219
+Node: Ports and other Tasks106008
+Node: Receive Rights110101
+Node: Port Sets117032
+Node: Request Notifications119435
+Node: Inherited Ports124239
+Node: Virtual Memory Interface127923
+Node: Memory Allocation129176
+Node: Memory Deallocation131701
+Node: Data Transfer133165
+Node: Memory Attributes136691
+Node: Mapping Memory Objects146110
+Node: Memory Statistics149419
+Node: External Memory Management150993
+Node: Memory Object Server151698
+Node: Memory Object Creation154407
+Node: Memory Object Termination158413
+Node: Memory Objects and Data161352
+Node: Memory Object Locking178498
+Node: Memory Object Attributes184393
+Node: Default Memory Manager190230
+Node: Threads and Tasks195952
+Node: Thread Interface196289
+Node: Thread Creation197285
+Node: Thread Termination198402
+Node: Thread Information198873
+Node: Thread Settings204972
+Node: Thread Execution206206
+Node: Scheduling213499
+Node: Thread Priority213854
+Node: Hand-Off Scheduling216488
+Node: Scheduling Policy221613
+Node: Thread Special Ports222945
+Node: Exceptions225391
+Node: Task Interface226261
+Node: Task Creation227273
+Node: Task Termination228608
+Node: Task Information229210
+Node: Task Execution236112
+Node: Task Special Ports240525
+Node: Syscall Emulation244379
+Node: Profiling245610
+Node: Host Interface249373
+Node: Host Ports250358
+Node: Host Information252431
+Node: Host Time257814
+Node: Host Reboot260481
+Node: Processors and Processor Sets261033
+Node: Processor Set Interface262011
+Node: Processor Set Ports262778
+Node: Processor Set Access263608
+Node: Processor Set Creation265868
+Node: Processor Set Destruction266895
+Node: Tasks and Threads on Sets267816
+Node: Processor Set Priority272983
+Node: Processor Set Policy274273
+Node: Processor Set Info275887
+Node: Processor Interface279700
+Node: Hosted Processors280425
+Node: Processor Control281416
+Node: Processors and Sets282882
+Node: Processor Info284760
+Node: Device Interface287502
+Node: Device Reply Server289117
+Node: Device Open290409
+Node: Device Close292532
+Node: Device Read293111
+Node: Device Write296030
+Node: Device Map298835
+Node: Device Status299726
+Node: Device Filter302538
+Node: Kernel Debugger308285
+Node: Operation309012
+Node: Commands311989
+Node: Variables325774
+Node: Expressions327162
+Node: Copying328511
+Node: Documentation License347740
+Node: GNU Free Documentation License348329
+Node: CMU License370728
+Node: Concept Index371963
+Node: Function and Data Index375809
 
 End Tag Table

@@ -293,7 +293,7 @@ void
 kbd_enqueue(kd_event *ev)
 {
 	if (kdq_full(&kbd_queue))
-		printf("kbd: queue full\n");
+		printf_once("kbd: queue full\n");
 	else
 		kdq_put(&kbd_queue, ev);
 
