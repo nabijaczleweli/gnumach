@@ -1,3 +1,107 @@
+2015-03-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Give the Debian package name for the non-multilib libc.a
+	* Makefile.am (clib-routines.o): Mention the Debian libc6-dev:i386 package.
+
+2015-03-08  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Remove spl debugging in Xen case
+	xen cli/sti doesn't use IF
+
+	* i386/i386/spl.S [MACH_XEN]: Disable IF check.
+
+2015-03-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Show odd number of ports
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Show odd number of ports.
+
+2015-02-26  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Use printf_once instead of recoding it
+	* i386/i386at/kd_event.c: Call printf_once instead of recoding it.
+	* i386/i386at/kd_mouse.c: Likewise.
+
+	Limit printing "queue full" messages
+	* i386/i386at/kd_event.c (kbd_enqueue): Print "queue full" warning only
+	once.
+	* i386/i386at/kd_mouse.c (mouse_enqueue): Likewise.
+
+2015-02-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: inherit the name of the parent task
+	* kern/task.c (task_create): Inherit the name of the parent task.
+
+2015-02-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: specialize `copyinmsg' and `copyoutmsg'
+	Previously, `copyinmsg' was the same function as `copyin'.  The former
+	is for messages, and the size of messages is a multiple of four.
+	Likewise for `copyoutmsg'.
+
+	Provide a specialized version of both functions.  This shaves off a
+	couple of instructions and improves our IPC performance.
+
+	* i386/i386/locore.S (copyinmsg): New function.
+	(copyoutmsg): New function.
+
+2015-02-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: drop needless instruction from `copyout'
+	* i386/i386/locore.S (copyout): Do not needlessly copy length to %eax
+	first.
+
+2015-02-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: improve assert
+	Use the ternary operator to implement `assert' like it is done in the
+	glibc.  The glibcs changelog does not mention the rationale behind
+	this change, but doing the same seems to improve our IPC performance.
+
+	* kern/assert.h (assert): Define macro using the ternary operator.
+
+2015-02-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	linux: fix compiler warning
+	If the loop above completes at least one iteration, `i' will be larger
+	than zero.
+
+	* linux/dev/glue/block.c (rdwr_full): Add assertion to appease the
+	compiler.
+
+2015-02-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: reduce the size of `struct thread'
+	Reduce the size of `struct thread' by twelve bytes making it fit into
+	exactly five cache lines (on 32-bit platforms).
+
+	* kern/thread.h (struct thread): Group the state and all flags in a
+	bitfield.
+	(TH_EV_WAKE_ACTIVE, TH_EV_STATE): Provide macros that generate keys
+	for synchronization primitives like `thread_wakeup'.
+	* kern/thread.c (thread_halt, thread_dowait, thread_suspend): Use the
+	new keys instead of addresses of fields for the synchronisation.
+	* kern/ipc_sched.c (thread_handoff): Likewise.
+	* kern/sched_prim.c (thread_invoke, thread_dispatch): Likewise.
+
+2015-02-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: avoid #if 0ing out thread_collect_scan
+	Currently, `thread_collect_scan' does nothing because `pcb_collect' is
+	a nop.  Its body is exempt from compilation by means of the
+	preprocessor.
+
+	This is unfortunate as it increases the risk of bitrot, and we still
+	need to pay the price of rate-limiting thread_collect_scan.
+
+	* kern/thread.c (thread_collect_scan): Drop #if 0 around the body.
+	* vm/vm_pageout.c (vm_pageout_scan): Do not call
+	`consider_thread_collect' and document why.
+
+2015-02-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix typo
+	* vm/vm_resident.c: Fix typo.
+
 2015-01-22  Justus Winter  <4winter@informatik.uni-hamburg.de>
 
 	ipc: warn about more port management bugs
