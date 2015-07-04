@@ -59,9 +59,9 @@ AM_CFLAGS += \
 AM_CFLAGS += \
 	-Wall
 
-# See <http://lists.gnu.org/archive/html/bug-hurd/2006-01/msg00148.html>.
+# We need the GNU-style inline
 AM_CFLAGS += \
-	-fno-strict-aliasing
+	-fgnu89-inline
 
 # The smashing stack protector might be enabled by default, but might emit
 # unsuitable code.
@@ -161,6 +161,7 @@ clib_routines := memcmp memcpy memmove				\
 		 htonl htons ntohl ntohs			\
 		 udivdi3 __udivdi3				\
 		 __rel_iplt_start __rel_iplt_end		\
+		 __ffsdi2					\
 		 _START _start etext _edata end _end # actually ld magic, not libc.
 gnumach-undef: gnumach.$(OBJEXT)
 	$(NM_V) $(NM) -u $< | sed 's/  *U  *//' | sort -u > $@

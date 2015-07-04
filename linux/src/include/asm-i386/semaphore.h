@@ -30,6 +30,10 @@ struct semaphore {
 #define MUTEX ((struct semaphore) { 1, 0, 0, NULL })
 #define MUTEX_LOCKED ((struct semaphore) { 0, 0, 0, NULL })
 
+/* Special register calling convention:
+ * eax contains return address
+ * ecx contains semaphore address
+ */
 asmlinkage void down_failed(void /* special register calling convention */);
 asmlinkage void up_wakeup(void /* special register calling convention */);
 
@@ -43,18 +47,19 @@ extern void __up(struct semaphore * sem);
  */
 extern inline void down(struct semaphore * sem)
 {
+	int d0;
 	__asm__ __volatile__(
 		"# atomic down operation\n\t"
 		"movl $1f,%%eax\n\t"
 #ifdef __SMP__
 		"lock ; "
 #endif
-		"decl 0(%0)\n\t"
+		"decl %1\n\t"
 		"js " SYMBOL_NAME_STR(down_failed) "\n"
 		"1:\n"
-		:/* no outputs */
+		:"=&a" (d0), "=m" (sem->count)
 		:"c" (sem)
-		:"ax","dx","memory");
+		:"memory");
 }
 
 /*
@@ -91,13 +96,13 @@ extern inline int down_interruptible(struct semaphore * sem)
 #ifdef __SMP__
                 "lock ; "
 #endif
-                "decl 0(%1)\n\t"
+                "decl %1\n\t"
                 "js " SYMBOL_NAME_STR(down_failed_interruptible) "\n\t"
                 "xorl %%eax,%%eax\n"
                 "2:\n"
-                :"=a" (ret)
+                :"=&a" (ret), "=m" (sem->count)
                 :"c" (sem)
-                :"ax","dx","memory");
+                :"memory");
 
 	return(ret) ;
 }
@@ -110,18 +115,19 @@ extern inline int down_interruptible(struct semaphore * sem)
  */
 extern inline void up(struct semaphore * sem)
 {
+	int d0;
 	__asm__ __volatile__(
 		"# atomic up operation\n\t"
 		"movl $1f,%%eax\n\t"
 #ifdef __SMP__
 		"lock ; "
 #endif
-		"incl 0(%0)\n\t"
+		"incl %1\n\t"
 		"jle " SYMBOL_NAME_STR(up_wakeup)
 		"\n1:"
-		:/* no outputs */
+		:"=&a" (d0), "=m" (sem->count)
 		:"c" (sem)
-		:"ax", "dx", "memory");
+		:"memory");
 }
 
 #endif

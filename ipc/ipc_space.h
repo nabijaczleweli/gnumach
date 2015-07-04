@@ -42,25 +42,18 @@
 #include <mach/boolean.h>
 #include <mach/kern_return.h>
 #include <mach/mach_types.h>
-#include <kern/macro_help.h>
+#include <machine/vm_param.h>
+#include <kern/macros.h>
 #include <kern/lock.h>
+#include <kern/rdxtree.h>
 #include <kern/slab.h>
-#include <ipc/ipc_splay.h>
+#include <ipc/ipc_entry.h>
 #include <ipc/ipc_types.h>
 
 /*
  *	Every task has a space of IPC capabilities.
  *	IPC operations like send and receive use this space.
  *	IPC kernel calls manipulate the space of the target task.
- *
- *	Every space has a non-NULL is_table with is_table_size entries.
- *	A space may have a NULL is_tree.  is_tree_small records the
- *	number of entries in the tree that, if the table were to grow
- *	to the next larger size, would move from the tree to the table.
- *
- *	is_growing marks when the table is in the process of growing.
- *	When the table is growing, it can't be freed or grown by another
- *	thread, because of krealloc/kmem_realloc's requirements.
  */
 
 typedef unsigned int ipc_space_refs_t;
@@ -71,15 +64,15 @@ struct ipc_space {
 
 	decl_simple_lock_data(,is_lock_data)
 	boolean_t is_active;		/* is the space alive? */
-	boolean_t is_growing;		/* is the space growing? */
-	ipc_entry_t is_table;		/* an array of entries */
-	ipc_entry_num_t is_table_size;	/* current size of table */
-	struct ipc_table_size *is_table_next; /* info for larger table */
-	struct ipc_splay_tree is_tree;	/* a splay tree of entries */
-	ipc_entry_num_t is_tree_total;	/* number of entries in the tree */
-	ipc_entry_num_t is_tree_small;	/* # of small entries in the tree */
-	ipc_entry_num_t is_tree_hash;	/* # of hashed entries in the tree */
+	struct rdxtree is_map;		/* a map of entries */
+	size_t is_size;			/* number of entries */
+	struct rdxtree is_reverse_map;	/* maps objects to entries */
+	ipc_entry_t is_free_list;	/* a linked list of free entries */
+	size_t is_free_list_size;	/* number of free entries */
+#define IS_FREE_LIST_SIZE_LIMIT	64	/* maximum number of entries
+					   in the free list */
 };
+
 
 #define	IS_NULL			((ipc_space_t) 0)
 
@@ -131,8 +124,187 @@ extern void ipc_space_release(struct ipc_space *space);
 #define	is_reference(is)	ipc_space_reference(is)
 #define	is_release(is)		ipc_space_release(is)
 
-kern_return_t	ipc_space_create(ipc_table_size_t, ipc_space_t *);
+kern_return_t	ipc_space_create(ipc_space_t *);
 kern_return_t	ipc_space_create_special(struct ipc_space **);
 void		ipc_space_destroy(struct ipc_space *);
+
+/* IPC entry lookups.  */
+
+/*
+ *	Routine:	ipc_entry_lookup
+ *	Purpose:
+ *		Searches for an entry, given its name.
+ *	Conditions:
+ *		The space must be read or write locked throughout.
+ *		The space must be active.
+ */
+
+static inline ipc_entry_t
+ipc_entry_lookup(
+	ipc_space_t space,
+	mach_port_t name)
+{
+	ipc_entry_t entry;
+
+	assert(space->is_active);
+	entry = rdxtree_lookup(&space->is_map, (rdxtree_key_t) name);
+	if (entry != IE_NULL
+	    && IE_BITS_TYPE(entry->ie_bits) == MACH_PORT_TYPE_NONE)
+		entry = NULL;
+	assert((entry == IE_NULL) || IE_BITS_TYPE(entry->ie_bits));
+	return entry;
+}
+
+/*
+ *	Routine:	ipc_entry_get
+ *	Purpose:
+ *		Tries to allocate an entry out of the space.
+ *	Conditions:
+ *		The space is write-locked and active throughout.
+ *		An object may be locked.  Will not allocate memory.
+ *	Returns:
+ *		KERN_SUCCESS		A free entry was found.
+ *		KERN_NO_SPACE		No entry allocated.
+ */
+
+static inline kern_return_t
+ipc_entry_get(
+	ipc_space_t space,
+	mach_port_t *namep,
+	ipc_entry_t *entryp)
+{
+	mach_port_t new_name;
+	ipc_entry_t free_entry;
+
+	assert(space->is_active);
+
+	/* Get entry from the free list.  */
+	free_entry = space->is_free_list;
+	if (free_entry == IE_NULL)
+		return KERN_NO_SPACE;
+
+	space->is_free_list = free_entry->ie_next_free;
+	space->is_free_list_size -= 1;
+
+	/*
+	 *	Initialize the new entry.  We need only
+	 *	increment the generation number and clear ie_request.
+	 */
+
+    {
+	mach_port_gen_t gen;
+
+	assert((free_entry->ie_bits &~ IE_BITS_GEN_MASK) == 0);
+	gen = free_entry->ie_bits + IE_BITS_GEN_ONE;
+	free_entry->ie_bits = gen;
+	free_entry->ie_request = 0;
+	new_name = MACH_PORT_MAKE(free_entry->ie_name, gen);
+    }
+
+	/*
+	 *	The new name can't be MACH_PORT_NULL because index
+	 *	is non-zero.  It can't be MACH_PORT_DEAD because
+	 *	the table isn't allowed to grow big enough.
+	 *	(See comment in ipc/ipc_table.h.)
+	 */
+
+	assert(MACH_PORT_VALID(new_name));
+	assert(free_entry->ie_object == IO_NULL);
+
+	space->is_size += 1;
+	*namep = new_name;
+	*entryp = free_entry;
+	return KERN_SUCCESS;
+}
+
+/*
+ *	Routine:	ipc_entry_dealloc
+ *	Purpose:
+ *		Deallocates an entry from a space.
+ *	Conditions:
+ *		The space must be write-locked throughout.
+ *		The space must be active.
+ */
+
+static inline void
+ipc_entry_dealloc(
+	ipc_space_t	space,
+	mach_port_t	name,
+	ipc_entry_t	entry)
+{
+	assert(space->is_active);
+	assert(entry->ie_object == IO_NULL);
+	assert(entry->ie_request == 0);
+
+	if (space->is_free_list_size < IS_FREE_LIST_SIZE_LIMIT) {
+		space->is_free_list_size += 1;
+		entry->ie_bits &= IE_BITS_GEN_MASK;
+		entry->ie_next_free = space->is_free_list;
+		space->is_free_list = entry;
+	} else {
+		rdxtree_remove(&space->is_map, (rdxtree_key_t) name);
+		ie_free(entry);
+	}
+	space->is_size -= 1;
+}
+
+/* Reverse lookups.  */
+
+/* Cast a pointer to a suitable key.  */
+#define KEY(X)								\
+	({								\
+		assert((((unsigned long) (X)) & 0x07) == 0);		\
+		((unsigned long long)					\
+		 (((unsigned long) (X) - VM_MIN_KERNEL_ADDRESS) >> 3));	\
+	})
+
+/* Insert (OBJ, ENTRY) pair into the reverse mapping.  SPACE must
+   be write-locked.  */
+static inline kern_return_t
+ipc_reverse_insert(ipc_space_t space,
+		   ipc_object_t obj,
+		   ipc_entry_t entry)
+{
+	assert(space != IS_NULL);
+	assert(obj != IO_NULL);
+	return (kern_return_t) rdxtree_insert(&space->is_reverse_map,
+					      KEY(obj), entry);
+}
+
+/* Remove OBJ from the reverse mapping.  SPACE must be
+   write-locked.  */
+static inline ipc_entry_t
+ipc_reverse_remove(ipc_space_t space,
+		   ipc_object_t obj)
+{
+	assert(space != IS_NULL);
+	assert(obj != IO_NULL);
+	return rdxtree_remove(&space->is_reverse_map, KEY(obj));
+}
+
+/* Remove all entries from the reverse mapping.  SPACE must be
+   write-locked.  */
+static inline void
+ipc_reverse_remove_all(ipc_space_t space)
+{
+	assert(space != IS_NULL);
+	rdxtree_remove_all(&space->is_reverse_map);
+	assert(space->is_reverse_map.height == 0);
+	assert(space->is_reverse_map.root == NULL);
+}
+
+/* Return ENTRY related to OBJ, or NULL if no such entry is found in
+   the reverse mapping.  SPACE must be read-locked or
+   write-locked.  */
+static inline ipc_entry_t
+ipc_reverse_lookup(ipc_space_t space,
+		   ipc_object_t obj)
+{
+	assert(space != IS_NULL);
+	assert(obj != IO_NULL);
+	return rdxtree_lookup(&space->is_reverse_map, KEY(obj));
+}
+
+#undef KEY
 
 #endif	/* _IPC_IPC_SPACE_H_ */

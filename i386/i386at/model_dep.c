@@ -77,6 +77,10 @@
 #include <xen/xen.h>
 #endif	/* MACH_XEN */
 
+#if	ENABLE_IMMEDIATE_CONSOLE
+#include "immc.h"
+#endif	/* ENABLE_IMMEDIATE_CONSOLE */
+
 /* Location of the kernel's symbol table.
    Both of these are 0 if none is available.  */
 #if MACH_KDB
@@ -137,6 +141,7 @@ static vm_size_t avail_remaining;
 
 extern char	version[];
 
+/* If set, reboot the system on ctrl-alt-delete.  */
 boolean_t	rebootflag = FALSE;	/* exported to kdintr */
 
 /* XX interrupt stack pointer and highwater mark, for locore.S.  */
@@ -540,6 +545,10 @@ i386at_init(void)
  */
 void c_boot_entry(vm_offset_t bi)
 {
+#if	ENABLE_IMMEDIATE_CONSOLE
+	romputc = immc_romputc;
+#endif	/* ENABLE_IMMEDIATE_CONSOLE */
+
 	/* Stash the boot_image_info pointer.  */
 	boot_info = *(typeof(boot_info)*)phystokv(bi);
 	int cpu_type;

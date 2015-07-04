@@ -1234,20 +1234,19 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	ddb/db_trap.c ddb/db_trap.h ddb/db_variables.c \
 	ddb/db_variables.h ddb/db_watch.c ddb/db_watch.h \
 	ddb/db_write_cmd.c ddb/db_write_cmd.h ddb/nlist.h ddb/stab.h \
-	ddb/tr.h ipc/ipc_entry.c ipc/ipc_entry.h ipc/ipc_hash.c \
-	ipc/ipc_hash.h ipc/ipc_init.c ipc/ipc_init.h ipc/ipc_kmsg.c \
-	ipc/ipc_kmsg.h ipc/ipc_kmsg_queue.h ipc/ipc_machdep.h \
-	ipc/ipc_marequest.c ipc/ipc_marequest.h ipc/ipc_mqueue.c \
-	ipc/ipc_mqueue.h ipc/ipc_notify.c ipc/ipc_notify.h \
-	ipc/ipc_object.c ipc/ipc_object.h ipc/ipc_port.c \
-	ipc/ipc_port.h ipc/ipc_print.h ipc/ipc_pset.c ipc/ipc_pset.h \
-	ipc/ipc_right.c ipc/ipc_right.h ipc/ipc_space.c \
-	ipc/ipc_space.h ipc/ipc_splay.c ipc/ipc_splay.h \
-	ipc/ipc_table.c ipc/ipc_table.h ipc/ipc_target.c \
-	ipc/ipc_target.h ipc/ipc_thread.c ipc/ipc_thread.h \
-	ipc/ipc_types.h ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c \
-	ipc/mach_port.h ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h \
-	kern/act.c kern/act.h kern/assert.h kern/ast.c kern/ast.h \
+	ddb/tr.h ipc/ipc_entry.c ipc/ipc_entry.h ipc/ipc_init.c \
+	ipc/ipc_init.h ipc/ipc_kmsg.c ipc/ipc_kmsg.h \
+	ipc/ipc_kmsg_queue.h ipc/ipc_machdep.h ipc/ipc_marequest.c \
+	ipc/ipc_marequest.h ipc/ipc_mqueue.c ipc/ipc_mqueue.h \
+	ipc/ipc_notify.c ipc/ipc_notify.h ipc/ipc_object.c \
+	ipc/ipc_object.h ipc/ipc_port.c ipc/ipc_port.h ipc/ipc_print.h \
+	ipc/ipc_pset.c ipc/ipc_pset.h ipc/ipc_right.c ipc/ipc_right.h \
+	ipc/ipc_space.c ipc/ipc_space.h ipc/ipc_table.c \
+	ipc/ipc_table.h ipc/ipc_target.c ipc/ipc_target.h \
+	ipc/ipc_thread.c ipc/ipc_thread.h ipc/ipc_types.h \
+	ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c ipc/mach_port.h \
+	ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h kern/act.c \
+	kern/act.h kern/assert.h kern/ast.c kern/ast.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
@@ -1258,22 +1257,22 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
 	kern/lock.h kern/lock_mon.c kern/mach_clock.c \
 	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
-	kern/machine.c kern/machine.h kern/macro_help.h \
-	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
-	kern/priority.c kern/priority.h kern/processor.c \
-	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
-	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/refcount.h \
-	kern/slab.c kern/slab.h kern/sched.h kern/sched_prim.c \
-	kern/sched_prim.h kern/shuttle.h kern/startup.c kern/startup.h \
-	kern/strings.c kern/syscall_emulation.c \
-	kern/syscall_emulation.h kern/syscall_subr.c \
-	kern/syscall_subr.h kern/syscall_sw.c kern/syscall_sw.h \
-	kern/task.c kern/task.h kern/thread.c kern/thread.h \
-	kern/thread_swap.c kern/thread_swap.h kern/time_stamp.c \
-	kern/time_stamp.h kern/timer.c kern/timer.h kern/xpr.c \
-	kern/xpr.h kern/elf-load.c kern/boot_script.c util/putchar.c \
-	util/putchar.h util/puts.c util/atoi.c util/atoi.h \
-	vm/memory_object_proxy.c vm/memory_object_proxy.h \
+	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
+	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
+	kern/priority.h kern/processor.c kern/processor.h \
+	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
+	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
+	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
+	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
+	kern/syscall_emulation.c kern/syscall_emulation.h \
+	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
+	kern/syscall_sw.h kern/task.c kern/task.h kern/thread.c \
+	kern/thread.h kern/thread_swap.c kern/thread_swap.h \
+	kern/time_stamp.c kern/time_stamp.h kern/timer.c kern/timer.h \
+	kern/xpr.c kern/xpr.h kern/elf-load.c kern/boot_script.c \
+	util/putchar.c util/putchar.h util/puts.c util/atoi.c \
+	util/atoi.h vm/memory_object_proxy.c vm/memory_object_proxy.h \
 	vm/memory_object.c vm/memory_object.h vm/pmap.h vm/vm_debug.c \
 	vm/vm_external.c vm/vm_external.h vm/vm_fault.c vm/vm_fault.h \
 	vm/vm_init.c vm/vm_init.h vm/vm_kern.c vm/vm_kern.h \
@@ -1450,12 +1449,11 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 @HOST_ix86_TRUE@@PLATFORM_xen_TRUE@	i386/xen/xen_locore.$(OBJEXT) \
 @HOST_ix86_TRUE@@PLATFORM_xen_TRUE@	i386/xen/xen_boothdr.$(OBJEXT)
 am_libkernel_a_OBJECTS = $(am__objects_2) ipc/ipc_entry.$(OBJEXT) \
-	ipc/ipc_hash.$(OBJEXT) ipc/ipc_init.$(OBJEXT) \
-	ipc/ipc_kmsg.$(OBJEXT) ipc/ipc_marequest.$(OBJEXT) \
-	ipc/ipc_mqueue.$(OBJEXT) ipc/ipc_notify.$(OBJEXT) \
-	ipc/ipc_object.$(OBJEXT) ipc/ipc_port.$(OBJEXT) \
-	ipc/ipc_pset.$(OBJEXT) ipc/ipc_right.$(OBJEXT) \
-	ipc/ipc_space.$(OBJEXT) ipc/ipc_splay.$(OBJEXT) \
+	ipc/ipc_init.$(OBJEXT) ipc/ipc_kmsg.$(OBJEXT) \
+	ipc/ipc_marequest.$(OBJEXT) ipc/ipc_mqueue.$(OBJEXT) \
+	ipc/ipc_notify.$(OBJEXT) ipc/ipc_object.$(OBJEXT) \
+	ipc/ipc_port.$(OBJEXT) ipc/ipc_pset.$(OBJEXT) \
+	ipc/ipc_right.$(OBJEXT) ipc/ipc_space.$(OBJEXT) \
 	ipc/ipc_table.$(OBJEXT) ipc/ipc_target.$(OBJEXT) \
 	ipc/ipc_thread.$(OBJEXT) ipc/mach_msg.$(OBJEXT) \
 	ipc/mach_port.$(OBJEXT) ipc/mach_rpc.$(OBJEXT) \
@@ -1471,15 +1469,16 @@ am_libkernel_a_OBJECTS = $(am__objects_2) ipc/ipc_entry.$(OBJEXT) \
 	kern/pc_sample.$(OBJEXT) kern/printf.$(OBJEXT) \
 	kern/priority.$(OBJEXT) kern/processor.$(OBJEXT) \
 	kern/profile.$(OBJEXT) kern/queue.$(OBJEXT) \
-	kern/rbtree.$(OBJEXT) kern/slab.$(OBJEXT) \
-	kern/sched_prim.$(OBJEXT) kern/startup.$(OBJEXT) \
-	kern/strings.$(OBJEXT) kern/syscall_emulation.$(OBJEXT) \
-	kern/syscall_subr.$(OBJEXT) kern/syscall_sw.$(OBJEXT) \
-	kern/task.$(OBJEXT) kern/thread.$(OBJEXT) \
-	kern/thread_swap.$(OBJEXT) kern/time_stamp.$(OBJEXT) \
-	kern/timer.$(OBJEXT) kern/xpr.$(OBJEXT) \
-	kern/elf-load.$(OBJEXT) kern/boot_script.$(OBJEXT) \
-	util/putchar.$(OBJEXT) util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
+	kern/rbtree.$(OBJEXT) kern/rdxtree.$(OBJEXT) \
+	kern/slab.$(OBJEXT) kern/sched_prim.$(OBJEXT) \
+	kern/startup.$(OBJEXT) kern/strings.$(OBJEXT) \
+	kern/syscall_emulation.$(OBJEXT) kern/syscall_subr.$(OBJEXT) \
+	kern/syscall_sw.$(OBJEXT) kern/task.$(OBJEXT) \
+	kern/thread.$(OBJEXT) kern/thread_swap.$(OBJEXT) \
+	kern/time_stamp.$(OBJEXT) kern/timer.$(OBJEXT) \
+	kern/xpr.$(OBJEXT) kern/elf-load.$(OBJEXT) \
+	kern/boot_script.$(OBJEXT) util/putchar.$(OBJEXT) \
+	util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
 	vm/memory_object_proxy.$(OBJEXT) vm/memory_object.$(OBJEXT) \
 	vm/vm_debug.$(OBJEXT) vm/vm_external.$(OBJEXT) \
 	vm/vm_fault.$(OBJEXT) vm/vm_init.$(OBJEXT) \
@@ -2438,14 +2437,14 @@ DIST_SUBDIRS =
 #
 # Building a distribution.
 #
-EXTRA_DIST = gensym.awk ipc/mach_port.srv kern/mach.srv kern/mach4.srv \
-	kern/gnumach.srv kern/mach_debug.srv kern/mach_host.srv \
-	kern/task_notify.cli vm/memory_object_default.cli \
-	vm/memory_object_user.cli device/device.srv \
-	device/device_pager.srv device/device_reply.cli \
-	device/memory_object_reply.cli include $(am__append_13) \
-	$(am__append_20) $(am__append_24) $(am__append_26) \
-	$(am__append_30) $(am__append_41) \
+EXTRA_DIST = gensym.awk ipc/mach_port.srv ipc/notify.defs \
+	kern/mach.srv kern/mach4.srv kern/gnumach.srv \
+	kern/mach_debug.srv kern/mach_host.srv kern/task_notify.cli \
+	vm/memory_object_default.cli vm/memory_object_user.cli \
+	device/device.srv device/device_pager.srv \
+	device/device_reply.cli device/memory_object_reply.cli include \
+	$(am__append_13) $(am__append_20) $(am__append_24) \
+	$(am__append_26) $(am__append_30) $(am__append_41) \
 	linux/src/drivers/scsi/NCR5380.c \
 	linux/src/drivers/scsi/NCR5380.h linux/src/drivers/net/8390.h \
 	linux/src/drivers/net/kern_compat.h linux/pcmcia-cs/glue/ds.c \
@@ -2494,9 +2493,9 @@ AM_CCASFLAGS =
 # Yes, this makes the eyes hurt.  But perhaps someone will finally take care of
 # all that scruffy Mach code...  Also see <http://savannah.gnu.org/task/?5726>.
 
-# See <http://lists.gnu.org/archive/html/bug-hurd/2006-01/msg00148.html>.
-AM_CFLAGS = -fno-builtin-log -Wall -fno-strict-aliasing \
-	$(am__append_1) $(am__append_3) $(am__append_124)
+# We need the GNU-style inline
+AM_CFLAGS = -fno-builtin-log -Wall -fgnu89-inline $(am__append_1) \
+	$(am__append_3) $(am__append_124)
 AM_LDFLAGS = 
 
 #
@@ -2546,19 +2545,18 @@ MIGCOM = $(MIG) -n -cc cat - /dev/null
 # particular drivers want the routines.
 # TODO.  Functions in device/subrs.c should each be moved elsewhere.
 libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
-	ipc/ipc_hash.c ipc/ipc_hash.h ipc/ipc_init.c ipc/ipc_init.h \
-	ipc/ipc_kmsg.c ipc/ipc_kmsg.h ipc/ipc_kmsg_queue.h \
-	ipc/ipc_machdep.h ipc/ipc_marequest.c ipc/ipc_marequest.h \
-	ipc/ipc_mqueue.c ipc/ipc_mqueue.h ipc/ipc_notify.c \
-	ipc/ipc_notify.h ipc/ipc_object.c ipc/ipc_object.h \
-	ipc/ipc_port.c ipc/ipc_port.h ipc/ipc_print.h ipc/ipc_pset.c \
-	ipc/ipc_pset.h ipc/ipc_right.c ipc/ipc_right.h ipc/ipc_space.c \
-	ipc/ipc_space.h ipc/ipc_splay.c ipc/ipc_splay.h \
-	ipc/ipc_table.c ipc/ipc_table.h ipc/ipc_target.c \
-	ipc/ipc_target.h ipc/ipc_thread.c ipc/ipc_thread.h \
-	ipc/ipc_types.h ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c \
-	ipc/mach_port.h ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h \
-	kern/act.c kern/act.h kern/assert.h kern/ast.c kern/ast.h \
+	ipc/ipc_init.c ipc/ipc_init.h ipc/ipc_kmsg.c ipc/ipc_kmsg.h \
+	ipc/ipc_kmsg_queue.h ipc/ipc_machdep.h ipc/ipc_marequest.c \
+	ipc/ipc_marequest.h ipc/ipc_mqueue.c ipc/ipc_mqueue.h \
+	ipc/ipc_notify.c ipc/ipc_notify.h ipc/ipc_object.c \
+	ipc/ipc_object.h ipc/ipc_port.c ipc/ipc_port.h ipc/ipc_print.h \
+	ipc/ipc_pset.c ipc/ipc_pset.h ipc/ipc_right.c ipc/ipc_right.h \
+	ipc/ipc_space.c ipc/ipc_space.h ipc/ipc_table.c \
+	ipc/ipc_table.h ipc/ipc_target.c ipc/ipc_target.h \
+	ipc/ipc_thread.c ipc/ipc_thread.h ipc/ipc_types.h \
+	ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c ipc/mach_port.h \
+	ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h kern/act.c \
+	kern/act.h kern/assert.h kern/ast.c kern/ast.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
@@ -2569,22 +2567,22 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
 	kern/lock.h kern/lock_mon.c kern/mach_clock.c \
 	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
-	kern/machine.c kern/machine.h kern/macro_help.h \
-	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
-	kern/priority.c kern/priority.h kern/processor.c \
-	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
-	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/refcount.h \
-	kern/slab.c kern/slab.h kern/sched.h kern/sched_prim.c \
-	kern/sched_prim.h kern/shuttle.h kern/startup.c kern/startup.h \
-	kern/strings.c kern/syscall_emulation.c \
-	kern/syscall_emulation.h kern/syscall_subr.c \
-	kern/syscall_subr.h kern/syscall_sw.c kern/syscall_sw.h \
-	kern/task.c kern/task.h kern/thread.c kern/thread.h \
-	kern/thread_swap.c kern/thread_swap.h kern/time_stamp.c \
-	kern/time_stamp.h kern/timer.c kern/timer.h kern/xpr.c \
-	kern/xpr.h kern/elf-load.c kern/boot_script.c util/putchar.c \
-	util/putchar.h util/puts.c util/atoi.c util/atoi.h \
-	vm/memory_object_proxy.c vm/memory_object_proxy.h \
+	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
+	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
+	kern/priority.h kern/processor.c kern/processor.h \
+	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
+	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
+	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
+	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
+	kern/syscall_emulation.c kern/syscall_emulation.h \
+	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
+	kern/syscall_sw.h kern/task.c kern/task.h kern/thread.c \
+	kern/thread.h kern/thread_swap.c kern/thread_swap.h \
+	kern/time_stamp.c kern/time_stamp.h kern/timer.c kern/timer.h \
+	kern/xpr.c kern/xpr.h kern/elf-load.c kern/boot_script.c \
+	util/putchar.c util/putchar.h util/puts.c util/atoi.c \
+	util/atoi.h vm/memory_object_proxy.c vm/memory_object_proxy.h \
 	vm/memory_object.c vm/memory_object.h vm/pmap.h vm/vm_debug.c \
 	vm/vm_external.c vm/vm_external.h vm/vm_fault.c vm/vm_fault.h \
 	vm/vm_init.c vm/vm_init.h vm/vm_kern.c vm/vm_kern.h \
@@ -2778,7 +2776,10 @@ liblinux_a_CPPFLAGS = $(AM_CPPFLAGS) \
 
 # Because of the use of `extern inline' in some Linux header files without
 # corresponding text segment definitions, we must always optimize.
-liblinux_a_CFLAGS = -O2 $(AM_CFLAGS)
+
+# See <http://lists.gnu.org/archive/html/bug-hurd/2006-01/msg00148.html>.
+liblinux_a_CFLAGS = -O2 $(AM_CFLAGS) -fno-strict-aliasing
+
 # TODO.  Do we really need `-traditional'?
 liblinux_a_CCASFLAGS = $(AM_CCASFLAGS) \
 	-D__ASSEMBLY__ -traditional \
@@ -2915,6 +2916,7 @@ clib_routines := memcmp memcpy memmove				\
 		 htonl htons ntohl ntohs			\
 		 udivdi3 __udivdi3				\
 		 __rel_iplt_start __rel_iplt_end		\
+		 __ffsdi2					\
 		 _START _start etext _edata end _end # actually ld magic, not libc.
 
 gnumach_LINK = $(LD) $(LINKFLAGS) $(gnumach_LINKFLAGS) -o $@
@@ -3104,8 +3106,6 @@ ddb/db_write_cmd.$(OBJEXT): ddb/$(am__dirstamp) \
 	ddb/$(DEPDIR)/$(am__dirstamp)
 ipc/ipc_entry.$(OBJEXT): ipc/$(am__dirstamp) \
 	ipc/$(DEPDIR)/$(am__dirstamp)
-ipc/ipc_hash.$(OBJEXT): ipc/$(am__dirstamp) \
-	ipc/$(DEPDIR)/$(am__dirstamp)
 ipc/ipc_init.$(OBJEXT): ipc/$(am__dirstamp) \
 	ipc/$(DEPDIR)/$(am__dirstamp)
 ipc/ipc_kmsg.$(OBJEXT): ipc/$(am__dirstamp) \
@@ -3125,8 +3125,6 @@ ipc/ipc_pset.$(OBJEXT): ipc/$(am__dirstamp) \
 ipc/ipc_right.$(OBJEXT): ipc/$(am__dirstamp) \
 	ipc/$(DEPDIR)/$(am__dirstamp)
 ipc/ipc_space.$(OBJEXT): ipc/$(am__dirstamp) \
-	ipc/$(DEPDIR)/$(am__dirstamp)
-ipc/ipc_splay.$(OBJEXT): ipc/$(am__dirstamp) \
 	ipc/$(DEPDIR)/$(am__dirstamp)
 ipc/ipc_table.$(OBJEXT): ipc/$(am__dirstamp) \
 	ipc/$(DEPDIR)/$(am__dirstamp)
@@ -3191,6 +3189,8 @@ kern/profile.$(OBJEXT): kern/$(am__dirstamp) \
 kern/queue.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/rbtree.$(OBJEXT): kern/$(am__dirstamp) \
+	kern/$(DEPDIR)/$(am__dirstamp)
+kern/rdxtree.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/slab.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
@@ -4233,7 +4233,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@i386/xen/$(DEPDIR)/xen_boothdr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/xen/$(DEPDIR)/xen_locore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_entry.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_hash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_kmsg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_marequest.Po@am__quote@
@@ -4244,7 +4243,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_pset.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_right.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_space.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_splay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_table.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_target.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_thread.Po@am__quote@
@@ -4292,6 +4290,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/profile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/queue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/rdxtree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/sched_prim.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/slab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/startup.Po@am__quote@
@@ -7831,6 +7830,16 @@ uninstall-am: uninstall-dvi-am uninstall-exec_bootPROGRAMS \
 	  -list $*.user.msgids					\
 	  < $<
 
+vpath %.defs $(top_srcdir)
+
+# Stand-alone rule to generate the list of message ids when neither
+# the client nor the server stubs are required.
+%.msgids: %.defs
+	$(MIGCOM_V) $(CPP) $(AM_CPPFLAGS) $(CPPFLAGS) -E $<	\
+	| $(MIGCOM) $(MIGCOMFLAGS) $(MIGCOMSFLAGS)		\
+	  -sheader /dev/null -server /dev/null			\
+	  -list "$*.msgids"
+
 # This is how it should be done, but this is not integrated into GNU Automake
 # and is missing automatic inter-file dependency management because of that.
 
@@ -7892,7 +7901,8 @@ echo-%:
 install-data-hook:
 	rm -f '$(DESTDIR)$(include_machdir)'/machine
 	ln -s '$(systype)' '$(DESTDIR)$(include_machdir)'/machine
-gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES))
+gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES)) \
+		ipc/notify.msgids
 	$(AM_V_at) cat $^ > $@.new
 	$(AM_V_GEN) mv $@.new $@
 dist-hook: dist-hook-linux

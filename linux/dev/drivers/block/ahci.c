@@ -638,6 +638,7 @@ static int ahci_identify(const volatile struct ahci_host *ahci_host, const volat
 			port->ahci_host = NULL;
 			port->ahci_port = NULL;
 			del_timer(&identify_timer);
+			restore_flags(flags);
 			return 3;
 		}
 		sleep_on(&port->q);
@@ -877,6 +878,7 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 
 	for (i = 0; i < AHCI_MAX_PORTS; i++) {
 		u32 ssts;
+		u8 spd, ipm;
 
 		if (!(port_map & (1U << i)))
 			continue;
@@ -884,12 +886,45 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 		ahci_port = &ahci_host->ports[i];
 
 		ssts = readl(&ahci_port->ssts);
-		if ((ssts & 0xf) != 0x3)
-			/* Device not present */
-			continue;
-		if (((ssts >> 8) & 0xf) != 0x1)
-			/* Device down */
-			continue;
+		spd = ssts & 0xf;
+		switch (spd)
+		{
+			case 0x0:
+				/* Device not present */
+				continue;
+			case 0x1:
+				printk("ahci: %02u:%02u.%u: Port %u communication not established. TODO: power on device\n", bus, dev, fun, i);
+				continue;
+			case 0x3:
+				/* Present and communication established */
+				break;
+			case 0x4:
+				printk("ahci: %02u:%02u.%u: Phy offline?!\n", bus, dev, fun, i);
+				continue;
+			default:
+				printk("ahci: %02u:%02u.%u: Unknown port %u SPD %x\n", bus, dev, fun, i, spd);
+				continue;
+		}
+
+		ipm = (ssts >> 8) & 0xf;
+		switch (ipm)
+		{
+			case 0x0:
+				/* Device not present */
+				continue;
+			case 0x1:
+				/* Active */
+				break;
+			case 0x2:
+				printk("ahci: %02u:%02u.%u: Port %u in Partial power management. TODO: power on device\n", bus, dev, fun, i);
+				continue;
+			case 0x6:
+				printk("ahci: %02u:%02u.%u: Port %u in Slumber power management. TODO: power on device\n", bus, dev, fun, i);
+				continue;
+			default:
+				printk("ahci: %02u:%02u.%u: Unknown port %u IPM %x\n", bus, dev, fun, i, ipm);
+				continue;
+		}
 
 		/* OK! Probe this port */
 		ahci_probe_port(ahci_host, ahci_port);
