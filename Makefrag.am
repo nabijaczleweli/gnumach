@@ -80,8 +80,6 @@ endif
 libkernel_a_SOURCES += \
 	ipc/ipc_entry.c \
 	ipc/ipc_entry.h \
-	ipc/ipc_hash.c \
-	ipc/ipc_hash.h \
 	ipc/ipc_init.c \
 	ipc/ipc_init.h \
 	ipc/ipc_kmsg.c \
@@ -105,8 +103,6 @@ libkernel_a_SOURCES += \
 	ipc/ipc_right.h \
 	ipc/ipc_space.c \
 	ipc/ipc_space.h \
-	ipc/ipc_splay.c \
-	ipc/ipc_splay.h \
 	ipc/ipc_table.c \
 	ipc/ipc_table.h \
 	ipc/ipc_target.c \
@@ -122,7 +118,8 @@ libkernel_a_SOURCES += \
 	ipc/mach_debug.c \
 	ipc/port.h
 EXTRA_DIST += \
-	ipc/mach_port.srv
+	ipc/mach_port.srv \
+	ipc/notify.defs
 
 
 #
@@ -171,7 +168,7 @@ libkernel_a_SOURCES += \
 	kern/mach_factor.h \
 	kern/machine.c \
 	kern/machine.h \
-	kern/macro_help.h \
+	kern/macros.h \
 	kern/pc_sample.c \
 	kern/pc_sample.h \
 	kern/printf.c \
@@ -186,6 +183,9 @@ libkernel_a_SOURCES += \
 	kern/rbtree.c \
 	kern/rbtree.h \
 	kern/rbtree_i.h \
+	kern/rdxtree.c \
+	kern/rdxtree.h \
+	kern/rdxtree_i.h \
 	kern/refcount.h \
 	kern/slab.c \
 	kern/slab.h \
@@ -548,7 +548,8 @@ nodist_libkernel_a_SOURCES += \
 # rpctrace can make use of that.
 MOSTLYCLEANFILES += \
 	gnumach.msgids
-gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES))
+gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES)) \
+		ipc/notify.msgids
 	$(AM_V_at) cat $^ > $@.new
 	$(AM_V_GEN) mv $@.new $@
 # `exec_' prefix, so that we don't try to build that file during when running

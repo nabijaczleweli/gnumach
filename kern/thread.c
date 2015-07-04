@@ -124,10 +124,6 @@ vm_offset_t stack_free_list;		/* splsched only */
 unsigned int stack_free_count = 0;	/* splsched only */
 unsigned int stack_free_limit = 1;	/* patchable */
 
-unsigned int stack_alloc_hits = 0;	/* debugging */
-unsigned int stack_alloc_misses = 0;	/* debugging */
-unsigned int stack_alloc_max = 0;	/* debugging */
-
 /*
  *	The next field is at the base of the stack,
  *	so the low end is left unsullied.
@@ -160,10 +156,10 @@ boolean_t stack_alloc_try(
 
 	if (stack != 0) {
 		stack_attach(thread, stack, resume);
-		stack_alloc_hits++;
+		counter(c_stack_alloc_hits++);
 		return TRUE;
 	} else {
-		stack_alloc_misses++;
+		counter(c_stack_alloc_misses++);
 		return FALSE;
 	}
 }
@@ -175,7 +171,7 @@ boolean_t stack_alloc_try(
  *	May block.
  */
 
-void stack_alloc(
+kern_return_t stack_alloc(
 	thread_t	thread,
 	void		(*resume)(thread_t))
 {
@@ -199,15 +195,15 @@ void stack_alloc(
 	(void) splx(s);
 
 	if (stack == 0) {
+		kern_return_t kr;
 		/*
 		 *	Kernel stacks should be naturally aligned,
 		 *	so that it is easy to find the starting/ending
 		 *	addresses of a stack given an address in the middle.
 		 */
-
-		if (kmem_alloc_aligned(kmem_map, &stack, KERNEL_STACK_SIZE)
-							!= KERN_SUCCESS)
-			panic("stack_alloc");
+		kr = kmem_alloc_aligned(kmem_map, &stack, KERNEL_STACK_SIZE);
+		if (kr != KERN_SUCCESS)
+			return kr;
 
 #if	MACH_DEBUG
 		stack_init(stack);
@@ -215,6 +211,7 @@ void stack_alloc(
 	}
 
 	stack_attach(thread, stack, resume);
+	return KERN_SUCCESS;
 }
 
 /*
@@ -235,8 +232,11 @@ void stack_free(
 		stack_lock();
 		stack_next(stack) = stack_free_list;
 		stack_free_list = stack;
-		if (++stack_free_count > stack_alloc_max)
-			stack_alloc_max = stack_free_count;
+		stack_free_count += 1;
+#if	MACH_COUNTERS
+		if (stack_free_count > c_stack_alloc_max)
+			c_stack_alloc_max = stack_free_count;
+#endif	/* MACH_COUNTERS */
 		stack_unlock();
 	}
 }
@@ -1667,9 +1667,13 @@ thread_t kernel_thread(
 	continuation_t	start,
 	void *		arg)
 {
+	kern_return_t	kr;
 	thread_t	thread;
 
-	(void) thread_create(task, &thread);
+	kr = thread_create(task, &thread);
+	if (kr != KERN_SUCCESS)
+		return THREAD_NULL;
+
 	/* release "extra" ref that thread_create gave us */
 	thread_deallocate(thread);
 	thread_start(thread, start);
@@ -1974,6 +1978,9 @@ kern_return_t thread_get_assignment(
 	thread_t	thread,
 	processor_set_t	*pset)
 {
+	if (thread == THREAD_NULL)
+		return KERN_INVALID_ARGUMENT;
+
 	*pset = thread->processor_set;
 	pset_reference(*pset);
 	return KERN_SUCCESS;

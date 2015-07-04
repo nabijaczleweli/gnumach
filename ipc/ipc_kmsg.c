@@ -50,7 +50,6 @@
 #include <vm/vm_user.h>
 #include <ipc/port.h>
 #include <ipc/ipc_entry.h>
-#include <ipc/ipc_hash.h>
 #include <ipc/ipc_kmsg.h>
 #include <ipc/ipc_thread.h>
 #include <ipc/ipc_marequest.h>
@@ -698,24 +697,14 @@ ipc_kmsg_copyin_header(
 		if (!space->is_active)
 			goto abort_async;
 
-		/* optimized ipc_entry_lookup */
-
-	    {
-		mach_port_index_t index = MACH_PORT_INDEX(dest_name);
-		mach_port_gen_t gen = MACH_PORT_GEN(dest_name);
-
-		if (index >= space->is_table_size)
+		entry = ipc_entry_lookup (space, dest_name);
+		if (entry == IE_NULL)
 			goto abort_async;
-
-		entry = &space->is_table[index];
 		bits = entry->ie_bits;
 
-		/* check generation number and type bit */
-
-		if ((bits & (IE_BITS_GEN_MASK|MACH_PORT_TYPE_SEND)) !=
-		    (gen | MACH_PORT_TYPE_SEND))
+		/* check type bits */
+		if (IE_BITS_TYPE (bits) != MACH_PORT_TYPE_SEND)
 			goto abort_async;
-	    }
 
 		/* optimized ipc_right_copyin */
 
@@ -750,8 +739,6 @@ ipc_kmsg_copyin_header(
 
 	    case MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND,
 				MACH_MSG_TYPE_MAKE_SEND_ONCE): {
-		ipc_entry_num_t size;
-		ipc_entry_t table;
 		ipc_entry_t entry;
 		ipc_entry_bits_t bits;
 		ipc_port_t dest_port, reply_port;
@@ -762,51 +749,28 @@ ipc_kmsg_copyin_header(
 		if (!space->is_active)
 			goto abort_request;
 
-		size = space->is_table_size;
-		table = space->is_table;
-
-		/* optimized ipc_entry_lookup of dest_name */
-
-	    {
-		mach_port_index_t index = MACH_PORT_INDEX(dest_name);
-		mach_port_gen_t gen = MACH_PORT_GEN(dest_name);
-
-		if (index >= size)
+		entry = ipc_entry_lookup (space, dest_name);
+		if (entry == IE_NULL)
 			goto abort_request;
-
-		entry = &table[index];
 		bits = entry->ie_bits;
 
-		/* check generation number and type bit */
-
-		if ((bits & (IE_BITS_GEN_MASK|MACH_PORT_TYPE_SEND)) !=
-		    (gen | MACH_PORT_TYPE_SEND))
+		/* check type bits */
+		if (IE_BITS_TYPE (bits) != MACH_PORT_TYPE_SEND)
 			goto abort_request;
-	    }
 
 		assert(IE_BITS_UREFS(bits) > 0);
 
 		dest_port = (ipc_port_t) entry->ie_object;
 		assert(dest_port != IP_NULL);
 
-		/* optimized ipc_entry_lookup of reply_name */
-
-	    {
-		mach_port_index_t index = MACH_PORT_INDEX(reply_name);
-		mach_port_gen_t gen = MACH_PORT_GEN(reply_name);
-
-		if (index >= size)
+		entry = ipc_entry_lookup (space, reply_name);
+		if (entry == IE_NULL)
 			goto abort_request;
-
-		entry = &table[index];
 		bits = entry->ie_bits;
 
-		/* check generation number and type bit */
-
-		if ((bits & (IE_BITS_GEN_MASK|MACH_PORT_TYPE_RECEIVE)) !=
-		    (gen | MACH_PORT_TYPE_RECEIVE))
+		/* check type bits */
+		if (IE_BITS_TYPE (bits) != MACH_PORT_TYPE_RECEIVE)
 			goto abort_request;
-	    }
 
 		reply_port = (ipc_port_t) entry->ie_object;
 		assert(reply_port != IP_NULL);
@@ -853,9 +817,6 @@ ipc_kmsg_copyin_header(
 	    }
 
 	    case MACH_MSGH_BITS(MACH_MSG_TYPE_MOVE_SEND_ONCE, 0): {
-		mach_port_index_t index;
-		mach_port_gen_t gen;
-		ipc_entry_t table;
 		ipc_entry_t entry;
 		ipc_entry_bits_t bits;
 		ipc_port_t dest_port;
@@ -869,24 +830,13 @@ ipc_kmsg_copyin_header(
 		if (!space->is_active)
 			goto abort_reply;
 
-		/* optimized ipc_entry_lookup */
-
-		table = space->is_table;
-
-		index = MACH_PORT_INDEX(dest_name);
-		gen = MACH_PORT_GEN(dest_name);
-
-		if (index >= space->is_table_size)
+		entry = ipc_entry_lookup (space, dest_name);
+		if (entry == IE_NULL)
 			goto abort_reply;
-
-		entry = &table[index];
 		bits = entry->ie_bits;
 
-		/* check generation number, collision bit, and type bit */
-
-		if ((bits & (IE_BITS_GEN_MASK|IE_BITS_COLLISION|
-			     MACH_PORT_TYPE_SEND_ONCE)) !=
-		    (gen | MACH_PORT_TYPE_SEND_ONCE))
+		/* check and type bits */
+		if (IE_BITS_TYPE (bits) != MACH_PORT_TYPE_SEND_ONCE)
 			goto abort_reply;
 
 		/* optimized ipc_right_copyin */
@@ -910,12 +860,8 @@ ipc_kmsg_copyin_header(
 		assert(dest_port->ip_sorights > 0);
 		ip_unlock(dest_port);
 
-		/* optimized ipc_entry_dealloc */
-
-		entry->ie_next = table->ie_next;
-		table->ie_next = index;
-		entry->ie_bits = gen;
 		entry->ie_object = IO_NULL;
+		ipc_entry_dealloc (space, dest_name, entry);
 		is_write_unlock(space);
 
 		msg->msgh_bits = (MACH_MSGH_BITS_OTHER(mbits) |
@@ -1766,6 +1712,7 @@ ipc_kmsg_copyout_header(
 	    case MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND, 0): {
 		mach_port_t dest_name;
 		ipc_port_t nsrequest;
+		unsigned long payload;
 
 		/* receiving an asynchronous message */
 
@@ -1784,6 +1731,7 @@ ipc_kmsg_copyout_header(
 			dest_name = dest->ip_receiver_name;
 		else
 			dest_name = MACH_PORT_NULL;
+		payload = dest->ip_protected_payload;
 
 		if ((--dest->ip_srights == 0) &&
 		    ((nsrequest = dest->ip_nsrequest) != IP_NULL)) {
@@ -1805,8 +1753,7 @@ ipc_kmsg_copyout_header(
 			msg->msgh_bits = (MACH_MSGH_BITS_OTHER(mbits) |
 				MACH_MSGH_BITS(
 					0, MACH_MSG_TYPE_PROTECTED_PAYLOAD));
-			msg->msgh_protected_payload =
-				dest->ip_protected_payload;
+			msg->msgh_protected_payload = payload;
 		}
 		msg->msgh_remote_port = MACH_PORT_NULL;
 		return MACH_MSG_SUCCESS;
@@ -1814,12 +1761,11 @@ ipc_kmsg_copyout_header(
 
 	    case MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND,
 				MACH_MSG_TYPE_PORT_SEND_ONCE): {
-		ipc_entry_t table;
-		mach_port_index_t index;
 		ipc_entry_t entry;
 		ipc_port_t reply = (ipc_port_t) msg->msgh_local_port;
 		mach_port_t dest_name, reply_name;
 		ipc_port_t nsrequest;
+		unsigned long payload;
 
 		/* receiving a request message */
 
@@ -1827,8 +1773,7 @@ ipc_kmsg_copyout_header(
 			break;
 
 		is_write_lock(space);
-		if (!space->is_active ||
-		    ((index = (table = space->is_table)->ie_next) == 0)) {
+		if (!space->is_active || space->is_free_list == NULL) {
 			is_write_unlock(space);
 			break;
 		}
@@ -1858,19 +1803,20 @@ ipc_kmsg_copyout_header(
 		assert(reply->ip_sorights > 0);
 		ip_unlock(reply);
 
-		/* optimized ipc_entry_get */
-
-		entry = &table[index];
-		table->ie_next = entry->ie_next;
-		entry->ie_request = 0;
+		kern_return_t kr;
+		kr = ipc_entry_get (space, &reply_name, &entry);
+		if (kr) {
+			ip_unlock(reply);
+			ip_unlock(dest);
+			is_write_unlock(space);
+			break;
+		}
 
 	    {
 		mach_port_gen_t gen;
 
 		assert((entry->ie_bits &~ IE_BITS_GEN_MASK) == 0);
 		gen = entry->ie_bits + IE_BITS_GEN_ONE;
-
-		reply_name = MACH_PORT_MAKE(index, gen);
 
 		/* optimized ipc_right_copyout */
 
@@ -1890,6 +1836,7 @@ ipc_kmsg_copyout_header(
 			dest_name = dest->ip_receiver_name;
 		else
 			dest_name = MACH_PORT_NULL;
+		payload = dest->ip_protected_payload;
 
 		if ((--dest->ip_srights == 0) &&
 		    ((nsrequest = dest->ip_nsrequest) != IP_NULL)) {
@@ -1912,8 +1859,7 @@ ipc_kmsg_copyout_header(
 			msg->msgh_bits = (MACH_MSGH_BITS_OTHER(mbits) |
 				MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND_ONCE,
 					MACH_MSG_TYPE_PROTECTED_PAYLOAD));
-			msg->msgh_protected_payload =
-				dest->ip_protected_payload;
+			msg->msgh_protected_payload = payload;
 		}
 		msg->msgh_remote_port = reply_name;
 		return MACH_MSG_SUCCESS;
@@ -1921,6 +1867,7 @@ ipc_kmsg_copyout_header(
 
 	    case MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND_ONCE, 0): {
 		mach_port_t dest_name;
+		unsigned long payload;
 
 		/* receiving a reply message */
 
@@ -1933,6 +1880,8 @@ ipc_kmsg_copyout_header(
 		/* optimized ipc_object_copyout_dest */
 
 		assert(dest->ip_sorights > 0);
+
+		payload = dest->ip_protected_payload;
 
 		if (dest->ip_receiver == space) {
 			ip_release(dest);
@@ -1955,8 +1904,7 @@ ipc_kmsg_copyout_header(
 			msg->msgh_bits = (MACH_MSGH_BITS_OTHER(mbits) |
 				MACH_MSGH_BITS(0,
 					MACH_MSG_TYPE_PROTECTED_PAYLOAD));
-			msg->msgh_protected_payload =
-				dest->ip_protected_payload;
+			msg->msgh_protected_payload = payload;
 		}
 		msg->msgh_remote_port = MACH_PORT_NULL;
 		return MACH_MSG_SUCCESS;
@@ -1973,6 +1921,7 @@ ipc_kmsg_copyout_header(
 	mach_msg_type_name_t reply_type = MACH_MSGH_BITS_LOCAL(mbits);
 	ipc_port_t reply = (ipc_port_t) msg->msgh_local_port;
 	mach_port_t dest_name, reply_name;
+	unsigned long payload;
 
 	if (IP_VALID(reply)) {
 		ipc_port_t notify_port;
@@ -2053,28 +2002,20 @@ ipc_kmsg_copyout_header(
 				goto copyout_dest;
 			}
 
-			kr = ipc_entry_get(space, &reply_name, &entry);
+			kr = ipc_entry_alloc(space, &reply_name, &entry);
 			if (kr != KERN_SUCCESS) {
 				ip_unlock(reply);
 
 				if (notify_port != IP_NULL)
 					ipc_port_release_sonce(notify_port);
 
-				/* space is locked */
-				kr = ipc_entry_grow_table(space);
-				if (kr != KERN_SUCCESS) {
-					/* space is unlocked */
-
-					if (kr == KERN_RESOURCE_SHORTAGE)
-						return (MACH_RCV_HEADER_ERROR|
-							MACH_MSG_IPC_KERNEL);
-					else
-						return (MACH_RCV_HEADER_ERROR|
-							MACH_MSG_IPC_SPACE);
-				}
-				/* space is locked again; start over */
-
-				continue;
+				is_write_unlock(space);
+				if (kr == KERN_RESOURCE_SHORTAGE)
+					return (MACH_RCV_HEADER_ERROR|
+					        MACH_MSG_IPC_KERNEL);
+				else
+					return (MACH_RCV_HEADER_ERROR|
+					        MACH_MSG_IPC_SPACE);
 			}
 
 			assert(IE_BITS_TYPE(entry->ie_bits)
@@ -2219,6 +2160,7 @@ ipc_kmsg_copyout_header(
 	 */
 
     copyout_dest:
+	payload = dest->ip_protected_payload;
 
 	if (ip_active(dest)) {
 		ipc_object_copyout_dest(space, (ipc_object_t) dest,
@@ -2255,8 +2197,9 @@ ipc_kmsg_copyout_header(
 		msg->msgh_bits = (MACH_MSGH_BITS_OTHER(mbits) |
 				  MACH_MSGH_BITS(reply_type,
 					MACH_MSG_TYPE_PROTECTED_PAYLOAD));
-		msg->msgh_protected_payload = dest->ip_protected_payload;
+		msg->msgh_protected_payload = payload;
 	}
+
 	msg->msgh_remote_port = reply_name;
     }
 
@@ -2314,12 +2257,13 @@ ipc_kmsg_copyout_object(
 
 	ip_lock(port);
 	if (!ip_active(port) ||
-	    !ipc_hash_local_lookup(space, (ipc_object_t) port,
-				   namep, &entry)) {
+	    (entry = ipc_reverse_lookup(space,
+	                                (ipc_object_t) port)) == NULL) {
 		ip_unlock(port);
 		is_write_unlock(space);
 		goto slow_copyout;
 	}
+	*namep = entry->ie_name;
 
 	/*
 	 *	Copyout the send right, incrementing urefs

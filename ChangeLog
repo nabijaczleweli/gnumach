@@ -1,3 +1,432 @@
+2015-06-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Fix re-configuring out-of-tree builds
+	Previously, running `../configure ...' to reconfigure an out-of-tree
+	build would link `machine' to `i386/i386' instead of `../i386/i386'
+	(i.e. point to the build directory instead to the source) if
+	`i386/i386' also exists in the build directory because of a previous
+	build.
+
+	* configfrag.ac: Prefix machine link target with `$srcdir'.
+
+2015-06-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix restoring interrupts on timeout
+	* linux/dev/drivers/block/ahci.c (ahci_identify): Restore flags before
+	returning on timeout.
+
+2015-06-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Print about powered-down AHCI ports
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Print messages when
+	device is present but powered down.
+
+2015-06-28  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ddb: automatically display stack traces
+	* ddb/db_trap.c (db_task_trap): Automatically display stack traces if
+	an unexpected trap occurs.
+
+2015-06-28  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: improve the immediate console
+	Improve the immediate console to the point that it can be enabled and
+	display e.g. assertion failures from very early on (i.e. from
+	`c_boot_entry').
+
+	* device/cons.h (romgetc, romputc): New declarations.
+	* i386/configfrag.ac: Add configuration variable.
+	* i386/i386at/conf.c (dev_name_list): Add entry.
+	* i386/i386at/cons_conf.c (constab): Add entry.
+	* i386/i386at/immc.c: Add missing includes.
+	(immc_cnprobe, immc_cninit, immc_cngetc, immc_romputc): New functions.
+	(immc_cnputc): Fix signature, use virtual addresses.
+	* i386/i386at/immc.h: New file.
+	* i386/i386at/kd.c: Use `#if ENABLE_IMMEDIATE_CONSOLE'.
+	* i386/i386at/kd.h (kd_setpos): Add missing declaration.
+	* i386/i386at/model_dep.c (c_boot_entry): Install immediate console as
+	early boot console.
+
+2015-06-26  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: add comment
+	* i386/i386at/model_dep.c (rebootflag): Explain flag.
+
+2015-06-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix error handling
+	This avoids calling `thread_deallocate' with an uninitialized value,
+	as found by the Clang Static Analyzer.
+
+	* kern/thread.c (kernel_thread): Fix error handling.
+
+2015-06-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: add function attributes to the printf-functions
+	* kern/printf.h (sprintf, snprintf, vsnprintf, printf): Add the
+	`printf' function attribute that allows the compiler to check the
+	format strings and arguments.
+
+2015-06-05  Flávio Cruz  <flaviocruz@gmail.com>
+
+	Fix typo
+	* vm/vm_kern.c (kmem_alloc_aligned): Fix typo.
+
+	Use custom port macros.
+	* ipc/ipc_port.c (ipc_port_alloc_special): Use ip_alloc and ip_lock_init
+	macros instead of manually inlining them.
+
+2015-05-31  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: fix typo
+	* ipc/notify.defs: Fix typo.
+
+	Include the notify protocol in `gnumach.msgids'
+	* Makefrag.am (gnumach.msgids): Add `notify.msgids' as prerequisite.
+	* Makerules.mig.am: Add rule to generate the list of message ids when
+	neither the client nor the server stubs are required.
+	* ipc/notify.defs: New file.
+
+2015-05-29  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix argument handling
+	Previously, the processor argument was not checked.  If called with a
+	non-processor argument (like a task), `processor' is set to NULL,
+	triggering a page fault.  Likewise for the other functions.
+
+	* kern/processor.c (processor_get_assignment): Fix argument handling.
+	* kern/task.c (task_get_assignment): Likewise.
+	* kern/thread.c (thread_get_assignment): Likewise.
+
+2015-05-23  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Restrict `-fno-strict-aliasing' to the Linux drivers
+	* Makefile.am: Move `-fno-strict-aliasing'...
+	* linux/Makefrag.am: ... here.
+
+	i386: avoid breaking the strict-aliasing rules
+	* i386/i386/pcb.c (switch_ktss): Cleanly convert the value.
+
+	kern: avoid breaking the strict-aliasing rules
+	* kern/exception.c (exception_parse_reply): Use `BAD_TYPECHECK'.
+
+	vm: drop unused `kmem_realloc'
+	* vm/vm_kern.c (kmem_realloc): Remove function.
+	(kmem_alloc_wired): Adopt comment.
+	* vm/vm_kern.h (kmem_realloc): Remove declaration.
+
+2015-05-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add stdint integer types in Linux glue
+	* linux/dev/include/linux/types.h (int8_t, uint8_t, int16_t, uint16_t,
+	int32_t, uint32_t, int64_t, uint64_t): New types.
+
+2015-05-22  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: drop remnants of the IPC tables
+	* ipc/ipc_table.c (ipc_table_entries): Remove.
+	(ipc_table_entries_size): Likewise.
+	(ipc_table_init): Remove initialization of `ipc_table_entries'.
+	(ipc_table_realloc): Remove function.
+	* ipc/ipc_table.h: Adjust comments.
+	(ipc_table_entries): Remove declaration.
+	(ipc_table_realloc): Likewise.
+	(it_entries_{alloc,reallocable,realloc,free}): Remove macros.
+
+	ipc: drop size parameter from `ipc_space_create'
+	* ipc/ipc_space.c (ipc_space_create): Drop size parameter.
+	* ipc/ipc_space.h (ipc_space_create): Adopt declaration, fix comment.
+	* kern/ipc_tt.c (ipc_task_init): Adopt accordingly.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: inline key ipc entry lookup functions
+	Declare functions looking up IPC entries that were previously inlined
+	manually with `static inline' so that they will be inlined into the
+	fast paths by the compiler.
+
+	* ipc/ipc_entry.c (ipc_entry_lookup, ipc_entry_get,
+	ipc_entry_dealloc): Move functions...
+	* ipc/ipc_space.h: ... here, and declare them as `static inline'.
+	* ipc/ipc_entry.h: Drop associated declarations.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: replace the IPC table with a radix tree
+	Currently, the port names are mapped to an IPC object (e.g. a port)
+	using a table.  This, however, requires large chunks of continuous
+	memory, and leads to scalability problems as virtual kernel memory is
+	a scarce resource.  To avoid excessive overhead, non-contiguous port
+	names are spilled into a splay tree.
+
+	Replace the IPC table with a radix tree.  As the radix tree is able to
+	store non-contiguous names with reasonable overhead, we can drop the
+	splay tree as well.
+
+	* ipc/ipc_entry.c (ipc_entry_tree_collision): Remove function.
+	(ipc_entry_cache): New variable.
+	(ipc_entry_lookup): Replace with a radix tree lookup.
+	(ipc_entry_get): The free list handling is changed a little.  Adopt
+	accordingly.
+	(ipc_entry_free_name): New function.
+	(ipc_entry_alloc): Adopt accordingly.
+	(ipc_entry_alloc_name): Likewise.
+	(ipc_entry_dealloc): Likewise.
+	(ipc_entry_grow_table): Remove function.
+	* ipc/ipc_entry.h (struct ipc_entry): Update comment, add field for
+	name and free list, remove unused fields.
+	(ipc_entry_cache, ie_alloc, ie_free): New declarations.
+	(struct ipc_tree_entry): Remove.  Also remove any related declarations.
+	(ipc_entry_grow_table): Remove declaration.
+	* ipc/ipc_init.c (ipc_bootstrap): Adopt initialization.
+	* ipc/ipc_kmsg.c (ipc_kmsg_copyout_header): Use `ipc_entry_alloc'
+	instead of re-coding it.  Adopt free list handling.
+	(ipc_kmsg_copyout_object): Adopt free list handling, store the name.
+	* ipc/ipc_object.c (ipc_object_copyout): Likewise.
+	(ipc_object_copyout_multiname): Likewise.
+	* ipc/ipc_space.c (ipc_space_create): Initialize radix tree and free list.
+	Drop table and splay tree initialization.
+	(ipc_space_destroy): Free ipc entries and radix tree, remove table and
+	splay tree cleanup.
+	* ipc/ipc_space.h (struct ipc_space): Add radix tree, free list, and size.
+	Remove all fields related to the table and splay tree.
+	* ddb/db_print.c (db_port_iterate): Adopt iteration.
+	(db_lookup_port): Adopt lookup.
+	* include/mach_debug/ipc_info.h: Remove unused parts of the debug interface.
+	* include/mach_debug/mach_debug.defs: Likewise.
+	* include/mach_debug/mach_debug_types.defs: Likewise.
+	* ipc/mach_debug.c: Likewise.
+	* ipc/ipc_right.c (ipc_right_reverse): Adopt lookup, store name.
+	(ipc_right_check): Adopt removal.
+	(ipc_right_destroy): Likewise.
+	(ipc_right_dealloc): Likewise.
+	(ipc_right_delta): Likewise.
+	(ipc_right_copyin): Adopt insertion, adopt removal.
+	(ipc_right_copyin_two): Adopt removal.
+	(ipc_right_copyout): Adopt insertion, adopt removal.
+	(ipc_right_rename): Likewise, also update comment.
+	* ipc/mach_port.c (mach_port_names): Adopt iteration.
+	(mach_port_get_set_status): Likewise.
+	* ipc/port.h: Update comment.
+	* ipc/ipc_hash.c: Delete file.
+	* ipc/ipc_hash.h: Likewise.
+	* ipc/ipc_splay.c: Likewise.
+	* ipc/ipc_splay.h: Likewise.
+	* Makefrag.am (libkernel_a_SOURCES): Remove these files.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: replace reverse hash table with a radix tree
+	Currently, there is a hash table mapping (space, object) tuples to
+	`ipc_entry' objects.  This hash table is intertwined with the IPC
+	tables.  There is one hash table per IPC space, but it is only for the
+	entries in the IPC table.  This hash table is called `local' in the
+	source.  All IPC entries being spilled into the splay tree are instead
+	mapped by a global hash table.
+
+	Replace the local (i.e. per IPC space) reverse hash table with a radix
+	tree.
+
+	* ipc/ipc_entry.c (ipc_entry_grow_table): Adjust accordingly.
+	* ipc/ipc_entry.h (struct ipc_entry): Adjust comment.
+	* ipc/ipc_hash.c: Adjust comment explaining the local lookup table.
+	(IPC_LOCAL_HASH_INVARIANT): New macro.
+	(ipc_hash_local_lookup): Use the new `ipc_reverse_lookup' function.
+	(ipc_hash_local_insert): Use the new `ipc_reverse_insert' function.
+	(ipc_hash_local_delete): Use the new `ipc_reverse_remove' function.
+	* ipc/ipc_space.c (ipc_space_create): Initialize radix tree.
+	(ipc_space_destroy): Free radix tree.
+	* ipc/ipc_space.h (struct ipc_space): Add radix tree.
+	(ipc_reverse_insert): New function.
+	(ipc_reverse_remove): Likewise.
+	(ipc_reverse_remove_all): Likewise.
+	(ipc_reverse_lookup): Likewise.
+	* ipc/ipc_right.c (ipc_right_clean): Update comment.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: undo manual inlining of `ipc_entry_X' functions
+	Today we can rely on the compiler to inline functions.  Undoing this
+	manual optimization is a first step to replace the IPC tables.
+
+	* ipc/mach_msg.c (mach_msg_trap): Undo the manual inlining of
+	`ipc_entry_lookup', `ipc_entry_dealloc', and `ipc_entry_get'.
+	* ipc/ipc_kmsg.c (ipc_kmsg_copyin_header, ipc_kmsg_copyout_header): Likewise.
+	* kern/exception.c (exception_raise): Likewise.
+	* kern/ipc_mig.c (fast_send_right_lookup): Likewise.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: add radix tree library
+	Import a radix tree library from Richard Braun's librbraun.
+
+	* Makefile.am (clib_routines): Steal `__ffsdi2'.
+	* Makefrag.am (libkernel_a_SOURCES): Add new files.
+	* kern/rdxtree.c: New file.
+	* kern/rdxtree.h: Likewise.
+	* kern/rdxtree_i.h: Likewise.
+	* kern/startup.c (setup_main): Initialize radix tree library.
+
+2015-05-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: gracefully handle resource shortage
+	* kern/thread.c (stack_alloc): Report resource shortage.
+	* kern/sched_prim.h (stack_alloc): Adjust declaration accordingly.
+	* kern/thread_swap.c (thread_doswapin): Report resource shortage.
+	(swapin_thread_continue): If the swap-in fails, put the thread back on
+	the queue and go back to sleep.
+	* kern/thread_swap.h (thread_doswapin): Adjust declaration accordingly.
+
+	vm: gracefully handle resource shortage
+	* vm/vm_object.c (vm_object_copy_call): Gracefully handle resource
+	shortage by doing the allocation earlier and aborting the function if
+	unsuccessful.
+
+	kern: gracefully handle resource shortage
+	* kern/task.c (task_create): Gracefully handle resource shortage.
+
+2015-05-19  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: import `macros.h' from x15
+	Import the macro definitions from the x15 kernel project, and replace
+	all similar definitions littered all over the place with it.
+
+	Importing this file will make importing code from the x15 kernel
+	easier.  We are already using the red-black tree implementation and
+	the slab allocator from it, and we will import even more code in the
+	near future.
+
+	* kern/list.h: Do not define `structof', include `macros.h' instead.
+	* kern/rbtree.h: Likewise.
+	* kern/slab.c: Do not define `ARRAY_SIZE', include `macros.h' instead.
+	* i386/grub/misc.h: Likewise.
+	* i386/i386/xen.h: Do not define `barrier', include `macros.h' instead.
+	* kern/macro_help.h: Delete file.  Replaced by `macros.h'.
+	* kern/macros.h: New file.
+	* Makefrag.am (libkernel_a_SOURCES): Add new file, remove old file.
+	* device/dev_master.h: Adopt accordingly.
+	* device/io_req.h: Likewise.
+	* device/net_io.h: Likewise.
+	* i386/intel/read_fault.c: Likewise.
+	* ipc/ipc_kmsg.h: Likewise.
+	* ipc/ipc_mqueue.h: Likewise.
+	* ipc/ipc_object.h: Likewise.
+	* ipc/ipc_port.h: Likewise.
+	* ipc/ipc_space.h: Likewise.
+	* ipc/ipc_splay.c: Likewise.
+	* ipc/ipc_splay.h: Likewise.
+	* kern/assert.h: Likewise.
+	* kern/ast.h: Likewise.
+	* kern/pc_sample.h: Likewise.
+	* kern/refcount.h: Likewise.
+	* kern/sched.h: Likewise.
+	* kern/sched_prim.c: Likewise.
+	* kern/timer.c: Likewise.
+	* kern/timer.h: Likewise.
+	* vm/vm_fault.c: Likewise.
+	* vm/vm_map.h: Likewise.
+	* vm/vm_object.h: Likewise.
+	* vm/vm_page.h: Likewise.
+
+2015-05-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: avoid compiler warning
+	* i386/i386/phys.c (pmap_zero_page, pmap_copy_page, copy_to_phys,
+	copy_from_phys): Avoid compiler warning about `map' being used
+	uninitialized.
+
+2015-05-14  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: use macro to compute address of saved registers
+	* i386/i386/pcb.c (stack_attach): Use `USER_REGS'.
+	(stack_handoff): Likewise.
+
+2015-05-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix semaphore failure path special calling convention
+	* linux/src/include/asm-i386/semaphore.h (down): Pass semaphore address to
+	down_failed through ecx.
+	(down_interruptible): Likewise to down_failed_interruptible.
+	(up): Likewise to up_wakeup.
+
+2015-05-02  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix comment
+	* kern/rbtree.h: Fix comment.
+
+2015-05-02  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix warning
+	* i386/i386at/rtc.c (rtcget, rtcput): Make functions take an rtc_st
+	structure which it casts to char * itself.
+
+	Fix warnings
+	* device/ds_routines.c (device_open, ds_open_done, device_close,
+	device_write, device_write_inband, ds_write_done, device_read,
+	device_read_inband, ds_read_done, device_set_status, mach_device_get_status,
+	device_set_filter, device_map, ds_no_senders): Convert from K&R declaration,
+	fix type of `device' into void*.
+
+	Fix block_io_mmap prototype
+	* device/blkio.c (block_io_mmap): Fix prototype of dummy function.
+	* device/blkio.h (block_io_mmap): Likewise.
+
+2015-05-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Use gnu89 inline style
+	* Makefile.am (AM_CFLAGS): Add -fgnu89-inline option.
+
+2015-05-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Replace clobbers with earlyclobbers
+	Newer gccs consider the former "impossible"
+
+	* linux/src/include/asm-i386/bitops.h (find_first_zero_bit): Replace
+	clobbers with earlyclobbers.
+	* linux/src/include/asm-i386/semaphore.h (down, down_interruptible, up):
+	Likewise.
+
+2015-04-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix build with gcc-5
+	* linux/src/include/linux/compiler-gcc5.h: New file.
+
+2015-04-24  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: avoid hardcoding the lowest priority
+	The number of priorities has been changed from 32 to 50 in
+	6a234201081156e6d5742e7eeabb68418b518fad.
+
+	* kern/syscall_subr.c (thread_depress_priority): Avoid hardcoding the
+	lowest priority.
+
+2015-04-23  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: disable stack allocation counters by default
+	Disable the stack allocation counters by default.  Casual checking
+	revealed that the hits-to-miss ratio is excellent.
+
+	* kern/thread.c (stack_alloc_{hits,misses,max}): Move variables...
+	* kern/counters.c: ... here, and add the usual counter prefix.
+	* kern/counters.h: New declarations.
+
+2015-04-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Avoid accessing ip_protected_payload without the lock.
+	* ipc/ipc_kmsg.c (ipc_kmsg_copyout_header): Avoid accessing
+	dest->ip_protected_payload without the lock.
+	* ipc/mach_msg.c (ipc/mach_msg.c): Avoid accessing
+	dest_port->ip_protected_payload without the lock.
+
+	Prepend 0x to hexadecimal offset
+	* i386/i386/db_trace.c (db_i386_stack_trace): Prepend 0x to hexadecimal offset.
+
+2015-04-10  Thomas Schwinge  <thomas@codesourcery.com>
+
+	GNU Mach 1.5.
+	* version.m4 (AC_PACKAGE_VERSION): Set to 1.5.
+	* NEWS: Finalize for 1.5.
+
 2015-03-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Give the Debian package name for the non-multilib libc.a
