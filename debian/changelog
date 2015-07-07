@@ -1,4 +1,4 @@
-gnumach (2:1.5+git20150704-1) unstable; urgency=medium
+gnumach (2:1.5+git20150704-1) experimental; urgency=medium
 
   * Bump version number to 1.5 according to upstream release.
 
