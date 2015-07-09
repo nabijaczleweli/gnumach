@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 5.2 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 11 March 2015, of 'The GNU Mach
-Reference Manual', for version 1.4+git20150704.
+   This is edition 0.4, last updated on 9 July 2015, of 'The GNU Mach
+Reference Manual', for version 1.4+git20150709.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -1940,7 +1940,7 @@ Function and Data Index
 * vm_copy:                               Data Transfer.       (line  50)
 * vm_deallocate:                         Memory Deallocation. (line   6)
 * vm_inherit:                            Memory Attributes.   (line  68)
-* vm_machine_attribute:                  Memory Attributes.   (line 130)
+* vm_machine_attribute:                  Memory Attributes.   (line 131)
 * vm_map:                                Mapping Memory Objects.
                                                               (line   6)
 * vm_protect:                            Memory Attributes.   (line  34)
