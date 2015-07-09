@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 5.2 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 11 March 2015, of 'The GNU Mach
-Reference Manual', for version 1.4+git20150704.
+   This is edition 0.4, last updated on 9 July 2015, of 'The GNU Mach
+Reference Manual', for version 1.4+git20150709.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 11 March 2015, of 'The GNU Mach
-Reference Manual', for version 1.4+git20150704.
+   This is edition 0.4, last updated on 9 July 2015, of 'The GNU Mach
+Reference Manual', for version 1.4+git20150709.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -3216,16 +3216,16 @@ File: mach.info,  Node: Memory Attributes,  Next: Mapping Memory Objects,  Prev:
      successfully set and 'KERN_INVALID_ADDRESS' if an invalid or
      non-allocated address was specified.
 
- -- Function: kern_return_t vm_wire (host_priv_t HOST_PRIV,
-          vm_task_t TARGET_TASK, vm_address_t ADDRESS, vm_size_t SIZE,
-          vm_prot_t ACCESS)
-     The function 'vm_wire' allows privileged applications to control
-     memory pageability.  HOST_PRIV is the privileged host port for the
-     host on which TARGET_TASK resides.  ADDRESS is the starting
-     address, which will be rounded down to a page boundary.  SIZE is
-     the size in bytes of the region for which protection is to change,
-     and will be rounded up to give a page boundary.  ACCESS specifies
-     the types of accesses that must not cause page faults.
+ -- Function: kern_return_t vm_wire (host_t HOST, vm_task_t TARGET_TASK,
+          vm_address_t ADDRESS, vm_size_t SIZE, vm_prot_t ACCESS)
+     The function 'vm_wire' allows applications to control memory
+     pageability.  HOST is the host port for the host on which
+     TARGET_TASK resides.  ADDRESS is the starting address, which will
+     be rounded down to a page boundary.  SIZE is the size in bytes of
+     the region for which protection is to change, and will be rounded
+     up to give a page boundary.  ACCESS specifies the types of accesses
+     that must not cause page faults.  If the host port is not
+     privileged, the amount of memory is limited per task.
 
      The semantics of a successful 'vm_wire' operation are that memory
      in the specified range will not cause page faults for any accesses
@@ -3234,7 +3234,7 @@ File: mach.info,  Node: Memory Attributes,  Next: Mapping Memory Objects,  Prev:
      special case is that 'VM_PROT_NONE' makes the memory pageable.
 
      The function returns 'KERN_SUCCESS' if the call succeeded,
-     'KERN_INVALID_HOST' if HOST_PRIV was not the privileged host port,
+     'KERN_INVALID_HOST' if HOST was not a valid host port,
      'KERN_INVALID_TASK' if TASK was not a valid task,
      'KERN_INVALID_VALUE' if ACCESS specified an invalid access mode,
      'KERN_FAILURE' if some memory in the specified range is not present
@@ -3242,7 +3242,7 @@ File: mach.info,  Node: Memory Attributes,  Next: Mapping Memory Objects,  Prev:
      'KERN_INVALID_ARGUMENT' if unwiring (ACCESS is 'VM_PROT_NONE') and
      the memory is not already wired.
 
-     The 'vm_wire' call is actually an RPC to HOST_PRIV, normally a send
+     The 'vm_wire' call is actually an RPC to HOST, normally a send
      right for a privileged host port, but potentially any send right.
      In addition to the normal diagnostic return codes from the call's
      server (normally the kernel), the call may return 'mach_msg' return
