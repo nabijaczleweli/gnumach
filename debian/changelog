@@ -1,3 +1,9 @@
+gnumach (2:1.4+git20150711-1) unstable; urgency=medium
+
+  * New upstream snapshot, fixes a pageout issue.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 11 Jul 2015 12:16:52 +0000
+
 gnumach (2:1.4+git20150709-1) unstable; urgency=medium
 
   * New upstream snapshot.
