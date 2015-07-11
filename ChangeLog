@@ -1,3 +1,50 @@
+2015-07-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: make sure the queue macros are only used on queues
+	This turns mistakes as the one corrected in e59f05e9 into compile-time
+	errors.
+
+	* kern/queue.h: Add a new macro, queue_assert, and use it to assert
+	that all arguments given to the queue macros have the correct type.
+	* device/net_io.c (ENQUEUE_DEAD): Adapt to the fact that
+	`queue_next(q)' is no longer an lvalue.
+
+2015-07-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix traversing the list of inactive pages
+	Previously, the pageout code traversed the hash table chain instead of
+	the list of inactive pages.  The code merely compiled by accident,
+	because the `struct page' also has a field called `next' for the hash
+	table chain.
+
+	* vm/vm_pageout.c (vm_pageout_scan): Fix traversing the list of
+	inactive pages.
+
+2015-07-10  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: drop debugging remnants
+	* vm/vm_object.c (vm_object_terminate): Drop debugging remnants.
+
+	kern: make printf handle long long integers
+	* Makefile.am (clib_routines): Steal `__umoddi3'.
+	* kern/printf.c (MAXBUF): Increase size.
+	(printnum, _doprnt): Handle long long integers.
+	* kern/printf.h (printnum): Adjust declaration.
+
+2015-07-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix panic message
+	* vm/vm_kern.c (kmem_init): Fix panic message.
+
+	i386: fix line wrapping in the immediate console
+	* i386/i386at/immc.c (immc_cnputc): Fix line wrapping.
+
+	kern: remove superfluous file
+	* kern/server_loop.ch: Remove superfluous file.
+
+	kern: improve error handling
+	* kern/bootstrap.c (boot_script_exec_cmd): Improve error handling.
+
 2015-07-09  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Allow non-privileged tasks to wire 64KiB task memory
