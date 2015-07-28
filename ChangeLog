@@ -1,3 +1,129 @@
+2015-07-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: add boot-time clock, use it for time stamps
+	The kernel keeps track of task and thread creation times by saving a
+	time stamp.  Previously, the real-time clock was used for this.  When
+	the real-time clock is changed, however, the reference frame for the
+	time stamps is lost.  This surfaced in Hurd systems reporting
+	spuriously long uptimes.
+
+	Fix this by creating a boot-time clock and use it as reference frame
+	for the time stamps.
+
+	* kern/mach_clock.c (clock_boottime_offset): Create clock by keeping
+	track of the offset from the real-time.
+	(clock_boottime_update): New function.
+	(record_time_stamp): Use the boot-time clock for time stamps.
+	(read_time_stamp): New function to convert it back to real-time.
+	(host_set_time): Call `clock_boottime_update'.
+	* kern/mach_clock.h (record_time_stamp): Amend comment.
+	(read_time_stamp): New declaration.
+	* kern/task.c (task_info): Use `read_time_stamp'.
+	* kern/thread.c (thread_info): Likewise.
+
+2015-07-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	include: provide time-value substraction
+	* include/mach/time_value.h (time_value_assert): New macro to assert
+	that the given value is well-formed.
+	(time_value_add_usec): Use the new macro.
+	(time_value_sub_usec): New macro.
+	(time_value_add): Use `time_value_add_usec'.
+	(time_value_sub_usec): New macro.
+
+	kern/lock: make sure the macros are only used on simple locks
+	* kern/lock.h (struct slock, simple_lock_data_empty): Add field
+	`is_a_simple_lock'.
+	(simple_lock_assert): New macro that tests for `is_a_simple_lock'.
+	Use this macro to assert that the arguments to various other macros
+	are indeed simple locks.
+
+	Disable the kernel tracing system XPR
+	* configfrag.ac (XPR_DEBUG): Disable tracing system.
+
+	ipc/space: inline reference counting
+	* ipc/ipc_space.h (is_{reference,release}): Use the macro variant.
+
+	Make sure the field offsets are updated
+	* Makerules.am: Make sure the field offsets are updated.
+
+2015-07-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/bootstrap: deallocate thread
+	Previously, killing the thread would fail because of the extra
+	reference, making task_terminate loop forever.
+
+	* kern/bootstrap.c (boot_script_exec_command): Deallocate thread.
+
+2015-07-19  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/bootstrap: deallocate task
+	* kern/bootstrap.c (boot_script_free_task): Deallocate task.
+
+2015-07-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	linux/net: fix build with -O0
+	* linux/src/drivers/net/pci-scan.c: Avoid #erroring out.
+
+2015-07-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/printf: do not serialize printf and co
+	A lot of code assumes that printf is re-entrant, e.g. the pagination
+	code in the debugger, or any use of assert inside the console driver.
+
+	* kern/printf.c: Drop the lock serializing calls to `_doprnt'.
+	(printf_init): Remove function.
+	* kern/printf.h (printf_init): Remove declaration.
+	* kern/startup.c (setup_main): Remove call to `printf_init'.
+
+2015-07-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/lock: use compiler built-in functions to get return address
+	* kern/lock.c (struct simple_locks_info): Fix type of `ra'.
+	(simple_lock, simple_lock_try): Use compiler built-in functions to get
+	return address.
+
+	kern/bootstrap: fix locking
+	* kern/bootstrap.c (boot_script_exec_cmd): Add missing unlock.
+	(user_bootstrap): Likewise.
+
+	kern/slab: fix locking
+	* kern/slab.c (host_slab_info): Fix locking.
+
+2015-07-15  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: use a general lock to protect IPC spaces
+	This fixes a corruption in the radix trees representing the IPC spaces
+	when memory was tight.
+
+	* ipc/ipc_space.h: Use a general lock to protect IPC spaces.
+
+2015-07-15  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: fix the locking of the IPC entry allocation functions
+	* ipc/ipc_entry.c (ipc_entry_alloc): Assume the space is write-locked.
+	(ipc_entry_alloc_name): Likewise.
+	* ipc/ipc_object.c: Fix the locking around all call sites to the two
+	functions where the space was not locked before.
+
+	i386: fix typo
+	* i386/intel/pmap.c: Fix typo.
+
+2015-07-12  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	ipc: avoid kmem_alloc
+	* ipc/ipc_table.c (ipc_table_alloc): Unconditionally use `kalloc'.
+	(ipc_table_free): Unconditionally use `kfree'.
+
+2015-07-12  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: really fix traversing the list of inactive pages
+	Previously, the pageout code traversed the list of pages in an object
+	instead of the list of inactive pages.
+
+	* vm/vm_pageout.c (vm_pageout_scan): Fix traversing the list of
+	inactive pages.
+
 2015-07-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
 
 	kern: make sure the queue macros are only used on queues

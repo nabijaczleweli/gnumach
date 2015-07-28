@@ -1,9 +1,9 @@
-This is mach.info, produced by makeinfo version 5.2 from mach.texi.
+This is mach.info, produced by makeinfo version 6.0 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
    This is edition 0.4, last updated on 9 July 2015, of 'The GNU Mach
-Reference Manual', for version 1.4+git20150711.
+Reference Manual', for version 1.5+git20150728.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -46,7 +46,7 @@ Main Menu
 This file documents the GNU Mach microkernel.
 
    This is edition 0.4, last updated on 9 July 2015, of 'The GNU Mach
-Reference Manual', for version 1.4+git20150711.
+Reference Manual', for version 1.5+git20150728.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -1475,10 +1475,10 @@ File: mach.info,  Node: Exchanging Port Rights,  Next: Memory,  Prev: Message Fo
 ----------------------------
 
 Each task has its own space of port rights.  Port rights are named with
-positive integers.  Except for the reserved values 'MACH_PORT_NULL (0)'(1)
-and 'MACH_PORT_DEAD (~0)', this is a full 32-bit name space.  When the
-kernel chooses a name for a new right, it is free to pick any unused
-name (one which denotes no right) in the space.
+positive integers.  Except for the reserved values
+'MACH_PORT_NULL (0)'(1) and 'MACH_PORT_DEAD (~0)', this is a full 32-bit
+name space.  When the kernel chooses a name for a new right, it is free
+to pick any unused name (one which denotes no right) in the space.
 
    There are five basic kinds of rights: receive rights, send rights,
 send-once rights, port-set rights, and dead names.  Dead names are not
