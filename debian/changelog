@@ -1,8 +1,20 @@
-gnumach (2:1.5+git20150704-1) experimental; urgency=medium
+gnumach (2:1.5+git20150711-1) experimental; urgency=medium
 
   * Bump version number to 1.5 according to upstream release.
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 07 Jul 2015 20:54:04 +0000
+
+gnumach (2:1.4+git20150711-1) unstable; urgency=medium
+
+  * New upstream snapshot, fixes a pageout issue.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 11 Jul 2015 12:16:52 +0000
+
+gnumach (2:1.4+git20150709-1) unstable; urgency=medium
+
+  * New upstream snapshot.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 09 Jul 2015 12:23:39 +0000
 
 gnumach (2:1.4+git20150704-1) unstable; urgency=medium
 

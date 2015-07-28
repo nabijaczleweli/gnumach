@@ -1,3 +1,95 @@
+2015-07-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: make sure the queue macros are only used on queues
+	This turns mistakes as the one corrected in e59f05e9 into compile-time
+	errors.
+
+	* kern/queue.h: Add a new macro, queue_assert, and use it to assert
+	that all arguments given to the queue macros have the correct type.
+	* device/net_io.c (ENQUEUE_DEAD): Adapt to the fact that
+	`queue_next(q)' is no longer an lvalue.
+
+2015-07-11  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix traversing the list of inactive pages
+	Previously, the pageout code traversed the hash table chain instead of
+	the list of inactive pages.  The code merely compiled by accident,
+	because the `struct page' also has a field called `next' for the hash
+	table chain.
+
+	* vm/vm_pageout.c (vm_pageout_scan): Fix traversing the list of
+	inactive pages.
+
+2015-07-10  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: drop debugging remnants
+	* vm/vm_object.c (vm_object_terminate): Drop debugging remnants.
+
+	kern: make printf handle long long integers
+	* Makefile.am (clib_routines): Steal `__umoddi3'.
+	* kern/printf.c (MAXBUF): Increase size.
+	(printnum, _doprnt): Handle long long integers.
+	* kern/printf.h (printnum): Adjust declaration.
+
+2015-07-09  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix panic message
+	* vm/vm_kern.c (kmem_init): Fix panic message.
+
+	i386: fix line wrapping in the immediate console
+	* i386/i386at/immc.c (immc_cnputc): Fix line wrapping.
+
+	kern: remove superfluous file
+	* kern/server_loop.ch: Remove superfluous file.
+
+	kern: improve error handling
+	* kern/bootstrap.c (boot_script_exec_cmd): Improve error handling.
+
+2015-07-09  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Allow non-privileged tasks to wire 64KiB task memory
+	* doc/mach.texi (vm_wire): Document that the host port does not have to be
+	privileged.
+	* include/mach/mach_hosts.defs (vm_wire): Use mach_port_t instead of
+	host_priv_t.
+	* vm/vm_map.h (vm_map): Add user_wired field.
+	* vm/vm_map.c (vm_map_setup): Initialize user_wired field to 0.
+	(vm_map_pageable_common, vm_map_entry_delete, vm_map_copy_overwrite,
+	vm_map_copyout_page_list, vm_map_copyin_page_list): When switching
+	user_wired_count field of entry between 0 and non-0, accumulate the
+	corresponding size into the user_wired field of map.
+	* vm/vm_user.c (vm_wire): Turn host parameter into port parameter, and
+	inline a version of convert_port_to_host_priv which records whether the host
+	port is privileged or not.  When it is not privileged, check whether
+	the additional amount to user_wired will overcome 64KiB.
+
+2015-07-07  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix build with -O0
+	* linux/src/include/linux/string.h (strcpy, strncpy, strcat, strncat,
+	strchr, strrchr, strlen, strnlen, strcmp, strncmp, memmove,
+	memscan): Comment out extern declarations.
+	* linux/dev/include/asm-i386/string.h (strcpy, strncpy, strcat, strncat,
+	strcmp, strncmp, strchr, strrchr, strlen, __memcpy, __constant_memcpy,
+	memmove, memchr, __memset_generic, __constant_c_memset, strnlen,
+	__constant_c_and_count_memset, memscan): Turn extern inline into static
+	inline.
+	* linux/dev/include/linux/fs.h (mark_buffer_uptodate): Likewise.
+	* linux/src/include/asm-i386/bitops.h (set_bit, clear_bit, change_bit,
+	test_and_set_bit, test_and_clear_bit, test_and_change_bit, test_bit,
+	find_first_zero_bit, find_next_zero_bit, ffz, ffs): Likewise.
+	* linux/src/include/asm-i386/io.h (virt_to_phys, phys_to_virt, __out##s,
+	__in##s, ins##s, outs##s): Likewise.
+	* linux/src/include/asm-i386/semaphore.h (down, down_interruptible, up):
+	Likewise.
+	* linux/src/include/asm-i386/segment.h [!__OPTIMIZE]: Emit an ud2 instruction
+	instead of an undefined reference.
+
+2015-07-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing distributed file
+	* Makefrag.am (EXTRA_DIST): Add ipc/notify.defs.
+
 2015-06-30  Justus Winter  <4winter@informatik.uni-hamburg.de>
 
 	Fix re-configuring out-of-tree builds
