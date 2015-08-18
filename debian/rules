@@ -36,7 +36,12 @@ D_DBG := $(D)-dbg
 D_XEN_DBG := $(D)-xen-dbg
 
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+else
+# We will only install headers, don't care about the target
+DEB_HOST_GNU_TYPE := i586-gnu
+endif
 
 CFLAGS = -Wall -g -pipe -fno-strict-aliasing
 
@@ -109,9 +114,15 @@ build-xen-dbg/config.status: configure
 		$(common_configure) \
 		--enable-platform=xen
 
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 build-arch: build/stamp build-xen/stamp build-dbg/stamp build-xen-dbg/stamp
 build-indep: build-arch
 build: build-arch build-indep
+else
+build-arch: build/config.status
+build-indep: build-arch
+build: build-arch build-indep
+endif
 
 doc/mach.info: build/config.status
 	dh_testdir
@@ -185,6 +196,7 @@ install: build
 	-rm -rf $(D_DBG)
 	dh_installdirs -a
 	
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) -C build install \
 		DESTDIR=$(D)
 	
@@ -217,6 +229,10 @@ ifeq ($(DEB_HOST_ARCH_OS),hurd)
 			done ; \
 		done ; \
 	done
+endif
+else
+	$(MAKE) -C build install-data \
+		DESTDIR=$(D)
 endif
 
 binary: binary-indep binary-arch
@@ -263,6 +279,7 @@ endif
 	dh_link -a
 	dh_strip -a -N$(pkg_dbg) -N$(pkg_xen_dbg)
 	dh_compress -a -N$(pkg) -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg)
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	dh_compress -p$(pkg) boot/gnumach-$(VERSION)-$(MACHINE)
 	dh_compress -p$(pkg_xen) boot/gnumach-$(VERSION)-xen-$(MACHINE)
 ifeq ($(DEB_HOST_ARCH_OS),hurd)
@@ -271,6 +288,7 @@ ifeq ($(DEB_HOST_ARCH_OS),hurd)
 endif
 	dh_compress -p$(pkg_dbg) boot/gnumach-$(VERSION)-$(MACHINE)-dbg
 	dh_compress -p$(pkg_xen_dbg) boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
+endif
 	dh_fixperms -a
 	dh_installdeb -a
 	dh_gencontrol -a
