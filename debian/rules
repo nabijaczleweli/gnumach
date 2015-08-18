@@ -111,13 +111,11 @@ build-xen-dbg/config.status: configure
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 build-arch: build/stamp build-xen/stamp build-dbg/stamp build-xen-dbg/stamp
-build-indep: build-arch
-build: build-arch build-indep
 else
 build-arch: build/config.status
+endif
 build-indep: build-arch
 build: build-arch build-indep
-endif
 
 doc/mach.info: build/config.status
 	dh_testdir
