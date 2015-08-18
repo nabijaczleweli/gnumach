@@ -36,12 +36,7 @@ D_DBG := $(D)-dbg
 D_XEN_DBG := $(D)-xen-dbg
 
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-else
-# We will only install headers, don't care about the target
-DEB_HOST_GNU_TYPE := i586-gnu
-endif
 
 CFLAGS = -Wall -g -pipe -fno-strict-aliasing
 
