@@ -1,7 +1,5 @@
-Index: gnumach/Makefrag.am
-===================================================================
---- gnumach.orig/Makefrag.am
-+++ gnumach/Makefrag.am
+--- a/Makefrag.am
++++ b/Makefrag.am
 @@ -220,6 +220,7 @@ EXTRA_DIST += \
  	kern/mach.srv \
  	kern/mach4.srv \
@@ -18,7 +16,15 @@ Index: gnumach/Makefrag.am
  	device/if_ether.h \
  	device/if_hdr.h \
  	device/io_req.h \
-@@ -375,6 +377,7 @@ include_mach_HEADERS = \
+@@ -353,6 +355,7 @@ include_device_HEADERS = \
+ 	include/device/device_types.defs \
+ 	include/device/device_types.h \
+ 	include/device/disk_status.h \
++	include/device/intr.h \
+ 	include/device/net_status.h \
+ 	include/device/tape_status.h \
+ 	include/device/tty_status.h
+@@ -375,6 +378,7 @@ include_mach_HEADERS = \
  	include/mach/memory_object_default.defs \
  	include/mach/notify.defs \
  	include/mach/std_types.defs \
@@ -26,7 +32,7 @@ Index: gnumach/Makefrag.am
  	include/mach/alert.h \
  	include/mach/boolean.h \
  	include/mach/boot.h \
-@@ -523,6 +526,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
+@@ -523,6 +527,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
  	kern/gnumach.server.defs.c \
@@ -34,7 +40,7 @@ Index: gnumach/Makefrag.am
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
-@@ -535,6 +539,9 @@ nodist_libkernel_a_SOURCES += \
+@@ -535,6 +540,9 @@ nodist_libkernel_a_SOURCES += \
  	kern/gnumach.server.h \
  	kern/gnumach.server.c \
  	kern/gnumach.server.msgids \
@@ -44,7 +50,7 @@ Index: gnumach/Makefrag.am
  	kern/mach_debug.server.h \
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
-@@ -544,6 +551,7 @@ nodist_libkernel_a_SOURCES += \
+@@ -544,6 +552,7 @@ nodist_libkernel_a_SOURCES += \
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/gnumach.server.defs
@@ -52,10 +58,8 @@ Index: gnumach/Makefrag.am
  #	kern/mach_debug.server.defs
  #	kern/mach_host.server.defs
  
-Index: gnumach/device/ds_routines.c
-===================================================================
---- gnumach.orig/device/ds_routines.c
-+++ gnumach/device/ds_routines.c
+--- a/device/ds_routines.c
++++ b/device/ds_routines.c
 @@ -318,6 +318,43 @@ ds_device_map (device_t dev, vm_prot_t p
  				offset, size, pager, unmap);
  }
@@ -100,7 +104,7 @@ Index: gnumach/device/ds_routines.c
  boolean_t
  ds_notify (mach_msg_header_t *msg)
  {
-@@ -1802,6 +1839,24 @@ device_writev_trap (mach_device_t device
+@@ -1798,6 +1835,24 @@ device_writev_trap (mach_device_t device
  	return (result);
  }
  
@@ -125,10 +129,8 @@ Index: gnumach/device/ds_routines.c
  struct device_emulation_ops mach_device_emulation_ops =
  {
    (void*) mach_device_reference,
-Index: gnumach/device/ds_routines.h
-===================================================================
---- gnumach.orig/device/ds_routines.h
-+++ gnumach/device/ds_routines.h
+--- a/device/ds_routines.h
++++ b/device/ds_routines.h
 @@ -83,4 +83,7 @@ io_return_t ds_device_writev_trap(
  	io_buf_vec_t 	*iovec,
  	vm_size_t 	count);
@@ -137,10 +139,8 @@ Index: gnumach/device/ds_routines.h
 +extern ipc_port_t intr_rcv_ports[16];
 +
  #endif	/* DS_ROUTINES_H */
-Index: gnumach/device/intr.c
-===================================================================
 --- /dev/null
-+++ gnumach/device/intr.c
++++ b/device/intr.c
 @@ -0,0 +1,198 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
@@ -340,18 +340,14 @@ Index: gnumach/device/intr.c
 +  return TRUE;
 +}
 +#endif	/* MACH_XEN */
-Index: gnumach/kern/experimental.srv
-===================================================================
 --- /dev/null
-+++ gnumach/kern/experimental.srv
++++ b/kern/experimental.srv
 @@ -0,0 +1,3 @@
 +#define KERNEL_SERVER 1
 +
 +#include <mach/experimental.defs>
-Index: gnumach/include/mach/experimental.defs
-===================================================================
 --- /dev/null
-+++ gnumach/include/mach/experimental.defs
++++ b/include/mach/experimental.defs
 @@ -0,0 +1,100 @@
 +/* 
 + * Mach Operating System
@@ -453,10 +449,8 @@ Index: gnumach/include/mach/experimental.defs
 +	out	vaddr		: vm_address_t;
 +	out	paddr		: vm_address_t;
 +		size		: vm_size_t);
-Index: gnumach/include/device/intr.h
-===================================================================
 --- /dev/null
-+++ gnumach/include/device/intr.h
++++ b/include/device/intr.h
 @@ -0,0 +1,17 @@
 +#ifndef __INTR_H__
 +
@@ -475,10 +469,8 @@ Index: gnumach/include/device/intr.h
 +#define MACH_INTR_NOTIFY 424242
 +
 +#endif
-Index: gnumach/kern/startup.c
-===================================================================
---- gnumach.orig/kern/startup.c
-+++ gnumach/kern/startup.c
+--- a/kern/startup.c
++++ b/kern/startup.c
 @@ -79,6 +79,7 @@ boolean_t reboot_on_panic = TRUE;
  /* XX */
  extern vm_offset_t phys_first_addr, phys_last_addr;
@@ -497,10 +489,8 @@ Index: gnumach/kern/startup.c
  
  #if	NCPUS > 1
  	/*
-Index: gnumach/linux/dev/arch/i386/kernel/irq.c
-===================================================================
---- gnumach.orig/linux/dev/arch/i386/kernel/irq.c
-+++ gnumach/linux/dev/arch/i386/kernel/irq.c
+--- a/linux/dev/arch/i386/kernel/irq.c
++++ b/linux/dev/arch/i386/kernel/irq.c
 @@ -83,6 +83,7 @@ struct linux_action
    void *dev_id;
    struct linux_action *next;
@@ -624,11 +614,9 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
    
    retval = setup_x86_irq (irq, action);
    if (retval)
-Index: gnumach/vm/vm_user.c
-===================================================================
---- gnumach.orig/vm/vm_user.c
-+++ gnumach/vm/vm_user.c
-@@ -431,3 +431,117 @@ kern_return_t vm_wire(host, map, start,
+--- a/vm/vm_user.c
++++ b/vm/vm_user.c
+@@ -452,3 +452,117 @@ kern_return_t vm_wire(port, map, start,
  				    round_page(start+size),
  				    access);
  }
@@ -746,10 +734,8 @@ Index: gnumach/vm/vm_user.c
 +	kfree ((vm_offset_t) pages, npages * sizeof (vm_page_t));
 +	return KERN_SUCCESS;
 +}
-Index: gnumach/linux/dev/drivers/block/genhd.c
-===================================================================
---- gnumach.orig/linux/dev/drivers/block/genhd.c
-+++ gnumach/linux/dev/drivers/block/genhd.c
+--- a/linux/dev/drivers/block/genhd.c
++++ b/linux/dev/drivers/block/genhd.c
 @@ -812,7 +812,9 @@ void device_setup(void)
  #ifdef MACH
  	linux_intr_pri = SPL6;
@@ -761,10 +747,8 @@ Index: gnumach/linux/dev/drivers/block/genhd.c
  #endif
  #ifndef MACH
  	console_map_init();
-Index: gnumach/kern/ipc_kobject.c
-===================================================================
---- gnumach.orig/kern/ipc_kobject.c
-+++ gnumach/kern/ipc_kobject.c
+--- a/kern/ipc_kobject.c
++++ b/kern/ipc_kobject.c
 @@ -159,6 +159,7 @@ ipc_kobject_server(request)
  	 * to perform the kernel function
  	 */

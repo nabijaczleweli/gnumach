@@ -1,6 +1,7 @@
 gnumach (2:1.5+git20150728-2) unstable; urgency=medium
 
   * Add stage1 build profile for cross-bootstrapping gnumach.
+  * patches/70_dde.patch: Also install intr.h. Closes: Bug#795770.
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 18 Aug 2015 11:24:24 +0200
 
