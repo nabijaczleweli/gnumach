@@ -100,7 +100,7 @@ struct thread {
 	vm_offset_t	stack_privilege;/* reserved kernel stack */
 
 	/* Swapping information */
-	void		(*swap_func)();	/* start here after swapin */
+	continuation_t	swap_func;	/* start here after swapin */
 
 	/* Blocking information */
 	event_t		wait_event;	/* event we are waiting on */
@@ -362,7 +362,7 @@ extern void		thread_release(thread_t);
 extern kern_return_t	thread_halt(
 	thread_t	thread,
 	boolean_t	must_halt);
-extern void		thread_halt_self(void);
+extern void		thread_halt_self(continuation_t);
 extern void		thread_force_terminate(thread_t);
 extern thread_t		kernel_thread(
 	task_t		task,

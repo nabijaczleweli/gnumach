@@ -1,5 +1,6 @@
-gnumach (2:1.5+git20150728-2) unstable; urgency=medium
+gnumach (2:1.5+git20150827-1) unstable; urgency=medium
 
+  * New upstream snapshot.
   * Add stage1 build profile for cross-bootstrapping gnumach.
   * patches/70_dde.patch: Also install intr.h. Closes: Bug#795770.
 

@@ -1,3 +1,112 @@
+2015-08-28  Flávio Cruz  <flaviocruz@gmail.com>
+
+	Make sure the reply port's reference is released when the thread needs to be halted.
+	* kern/thread.h (thread_halt_self): Add continuation_t parameter.
+	* kern/thread.c (thread_halt_self): Pass continuation_t parameter to
+	thread_block instead of thread_exception_return.
+	* kern/ast.c (ast_taken): Pass thread_exception_return to thread_halt_self.
+	* kern/profile.c (profile_thread): Likewise.
+	* kern/exception.c (exception_no_server): Likewise.
+	(thread_release_and_exception_return): New function.
+	(exception_raise_continue_slow): Pass thread_release_and_exception_return to
+	thread_halt_self.
+
+2015-08-28  Flávio Cruz  <flaviocruz@gmail.com>
+
+	Add a thread_no_continuation definition
+	to replace the use of the NULL pointer.
+
+	* kern/sched_prim.h (thread_no_continuation): New macro.
+	* kern/machine.c (processor_assign, processor_doaction): Use
+	thread_no_continuation instead of 0.
+	* kern/profile.c (send_last_sample_buf): Likewise
+	* kern/sched_prim.c (thread_sleep, thread_invoke, thread_dispatch):
+	Likewise.
+	* kern/task.c (task_terminate, task_assign): Likewise.
+	* kern/thread.c (thread_suspend): Likewise.
+	* kern/thread.h (struct thread): Change type of swap_func field to
+	continuation_t.
+
+2015-08-20  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/bootstrap: tune locking
+	* kern/bootstrap.c (boot_script_exec_cmd): Avoid holding the lock
+	across the call to `thread_create'.
+
+	i386: enable assertions
+	* i386/intel/pmap.c (pmap_page_protect): Enable assertions.
+	(phys_attribute_clear, phys_attribute_test): Likewise.
+
+	kern: really zero-out unused simple lock info entries
+	* kern/lock.c (simple_unlock): Really zero-out unused simple lock info
+	entries.
+
+2015-08-18  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: fix panic message
+	* i386/intel/pmap.c (pmap_page_protect): Fix function name in panic
+	message.
+
+	vm: collapse unreachable branch into assertion
+	* vm/vm_object.c (vm_object_collapse): Collapse unreachable branch
+	into assertion.
+
+2015-08-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: keep track of the writer when debugging locks
+	* configfrag.ac (MACH_LDEBUG): Adjust comment, we use it to sanity
+	check all locks now.
+	* kern/lock.c (lock_write): Keep track of the writer thread.
+	(lock_done): Clear writer.
+	(lock_read_to_write): Keep track of the writer thread.
+	(lock_write_to_read): Assert that the current thread holds the lock.
+	Clear writer.
+	(lock_try_write): Keep track of the writer thread.
+	(lock_try_read_to_write): Likewise.
+	(lock_set_recursive): Assert that the current thread holds the lock.
+	* kern/lock.h (struct lock): New field `writer'.
+	(have_read_lock, have_write_lock, have_lock): New macros that can be
+	used to assert that the current thread holds the given lock.  If
+	MACH_LDEBUG is not set, they evaluate to true.
+
+2015-08-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: improve simple lock debugging
+	Do not bother saving the return address when acquire a simple lock.
+	Save the location as provided by the compiler as string instead.  Also
+	save the lock parameter.
+
+	* kern/lock.c (struct simple_locks_info): Drop `ra', add `expr', `loc'.
+	(simple_lock): Rename to `_simple_lock', add expression and location
+	parameters and save them.
+	(simple_lock_try): Likewise.
+	(simple_unlock): Zero-out the now unused slot in the list of taken locks.
+	(db_show_all_slocks): Use the new information.
+	* kern/lock.h (simple_lock, simple_lock_try): Provide macro versions
+	passing the location and expression as string.
+
+2015-08-17  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: disable the simple lock checks while debugging
+	* kern/lock.c (do_check_simple_locks): New variable.
+	(check_simple_locks): Make check conditional.
+	(check_simple_locks_{en,dis}able): New functions.
+	* kern/lock.h (check_simple_locks_{en,dis}able): New declarations.
+	* ddb/db_trap.c (db_task_trap): Disable simple lock checks.
+
+2015-08-15  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: fix compiler warning
+	* vm/vm_user.c (vm_wire): Drop unused but set variable `host'.
+
+	vm: enable extra assertions
+	* vm/vm_fault.c (vm_fault_page): Enable extra assertions.
+
+	Avoid re-defining macros
+	* kern/macros.h: Avoid re-defining macros.
+	* linux/src/include/linux/compiler-gcc.h: Likewise.
+	* linux/src/include/linux/compiler.h: Likewise.
+
 2015-07-25  Justus Winter  <4winter@informatik.uni-hamburg.de>
 
 	kern: add boot-time clock, use it for time stamps

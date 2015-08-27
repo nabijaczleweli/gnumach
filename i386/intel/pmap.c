@@ -1585,8 +1585,8 @@ void pmap_page_protect(
 		/*
 		 * Consistency checks.
 		 */
-		/* assert(*pte & INTEL_PTE_VALID); XXX */
-		/* assert(pte_to_phys(*pte) == phys); */
+		assert(*pte & INTEL_PTE_VALID);
+		assert(pte_to_pa(*pte) == phys);
 
 		/*
 		 * Remove the mapping if new protection is NONE
@@ -1597,7 +1597,7 @@ void pmap_page_protect(
 		     * Remove the mapping, collecting any modify bits.
 		     */
 		    if (*pte & INTEL_PTE_WIRED)
-			panic("pmap_remove_all removing a wired page");
+			panic("pmap_page_protect removing a wired page");
 
 		    {
 			int	i = ptes_per_vm_page;
@@ -2463,13 +2463,11 @@ phys_attribute_clear(
 		va = pv_e->va;
 		pte = pmap_pte(pmap, va);
 
-#if	0
 		/*
 		 * Consistency checks.
 		 */
 		assert(*pte & INTEL_PTE_VALID);
-		/* assert(pte_to_phys(*pte) == phys); */
-#endif
+		assert(pte_to_pa(*pte) == phys);
 
 		/*
 		 * Clear modify or reference bits.
@@ -2556,13 +2554,11 @@ phys_attribute_test(
 		    va = pv_e->va;
 		    pte = pmap_pte(pmap, va);
 
-#if	0
 		    /*
 		     * Consistency checks.
 		     */
 		    assert(*pte & INTEL_PTE_VALID);
-		    /* assert(pte_to_phys(*pte) == phys); */
-#endif
+		    assert(pte_to_pa(*pte) == phys);
 		}
 
 		/*
