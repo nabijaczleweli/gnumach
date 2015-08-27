@@ -172,7 +172,7 @@ printf("profile_thread: mach_msg failed returned %x\n",(int)mr);
 					sizeof(struct buf_to_send));
 	}
 
-	thread_halt_self();
+	thread_halt_self(thread_exception_return);
 }
 
 
@@ -213,7 +213,7 @@ thread_t th;
 		thread_wakeup((event_t) profile_thread);
 		assert_wait((event_t) &buf_entry->wakeme, TRUE);
 		splx(s);
-		thread_block((void (*)()) 0);
+		thread_block(thread_no_continuation);
 	} else {
 		splx(s);
 		kmem_free(kernel_map, vm_buf_entry, sizeof(struct buf_to_send));
