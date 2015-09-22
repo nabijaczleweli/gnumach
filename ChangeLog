@@ -1,3 +1,58 @@
+2015-09-19  Flávio Cruz  <flaviocruz@gmail.com>
+
+	Add macros to convert between time_value_t and timespec
+	* include/mach/time_value.h (TIME_VALUE_TO_TIMESPEC,
+	TIMESPEC_TO_TIME_VALUE): New macros
+
+2015-09-07  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: use proper memory fences when handling the mapped time
+	* include/mach/time_value.h (struct mapped_time_value): Adjust comment.
+	* kern/mach_clock.c (mtime): Likewise.  Also make it volatile.
+	(update_mapped_time): Use full hardware barriers.
+	(read_mapped_time): New macro with proper fences.
+	(record_time_stamp, host_get_time): Use the new macro.
+
+2015-09-07  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern: fix loop reading the time value
+	Previously, recent versions of gcc would hoist the loads out of the
+	loop reading the time value.
+
+	* kern/macros.h (access_once): New macro.
+	* kern/mach_clock.c (host_get_time): Use the new macro to prevent the
+	loads from being hoisted out of the loop.
+
+2015-09-07  Rik van Riel  <riel@conectiva.com.br>
+
+	commit fce798016c4bd2be89b86b0d343ab54505409412
+	    [PATCH] advansys.c buffer overflow
+
+	    The Stanford checker found an error in advansys.c, the driver
+	    is accessing field 6 in an array[6].  Since this is the only
+	    place where this field is accessed it should be safe to simply
+	    remove this line.
+
+2015-08-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Reserve 64k at beginning of memory, not just 4k
+	Linux does this to be extra careful with some BIOSes which apparently
+	spuriously write between 4k and 64k.
+
+	* i386/i386at/model_dep.c (RESERVED_BIOS): New macro.
+	(avail_next, mem_size_init, init_alloc_aligned): Use RESERVED_BIOS instead
+	of hardcoded 0x1000.
+
+2015-08-30  James Clarke  <jrtc27@jrtc27.com>
+
+	Fix printk not handling ANSI escape codes
+	* i386/i386at/kd.c (kdstart): Moved escape sequence handling to new
+	kd_putc_esc function.
+	(kd_putc_esc): New function with logic from kdstart.
+	(kdcnputc): Call kd_putc_esc rather than kd_putc to allow for ANSI
+	escape codes.
+	* i386/i386at/kd.h (kd_putc_esc): New function.
+
 2015-08-28  Flávio Cruz  <flaviocruz@gmail.com>
 
 	Make sure the reply port's reference is released when the thread needs to be halted.
