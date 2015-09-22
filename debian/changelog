@@ -1,6 +1,8 @@
 gnumach (2:1.5+git20150922-1) unstable; urgency=medium
 
   * New upstream snapshot.
+  * patches/70_dde.patch: Include kern/experimental.server.h to fix build with
+    newer mig.
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 22 Sep 2015 17:12:19 +0000
 
