@@ -1,3 +1,96 @@
+2015-10-31  Thomas Schwinge  <thomas@codesourcery.com>
+
+	GNU Mach 1.6
+	* version.m4 (AC_PACKAGE_VERSION): Set to 1.6.
+	* NEWS: Finalize for 1.6.
+
+2015-10-31  Thomas Schwinge  <thomas@codesourcery.com>
+
+	Rework *.msgids handling when neither client nor server stubs are required
+	Originally added in commit 255c47e669819f153c722c98a230f6fe4e6ece08, but "make
+	distcheck" didn't like that:
+
+	    [...]
+	    ERROR: files left in build directory after distclean:
+	    ./ipc/notify.msgids
+	    Makefile:7489: recipe for target 'distcleancheck' failed
+	    make[1]: *** [distcleancheck] Error 1
+	    make[1]: Leaving directory '[...]/gnumach/release.build/gnumach-1.5/_build/sub'
+	    Makefile:7416: recipe for target 'distcheck' failed
+	    make: *** [distcheck] Error 1
+
+	Instead of special-casing that, generalize the Makefile rules.
+
+	* Makefrag.am (nodist_lib_dep_tr_for_defs_a_SOURCES): Add
+	ipc/notify.none.defs.c.
+	(nodist_libkernel_a_SOURCES): Add ipc/notify.none.msgids.
+	(gnumach.msgids): Remove ipc/notify.msgids prerequisite.
+	* Makerules.mig.am (%.msgids): Remove rule, and instead...
+	(%.none.defs.c, %.none.msgids): ... add these rules.
+
+2015-10-05  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	Update NEWS file
+
+2015-10-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix time going back in Xen case
+	when backward time correction happens to get bigger than the tick duration.
+
+	* kern/mach_clock.c (clock_interrupt): When `tickdelta' is bigger than `usec',
+	truncate it to `usec-1'.
+
+2015-10-05  Joshua Branson  <bransoj@hotmail.com>
+
+	Add generated mach documentation files to gitignore
+	* .gitignore: Add doc/mach.aux doc/mach.cp doc/mach.cps doc/mach.fn
+	doc/mach.fns doc/mach.ky doc/mach.log doc/mach.pdf doc/mach.pg doc/mach.toc
+	doc/mach.tp doc/mach.vr.
+
+2015-09-29  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	kern/slab: print total used and reclaimable memory
+	* kern/slab.c (_slab_info): Print total used and reclaimable memory.
+
+	kern/slab: include flags in the slab information
+	* kern/slab.c (_slab_info): Include flags in the slab information.
+
+	ddb: fix line formatting
+	* ddb/db_output.c (db_putchar): Fix off-by-one, allowing one more
+	character to be printed before the newline is inserted.
+
+	ddb: add new command `show slabinfo'
+	* ddb/db_command.c (db_show_cmds): Add `slabinfo'.
+	* kern/slab.c (slab_info): Generalize so that it can be used with
+	different printf-like functions, and turn it into a static function.
+	(slab_info): New wrapper retaining the old behaviour.
+	(db_show_slab_info): New wrapper that uses `db_printf' instead.
+	* kern/slab.h (db_show_slab_info): New declaration.
+
+2015-09-27  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	i386: trace syscalls of a single task
+	* i386/i386/debug_i386.c (syscall_trace_task): New variable.
+	(syscall_trace_print): If set, trace only syscalls from this task.
+
+	i386: improve syscall tracing
+	* kern/syscall_sw.h (mach_trap_t): Turn unused field into `mach_trap_name'.
+	(MACH_TRAP, MACH_TRAP_STACK): Record name.
+	* i386/i386/debug_i386.c (syscall_trace_print): Use the name and
+	format the arguments to look like c.
+
+	Fix build with -DDEBUG
+	* device/cirbuf.c: Add missing include.
+	* i386/i386/debug.h (dump_ss): Hide declaration from assembler.
+	* i386/i386/debug_i386.c: Fix include.
+	* kern/sched_prim.h: Add missing include, fix declaration.
+
+	kern/bootstrap: drop into the debugger
+	* kern/bootstrap.c (boot_script_prompt_task_resume): Drop into the
+	debugger instead of merely waiting for return using `safe_gets', which
+	disables interrupts, making it impossible to break into the debugger
+	using the magic keys.
+
 2015-09-19  Flávio Cruz  <flaviocruz@gmail.com>
 
 	Add macros to convert between time_value_t and timespec
