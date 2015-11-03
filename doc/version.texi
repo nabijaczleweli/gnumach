@@ -1,4 +1,4 @@
-@set UPDATED 12 September 2015
-@set UPDATED-MONTH September 2015
-@set EDITION 1.5+git20150922
-@set VERSION 1.5+git20150922
+@set UPDATED 30 October 2015
+@set UPDATED-MONTH October 2015
+@set EDITION 1.6
+@set VERSION 1.6

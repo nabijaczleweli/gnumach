@@ -1209,6 +1209,7 @@ nodist_lib_dep_tr_for_defs_a_OBJECTS = vm/lib_dep_tr_for_defs_a-memory_object_us
 	kern/lib_dep_tr_for_defs_a-gnumach.server.defs.$(OBJEXT) \
 	kern/lib_dep_tr_for_defs_a-mach_debug.server.defs.$(OBJEXT) \
 	kern/lib_dep_tr_for_defs_a-mach_host.server.defs.$(OBJEXT) \
+	ipc/lib_dep_tr_for_defs_a-notify.none.defs.$(OBJEXT) \
 	$(am__objects_1)
 lib_dep_tr_for_defs_a_OBJECTS =  \
 	$(nodist_lib_dep_tr_for_defs_a_OBJECTS)
@@ -2482,11 +2483,7 @@ noinst_LIBRARIES = libkernel.a lib_dep_tr_for_defs.a $(am__append_5) \
 	$(am__append_99)
 TESTS = tests/test-mbchk
 info_TEXINFOS = doc/mach.texi
-#	kern/mach.server.defs
-#	kern/mach4.server.defs
-#	kern/gnumach.server.defs
-#	kern/mach_debug.server.defs
-#	kern/mach_host.server.defs
+#	ipc/notify.none.defs
 
 # rpctrace can make use of that.
 MOSTLYCLEANFILES = $(nodist_libkernel_a_SOURCES) \
@@ -2641,7 +2638,8 @@ nodist_libkernel_a_SOURCES = version.c vm/memory_object_user.user.h \
 	kern/gnumach.server.msgids kern/mach_debug.server.h \
 	kern/mach_debug.server.c kern/mach_debug.server.msgids \
 	kern/mach_host.server.h kern/mach_host.server.c \
-	kern/mach_host.server.msgids $(am__append_122)
+	kern/mach_host.server.msgids ipc/notify.none.msgids \
+	$(am__append_122)
 gnumach_o_LDADD = libkernel.a $(am__append_6) $(am__append_100)
 gnumach_SOURCES = 
 gnumach_LINKFLAGS = $(am__append_123) $(am__append_126)
@@ -2662,6 +2660,14 @@ gnumach_LINKFLAGS = $(am__append_123) $(am__append_126)
 #	device/device.server.defs
 #	device/device_pager.server.defs
 #	ipc/mach_port.server.defs
+#	kern/mach.server.defs
+#	kern/mach4.server.defs
+#	kern/gnumach.server.defs
+#	kern/mach_debug.server.defs
+#	kern/mach_host.server.defs
+
+# Stand-alone rule to generate the list of message ids when neither
+# the client nor the server stubs are required.
 nodist_lib_dep_tr_for_defs_a_SOURCES =  \
 	vm/memory_object_user.user.defs.c \
 	vm/memory_object_default.user.defs.c \
@@ -2671,7 +2677,8 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  \
 	device/device_pager.server.defs.c ipc/mach_port.server.defs.c \
 	kern/mach.server.defs.c kern/mach4.server.defs.c \
 	kern/gnumach.server.defs.c kern/mach_debug.server.defs.c \
-	kern/mach_host.server.defs.c $(am__append_121)
+	kern/mach_host.server.defs.c ipc/notify.none.defs.c \
+	$(am__append_121)
 # Preprocess only.
 lib_dep_tr_for_defs_a_CPPFLAGS = $(AM_CPPFLAGS) \
 	-E
@@ -3054,6 +3061,8 @@ kern/lib_dep_tr_for_defs_a-mach_debug.server.defs.$(OBJEXT):  \
 	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
 kern/lib_dep_tr_for_defs_a-mach_host.server.defs.$(OBJEXT):  \
 	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
+ipc/lib_dep_tr_for_defs_a-notify.none.defs.$(OBJEXT):  \
+	ipc/$(am__dirstamp) ipc/$(DEPDIR)/$(am__dirstamp)
 i386/i386/$(am__dirstamp):
 	@$(MKDIR_P) i386/i386
 	@: > i386/i386/$(am__dirstamp)
@@ -4259,6 +4268,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_target.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/ipc_thread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-mach_port.server.defs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/mach_debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/mach_msg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ipc/$(DEPDIR)/mach_port.Po@am__quote@
@@ -4718,6 +4728,20 @@ kern/lib_dep_tr_for_defs_a-mach_host.server.defs.obj: kern/mach_host.server.defs
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='kern/mach_host.server.defs.c' object='kern/lib_dep_tr_for_defs_a-mach_host.server.defs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o kern/lib_dep_tr_for_defs_a-mach_host.server.defs.obj `if test -f 'kern/mach_host.server.defs.c'; then $(CYGPATH_W) 'kern/mach_host.server.defs.c'; else $(CYGPATH_W) '$(srcdir)/kern/mach_host.server.defs.c'; fi`
+
+ipc/lib_dep_tr_for_defs_a-notify.none.defs.o: ipc/notify.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ipc/lib_dep_tr_for_defs_a-notify.none.defs.o -MD -MP -MF ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Tpo -c -o ipc/lib_dep_tr_for_defs_a-notify.none.defs.o `test -f 'ipc/notify.none.defs.c' || echo '$(srcdir)/'`ipc/notify.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Tpo ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ipc/notify.none.defs.c' object='ipc/lib_dep_tr_for_defs_a-notify.none.defs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ipc/lib_dep_tr_for_defs_a-notify.none.defs.o `test -f 'ipc/notify.none.defs.c' || echo '$(srcdir)/'`ipc/notify.none.defs.c
+
+ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj: ipc/notify.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj -MD -MP -MF ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Tpo -c -o ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj `if test -f 'ipc/notify.none.defs.c'; then $(CYGPATH_W) 'ipc/notify.none.defs.c'; else $(CYGPATH_W) '$(srcdir)/ipc/notify.none.defs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Tpo ipc/$(DEPDIR)/lib_dep_tr_for_defs_a-notify.none.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ipc/notify.none.defs.c' object='ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj `if test -f 'ipc/notify.none.defs.c'; then $(CYGPATH_W) 'ipc/notify.none.defs.c'; else $(CYGPATH_W) '$(srcdir)/ipc/notify.none.defs.c'; fi`
 
 i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o: i386/i386/mach_i386.server.defs.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o -MD -MP -MF i386/i386/$(DEPDIR)/lib_dep_tr_for_defs_a-mach_i386.server.defs.Tpo -c -o i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o `test -f 'i386/i386/mach_i386.server.defs.c' || echo '$(srcdir)/'`i386/i386/mach_i386.server.defs.c
@@ -7831,29 +7855,28 @@ uninstall-am: uninstall-dvi-am uninstall-exec_bootPROGRAMS \
 %.server.defs.c: %.srv
 	$(AM_V_at) rm -f $@
 	$(AM_V_GEN) cp -p $< $@
-%.user.defs.c: %.cli
-	$(AM_V_at) rm -f $@
-	$(AM_V_GEN) cp -p $< $@
 %.server.h %.server.c %.server.msgids: lib_dep_tr_for_defs_a-%.server.defs.$(OBJEXT)
 	$(MIGCOM_V) $(MIGCOM) $(MIGCOMFLAGS) $(MIGCOMSFLAGS)	\
 	  -sheader $*.server.h -server $*.server.c		\
 	  -list $*.server.msgids				\
 	  < $<
+%.user.defs.c: %.cli
+	$(AM_V_at) rm -f $@
+	$(AM_V_GEN) cp -p $< $@
 %.user.h %.user.c %.user.msgids: lib_dep_tr_for_defs_a-%.user.defs.$(OBJEXT)
 	$(MIGCOM_V) $(MIGCOM) $(MIGCOMFLAGS) $(MIGCOMUFLAGS)	\
 	  -user $*.user.c -header $*.user.h			\
 	  -list $*.user.msgids					\
 	  < $<
-
-vpath %.defs $(top_srcdir)
-
 # Stand-alone rule to generate the list of message ids when neither
 # the client nor the server stubs are required.
-%.msgids: %.defs
-	$(MIGCOM_V) $(CPP) $(AM_CPPFLAGS) $(CPPFLAGS) -E $<	\
-	| $(MIGCOM) $(MIGCOMFLAGS) $(MIGCOMSFLAGS)		\
-	  -sheader /dev/null -server /dev/null			\
-	  -list "$*.msgids"
+%.none.defs.c: %.defs
+	$(AM_V_at) rm -f $@
+	$(AM_V_GEN) cp -p $< $@
+%.none.msgids: lib_dep_tr_for_defs_a-%.none.defs.$(OBJEXT)
+	$(MIGCOM_V) $(MIGCOM) $(MIGCOMFLAGS)			\
+	  -list $*.none.msgids					\
+	  < $<
 
 # This is how it should be done, but this is not integrated into GNU Automake
 # and is missing automatic inter-file dependency management because of that.
@@ -7916,8 +7939,7 @@ echo-%:
 install-data-hook:
 	rm -f '$(DESTDIR)$(include_machdir)'/machine
 	ln -s '$(systype)' '$(DESTDIR)$(include_machdir)'/machine
-gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES)) \
-		ipc/notify.msgids
+gnumach.msgids: $(filter %.msgids,$(nodist_libkernel_a_SOURCES))
 	$(AM_V_at) cat $^ > $@.new
 	$(AM_V_GEN) mv $@.new $@
 dist-hook: dist-hook-linux
