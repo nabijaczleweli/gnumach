@@ -1,3 +1,31 @@
+2015-12-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix boot under kvm in linux 4.3
+	* i386/i386/locore.S (discover_x86_cpu_type): Disable Cyrix CPU discovery.
+
+2015-11-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Nicer out of memory condition reporting
+	* vm/vm_object.c (_vm_object_allocate): Return 0 immediately when
+	kmem_cache_alloc returned 0.
+	(vm_object_allocate): Panic when _vm_object_allocate returns 0.
+
+2015-11-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix wired accounting
+	* vm/vm_map.c (vm_map_pageable_common): Put back wired_count decrementation
+	into user_wired_count test.
+
+	Fix ahci unit MAX_PORTS check
+	* linux/dev/drivers/block/ahci.c (ahci_do_request): Fix checking unit
+	against MAX_PORTS.
+
+	Fix bound
+	* i386/i386at/lpr.c (lprprobe): Fix checking unit against NLPR.
+
+	Fix missing format in printk
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Add missing format.
+
 2015-10-31  Thomas Schwinge  <thomas@codesourcery.com>
 
 	GNU Mach 1.6
