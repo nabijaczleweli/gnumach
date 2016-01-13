@@ -2032,7 +2032,7 @@ am__uninstall_files_from_dir = { \
   }
 DATA = $(exec_msgids_DATA)
 am__include_mach_i386_HEADERS_DIST = i386/include/mach/i386/asm.h \
-	i386/include/mach/i386/boolean.h i386/include/mach/i386/disk.h \
+	i386/include/mach/i386/boolean.h \
 	i386/include/mach/i386/eflags.h \
 	i386/include/mach/i386/exception.h \
 	i386/include/mach/i386/fp_reg.h \
@@ -2504,8 +2504,11 @@ AM_CCASFLAGS =
 # all that scruffy Mach code...  Also see <http://savannah.gnu.org/task/?5726>.
 
 # We need the GNU-style inline
-AM_CFLAGS = -fno-builtin-log -Wall -fgnu89-inline $(am__append_1) \
-	$(am__append_3) $(am__append_124)
+
+# Much of the Mach code predates C99 and makes invalid assumptions about
+# type punning.
+AM_CFLAGS = -fno-builtin-log -Wall -fgnu89-inline -fno-strict-aliasing \
+	$(am__append_1) $(am__append_3) $(am__append_124)
 AM_LDFLAGS = 
 
 #
@@ -2886,7 +2889,6 @@ liblinux_pcmcia_cs_wireless_a_SOURCES = $(am__append_110)
 @HOST_ix86_TRUE@include_mach_i386_HEADERS = \
 @HOST_ix86_TRUE@	i386/include/mach/i386/asm.h \
 @HOST_ix86_TRUE@	i386/include/mach/i386/boolean.h \
-@HOST_ix86_TRUE@	i386/include/mach/i386/disk.h \
 @HOST_ix86_TRUE@	i386/include/mach/i386/eflags.h \
 @HOST_ix86_TRUE@	i386/include/mach/i386/exception.h \
 @HOST_ix86_TRUE@	i386/include/mach/i386/fp_reg.h \
