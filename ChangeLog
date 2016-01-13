@@ -1,3 +1,72 @@
+2016-01-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Increase kernel map size
+	To avoid running out of memory due to the increased consumption by radix
+	trees which replaced arrays.
+
+	* kern/slab.c (KMEM_MAP_SIZE): Bump from 96MiB to 128MiB.
+	* i386/i386/vm_param.h (VM_KERNEL_MAP_SIZE): Add 32MiB accordingly.
+
+2016-01-02  Richard Braun  <rbraun@sceen.net>
+
+	Completely disable strict aliasing
+	* Makefile.am (AM_CFLAGS): Add -fno-strict-aliasing.
+
+	Fix object page list type
+	* vm/vm_object.h (struct vm_object): Use queue_head_t instead of
+	queue_chain_t as the page list type.
+
+2016-01-02  Flavio Cruz  <flaviocruz@gmail.com>
+
+	replace extern with static in some linux code
+	* linux/dev/include/linux/fs.h: Replace extern with static.
+	* linux/dev/include/linux/locks.h: Likewise.
+	* linux/dev/include/linux/mm.h: Likewise.
+	* linux/src/drivers/net/e2100.c: Likewise
+	* linux/src/include/asm-i386/termios.h: Likewise.
+	* linux/src/include/linux/interrupt.h: Likewise.
+	* linux/src/include/net/route.h: Likewise.
+	* linux/src/include/net/sock.h: Likewise.
+
+	fix t_addr assignment in lpropen
+	* i386/i386at/lpr.c (lpropen): Fix assignment to t_addr.
+
+2016-01-01  Flavio Cruz  <flaviocruz@gmail.com>
+
+	remove unnused disk code and headers
+	* i386/Makefrag.am: Remove disk.h.
+	* i386/i386at/disk.h: Remove unnused definitions.
+	* i386/include/mach/i386/disk.h: Remove.
+	* linux/dev/glue/block.c (device_get_status): Remove V_GETPARMS case.
+
+	fix some compiler warnings in gnumach
+	* linux/dev/glue/block.c (out): Cast to device_t.
+	* linux/dev/init/main.c (alloc_contig_mem): Initialize addr and cast return value to void *.
+	* i386/i386/phys.c (pmap_copy_page): Initialize src_map.
+	* i386/intel/pmap.c: Include i386at/model_dep.h.
+	* kern/mach_clock.c (mapable_time_init): Cast to void *.
+
+2016-01-01  Richard Braun  <rbraun@sceen.net>
+
+	Slightly improve map debugging readability
+	* vm/vm_object.c (vm_object_print): Break line so all debugging output fits
+	in a page.
+
+2015-12-29  Richard Braun  <rbraun@sceen.net>
+
+	Improve map debugging readability
+	* vm/vm_map.c (vm_map_print): Reduce indentation, break lines earlier.
+	(vm_map_copy_print): Likewise.
+	* vm/vm_object.c (vm_object_print): Likewise.
+
+	Improve VM map debugging
+	* vm/vm_map.c (vm_map_print): Update arguments to conform to ddb
+	protocol.
+	* vm/vm_print.h (vm_map_print): Likewise for prototype.
+
+	Fix vm_map_copyout
+	* vm/vm_map.c (vm_map_copyout): Reinitialize copy map red-black tree.
+
 2015-12-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Fix boot under kvm in linux 4.3
