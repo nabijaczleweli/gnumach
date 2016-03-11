@@ -4,6 +4,7 @@ gnumach (2:1.6+git20160311-1) unstable; urgency=medium
   * patches/70_dde.patch: Update.
   * control: bump dpkg-dev and debhelper versions for restriction formulas
     support.
+  * control: Bump Standards-Version to 3.9.7 (no change).
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 11 Mar 2016 21:45:02 +0000
 

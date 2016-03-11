@@ -1,3 +1,7 @@
+TODO: This needs to be cleaned to be pushed upstream. Notably, userland
+shouldn't be able to mask a kernel IRQ. Instead, device_intr_enable() should
+just disable/enable IRQ delivery to userland.
+
 Index: gnumach/Makefrag.am
 ===================================================================
 --- gnumach.orig/Makefrag.am
