@@ -953,8 +953,11 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@am__append_113 = \
 @HOST_ix86_TRUE@	i386/i386at/autoconf.c \
 @HOST_ix86_TRUE@	i386/i386at/autoconf.h \
+@HOST_ix86_TRUE@	i386/i386at/biosmem.c \
+@HOST_ix86_TRUE@	i386/i386at/biosmem.h \
 @HOST_ix86_TRUE@	i386/i386at/conf.c \
 @HOST_ix86_TRUE@	i386/i386at/cons_conf.c \
+@HOST_ix86_TRUE@	i386/i386at/elf.h \
 @HOST_ix86_TRUE@	i386/i386at/idt.h \
 @HOST_ix86_TRUE@	i386/i386at/model_dep.c \
 @HOST_ix86_TRUE@	i386/i386at/model_dep.h \
@@ -1020,6 +1023,7 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@	i386/i386/ast.h \
 @HOST_ix86_TRUE@	i386/i386/ast_check.c \
 @HOST_ix86_TRUE@	i386/i386/ast_types.h \
+@HOST_ix86_TRUE@	i386/i386/cpu.h \
 @HOST_ix86_TRUE@	i386/i386/cpu_number.h \
 @HOST_ix86_TRUE@	i386/i386/cswitch.S \
 @HOST_ix86_TRUE@	i386/i386/db_disasm.c \
@@ -1210,6 +1214,7 @@ nodist_lib_dep_tr_for_defs_a_OBJECTS = vm/lib_dep_tr_for_defs_a-memory_object_us
 	kern/lib_dep_tr_for_defs_a-mach_debug.server.defs.$(OBJEXT) \
 	kern/lib_dep_tr_for_defs_a-mach_host.server.defs.$(OBJEXT) \
 	ipc/lib_dep_tr_for_defs_a-notify.none.defs.$(OBJEXT) \
+	kern/lib_dep_tr_for_defs_a-exc.none.defs.$(OBJEXT) \
 	$(am__objects_1)
 lib_dep_tr_for_defs_a_OBJECTS =  \
 	$(nodist_lib_dep_tr_for_defs_a_OBJECTS)
@@ -1249,7 +1254,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	kern/ipc_kobject.h kern/ipc_mig.c kern/ipc_mig.h \
 	kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c kern/ipc_tt.h \
 	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
-	kern/lock.h kern/lock_mon.c kern/mach_clock.c \
+	kern/lock.h kern/lock_mon.c kern/log2.h kern/mach_clock.c \
 	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
 	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
 	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
@@ -1271,11 +1276,11 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	vm/vm_external.c vm/vm_external.h vm/vm_fault.c vm/vm_fault.h \
 	vm/vm_init.c vm/vm_init.h vm/vm_kern.c vm/vm_kern.h \
 	vm/vm_map.c vm/vm_map.h vm/vm_object.c vm/vm_object.h \
-	vm/vm_page.h vm/vm_pageout.c vm/vm_pageout.h vm/vm_print.h \
-	vm/vm_resident.c vm/vm_resident.h vm/vm_types.h vm/vm_user.c \
-	vm/vm_user.h device/blkio.c device/blkio.h device/buf.h \
-	device/chario.c device/chario.h device/cirbuf.h device/conf.h \
-	device/cons.c device/cons.h device/device_emul.h \
+	vm/vm_page.c vm/vm_page.h vm/vm_pageout.c vm/vm_pageout.h \
+	vm/vm_print.h vm/vm_resident.c vm/vm_resident.h vm/vm_types.h \
+	vm/vm_user.c vm/vm_user.h device/blkio.c device/blkio.h \
+	device/buf.h device/chario.c device/chario.h device/cirbuf.h \
+	device/conf.h device/cons.c device/cons.h device/device_emul.h \
 	device/dev_hdr.h device/dev_lookup.c device/dev_master.h \
 	device/dev_name.c device/dev_pager.c device/dev_pager.h \
 	device/device_init.c device/device_init.h device/device_port.h \
@@ -1306,7 +1311,8 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	xen/net.c xen/net.h xen/ring.c xen/ring.h xen/store.c \
 	xen/store.h xen/time.c xen/time.h xen/xen.c xen/xen.h \
 	i386/i386at/autoconf.c i386/i386at/autoconf.h \
-	i386/i386at/conf.c i386/i386at/cons_conf.c i386/i386at/idt.h \
+	i386/i386at/biosmem.c i386/i386at/biosmem.h i386/i386at/conf.c \
+	i386/i386at/cons_conf.c i386/i386at/elf.h i386/i386at/idt.h \
 	i386/i386at/model_dep.c i386/i386at/model_dep.h \
 	i386/include/mach/sa/stdarg.h i386/i386at/boothdr.S \
 	i386/i386at/com.c i386/i386at/com.h i386/i386at/comreg.h \
@@ -1326,7 +1332,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	i386/grub/misc.h i386/grub/types.h i386/grub/time.h \
 	i386/grub/i18n.h i386/grub/compiler.h i386/grub/glue.h \
 	i386/i386at/lpr.c i386/i386at/lpr.h i386/i386/ast.h \
-	i386/i386/ast_check.c i386/i386/ast_types.h \
+	i386/i386/ast_check.c i386/i386/ast_types.h i386/i386/cpu.h \
 	i386/i386/cpu_number.h i386/i386/cswitch.S \
 	i386/i386/db_disasm.c i386/i386/db_interface.c \
 	i386/i386/db_interface.h i386/i386/db_machdep.h \
@@ -1382,6 +1388,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 @PLATFORM_xen_TRUE@	xen/ring.$(OBJEXT) xen/store.$(OBJEXT) \
 @PLATFORM_xen_TRUE@	xen/time.$(OBJEXT) xen/xen.$(OBJEXT)
 @HOST_ix86_TRUE@am__objects_5 = i386/i386at/autoconf.$(OBJEXT) \
+@HOST_ix86_TRUE@	i386/i386at/biosmem.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386at/conf.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386at/cons_conf.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386at/model_dep.$(OBJEXT)
@@ -1477,17 +1484,17 @@ am_libkernel_a_OBJECTS = $(am__objects_2) ipc/ipc_entry.$(OBJEXT) \
 	vm/vm_debug.$(OBJEXT) vm/vm_external.$(OBJEXT) \
 	vm/vm_fault.$(OBJEXT) vm/vm_init.$(OBJEXT) \
 	vm/vm_kern.$(OBJEXT) vm/vm_map.$(OBJEXT) \
-	vm/vm_object.$(OBJEXT) vm/vm_pageout.$(OBJEXT) \
-	vm/vm_resident.$(OBJEXT) vm/vm_user.$(OBJEXT) \
-	device/blkio.$(OBJEXT) device/chario.$(OBJEXT) \
-	device/cons.$(OBJEXT) device/dev_lookup.$(OBJEXT) \
-	device/dev_name.$(OBJEXT) device/dev_pager.$(OBJEXT) \
-	device/device_init.$(OBJEXT) device/ds_routines.$(OBJEXT) \
-	device/net_io.$(OBJEXT) device/subrs.$(OBJEXT) \
-	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
-	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
-	$(am__objects_9) $(am__objects_10) $(am__objects_11) \
-	$(am__objects_12)
+	vm/vm_object.$(OBJEXT) vm/vm_page.$(OBJEXT) \
+	vm/vm_pageout.$(OBJEXT) vm/vm_resident.$(OBJEXT) \
+	vm/vm_user.$(OBJEXT) device/blkio.$(OBJEXT) \
+	device/chario.$(OBJEXT) device/cons.$(OBJEXT) \
+	device/dev_lookup.$(OBJEXT) device/dev_name.$(OBJEXT) \
+	device/dev_pager.$(OBJEXT) device/device_init.$(OBJEXT) \
+	device/ds_routines.$(OBJEXT) device/net_io.$(OBJEXT) \
+	device/subrs.$(OBJEXT) $(am__objects_3) $(am__objects_4) \
+	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
+	$(am__objects_8) $(am__objects_9) $(am__objects_10) \
+	$(am__objects_11) $(am__objects_12)
 @HOST_ix86_TRUE@am__objects_13 = i386/i386/mach_i386.server.$(OBJEXT)
 nodist_libkernel_a_OBJECTS = version.$(OBJEXT) \
 	vm/memory_object_user.user.$(OBJEXT) \
@@ -2452,7 +2459,7 @@ DIST_SUBDIRS =
 # Building a distribution.
 #
 EXTRA_DIST = gensym.awk ipc/mach_port.srv ipc/notify.defs \
-	kern/mach.srv kern/mach4.srv kern/gnumach.srv \
+	kern/exc.defs kern/mach.srv kern/mach4.srv kern/gnumach.srv \
 	kern/mach_debug.srv kern/mach_host.srv kern/task_notify.cli \
 	vm/memory_object_default.cli vm/memory_object_user.cli \
 	device/device.srv device/device_pager.srv \
@@ -2578,7 +2585,7 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	kern/ipc_kobject.h kern/ipc_mig.c kern/ipc_mig.h \
 	kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c kern/ipc_tt.h \
 	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
-	kern/lock.h kern/lock_mon.c kern/mach_clock.c \
+	kern/lock.h kern/lock_mon.c kern/log2.h kern/mach_clock.c \
 	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
 	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
 	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
@@ -2600,11 +2607,11 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	vm/vm_external.c vm/vm_external.h vm/vm_fault.c vm/vm_fault.h \
 	vm/vm_init.c vm/vm_init.h vm/vm_kern.c vm/vm_kern.h \
 	vm/vm_map.c vm/vm_map.h vm/vm_object.c vm/vm_object.h \
-	vm/vm_page.h vm/vm_pageout.c vm/vm_pageout.h vm/vm_print.h \
-	vm/vm_resident.c vm/vm_resident.h vm/vm_types.h vm/vm_user.c \
-	vm/vm_user.h device/blkio.c device/blkio.h device/buf.h \
-	device/chario.c device/chario.h device/cirbuf.h device/conf.h \
-	device/cons.c device/cons.h device/device_emul.h \
+	vm/vm_page.c vm/vm_page.h vm/vm_pageout.c vm/vm_pageout.h \
+	vm/vm_print.h vm/vm_resident.c vm/vm_resident.h vm/vm_types.h \
+	vm/vm_user.c vm/vm_user.h device/blkio.c device/blkio.h \
+	device/buf.h device/chario.c device/chario.h device/cirbuf.h \
+	device/conf.h device/cons.c device/cons.h device/device_emul.h \
 	device/dev_hdr.h device/dev_lookup.c device/dev_master.h \
 	device/dev_name.c device/dev_pager.c device/dev_pager.h \
 	device/device_init.c device/device_init.h device/device_port.h \
@@ -2642,7 +2649,7 @@ nodist_libkernel_a_SOURCES = version.c vm/memory_object_user.user.h \
 	kern/mach_debug.server.c kern/mach_debug.server.msgids \
 	kern/mach_host.server.h kern/mach_host.server.c \
 	kern/mach_host.server.msgids ipc/notify.none.msgids \
-	$(am__append_122)
+	kern/exc.none.msgids $(am__append_122)
 gnumach_o_LDADD = libkernel.a $(am__append_6) $(am__append_100)
 gnumach_SOURCES = 
 gnumach_LINKFLAGS = $(am__append_123) $(am__append_126)
@@ -2681,7 +2688,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES =  \
 	kern/mach.server.defs.c kern/mach4.server.defs.c \
 	kern/gnumach.server.defs.c kern/mach_debug.server.defs.c \
 	kern/mach_host.server.defs.c ipc/notify.none.defs.c \
-	$(am__append_121)
+	kern/exc.none.defs.c $(am__append_121)
 # Preprocess only.
 lib_dep_tr_for_defs_a_CPPFLAGS = $(AM_CPPFLAGS) \
 	-E
@@ -3065,6 +3072,8 @@ kern/lib_dep_tr_for_defs_a-mach_host.server.defs.$(OBJEXT):  \
 	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
 ipc/lib_dep_tr_for_defs_a-notify.none.defs.$(OBJEXT):  \
 	ipc/$(am__dirstamp) ipc/$(DEPDIR)/$(am__dirstamp)
+kern/lib_dep_tr_for_defs_a-exc.none.defs.$(OBJEXT):  \
+	kern/$(am__dirstamp) kern/$(DEPDIR)/$(am__dirstamp)
 i386/i386/$(am__dirstamp):
 	@$(MKDIR_P) i386/i386
 	@: > i386/i386/$(am__dirstamp)
@@ -3270,6 +3279,7 @@ vm/vm_kern.$(OBJEXT): vm/$(am__dirstamp) vm/$(DEPDIR)/$(am__dirstamp)
 vm/vm_map.$(OBJEXT): vm/$(am__dirstamp) vm/$(DEPDIR)/$(am__dirstamp)
 vm/vm_object.$(OBJEXT): vm/$(am__dirstamp) \
 	vm/$(DEPDIR)/$(am__dirstamp)
+vm/vm_page.$(OBJEXT): vm/$(am__dirstamp) vm/$(DEPDIR)/$(am__dirstamp)
 vm/vm_pageout.$(OBJEXT): vm/$(am__dirstamp) \
 	vm/$(DEPDIR)/$(am__dirstamp)
 vm/vm_resident.$(OBJEXT): vm/$(am__dirstamp) \
@@ -3320,6 +3330,8 @@ i386/i386at/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) i386/i386at/$(DEPDIR)
 	@: > i386/i386at/$(DEPDIR)/$(am__dirstamp)
 i386/i386at/autoconf.$(OBJEXT): i386/i386at/$(am__dirstamp) \
+	i386/i386at/$(DEPDIR)/$(am__dirstamp)
+i386/i386at/biosmem.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
 i386/i386at/conf.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
@@ -4232,6 +4244,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/acpi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/acpihalt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/autoconf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/biosmem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/boothdr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/com.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/conf.Po@am__quote@
@@ -4292,6 +4305,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_mig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_sched.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_tt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-gnumach.server.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach.server.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach4.server.defs.Po@am__quote@
@@ -4490,6 +4504,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_kern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_map.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_object.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_page.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_pageout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_resident.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@vm/$(DEPDIR)/vm_user.Po@am__quote@
@@ -4744,6 +4759,20 @@ ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj: ipc/notify.none.defs.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ipc/notify.none.defs.c' object='ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ipc/lib_dep_tr_for_defs_a-notify.none.defs.obj `if test -f 'ipc/notify.none.defs.c'; then $(CYGPATH_W) 'ipc/notify.none.defs.c'; else $(CYGPATH_W) '$(srcdir)/ipc/notify.none.defs.c'; fi`
+
+kern/lib_dep_tr_for_defs_a-exc.none.defs.o: kern/exc.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT kern/lib_dep_tr_for_defs_a-exc.none.defs.o -MD -MP -MF kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Tpo -c -o kern/lib_dep_tr_for_defs_a-exc.none.defs.o `test -f 'kern/exc.none.defs.c' || echo '$(srcdir)/'`kern/exc.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Tpo kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='kern/exc.none.defs.c' object='kern/lib_dep_tr_for_defs_a-exc.none.defs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o kern/lib_dep_tr_for_defs_a-exc.none.defs.o `test -f 'kern/exc.none.defs.c' || echo '$(srcdir)/'`kern/exc.none.defs.c
+
+kern/lib_dep_tr_for_defs_a-exc.none.defs.obj: kern/exc.none.defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT kern/lib_dep_tr_for_defs_a-exc.none.defs.obj -MD -MP -MF kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Tpo -c -o kern/lib_dep_tr_for_defs_a-exc.none.defs.obj `if test -f 'kern/exc.none.defs.c'; then $(CYGPATH_W) 'kern/exc.none.defs.c'; else $(CYGPATH_W) '$(srcdir)/kern/exc.none.defs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Tpo kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='kern/exc.none.defs.c' object='kern/lib_dep_tr_for_defs_a-exc.none.defs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o kern/lib_dep_tr_for_defs_a-exc.none.defs.obj `if test -f 'kern/exc.none.defs.c'; then $(CYGPATH_W) 'kern/exc.none.defs.c'; else $(CYGPATH_W) '$(srcdir)/kern/exc.none.defs.c'; fi`
 
 i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o: i386/i386/mach_i386.server.defs.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_dep_tr_for_defs_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o -MD -MP -MF i386/i386/$(DEPDIR)/lib_dep_tr_for_defs_a-mach_i386.server.defs.Tpo -c -o i386/i386/lib_dep_tr_for_defs_a-mach_i386.server.defs.o `test -f 'i386/i386/mach_i386.server.defs.c' || echo '$(srcdir)/'`i386/i386/mach_i386.server.defs.c

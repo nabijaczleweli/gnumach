@@ -1,9 +1,9 @@
-This is mach.info, produced by makeinfo version 6.0 from mach.texi.
+This is mach.info, produced by makeinfo version 6.1 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 12 September 2015, of 'The GNU
-Mach Reference Manual', for version 1.6+git20160114.
+   This is edition 0.4, last updated on 10 March 2016, of 'The GNU Mach
+Reference Manual', for version 1.6+git20160311.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 12 September 2015, of 'The GNU
-Mach Reference Manual', for version 1.6+git20160114.
+   This is edition 0.4, last updated on 10 March 2016, of 'The GNU Mach
+Reference Manual', for version 1.6+git20160311.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -3524,10 +3524,10 @@ File: mach.info,  Node: Memory Object Creation,  Next: Memory Object Termination
      the calling kernel is included for planning purposes.
 
      When the memory manager is prepared to accept requests for data for
-     this object, it must call 'memory_object_ready' with the attribute.
-     Otherwise the kernel will not process requests on this object.  To
-     reject all mappings of this object, the memory manager may use
-     'memory_object_destroy'.
+     this object, it must call 'memory_object_ready', or set the ready
+     flag using 'memory_object_set_attributes'.  Otherwise the kernel
+     will not process requests on this object.  To reject all mappings
+     of this object, the memory manager may use 'memory_object_destroy'.
 
      The argument MEMORY_OBJECT is the port that represents the memory
      object data, as supplied to the kernel in a 'vm_map' call.

@@ -162,6 +162,7 @@ libkernel_a_SOURCES += \
 	kern/lock.c \
 	kern/lock.h \
 	kern/lock_mon.c \
+	kern/log2.h \
 	kern/mach_clock.c \
 	kern/mach_clock.h \
 	kern/mach_factor.c \
@@ -217,6 +218,7 @@ libkernel_a_SOURCES += \
 	kern/elf-load.c \
 	kern/boot_script.c
 EXTRA_DIST += \
+	kern/exc.defs \
 	kern/mach.srv \
 	kern/mach4.srv \
 	kern/gnumach.srv \
@@ -259,6 +261,7 @@ libkernel_a_SOURCES += \
 	vm/vm_map.h \
 	vm/vm_object.c \
 	vm/vm_object.h \
+	vm/vm_page.c \
 	vm/vm_page.h \
 	vm/vm_pageout.c \
 	vm/vm_pageout.h \
@@ -548,9 +551,11 @@ nodist_libkernel_a_SOURCES += \
 # Stand-alone rule to generate the list of message ids when neither
 # the client nor the server stubs are required.
 nodist_lib_dep_tr_for_defs_a_SOURCES += \
-	ipc/notify.none.defs.c
+	ipc/notify.none.defs.c \
+	kern/exc.none.defs.c
 nodist_libkernel_a_SOURCES += \
-	ipc/notify.none.msgids
+	ipc/notify.none.msgids \
+	kern/exc.none.msgids
 #	ipc/notify.none.defs
 
 # rpctrace can make use of that.

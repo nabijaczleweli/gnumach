@@ -35,6 +35,7 @@
 #include <vm/vm_external.h>
 #include <mach/vm_param.h>
 #include <kern/assert.h>
+#include <string.h>
 
 
 
@@ -69,11 +70,12 @@ vm_external_t	vm_external_create(vm_offset_t size)
 		result->existence_map =
 		 (char *) kmem_cache_alloc(&vm_object_small_existence_map_cache);
 		result->existence_size = SMALL_SIZE;
-	} else if (bytes <= LARGE_SIZE) {
+	} else {
 		result->existence_map =
 		 (char *) kmem_cache_alloc(&vm_object_large_existence_map_cache);
 		result->existence_size = LARGE_SIZE;
 	}
+	memset (result->existence_map, 0, result->existence_size);
 	return(result);
 }
 
@@ -138,13 +140,13 @@ void		vm_external_module_initialize(void)
 	vm_size_t	size = (vm_size_t) sizeof(struct vm_external);
 
 	kmem_cache_init(&vm_external_cache, "vm_external", size, 0,
-			NULL, NULL, NULL, 0);
+			NULL, 0);
 
 	kmem_cache_init(&vm_object_small_existence_map_cache,
 			"small_existence_map", SMALL_SIZE, 0,
-			NULL, NULL, NULL, 0);
+			NULL, 0);
 
 	kmem_cache_init(&vm_object_large_existence_map_cache,
 			"large_existence_map", LARGE_SIZE, 0,
-			NULL, NULL, NULL, 0);
+			NULL, 0);
 }

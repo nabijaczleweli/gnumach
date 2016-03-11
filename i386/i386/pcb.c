@@ -371,12 +371,12 @@ thread_t switch_context(
 void pcb_module_init(void)
 {
 	kmem_cache_init(&pcb_cache, "pcb", sizeof(struct pcb), 0,
-			NULL, NULL, NULL, 0);
+			NULL, 0);
 
 	fpu_module_init();
 }
 
-void pcb_init(thread_t thread)
+void pcb_init(task_t parent_task, thread_t thread)
 {
 	pcb_t		pcb;
 
@@ -406,6 +406,11 @@ void pcb_init(thread_t thread)
 	pcb->iss.efl = EFL_USER_SET;
 
 	thread->pcb = pcb;
+
+	/* This is a new thread for the current task, make it inherit our FPU
+	   state.  */
+	if (parent_task == current_task())
+		fpinherit(current_thread(), thread);
 }
 
 void pcb_terminate(thread_t thread)

@@ -70,6 +70,7 @@ thread_t active_threads[NCPUS];
 vm_offset_t active_stacks[NCPUS];
 
 struct kmem_cache thread_cache;
+struct kmem_cache thread_stack_cache;
 
 queue_head_t		reaper_queue;
 decl_simple_lock_data(,	reaper_lock)
@@ -195,16 +196,8 @@ kern_return_t stack_alloc(
 	(void) splx(s);
 
 	if (stack == 0) {
-		kern_return_t kr;
-		/*
-		 *	Kernel stacks should be naturally aligned,
-		 *	so that it is easy to find the starting/ending
-		 *	addresses of a stack given an address in the middle.
-		 */
-		kr = kmem_alloc_aligned(kmem_map, &stack, KERNEL_STACK_SIZE);
-		if (kr != KERN_SUCCESS)
-			return kr;
-
+		stack = kmem_cache_alloc(&thread_stack_cache);
+		assert(stack != 0);
 #if	MACH_DEBUG
 		stack_init(stack);
 #endif	/* MACH_DEBUG */
@@ -265,7 +258,7 @@ void stack_collect(void)
 #if	MACH_DEBUG
 		stack_finalize(stack);
 #endif	/* MACH_DEBUG */
-		kmem_free(kmem_map, stack, KERNEL_STACK_SIZE);
+		kmem_cache_free(&thread_stack_cache, stack);
 
 		s = splsched();
 		stack_lock();
@@ -298,7 +291,15 @@ void stack_privilege(
 void thread_init(void)
 {
 	kmem_cache_init(&thread_cache, "thread", sizeof(struct thread), 0,
-			NULL, NULL, NULL, 0);
+			NULL, 0);
+	/*
+	 *	Kernel stacks should be naturally aligned,
+	 *	so that it is easy to find the starting/ending
+	 *	addresses of a stack given an address in the middle.
+	 */
+	kmem_cache_init(&thread_stack_cache, "thread_stack",
+			KERNEL_STACK_SIZE, KERNEL_STACK_SIZE,
+			NULL, 0);
 
 	/*
 	 *	Fill in a template thread for fast initialization.
@@ -430,7 +431,7 @@ kern_return_t thread_create(
 	 *	Create a pcb.  The kernel stack is created later,
 	 *	when the thread is swapped-in.
 	 */
-	pcb_init(new_thread);
+	pcb_init(parent_task, new_thread);
 
 	ipc_thread_init(new_thread);
 

@@ -105,7 +105,7 @@ extern struct db_watchpoint *db_watchpoint_list;
 void vm_fault_init(void)
 {
 	kmem_cache_init(&vm_fault_state_cache, "vm_fault_state",
-			sizeof(vm_fault_state_t), 0, NULL, NULL, NULL, 0);
+			sizeof(vm_fault_state_t), 0, NULL, 0);
 }
 
 /*
@@ -607,7 +607,7 @@ vm_fault_return_t vm_fault_page(
 				 *	won't block for pages.
 				 */
 
-				if (m->fictitious && !vm_page_convert(m, FALSE)) {
+				if (m->fictitious && !vm_page_convert(&m, FALSE)) {
 					VM_PAGE_FREE(m);
 					vm_fault_cleanup(object, first_m);
 					return(VM_FAULT_MEMORY_SHORTAGE);
@@ -725,7 +725,7 @@ vm_fault_return_t vm_fault_page(
 			assert(m->object == object);
 			first_m = VM_PAGE_NULL;
 
-			if (m->fictitious && !vm_page_convert(m, !object->internal)) {
+			if (m->fictitious && !vm_page_convert(&m, !object->internal)) {
 				VM_PAGE_FREE(m);
 				vm_fault_cleanup(object, VM_PAGE_NULL);
 				return(VM_FAULT_MEMORY_SHORTAGE);
