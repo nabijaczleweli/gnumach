@@ -826,40 +826,55 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 
 	/* Get configuration */
 	if (pcibios_read_config_byte(bus, device, PCI_HEADER_TYPE, &hdrtype) != PCIBIOS_SUCCESSFUL) {
-		printk("ahci: %02u:%02u.%u: Can not read configuration", bus, dev, fun);
+		printk("ahci: %02x:%02x.%x: Can not read configuration", bus, dev, fun);
 		return;
 	}
 
 	if (hdrtype != 0) {
-		printk("ahci: %02u:%02u.%u: Unknown hdrtype %d\n", bus, dev, fun, hdrtype);
+		printk("ahci: %02x:%02x.%x: Unknown hdrtype %d\n", bus, dev, fun, hdrtype);
 		return;
 	}
 
 	if (pcibios_read_config_dword(bus, device, PCI_BASE_ADDRESS_5, &bar) != PCIBIOS_SUCCESSFUL) {
-		printk("ahci: %02u:%02u.%u: Can not read BAR 5", bus, dev, fun);
+		printk("ahci: %02x:%02x.%x: Can not read BAR 5", bus, dev, fun);
 		return;
 	}
-	if (bar & 0x01) {
-		printk("ahci: %02u:%02u.%u: BAR 5 is I/O?!", bus, dev, fun);
+	if (bar & PCI_BASE_ADDRESS_SPACE_IO) {
+		printk("ahci: %02x:%02x.%x: BAR 5 is I/O?!", bus, dev, fun);
 		return;
 	}
-	bar &= ~0x0f;
+	bar &= PCI_BASE_ADDRESS_MEM_MASK;
 
 	if (pcibios_read_config_byte(bus, device, PCI_INTERRUPT_LINE, &irq) != PCIBIOS_SUCCESSFUL) {
-		printk("ahci: %02u:%02u.%u: Can not read IRQ", bus, dev, fun);
+		printk("ahci: %02x:%02x.%x: Can not read IRQ", bus, dev, fun);
 		return;
 	}
 
-	printk("AHCI SATA %02u:%02u.%u BAR 0x%x IRQ %u\n", bus, dev, fun, bar, irq);
+	printk("AHCI SATA %02x:%02x.%x BAR 0x%x IRQ %u\n", bus, dev, fun, bar, irq);
 
 	/* Map mmio */
 	ahci_host = vremap(bar, 0x2000);
 
 	/* Request IRQ */
 	if (request_irq(irq, &ahci_interrupt, SA_SHIRQ, "ahci", (void*) ahci_host)) {
-		printk("ahci: %02u:%02u.%u: Can not get irq %u\n", bus, dev, fun, irq);
+		printk("ahci: %02x:%02x.%x: Can not get irq %u\n", bus, dev, fun, irq);
 		return;
 	}
+
+#ifdef CONFIG_BLK_DEV_IDE
+	/* OK, we will handle it. Disable probing on legacy IDE ports it may have.  */
+	for (i = 0; i < 6; i++)
+	{
+		unsigned mybar;
+		if (pcibios_read_config_dword(bus, device, PCI_BASE_ADDRESS_0 + i*4, &mybar) == PCIBIOS_SUCCESSFUL) {
+			if (!(bar & PCI_BASE_ADDRESS_SPACE_IO))
+				/* Memory, don't care */
+				continue;
+			/* printk("ahci: %02x:%02x.%x: BAR %d is %x\n", bus, dev, fun, i, mybar); */
+			ide_disable_base(bar & PCI_BASE_ADDRESS_IO_MASK);
+		}
+	}
+#endif
 
 	nports = (readl(&ahci_host->cap) & 0x1f) + 1;
 	port_map = readl(&ahci_host->pi);
@@ -869,7 +884,7 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 			n++;
 
 	if (nports != n) {
-		printk("ahci: %02u:%02u.%u: Odd number of ports %u, assuming %u is correct\n", bus, dev, fun, n, nports);
+		printk("ahci: %02x:%02x.%x: Odd number of ports %u, assuming %u is correct\n", bus, dev, fun, n, nports);
 		port_map = 0;
 	}
 	if (!port_map) {
@@ -893,16 +908,16 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 				/* Device not present */
 				continue;
 			case 0x1:
-				printk("ahci: %02u:%02u.%u: Port %u communication not established. TODO: power on device\n", bus, dev, fun, i);
+				printk("ahci: %02x:%02x.%x: Port %u communication not established. TODO: power on device\n", bus, dev, fun, i);
 				continue;
 			case 0x3:
 				/* Present and communication established */
 				break;
 			case 0x4:
-				printk("ahci: %02u:%02u.%u: Port %u phy offline?!\n", bus, dev, fun, i);
+				printk("ahci: %02x:%02x.%x: Port %u phy offline?!\n", bus, dev, fun, i);
 				continue;
 			default:
-				printk("ahci: %02u:%02u.%u: Unknown port %u SPD %x\n", bus, dev, fun, i, spd);
+				printk("ahci: %02x:%02x.%x: Unknown port %u SPD %x\n", bus, dev, fun, i, spd);
 				continue;
 		}
 
@@ -916,13 +931,13 @@ static void ahci_probe_dev(unsigned char bus, unsigned char device)
 				/* Active */
 				break;
 			case 0x2:
-				printk("ahci: %02u:%02u.%u: Port %u in Partial power management. TODO: power on device\n", bus, dev, fun, i);
+				printk("ahci: %02x:%02x.%x: Port %u in Partial power management. TODO: power on device\n", bus, dev, fun, i);
 				continue;
 			case 0x6:
-				printk("ahci: %02u:%02u.%u: Port %u in Slumber power management. TODO: power on device\n", bus, dev, fun, i);
+				printk("ahci: %02x:%02x.%x: Port %u in Slumber power management. TODO: power on device\n", bus, dev, fun, i);
 				continue;
 			default:
-				printk("ahci: %02u:%02u.%u: Unknown port %u IPM %x\n", bus, dev, fun, i, ipm);
+				printk("ahci: %02x:%02x.%x: Unknown port %u IPM %x\n", bus, dev, fun, i, ipm);
 				continue;
 		}
 

@@ -1,3 +1,508 @@
+2016-03-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Ship missing files
+	Makefrag.am (libkernel_a_SOURCES): Add kern/log2.h.
+	(EXTRA_DIST): Add kern/exc.defs.
+	i386/Makefrag.am (libkernel_a_SOURCES): Add i386/i386at/elf.h.
+
+2016-03-11  Richard Braun  <rbraun@sceen.net>
+
+	Merge remote-tracking branch 'remotes/origin/rbraun/vm_cache_policy'
+	Finally ;-).
+
+2016-03-09  Richard Braun  <rbraun@sceen.net>
+
+	Fix stack allocation on Xen
+	Stack allocation on Xen can fail because of fragmentation. This change
+	makes stack allocation use the slab allocator.
+
+	* kern/thread.c (thread_stack_cache): New global variable.
+	(stack_alloc): Use kmem_cache_alloc instead of vm_page_grab_contig.
+	(stack_collect): Use kmem_cache_free instead of vm_page_free_contig.
+	(kmem_cache_init): Initialize thread_stack_cache.
+
+2016-03-09  Richard Braun  <rbraun@sceen.net>
+
+	Relax slab allocation alignment constraint
+	* kern/slab.c (kmem_pagealloc_virtual): Pass alignment to function,
+	call kmem_alloc_aligned when greater than a page.
+	(kmem_pagealloc): Pass alignment to function.
+	(kmem_slab_create): Update call to kmem_pagealloc.
+	(kalloc): Likewise.
+	(kmem_cache_compute_properties): Fix handling of color with large slab
+	sizes.
+	(kmem_cache_init): Allow alignment greater than the page size.
+
+2016-03-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Inherit fpu control word from parent to child
+	* i386/i386/thread.h (struct pcb): Add init_control field.
+	* i386/i386/fpu.h (fpinherit): New prototype.
+	* i386/i386/fpu.c (fpinit): Add thread parameter. When init_control field is
+	set, use that value instead of a hardcoded one.
+	(fpinherit): New function.
+	(fp_load): Pass thread parameter to fpinit().
+	* kern/thread.c (thread_create): Pass parent task to pcb_init().
+	* i386/i386/pcb.c (pcb_init): Add parent_task parameter, call fpinherit when
+	it is equal to current_task().
+
+2016-02-28  Justus Winter  <justus@gnupg.org>
+
+	ipc: add missing kernel object type
+	* ipc/ipc_object.c (ikot_print_array): Add entry for IKOT_PAGER_PROXY.
+
+	doc: clarify memory object initialization
+	* doc/mach.texi: Mention another way how a memory manager can signal
+	that an object is ready.
+
+	i386: add parts of cpu.h from x15
+	* i386/Makefrag.am (libkernel_a_SOURCES): Add new file.
+	* i386/i386/cpu.h: New file.
+
+2016-02-26  Justus Winter  <justus@gnupg.org>
+
+	include: avoid generating unused client stubs
+	* include/mach/mach.defs: Avoid generating unused client stubs, some
+	of which use an unreasonable amount of stack space and showed up in
+	compiler warnings.
+
+2016-02-26  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Document thread_sleep about events woken from interrupt handlers
+	* kern/sched_prim.c (thread_sleep): Document case of events woken from
+	interrupt handlers.
+
+	Document why code is not racy
+	* i386/i386at/kd_mouse.c (kd_mouse_read): Document why the
+	assert_wait/thread_block pair is not racy.
+
+2016-02-23  Justus Winter  <justus@gnupg.org>
+
+	Include the exception protocol in 'gnumach.msgids'
+	* Makefrag.am: Include the exception protocol in 'gnumach.msgids'.
+	* kern/exc.defs: New file.
+
+2016-02-22  Richard Braun  <rbraun@sceen.net>
+
+	Remove kmem cache flags from the debugging interface
+	* include/mach_debug/slab_info.h (CACHE_FLAGS_NO_CPU_POOL,
+	CACHE_FLAGS_SLAB_EXTERNAL, CACHE_FLAGS_NO_RECLAIM,
+	CACHE_FLAGS_VERIFY, CACHE_FLAGS_DIRECT): Remove macros.
+	* kern/slab.c (host_slab_info): Pass raw cache flags to caller.
+
+2016-02-22  Richard Braun  <rbraun@sceen.net>
+
+	Fix slab allocator option handling
+	The slab allocator has grown to use multiple ways to allocate slabs
+	as well as track them, which got a little messy. One consequence is
+	the breaking of the KMEM_CF_VERIFY option. In order to make the code
+	less confusing, this change expresses all options as explicit cache
+	flags and clearly defines their relationships.
+
+	The special kmem_slab and vm_map_entry caches are initialized
+	accordingly.
+
+	* kern/slab.c (KMEM_CF_DIRECTMAP): Rename to ...
+	(KMEM_CF_PHYSMEM): ... this new macro.
+	(KMEM_CF_DIRECT): Restore macro.
+	(KMEM_CF_USE_TREE, KMEM_CF_USE_PAGE): New macros.
+	(KMEM_CF_VERIFY): Update value.
+	(kmem_pagealloc_directmap): Rename to...
+	(kmem_pagealloc_physmem): ... this new function.
+	(kmem_pagefree_directmap): Rename to ...
+	(kmem_pagefree_physmem): ... this new function.
+	(kmem_pagealloc, kmem_pagefree): Update macro names.
+	(kmem_slab_use_tree): Remove function.
+	(kmem_slab_create, kmem_slab_destroy): Update according to the new
+	cache flags.
+	(kmem_cache_compute_sizes): Rename to ...
+	(kmem_cache_compute_properties): ... this new function, and update
+	to properly set cache flags.
+	(kmem_cache_init): Update call to kmem_cache_compute_properties.
+	(kmem_cache_alloc_from_slab): Check KMEM_CF_USE_TREE instead of
+	calling the defunct kmem_slab_use_tree function.
+	(kmem_cache_free_to_slab): Update according to the new cache flags.
+	kmem_cache_free_verify): Add assertion.
+	(slab_init): Update initialization of kmem_slab_cache.
+	* kern/slab.h (KMEM_CACHE_DIRECTMAP): Rename to ...
+	(KMEM_CACHE_PHYSMEM): ... this new macro.
+	* vm/vm_map.c (vm_map_init): Update initialization of vm_map_entry_cache.
+
+2016-02-22  Richard Braun  <rbraun@sceen.net>
+
+	Optimize slab lookup on the free path
+	Caches that use external slab data but allocate slabs from the direct
+	physical mapping can look up slab data in constant time by associating
+	the slab data directly with the underlying page.
+
+	* kern/slab.c (kmem_slab_use_tree): Take KMEM_CF_DIRECTMAP into account.
+	(kmem_slab_create): Set page private data if relevant.
+	(kmem_slab_destroy): Clear page private data if relevant.
+	(kmem_cache_free_to_slab): Use page private data if relevant.
+	* vm/vm_page.c (vm_page_init_pa): Set `priv' member to NULL.
+	* vm/vm_page.h (vm_page_set_priv, vm_page_get_priv): New functions.
+
+2016-02-22  Richard Braun  <rbraun@sceen.net>
+
+	Fix unused variable warnings
+	* kern/slab.c (slab_init): Remove unused variables.
+
+2016-02-20  Richard Braun  <rbraun@sceen.net>
+
+	Avoid slab allocation failures caused by memory fragmentation
+	Since the slab allocator has been changed to sit directly on top of the
+	physical allocator, failures caused by fragmentation have been observed,
+	as one could expect. This change makes the slab allocator revert to
+	kernel virtual memory when allocating larger-than-page slabs. This
+	solution is motivated in part to avoid the complexity of other solutions
+	such as page mobility, and also because a microkernel cannot be extended
+	to new arbitrary uncontrolled usage patterns such as a monolithic kernel
+	with loadable modules. As such, large objects are rare, and their use
+	infrequent, which is compatible with the use of kernel virtual memory.
+
+	* kern/slab.c: Update module description.
+	(KMEM_CF_SLAB_EXTERNAL, KMEM_CF_VERIFY): Update values.
+	(KMEM_CF_DIRECT): Remove macro.
+	(KMEM_CF_DIRECTMAP): New macro.
+	(kmem_pagealloc_directmap, kmem_pagefree_directmap,
+	kmem_pagealloc_virtual, kmem_pagefree_virtual): New functions.
+	(kmem_pagealloc, kmem_pagefree, kmem_slab_create, kmem_slab_destroy,
+	kalloc, kfree): Update to use the new pagealloc functions.
+	(kmem_cache_compute_sizes): Update the algorithm used to determine slab
+	size and other cache properties.
+	(kmem_slab_use_tree, kmem_cache_free_to_slab, host_slab_info): Update to
+	correctly use the cache flags.
+	(slab_init): Add KMEM_CACHE_DIRECTMAP to the kmem_slab_cache init flags.
+	* kern/slab.h (KMEM_CACHE_VERIFY): Change value.
+	(KMEM_CACHE_DIRECTMAP): New macro.
+	* vm/vm_map.c (vm_map_init): Add KMEM_CACHE_DIRECTMAP to the
+	vm_map_entry_cache init flags.
+
+2016-02-16  Richard Braun  <rbraun@sceen.net>
+
+	Avoid panics on physical memory exhaustion
+	* vm/vm_resident (vm_page_grab): Return NULL instead of calling panic
+	on memory exhaustion.
+
+2016-02-14  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Reduce VM_KERNEL_MAP_SIZE
+	Now that KMEM_MAP_SIZE (128MiB) has been removed.
+
+	* i386/i386/vm_param.h (VM_KERNEL_MAP_SIZE): Decrease by 128MiB.
+
+2016-02-07  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: initialize external maps
+	* vm/vm_external.c (vm_external_create): Initialize allocated maps.
+
+2016-02-07  Richard Braun  <rbraun@sceen.net>
+
+	Fix page cache accounting
+	* vm/vm_object.c (vm_object_bootstrap): Set template object `cached'
+	member to FALSE.
+	(vm_object_cache_add, vm_object_cache_remove): New functions.
+	(vm_object_collect, vm_object_deallocate, vm_object_lookup,
+	vm_object_lookup_name, vm_object_destroy): Use new cache management functions.
+	(vm_object_terminate, vm_object_collapse): Make sure object isn't cached.
+	* vm/vm_object.h (struct vm_object): New `cached' member.
+
+2016-02-07  Justus Winter  <4winter@informatik.uni-hamburg.de>
+
+	vm: allocate a large map for all objects larger than SMALL_SIZE
+	* vm/vm_external.c (vm_external_create): Allocate a large map for all
+	objects larger than SMALL_SIZE.  'vm_external_state_{g,s}et' can deal
+	with offsets larger than 'LARGE_SIZE', so currently objects larger
+	than 'LARGE_SIZE' are missing out on the optimization.
+
+	vm: remove unused field from struct vm_external
+	* vm/vm_external.h (struct vm_external): Remove unused field
+	'existence_count'.
+
+2016-02-07  Richard Braun  <rbraun@sceen.net>
+
+	Remove kmem map
+	Now that the slab allocator doesn't use kernel virtual memory any more,
+	this map has become irrelevant.
+
+	* kern/slab.c (KMEM_MAP_SIZE): Remove macro.
+	(kmem_map_store, kmem_map): Remove variables.
+	(slab_init): Remove call kmem_submap.
+	* kern/slab.h (kmem_map): Remove extern declaration.
+
+2016-02-06  Richard Braun  <rbraun@sceen.net>
+
+	Change computation of slab size
+	Allocating directly out of the physical memory allocator makes the slab
+	allocator vulnerable to failures due to fragmentation. This change makes
+	the slab allocator use the lowest possible size for its slabs to reduce
+	the chance of contiguous allocation failures.
+
+	* kern/slab.c (KMEM_MIN_BUFS_PER_SLAB, KMEM_SLAB_SIZE_THRESHOLD): Remove
+	macros.
+	(kmem_cache_compute_sizes): Update the algorithm used to determine slab
+	size and other cache properties.
+
+2016-02-02  Richard Braun  <rbraun@sceen.net>
+
+	Fix various memory managment errors
+	A few errors were introduced in the latest changes.
+
+	o Add VM_PAGE_WAIT calls around physical allocation attempts in case of
+	memory exhaustion.
+	o Fix stack release.
+	o Fix memory exhaustion report.
+	o Fix free page accounting.
+
+	* kern/slab.c (kmem_pagealloc, kmem_pagefree): New functions
+	(kmem_slab_create, kmem_slab_destroy, kalloc, kfree): Use kmem_pagealloc
+	and kmem_pagefree instead of the raw page allocation functions.
+	(kmem_cache_compute_sizes): Don't store slab order.
+	* kern/slab.h (struct kmem_cache): Remove `slab_order' member.
+	* kern/thread.c (stack_alloc): Call VM_PAGE_WAIT in case of memory
+	exhaustion.
+	(stack_collect): Call vm_page_free_contig instead of kmem_free to
+	release pages.
+	* vm/vm_page.c (vm_page_seg_alloc): Fix memory exhaustion report.
+	(vm_page_setup): Don't update vm_page_free_count.
+	(vm_page_free_pa): Check page parameter.
+	(vm_page_mem_free): New function.
+	* vm/vm_page.h (vm_page_free_count): Remove extern declaration.
+	(vm_page_mem_free): New prototype.
+	* vm/vm_pageout.c: Update comments not to refer to vm_page_free_count.
+	(vm_pageout_scan, vm_pageout_continue, vm_pageout): Use vm_page_mem_free
+	instead of vm_page_free_count, update types accordingly.
+	* vm/vm_resident.c (vm_page_free_count, vm_page_free_count_minimum):
+	Remove variables.
+	(vm_page_free_avail): New variable.
+	(vm_page_bootstrap, vm_page_grab, vm_page_release, vm_page_grab_contig,
+	vm_page_free_contig, vm_page_wait): Use vm_page_mem_free instead of vm_page_free_count,
+	update types accordingly, don't set vm_page_free_count_minimum.
+	* vm/vm_user.c (vm_statistics): Likewise.
+
+2016-02-02  Richard Braun  <rbraun@sceen.net>
+
+	Fix unused variable warnings
+	* i386/i386at/biosmem.c (biosmem_bootstrap): Remove unused variables.
+
+2016-02-02  Richard Braun  <rbraun@sceen.net>
+
+	Stack the slab allocator directly on top of the physical allocator
+	In order to increase the amount of memory available for kernel objects,
+	without reducing the amount of memory available for user processes,
+	a new allocation strategy is introduced in this change.
+
+	Instead of allocating kernel objects out of kernel virtual memory,
+	the slab allocator directly uses the direct mapping of physical
+	memory as its backend. This largely increases the kernel heap, and
+	removes the need for address translation updates.
+
+	In order to allow this strategy, an assumption made by the interrupt
+	code had to be removed. In addition, kernel stacks are now also
+	allocated directly from the physical allocator.
+
+	* i386/i386/db_trace.c: Include i386at/model_dep.h
+	(db_i386_reg_value): Update stack check.
+	* i386/i386/locore.S (trap_from_kernel, all_intrs,
+	int_from_intstack): Update interrupt handling.
+	* i386/i386at/model_dep.c: Include kern/macros.h.
+	(int_stack, int_stack_base): New variables.
+	(int_stack_high): Remove variable.
+	(i386at_init): Update interrupt stack initialization.
+	* i386/i386at/model_dep.h: Include i386/vm_param.h.
+	(int_stack_top, int_stack_base): New extern declarations.
+	(ON_INT_STACK): New macro.
+	* kern/slab.c: Include vm/vm_page.h
+	(KMEM_CF_NO_CPU_POOL, KMEM_CF_NO_RECLAIM): Remove macros.
+	(kmem_pagealloc, kmem_pagefree, kalloc_pagealloc, kalloc_pagefree): Remove
+	functions.
+	(kmem_slab_create): Allocate slab pages directly from the physical allocator.
+	(kmem_slab_destroy): Release slab pages directly to the physical allocator.
+	(kmem_cache_compute_sizes): Update the slab size computation algorithm to
+	return a power-of-two suitable for the physical allocator.
+	(kmem_cache_init): Remove custom allocation function pointers.
+	(kmem_cache_reap): Remove check on KMEM_CF_NO_RECLAIM.
+	(slab_init, kalloc_init): Update calls to kmem_cache_init.
+	(kalloc, kfree): Directly fall back on the physical allocator for big
+	allocation sizes.
+	(host_slab_info): Remove checks on defunct flags.
+	* kern/slab.h (kmem_slab_alloc_fn_t, kmem_slab_free_fn_t): Remove types.
+	(struct kmem_cache): Add `slab_order' member, remove `slab_alloc_fn' and
+	`slab_free_fn' members.
+	(KMEM_CACHE_NOCPUPOOL, KMEM_CACHE_NORECLAIM): Remove macros.
+	(kmem_cache_init): Update prototype, remove custom allocation functions.
+	* kern/thread.c (stack_alloc): Allocate stacks from the physical allocator.
+	* vm/vm_map.c (vm_map_kentry_cache, kentry_data, kentry_data_size): Remove
+	variables.
+	(kentry_pagealloc): Remove function.
+	(vm_map_init): Update calls to kmem_cache_init, remove initialization of
+	vm_map_kentry_cache.
+	(vm_map_create, _vm_map_entry_dispose, vm_map_copyout): Unconditionnally
+	use vm_map_entry_cache.
+	* vm/vm_map.h (kentry_data, kentry_data_size, kentry_count): Remove extern
+	declarations.
+	* vm/vm_page.h (VM_PT_STACK): New page type.
+	* device/dev_lookup.c (dev_lookup_init): Update calls to kmem_cache_init.
+	* device/dev_pager.c (dev_pager_hash_init, device_pager_init): Likewise.
+	* device/ds_routines.c (mach_device_init, mach_device_trap_init): Likewise.
+	* device/net_io.c (net_io_init): Likewise.
+	* i386/i386/fpu.c (fpu_module_init): Likewise.
+	* i386/i386/machine_task.c (machine_task_module_init): Likewise.
+	* i386/i386/pcb.c (pcb_module_init): Likewise.
+	* i386/intel/pmap.c (pmap_init): Likewise.
+	* ipc/ipc_init.c (ipc_bootstrap): Likewise.
+	* ipc/ipc_marequest.c (ipc_marequest_init): Likewise.
+	* kern/act.c (global_act_init): Likewise.
+	* kern/processor.c (pset_sys_init): Likewise.
+	* kern/rdxtree.c (rdxtree_cache_init): Likewise.
+	* kern/task.c (task_init): Likewise.
+	* vm/memory_object_proxy.c (memory_object_proxy_init): Likewise.
+	* vm/vm_external.c (vm_external_module_initialize): Likewise.
+	* vm/vm_fault.c (vm_fault_init): Likewise.
+	* vm/vm_object.c (vm_object_bootstrap): Likewise.
+	* vm/vm_resident.c (vm_page_module_init): Likewise.
+	(vm_page_bootstrap): Remove initialization of kentry_data.
+
+2016-01-30  Richard Braun  <rbraun@sceen.net>
+
+	Fix early page allocation on Xen
+	The Xen target was completely ignored when porting the biosmem and
+	vm_page physical memory allocators. Let's fix this.
+
+	* i386/Makefrag.am (libkernel_a_SOURCES): Add i386/i386at/biosmem.{c,h}.
+	* i386/i386/vm_page.h (VM_PAGE_MAX_SEGS, VM_PAGE_DIRECTMAP_LIMIT,
+	VM_PAGE_HIGHMEM_LIMIT): Define for Xen.
+	* i386/i386at/biosmem.c: Include mach/xen.h.
+	(biosmem_panic_setup_msg): Comment out for Xen since it's unused.
+	(biosmem_map_build, biosmem_map_build_simple,
+	biosmem_save_cmdline_sizes, biosmem_find_boot_data_update,
+	biosmem_find_boot_data, biosmem_setup_allocator): Likewise.
+	(biosmem_bootstrap_common): New function.
+	(biosmem_xen_bootstrap): Likewise, for Xen.
+	(biosmem_bootalloc): Perform bottom-up allocations for Xen.
+	* i386/i386at/biosmem.h (biosmem_xen_bootstrap): New prototype, for Xen.
+	* i386/i386at/model_dep.c (i386at_init): Call biosmem_xen_bootstrap instead
+	of biosmem_bootstrap on Xen.
+	* i386/include/mach/i386/vm_types.h (phys_addr_t): Define as an unsigned
+	64-bits integer when PAE is enabled.
+
+2016-01-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Disable probing legacy IDE when AHCI driver works
+	* linux/src/drivers/block/ide.c (default_io_base): Do not qualify const.
+	(ide_disable_base): New function.
+	* linux/dev/include/linux/blk.h (ide_disable_base): New declaration.
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Call ide_disable_base
+	with each I/O BAR of the AHCI PCI card.
+
+	Use PCI macros
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Use
+	PCI_BASE_ADDRESS_SPACE_IO and PCI_BASE_ADDRESS_MEM_MASK macros instead of
+	hardcoded values.
+
+	ahci: print PCI bus/dev/fun in hexadecimal
+	* linux/dev/drivers/block/ahci.c: Print PCI bus/dev/fun number in
+	hexadecimal
+
+2016-01-29  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fallback on direct PCI access when no BIOS32 is available
+	Some hardware start shippping with no BIOS32 at all, and we'll have to
+	implement ACPI to get the address of the mmconfig table.  In the meanwhile,
+	we can hope that the direct probe works (it does on HP820 for instance).
+
+	* linux/src/arch/i386/kernel/bios32.c (pcibios_init): Also try
+	check_direct_pci() when bios32 probing failed.
+
+2016-01-23  Richard Braun  <rbraun@sceen.net>
+
+	Merge branch 'rbraun/vm_page'
+
+2016-01-23  Richard Braun  <rbraun@sceen.net>
+
+	Use vm_page as the physical memory allocator
+	This change replaces the historical page allocator with a buddy allocator
+	implemented in vm/vm_page.c. This allocator allows easy contiguous allocations
+	and also manages memory inside segments. In a future change, these segments
+	will be used to service requests with special constraints, such as "usable
+	for 16-bits DMA" or "must be part of the direct physical mapping".
+
+	* Makefrag.am (libkernel_a_SOURCES): Add vm/vm_page.c.
+	* i386/Makefrag.am (libkernel_a_SOURCES): Add i386/i386at/biosmem.{c,h}.
+	* i386/i386/vm_param.h: Include kern/macros.h.
+	(VM_PAGE_DMA_LIMIT, VM_PAGE_MAX_SEGS, VM_PAGE_DMA32_LIMIT,
+	VM_PAGE_DIRECTMAP_LIMIT, VM_PAGE_HIGHMEM_LIMIT, VM_PAGE_SEG_DMA,
+	VM_PAGE_SEG_DMA32, VM_PAGE_SEG_DIRECTMAP, VM_PAGE_SEG_HIGHMEM): New macros.
+	* i386/i386at/model_dep.c: Include i386at/biosmem.h.
+	(avail_next, avail_remaining): Remove variables.
+	(mem_size_init): Remove function.
+	(i386at_init): Initialize and use the biosmem module for early physical
+	memory management.
+	(pmap_free_pages): Return phys_last_addr instead of avail_remaining.
+	(init_alloc_aligned): Turn into a wrapper for biosmem_bootalloc.
+	(pmap_grab_page): Directly call init_alloc_aligned instead of pmap_next_page.
+	* i386/include/mach/i386/vm_types.h (phys_addr_t): New type.
+	* kern/bootstrap.c (free_bootstrap_pages): New function.
+	(bootstrap_create): Call free_bootstrap_pages instead of vm_page_create.
+	* kern/cpu_number.h (CPU_L1_SIZE): New macro.
+	* kern/slab.h: Include kern/cpu_number.h.
+	(CPU_L1_SIZE): Remove macro, moved to kern/cpu_number.h.
+	* kern/startup.c (setup_main): Change the value of machine_info.memory_size.
+	* linux/dev/glue/glue.h (alloc_contig_mem, free_contig_mem): Update prototypes.
+	* linux/dev/glue/kmem.c (linux_kmem_init): Don't use defunct page queue.
+	* linux/dev/init/main.c (linux_init): Don't free unused memory.
+	(alloc_contig_mem, free_contig_mem): Turn into wrappers for the vm_page
+	allocator.
+	* linux/pcmcia-cs/glue/ds.c (PAGE_SHIFT): Don't undefine.
+	* vm/pmap.h (pmap_startup, pmap_next_page): Remove prototypes.
+	* vm/vm_fault.c (vm_fault_page): Update calls to vm_page_convert.
+	* vm/vm_init.c (vm_mem_init): Call vm_page_info_all.
+	* vm/vm_object.c (vm_object_page_map): Update call to vm_page_init.
+	* vm/vm_page.h (vm_page_queue_free): Remove variable declaration.
+	(vm_page_create, vm_page_release_fictitious, vm_page_release): Remove
+	declarations.
+	(vm_page_convert, vm_page_init): Update prototypes.
+	(vm_page_grab_contig, vm_page_free_contig): New prototypes.
+	* vm/vm_resident.c (vm_page_template, vm_page_queue_free,
+	vm_page_big_pagenum): Remove variables.
+	(vm_page_bootstrap): Update and call vm_page_setup.
+	(pmap_steal_memory): Update and call vm_page_bootalloc.
+	(pmap_startup, vm_page_create, vm_page_grab_contiguous_pages): Remove functions.
+	(vm_page_init_template, vm_page_grab_contig,
+	vm_page_free_contig): New functions.
+	(vm_page_init): Update and call vm_page_init_template.
+	(vm_page_release_fictitious): Make static.
+	(vm_page_more_fictitious): Update call to vm_page_init.
+	(vm_page_convert): Rewrite to comply with vm_page.
+	(vm_page_grab): Update and call vm_page_alloc_pa.
+	(vm_page_release): Update and call vm_page_free_pa.
+
+2016-01-23  Richard Braun  <rbraun@sceen.net>
+
+	Import the vm_page module from X15 and relicense to GPLv2+
+	* vm/vm_page.c: New File.
+	* vm/vm_page.h: Merge vm_page.h from X15.
+	(struct vm_page): New members: node, type, seg_index, order,
+	vm_page_header. Turn phys_addr into a phys_addr_t.
+
+	Import the biosmem module from X15 and relicense to GPLv2+
+	* i386/i386at/biosmem.c: New file.
+	* i386/i386at/biosmem.h: Likewise.
+
+	Import the multiboot module from X15 and relicense to GPLv2+
+	* i386/include/mach/i386/multiboot.h: Merge multiboot.h from X15.
+
+	Import the elf module from X15 and relicense to GPLv2+
+	* i386/i386at/elf.h: New file.
+
+	Import the log2 module from X15 and relicense to GPLv2+
+	* kern/log2.h: New file.
+
+2016-01-14  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix build with gcc-6
+	* linux/src/include/linux/compiler-gcc6.h: New file.
+
 2016-01-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Increase kernel map size
@@ -4307,6 +4812,31 @@
 
 	Increase kernel map entry pool size
 	* vm/vm_map.h (KENTRY_DATA_SIZE): Set to 256 pages.
+
+2013-10-09  Richard Braun  <rbraun@sceen.net>
+
+	VM cache policy change
+	This patch lets the kernel unconditionnally cache non empty unreferenced
+	objects instead of using a fixed arbitrary limit. As the pageout daemon
+	evicts pages, it collects cached objects that have become empty. The
+	effective result is a graceful adjustment of the number of objects
+	related to memory management (virtual memory objects, their associated
+	ports, and potentially objects maintained in the external memory
+	managers). Physical memory can now be almost entirely filled up with
+	cached pages. In addition, these cached pages are not automatically
+	deactivated as objects can quickly be referenced again.
+
+	There are problems with this patch however. The first is that, on
+	machines with a large amount of physical memory (above 1 GiB but it also
+	depends on usage patterns), scalability issues are exposed. For example,
+	file systems which don't throttle their writeback requests can create
+	thread storms, strongly reducing system responsiveness. Other issues
+	such as linear scans of memory objects also add visible CPU overhead.
+
+	The second is that, as most memory is used, it increases the chances of
+	swapping deadlocks. Applications that map large objects and quickly
+	cause lots of page faults can still easily bring the system to its
+	knees.
 
 2013-09-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
