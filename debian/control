@@ -6,8 +6,8 @@ Uploaders: Samuel Thibault <sthibault@debian.org>
 Homepage: http://www.gnu.org/software/hurd/microkernel/mach/gnumach.html
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-hurd/gnumach.git
 Vcs-Git: git://anonscm.debian.org/pkg-hurd/gnumach.git
-Build-Depends: debhelper (>= 7), mig (>= 1.4-2) <!stage1>, sharutils,
- autoconf, automake, texinfo
+Build-Depends: debhelper (>= 9.20141010), mig (>= 1.4-2) <!stage1>, sharutils,
+ autoconf, automake, texinfo, dpkg-dev (>= 1.17.14)
 Standards-Version: 3.9.6
 
 Package: gnumach
