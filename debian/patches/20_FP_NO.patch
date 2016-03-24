@@ -1,0 +1,19 @@
+diff --git a/i386/include/mach/i386/fp_reg.h b/i386/include/mach/i386/fp_reg.h
+index 5673055..f490623 100644
+--- a/i386/include/mach/i386/fp_reg.h
++++ b/i386/include/mach/i386/fp_reg.h
+@@ -117,6 +117,7 @@ struct i386_xfp_save {
+ #define	FPS_C3		0x4000		/* condition code bit 3 */
+ #define	FPS_BUSY	0x8000		/* FPU busy */
+ 
++#ifdef MACH_KERNEL
+ /*
+  * Kind of floating-point support provided by kernel.
+  */
+@@ -125,5 +126,6 @@ struct i386_xfp_save {
+ #define	FP_287		2		/* 80287 */
+ #define	FP_387		3		/* 80387 or 80486 */
+ #define	FP_387X		4		/* FXSAVE/RSTOR-capable */
++#endif
+ 
+ #endif	/* _MACH_I386_FP_REG_H_ */

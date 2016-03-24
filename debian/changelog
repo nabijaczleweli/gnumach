@@ -1,6 +1,7 @@
 gnumach (2:1.6+git20160311-2) UNRELEASED; urgency=medium
 
   * control.in: Really bump dpkg-dev and debhelper versions.
+  * patches/20_FP_NO.patch: Avoid defining FP_NO.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 11 Mar 2016 23:21:56 +0000
 
