@@ -153,7 +153,7 @@ Index: gnumach/device/intr.c
 ===================================================================
 --- /dev/null
 +++ gnumach/device/intr.c
-@@ -0,0 +1,198 @@
+@@ -0,0 +1,200 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
 +#include <kern/queue.h>
@@ -276,12 +276,14 @@ Index: gnumach/device/intr.c
 +	       * we should remove it. */
 +	      if (e->dest == NULL)
 +		{
++		  clear_wait (current_thread (), 0, 0);
 +		  del = 1;
 +		  break;
 +		}
 +
 +	      if (e->interrupts)
 +		{
++		  clear_wait (current_thread (), 0, 0);
 +		  line = e->line;
 +		  dest = e->dest;
 +		  e->interrupts--;
