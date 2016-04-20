@@ -5,6 +5,8 @@ gnumach (2:1.6+git20160311-2) UNRELEASED; urgency=medium
   * patches/70_dde.patch: Fix crash when delivering the interrupt makes the
     thread sleep. It is fine to do another check loop when running the
     interrupt handlers anyway.
+  * patches/99_revert-page-cache-policy.patch: Revert the new cache policy for
+    now: when ext2fs has a lot of objects, vm_map_enter becomes very slow.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 11 Mar 2016 23:21:56 +0000
 
