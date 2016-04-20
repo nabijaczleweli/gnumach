@@ -9,12 +9,15 @@ NOEPOCH_VERSION  := $(shell echo $(FULL_VERSION) | sed -e 's/.*://g')
 TAR_VERSION      := $(shell echo $(NOEPOCH_VERSION) | sed -e 's/-.*//g')
 UPSTREAM_VERSION := $(shell echo $(TAR_VERSION) | sed -e 's/\.dfsg.*//g')
 NOGIT_VERSION    := $(shell echo $(UPSTREAM_VERSION) | sed -e 's/+git[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]//g')
-VERSION          := $(NOGIT_VERSION)
 MAJOR            := $(shell echo $(VERSION) | sed -e 's/\..*//g')
 DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
-ifneq (,$(filter custom,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(filter custom,$(DEB_BUILD_OPTIONS)))
+VERSION := $(NOGIT_VERSION)
+CUSTOM :=
+else
 VERSION := $(NOEPOCH_VERSION)
+CUSTOM := .custom
 endif
 
 MACHINE         := 486
@@ -81,7 +84,7 @@ build/config.status: configure
 	dh_testdir
 	
 	-mkdir build
-	cd build && PACKAGE_VERSION_SUFFIX=-486 ../configure $(drivers) \
+	cd build && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-486 ../configure $(drivers) \
 		CFLAGS="$(CFLAGS)" \
 		$(common_configure)
 
@@ -89,7 +92,7 @@ build-xen/config.status: configure
 	dh_testdir
 	
 	-mkdir build-xen
-	cd build-xen && PACKAGE_VERSION_SUFFIX=-xen-486 ../configure \
+	cd build-xen && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-xen-486 ../configure \
 		CFLAGS="$(CFLAGS)" \
 		$(common_configure) \
 		--enable-platform=xen
@@ -98,14 +101,14 @@ build-dbg/config.status: configure
 	dh_testdir
 	
 	-mkdir build-dbg
-	cd build-dbg && PACKAGE_VERSION_SUFFIX=-486-dbg ../configure --enable-kdb $(drivers) \
+	cd build-dbg && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-486-dbg ../configure --enable-kdb $(drivers) \
 		$(common_configure) \
 
 build-xen-dbg/config.status: configure
 	dh_testdir
 	
 	-mkdir build-xen-dbg
-	cd build-xen-dbg && PACKAGE_VERSION_SUFFIX=-xen-486-dbg ../configure --enable-kdb \
+	cd build-xen-dbg && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-xen-486-dbg ../configure --enable-kdb \
 		$(common_configure) \
 		--enable-platform=xen
 
