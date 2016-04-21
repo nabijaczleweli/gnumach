@@ -13,11 +13,11 @@ MAJOR            := $(shell echo $(VERSION) | sed -e 's/\..*//g')
 DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
 ifeq (,$(filter custom,$(DEB_BUILD_OPTIONS)))
-VERSION := $(NOGIT_VERSION)
 CUSTOM :=
+VERSION := $(NOGIT_VERSION)
 else
-VERSION := $(NOEPOCH_VERSION)
-CUSTOM := .custom
+CUSTOM := .custom.$(shell date +'%Y%m%d')
+VERSION := $(NOEPOCH_VERSION)$(CUSTOM)
 endif
 
 MACHINE         := 486

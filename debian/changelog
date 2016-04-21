@@ -10,7 +10,7 @@ gnumach (2:1.6+git20160311-2) UNRELEASED; urgency=medium
     now: when ext2fs has a lot of objects, vm_map_enter becomes very slow.
 
   [ Svante Signell ]
-  * rules: Add ".custom" in uname -v.
+  * rules: Add custom version in uname -v and custom packages names.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 11 Mar 2016 23:21:56 +0000
 
