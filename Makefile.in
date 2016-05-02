@@ -1144,8 +1144,8 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@	i386/i386/mach_i386.server.msgids \
 @HOST_ix86_TRUE@	i386/i386/i386asm.h
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@am__append_123 = \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START=0xC0100000 \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START_MAP=0x100000 \
+@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START_MAP=$(_START_MAP) \
+@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	--defsym _START=_START_MAP+0xC0000000 \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	-T '$(srcdir)'/i386/ldscript
 
 @HOST_ix86_TRUE@am__append_124 = \
@@ -1249,20 +1249,20 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
-	kern/exception.c kern/exception.h kern/host.c kern/host.h \
-	kern/ipc_host.c kern/ipc_host.h kern/ipc_kobject.c \
-	kern/ipc_kobject.h kern/ipc_mig.c kern/ipc_mig.h \
-	kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c kern/ipc_tt.h \
-	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
-	kern/lock.h kern/lock_mon.c kern/log2.h kern/mach_clock.c \
-	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
-	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
-	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
-	kern/priority.h kern/processor.c kern/processor.h \
-	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
-	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
-	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
-	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/exception.c kern/exception.h kern/gsync.c kern/gsync.h \
+	kern/host.c kern/host.h kern/ipc_host.c kern/ipc_host.h \
+	kern/ipc_kobject.c kern/ipc_kobject.h kern/ipc_mig.c \
+	kern/ipc_mig.h kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c \
+	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/list.h \
+	kern/lock.c kern/lock.h kern/lock_mon.c kern/log2.h \
+	kern/mach_clock.c kern/mach_clock.h kern/mach_factor.c \
+	kern/mach_factor.h kern/machine.c kern/machine.h kern/macros.h \
+	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
+	kern/priority.c kern/priority.h kern/processor.c \
+	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
+	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c \
+	kern/rdxtree.h kern/rdxtree_i.h kern/refcount.h kern/slab.c \
+	kern/slab.h kern/sched.h kern/sched_prim.c kern/sched_prim.h \
 	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
 	kern/syscall_emulation.c kern/syscall_emulation.h \
 	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
@@ -1461,25 +1461,25 @@ am_libkernel_a_OBJECTS = $(am__objects_2) ipc/ipc_entry.$(OBJEXT) \
 	ipc/mach_debug.$(OBJEXT) kern/act.$(OBJEXT) kern/ast.$(OBJEXT) \
 	kern/bootstrap.$(OBJEXT) kern/counters.$(OBJEXT) \
 	kern/debug.$(OBJEXT) kern/eventcount.$(OBJEXT) \
-	kern/exception.$(OBJEXT) kern/host.$(OBJEXT) \
-	kern/ipc_host.$(OBJEXT) kern/ipc_kobject.$(OBJEXT) \
-	kern/ipc_mig.$(OBJEXT) kern/ipc_sched.$(OBJEXT) \
-	kern/ipc_tt.$(OBJEXT) kern/lock.$(OBJEXT) \
-	kern/lock_mon.$(OBJEXT) kern/mach_clock.$(OBJEXT) \
-	kern/mach_factor.$(OBJEXT) kern/machine.$(OBJEXT) \
-	kern/pc_sample.$(OBJEXT) kern/printf.$(OBJEXT) \
-	kern/priority.$(OBJEXT) kern/processor.$(OBJEXT) \
-	kern/profile.$(OBJEXT) kern/queue.$(OBJEXT) \
-	kern/rbtree.$(OBJEXT) kern/rdxtree.$(OBJEXT) \
-	kern/slab.$(OBJEXT) kern/sched_prim.$(OBJEXT) \
-	kern/startup.$(OBJEXT) kern/strings.$(OBJEXT) \
-	kern/syscall_emulation.$(OBJEXT) kern/syscall_subr.$(OBJEXT) \
-	kern/syscall_sw.$(OBJEXT) kern/task.$(OBJEXT) \
-	kern/thread.$(OBJEXT) kern/thread_swap.$(OBJEXT) \
-	kern/time_stamp.$(OBJEXT) kern/timer.$(OBJEXT) \
-	kern/xpr.$(OBJEXT) kern/elf-load.$(OBJEXT) \
-	kern/boot_script.$(OBJEXT) util/putchar.$(OBJEXT) \
-	util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
+	kern/exception.$(OBJEXT) kern/gsync.$(OBJEXT) \
+	kern/host.$(OBJEXT) kern/ipc_host.$(OBJEXT) \
+	kern/ipc_kobject.$(OBJEXT) kern/ipc_mig.$(OBJEXT) \
+	kern/ipc_sched.$(OBJEXT) kern/ipc_tt.$(OBJEXT) \
+	kern/lock.$(OBJEXT) kern/lock_mon.$(OBJEXT) \
+	kern/mach_clock.$(OBJEXT) kern/mach_factor.$(OBJEXT) \
+	kern/machine.$(OBJEXT) kern/pc_sample.$(OBJEXT) \
+	kern/printf.$(OBJEXT) kern/priority.$(OBJEXT) \
+	kern/processor.$(OBJEXT) kern/profile.$(OBJEXT) \
+	kern/queue.$(OBJEXT) kern/rbtree.$(OBJEXT) \
+	kern/rdxtree.$(OBJEXT) kern/slab.$(OBJEXT) \
+	kern/sched_prim.$(OBJEXT) kern/startup.$(OBJEXT) \
+	kern/strings.$(OBJEXT) kern/syscall_emulation.$(OBJEXT) \
+	kern/syscall_subr.$(OBJEXT) kern/syscall_sw.$(OBJEXT) \
+	kern/task.$(OBJEXT) kern/thread.$(OBJEXT) \
+	kern/thread_swap.$(OBJEXT) kern/time_stamp.$(OBJEXT) \
+	kern/timer.$(OBJEXT) kern/xpr.$(OBJEXT) \
+	kern/elf-load.$(OBJEXT) kern/boot_script.$(OBJEXT) \
+	util/putchar.$(OBJEXT) util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
 	vm/memory_object_proxy.$(OBJEXT) vm/memory_object.$(OBJEXT) \
 	vm/vm_debug.$(OBJEXT) vm/vm_external.$(OBJEXT) \
 	vm/vm_fault.$(OBJEXT) vm/vm_init.$(OBJEXT) \
@@ -2378,6 +2378,7 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
+_START_MAP = @_START_MAP@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -2501,8 +2502,8 @@ DISTCLEANFILES = Makefile.orig config.status.orig
 #
 # Compilation flags
 #
-AM_CPPFLAGS = -nostdinc -imacros config.h -I$(systype) -I. \
-	-I$(top_srcdir)/$(systype) \
+AM_CPPFLAGS = -ffreestanding -nostdinc -imacros config.h -I$(systype) \
+	-I. -I$(top_srcdir)/$(systype) \
 	-I$(top_srcdir)/$(systype)/include/mach/sa \
 	-I$(top_srcdir)/include
 AM_CCASFLAGS = 
@@ -2580,20 +2581,20 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
-	kern/exception.c kern/exception.h kern/host.c kern/host.h \
-	kern/ipc_host.c kern/ipc_host.h kern/ipc_kobject.c \
-	kern/ipc_kobject.h kern/ipc_mig.c kern/ipc_mig.h \
-	kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c kern/ipc_tt.h \
-	kern/kalloc.h kern/kern_types.h kern/list.h kern/lock.c \
-	kern/lock.h kern/lock_mon.c kern/log2.h kern/mach_clock.c \
-	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
-	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
-	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
-	kern/priority.h kern/processor.c kern/processor.h \
-	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
-	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
-	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
-	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/exception.c kern/exception.h kern/gsync.c kern/gsync.h \
+	kern/host.c kern/host.h kern/ipc_host.c kern/ipc_host.h \
+	kern/ipc_kobject.c kern/ipc_kobject.h kern/ipc_mig.c \
+	kern/ipc_mig.h kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c \
+	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/list.h \
+	kern/lock.c kern/lock.h kern/lock_mon.c kern/log2.h \
+	kern/mach_clock.c kern/mach_clock.h kern/mach_factor.c \
+	kern/mach_factor.h kern/machine.c kern/machine.h kern/macros.h \
+	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
+	kern/priority.c kern/priority.h kern/processor.c \
+	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
+	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c \
+	kern/rdxtree.h kern/rdxtree_i.h kern/refcount.h kern/slab.c \
+	kern/slab.h kern/sched.h kern/sched_prim.c kern/sched_prim.h \
 	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
 	kern/syscall_emulation.c kern/syscall_emulation.h \
 	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
@@ -3185,6 +3186,8 @@ kern/debug.$(OBJEXT): kern/$(am__dirstamp) \
 kern/eventcount.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/exception.$(OBJEXT): kern/$(am__dirstamp) \
+	kern/$(DEPDIR)/$(am__dirstamp)
+kern/gsync.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/host.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
@@ -4299,6 +4302,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/eventcount.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/exception.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/gnumach.server.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/gsync.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/host.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_host.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_kobject.Po@am__quote@

@@ -3,8 +3,8 @@ This makes glibc's local-bigmem.diff patch mandatory.
 
 Index: gnumach/i386/include/mach/i386/vm_param.h
 ===================================================================
---- gnumach.orig/i386/include/mach/i386/vm_param.h	2012-06-10 23:45:02.000000000 +0200
-+++ gnumach/i386/include/mach/i386/vm_param.h	2012-07-14 15:57:26.423861314 +0200
+--- gnumach.orig/i386/include/mach/i386/vm_param.h
++++ gnumach/i386/include/mach/i386/vm_param.h
 @@ -73,6 +73,6 @@
     with that.
     */
@@ -15,22 +15,22 @@ Index: gnumach/i386/include/mach/i386/vm_param.h
  #endif	/* _MACH_I386_VM_PARAM_H_ */
 Index: gnumach/i386/Makefrag.am
 ===================================================================
---- gnumach.orig/i386/Makefrag.am	2012-06-10 23:45:02.000000000 +0200
-+++ gnumach/i386/Makefrag.am	2012-07-14 15:57:26.427861233 +0200
-@@ -199,7 +199,7 @@ EXTRA_DIST += \
- 	i386/ldscript
+--- gnumach.orig/i386/Makefrag.am
++++ gnumach/i386/Makefrag.am
+@@ -226,7 +226,7 @@ EXTRA_DIST += \
  if PLATFORM_at
  gnumach_LINKFLAGS += \
--	--defsym _START=0xC0100000 \
-+	--defsym _START=0x80100000 \
- 	--defsym _START_MAP=0x100000 \
+ 	--defsym _START_MAP=$(_START_MAP) \
+-	--defsym _START=_START_MAP+0xC0000000 \
++	--defsym _START=_START_MAP+0x80000000 \
  	-T '$(srcdir)'/i386/ldscript
  endif
+ 
 Index: gnumach/i386/i386/vm_param.h
 ===================================================================
---- gnumach.orig/i386/i386/vm_param.h	2012-06-10 23:45:02.000000000 +0200
-+++ gnumach/i386/i386/vm_param.h	2012-07-14 15:57:44.559495669 +0200
-@@ -31,7 +31,7 @@
+--- gnumach.orig/i386/i386/vm_param.h
++++ gnumach/i386/i386/vm_param.h
+@@ -35,7 +35,7 @@
  /* This can be changed freely to separate kernel addresses from user addresses
   * for better trace support in kdb; the _START symbol has to be offset by the
   * same amount. */
@@ -41,8 +41,8 @@ Index: gnumach/i386/i386/vm_param.h
  /* PV kernels can be loaded directly to the target virtual address */
 Index: gnumach/i386/xen/Makefrag.am
 ===================================================================
---- gnumach.orig/i386/xen/Makefrag.am	2012-07-14 15:58:19.998781083 +0200
-+++ gnumach/i386/xen/Makefrag.am	2012-07-14 15:58:30.254574271 +0200
+--- gnumach.orig/i386/xen/Makefrag.am
++++ gnumach/i386/xen/Makefrag.am
 @@ -28,7 +28,7 @@ libkernel_a_SOURCES += \
  
  if PLATFORM_xen
@@ -55,8 +55,8 @@ Index: gnumach/i386/xen/Makefrag.am
  endif
 Index: gnumach/i386/xen/xen_boothdr.S
 ===================================================================
---- gnumach.orig/i386/xen/xen_boothdr.S	2012-07-14 15:58:13.358914976 +0200
-+++ gnumach/i386/xen/xen_boothdr.S	2012-07-14 15:58:39.790381972 +0200
+--- gnumach.orig/i386/xen/xen_boothdr.S
++++ gnumach/i386/xen/xen_boothdr.S
 @@ -22,8 +22,8 @@
  	.ascii	"GUEST_OS=GNU Mach"
  	.ascii  ",GUEST_VERSION=1.3"

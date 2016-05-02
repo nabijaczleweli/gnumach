@@ -1,6 +1,7 @@
-gnumach (2:1.6+git20160311-2) UNRELEASED; urgency=medium
+gnumach (2:1.6+git20160502-1) unstable; urgency=medium
 
   [ Samuel Thibault ]
+  * New upstream snapshot.
   * control.in: Really bump dpkg-dev and debhelper versions.
   * patches/20_FP_NO.patch: Avoid defining FP_NO.
   * patches/70_dde.patch: Fix crash when delivering the interrupt makes the
@@ -12,7 +13,7 @@ gnumach (2:1.6+git20160311-2) UNRELEASED; urgency=medium
   [ Svante Signell ]
   * rules: Add custom version in uname -v and custom packages names.
 
- -- Samuel Thibault <sthibault@debian.org>  Fri, 11 Mar 2016 23:21:56 +0000
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 03 May 2016 00:16:34 +0000
 
 gnumach (2:1.6+git20160311-1) unstable; urgency=medium
 

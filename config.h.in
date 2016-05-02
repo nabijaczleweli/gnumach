@@ -470,6 +470,9 @@
 /* Standalone MACH kernel */
 #undef MACH_KERNEL
 
+/* MACH_KERNSAMPLE */
+#undef MACH_KERNSAMPLE
+
 /* enable use of kmsg device */
 #undef MACH_KMSG
 
@@ -523,6 +526,9 @@
 
 /* number of CPUs */
 #undef NCPUS
+
+/* Define to 1 if assertions should be disabled. */
+#undef NDEBUG
 
 /* NLPR */
 #undef NLPR

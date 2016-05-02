@@ -1,3 +1,136 @@
+2016-04-21  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix xen boot
+	* i386/i386/pcb.c (pcb_init): Make sure there is a thread before calling
+	current_task().
+
+2016-04-20  Justus Winter  <justus@gnupg.org>
+
+	Fix type of program counter argument
+	* i386/i386/hardclock.c (hardclock): Use '0' instead of 'NULL'.
+	* vm/vm_fault (vm_fault_cleanup): Likewise.
+
+	xen: fix build
+	* i386/xen/xen.c (hypclock_machine_intr): Fix 'clock_interrupt' call.
+	* xen/time.c (clkstart): Likewise.
+
+2016-04-20  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add kernel profiling through sampling
+	* NEWS: Advertise feature.
+	* configfrac.ac (--enable-kernsample): Add option.
+	* kern/pc_sample.h (take_pc_sample): Add usermode and pc parameter.
+	(take_pc_sample_macro): Take usermode and pc parameters, pass as such to
+	take_pc_sample.
+	* kern/pc_sample.c (take_pc_sample): Use pc parameter when usermode is 1.
+	* kern/mach_clock.c (clock_interrupt): Add pc parameter. Pass usermode and
+	pc to take_pc_sample_macro call.
+	* i386/i386/hardclock.c (hardclock): Pass regs->eip to clock_interrupt call
+	on normal interrupts, NULL on interrupt interrupt.
+	* vm/vm_fault.c (vm_fault_cleanup): Set usermode to 1 and pc to NULL in
+	take_pc_sample_macro call.
+
+2016-04-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add memory barrier to spl*
+	* i386/i386/spl.S (mb): Define macro
+	(SETIPL, spl0, spl7): Call mb.
+
+	Avoid using C99 for variable declaration for now
+	* kern/gsync.c (gsync_setup): Declare `i' variable out of for loop.
+
+2016-04-15  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	update NEWS file
+
+2016-04-15  Agustina Arzille  <avarzille@riseup.net>
+
+	Lightweight synchronization mechanism
+	* Makefrag.am (libkernel_a_SOURCES): Add kern/gsync.c and kern/gsync.h.
+	* include/mach/gnumach.defs (gsync_wait, gsync_wake, gsync_requeue): New
+	routines.
+	* include/mach/kern_return.h (KERN_TIMEDOUT, KERN_INTERRUPTED): New error
+	codes.
+	* kern/gsync.c: New file.
+	* kern/gsync.h: New file.
+	* kern/startup.c: Include <kern/gsync.h>
+	(setup_main): Call gsync_setup.
+
+2016-04-15  Justus Winter  <justus@gnupg.org>
+
+	Update NEWS file
+
+	Add --disable-assert flag to disable assertions
+	* configfrag.ac: Use 'AC_HEADER_ASSERT'.
+
+	i386: Fix error handling
+	* i386/i386at/model_dep.c (i386at_init): Fix error handling.
+
+2016-04-05  Flavio Cruz  <flaviocruz@gmail.com>
+
+	Fix bootstraping issues with stdint.h.
+	* include/mach/std_types.h: Do not include stdint.h.
+	* kern/rdxtree.h: Replace sys/types.h with stdint.h.
+
+2016-04-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Follow-up stdint use
+	7bbfa39f59dcbc55b21d31abb9e2febef6a51ebb ('Use uint32_t instead of
+	unsigned32_t.') missed some Xen code
+
+	* xen/net.c (recompute_checksum): Use stdint.h types.
+	* xen/time.c (hyp_get_stime): Likewise.
+
+2016-04-04  Flavio Cruz  <flaviocruz@gmail.com>
+
+	Use uint32_t instead of unsigned32_t.
+	Implement stdint.h and use it in gnumach.
+
+	Remove old type definitions such as signed* and unsigned*.
+
+	* Makefile.am: Add -ffreestanding.
+	* i386/i386/xen.h: Use uint64_t.
+	* i386/include/mach/i386/machine_types.defs: Use uint32_t and int32_t.
+	* i386/include/mach/i386/vm_types.h: Remove definitions of int*, uint*,
+	unsigned* and signed* types.
+	* i386/xen/xen.c: Use uint64_t.
+	* include/device/device_types.defs: Use uint32_t.
+	* include/mach/std_types.defs: Use POSIX types.
+	* include/mach/std_types.h: Include stdint.h.
+	* include/stdint.h: New file with POSIX types.
+	* include/sys/types.h: Include stdint.h.
+	* ipc/ipc_kmsg.c: Use uint64_t.
+	* kern/exception.c: Use uint32_t.
+	* linux/dev/include/linux/types.h: Remove POSIX types.
+	* xen/block.c: Use uint64_t.
+	* xen/net.c: Do not use removed unsigned*_t types.
+	* xen/ring.h: Use uint32_t instead.
+	* xen/store.c: Use uint32_t.
+	* xen/store.h: Use uint32_t.
+	* xen/time.c: Use POSIX types only.
+	* xen/time.h: Use uint64_t.
+
+2016-03-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make kernel mapping start address configurable
+	and move it to 16MiB by default to free 24bit DMA area
+
+	* i386/configfrag.ac (--with-_START_MAP): Add option, default to 0x1000000.
+	* i386/Makefrag.am (_START_MAP): Set to $(_START_MAP).
+	(_START): Set to _START_MAP+0xC0000000.
+
+2016-03-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix getting ELF symbol bind and type
+	ddb/db_elf.c (elf_db_search_symbol): Use ELF32_ST_BIND and ELF32_ST_TYPE to
+	access symbol bind and type.
+
+2016-03-13  Richard Braun  <rbraun@sceen.net>
+
+	Avoid panics on physical memory exhaustion
+	* vm/vm_resident (vm_page_grab_contig): Return NULL instead of calling
+	panic on memory exhaustion.
+
 2016-03-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Ship missing files
