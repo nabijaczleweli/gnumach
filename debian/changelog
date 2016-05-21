@@ -1,6 +1,7 @@
-gnumach (2:1.7-1) UNRELEASED; urgency=medium
+gnumach (2:1.7+git20160522-1) UNRELEASED; urgency=medium
 
   * New upstream release & snapshot
+    - Rename packages to 1.7 according to upstream version.
   * patches/99_revert-page-cache-policy.patch: Drop, performance regression
     fixed upstream.
 
