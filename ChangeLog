@@ -1,3 +1,108 @@
+2016-05-20  Richard Braun  <rbraun@sceen.net>
+
+	vm_map: back allocations with a red-black tree
+	This change augments VM maps with a gap tree, sorted by gap size, to
+	use for non-fixed allocations.
+
+	* vm/vm_map.c: Include kern/list.h.
+	(vm_map_entry_gap_cmp_lookup, vm_map_entry_gap_cmp_insert,
+	vm_map_gap_valid, vm_map_gap_compute, vm_map_gap_insert_single,
+	vm_map_gap_remove_single, vm_map_gap_update, vm_map_gap_insert,
+	vm_map_gap_remove, vm_map_find_entry_anywhere): New functions.
+	(vm_map_setup): Initialize gap tree.
+	(_vm_map_entry_link): Call vm_map_gap_insert.
+	(_vm_map_entry_unlink): Call vm_map_gap_remove.
+	(vm_map_find_entry, vm_map_enter, vm_map_copyout,
+	vm_map_copyout_page_list, vm_map_copyin): Replace look up loop with
+	a call to vm_map_find_entry_anywhere. Call vm_map_gap_update and
+	initialize gap tree where relevant.
+	(vm_map_copy_insert): Turn macro into an inline function and rewrite.
+	(vm_map_simplify): Reorder call to vm_map_entry_unlink so that previous
+	entry is suitable for use with gap management functions.
+	* vm/vm_map.h: Include kern/list.h.
+	(struct vm_map_entry): New members `gap_node`, `gap_list`,
+	`gap_size` and `in_gap_tree`.
+	(struct vm_map_header): New member `gap_tree`.
+
+2016-05-20  Justus Winter  <justus@gnupg.org>
+
+	xen: fix prototype
+	Amends a7f248bf.
+
+	* xen/console.h (hypcnclose): Fix type of parameter.
+
+2016-05-18  Thomas Schwinge  <thomas@codesourcery.com>
+
+	GNU Mach 1.7
+	* version.m4 (AC_PACKAGE_VERSION): Set to 1.7.
+	* NEWS: Finalize for 1.7.
+
+2016-05-18  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix gcc-6 warnings
+	* ddb/db_elf.c (elf_db_sym_init): Turn `i' into unsigned.
+	* device/ds_routines.c (ds_device_open, device_writev_trap): Likewise.
+	* i386/i386/user_ldt.c (i386_set_ldt): Likewise for `i', `min_selector', and
+	`first_desc'.
+	(i386_get_ldt): Likewise for `ldt_count'.
+	(user_ldt_free): Likewise for `i'.
+	* i386/i386/xen.h (hyp_set_ldt): Turn `count' into unsigned long.
+	* i386/intel/pmap.c (pmap_bootstrap): Turn `i', `j' and 'n' into unsigned.
+	(pmap_clear_bootstrap_pagetable): Likewise for `i' and `j'.
+	* ipc/ipc_kmsg.c (ipc_msg_print): Turn `i' and `numwords' into unsigned.
+	* kern/boot_script.c (boot_script_parse_line): Likewise for `i'.
+	* kern/bootstrap.c (bootstrap_create): Likewise for `n' and `i'.
+	* kern/host.c (host_processors): Likewise for `i'.
+	* kern/ipc_tt.c (mach_ports_register): Likewise.
+	* kern/mach_clock.c (tickadj, bigadj): turn into unsigned.
+	* kern/processor.c (processor_set_things): Turn `i' into unsigned.
+	* kern/task.c (task_threads): Likewise.
+	* kern/thread.c (consider_thread_collect, stack_init): Likewise.
+	* kern/strings.c (memset): Turn `i' into size_t.
+	* vm/memory_object.c (memory_object_lock_request): Turn `i' into unsigned.
+	* xen/block.c (hyp_block_init): Use %u format for evt.
+	(device_open): Drop unused err variable.
+	(device_write): Turn `copy_npages', `i', `nbpages', and `j' into unsigned.
+	* xen/console.c (hypcnread, hypcnwrite, hypcnclose): Turn dev to dev_t.
+	(hypcnclose): Return void.
+	* xen/console.h (hypcnread, hypcnwrite, hypcnclose): Fix prototypes
+	accordingly.
+	* xen/evt.c (form_int_mask): Turn `i' into int.
+	* xen/net.c (hyp_net_init): Use %u format for evt.
+	(device_open): Remove unused `err' variable.
+
+2016-05-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Revert "Fix getting ELF symbol bind and type"
+	This reverts commit a8a52cafb5621b475737ffdc81f63703d5b37904.
+
+	It seems to be breaking backtracing in ddb...
+
+2016-05-16  Richard Braun  <rbraun@sceen.net>
+
+	Fix pageout deadlock
+	The pageout daemon uses small, internal, temporary objects to transport
+	the data out to memory managers, which are expected to release the data
+	once written out to backing store. Releasing this data is done with a
+	vm_deallocate call. The problem with this is that vm_map is allowed to
+	merge these objects, in which case vm_deallocate will only remove a
+	reference instead of releasing the underlying pages, causing the pageout
+	daemon to deadlock.
+
+	This change makes the pageout daemon mark these objects so that they
+	don't get merged.
+
+	* vm/vm_object.c (vm_object_bootstrap): Update template.
+	(vm_object_coalesce): Don't coalesce if an object is used for pageout.
+	* vm/vm_object.h (struct vm_object): New `used_for_pageout` member.
+	* vm/vm_pageout.c (vm_pageout_page): Mark new objects for pageout.
+
+2016-05-15  Richard Braun  <rbraun@sceen.net>
+
+	Fix warning
+	ddb/db_output.c (db_printf): Return 0.
+	ddb/db_printf.h (db_printf): Change declaration to return an int.
+
 2016-04-21  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Fix xen boot
