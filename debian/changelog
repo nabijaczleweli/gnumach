@@ -1,6 +1,8 @@
 gnumach (2:1.7-1) UNRELEASED; urgency=medium
 
   * New upstream release & snapshot
+  * patches/99_revert-page-cache-policy.patch: Drop, performance regression
+    fixed upstream.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 21 May 2016 22:29:51 +0000
 
