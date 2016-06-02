@@ -13,9 +13,6 @@ License statement:
 Please look at the source files for individual copyrights. They are covered
 by either of the following copyrights:
 
-The doc/ directory contained the manual which was under the GFDL, and was
-thus removed from the original tarball, and it repacked.
-
 Most of these files are licensed under the following terms:
 
     Mach Operating System
@@ -60,3 +57,4 @@ Some of these files are licensed under the following terms:
 On Debian systems, the complete text of the GNU General Public License
 can be found in '/usr/share/common-licenses/GPL-2'.
 
+FIXME: Add MPL/BSD
