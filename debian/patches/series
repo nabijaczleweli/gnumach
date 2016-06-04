@@ -4,3 +4,4 @@
 50_initrd.patch
 60_bigmem.patch
 70_dde.patch
+99_RB.patch
