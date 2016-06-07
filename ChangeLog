@@ -1,3 +1,40 @@
+2016-06-07  Richard Braun  <rbraun@sceen.net>
+
+	Fix deadlock
+	* vm/vm_map.c (vm_map_copyout_page_list): Fix call to
+	vm_map_find_entry_anywhere to avoid relocking VM map.
+
+2016-06-02  Richard Braun  <rbraun@sceen.net>
+
+	Fix some license headers.
+	As the original author of the files imported, I explicitely dual
+	license them to something compatible with GPLv2.
+
+	kern/macros.h: Switch license from GPLv3 to BSD 2-clause.
+	kern/rdxtree_i.h: Likewise.
+
+2016-05-26  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix buffer size passed to scsi_do_cmd
+	* linux/src/drivers/scsi/eata_dma_proc.c (eata_proc_info): Increase cmd size
+	to 12.
+	* linux/src/drivers/scsi/sd.c (do_sd_request, sd_init_done): Likewise.
+	* linux/src/drivers/scsi/sr.c (do_sr_request, sr_init_done): Likewise.
+	* linux/src/drivers/scsi/sr_ioctl.c (sr_ioctl): Likewise with sr_cmd.
+
+	Cope with getc returning -1
+	* i386/i386at/lpr.c (lprstart): Use int instead of char to store result of
+	getc, so as to return in case of getting -1.
+
+	Fix potential divisal by zero
+	* kern/debug.c (panic, log): Pass 16 as default radix to _doprnt.
+
+2016-05-23  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix getting ELF symbol bind and type
+	ddb/db_elf.c (elf_db_search_symbol): Use ELF32_ST_BIND and ELF32_ST_TYPE to
+	access symbol bind and type.
+
 2016-05-20  Richard Braun  <rbraun@sceen.net>
 
 	vm_map: back allocations with a red-black tree
