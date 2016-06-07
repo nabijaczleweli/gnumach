@@ -1,4 +1,4 @@
 m4_define([AC_PACKAGE_NAME],[GNU Mach])
-m4_define([AC_PACKAGE_VERSION],[1.7+git20160522])
+m4_define([AC_PACKAGE_VERSION],[1.7+git20160607])
 m4_define([AC_PACKAGE_BUGREPORT],[bug-hurd@gnu.org])
 m4_define([AC_PACKAGE_TARNAME],[gnumach])
