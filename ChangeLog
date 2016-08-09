@@ -1,3 +1,81 @@
+2016-08-07  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout-related deadlock
+	* vm/vm_map.c (_vm_map_entry_create): Temporarily set the current thread
+	as VM privileged.
+
+2016-08-06  Richard Braun  <rbraun@sceen.net>
+
+	Augment VM maps with task names
+	This change improves the clarity of "no more room for ..." VM map
+	allocation errors.
+
+	* kern/task.c (task_init): Call vm_map_set_name for the kernel map.
+	(task_create): Call vm_map_set_name where appropriate.
+	* vm/vm_map.c (vm_map_setup): Set map name to NULL.
+	(vm_map_find_entry_anywhere): Update error message to include map name.
+	* vm/vm_map.h (struct vm_map): New `name' member.
+	(vm_map_set_name): New inline function.
+
+2016-06-29  Richard Braun  <rbraun@sceen.net>
+
+	Fix page fault in critical section in the slab allocator
+	* kern/slab.c (host_slab_info): Use wired kernel memory to build the
+	cache info.
+
+	Fix locking error in the slab allocator
+	* kern/slab.c (kmem_slab_create): Set `slab->cache` member.
+	(kmem_cache_reap): Return dead slabs instead of destroying in place.
+	(slab_collect): Destroy slabs outside of critical section.
+	* kern/slab.h (struct kmem_slab): New `cache` member.
+
+2016-06-27  Richard Braun  <rbraun@sceen.net>
+
+	Fix locking error
+	* i386/i386/io_perm.c (no_senders): Remove bogus call to ip_lock.
+
+2016-06-17  Richard Braun  <rbraun@sceen.net>
+
+	Change page cache statistics
+	Instead of reporting statistics about unreferenced objects (the object
+	cache), report statistics about external objects (the page cache).
+
+	* vm/vm_object.c (vm_object_cached_count): Remove variable.
+	(vm_object_cache_add): Remove object cache stats updates.
+	(vm_object_cache_remove): Likewise.
+	(vm_object_terminate): Update page cache stats.
+	* vm/vm_object.h (vm_object_cached_count): Remove variable.
+	(vm_object_cached_pages): Likewise.
+	(vm_object_cached_pages_lock_data): Likewise.
+	(vm_object_cached_pages_update): Remove macro.
+	(vm_object_external_count): New extern variable.
+	(vm_object_external_pages): Likewise.
+	* vm/vm_resident.c (vm_object_external_count): New variable.
+	(vm_object_external_pages): Likewise.
+	(vm_page_insert): Remove object cache stats updates and
+	update page cache stats.
+	(vm_page_replace): Likewise.
+	(vm_page_remove): Likewise.
+	* vm/vm_user.c (vm_cache_statistics): Report page cache stats instead
+	of object cache stats.
+
+2016-06-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Allow setting x86 debug flags for the current thread
+	* kern/thread.c (thread_get_state): Allow call for the current thread,
+	without suspending it.
+	(thread_set_status): Likewise.
+
+	Use int3 on x86_64 build too
+	* kern/debug.c (SoftDebugger) [__x86_64__]: Use int3 instruction to trigger
+	debugger.
+
+2016-06-09  Richard Braun  <rbraun@sceen.net>
+
+	Fix overflow checking on VM map copyin
+	* vm/vm_map (vm_map_copyin, vm_map_copyin_page_list): Check overflow
+	before page alignment of source data.
+
 2016-06-07  Richard Braun  <rbraun@sceen.net>
 
 	Fix deadlock

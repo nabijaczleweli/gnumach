@@ -495,6 +495,7 @@ static struct kmem_slab * kmem_slab_create(struct kmem_cache *cache,
         slab = (struct kmem_slab *)(slab_buf + cache->slab_size) - 1;
     }
 
+    slab->cache = cache;
     list_node_init(&slab->list_node);
     rbtree_node_init(&slab->tree_node);
     slab->nr_refs = 0;
@@ -925,29 +926,17 @@ static int kmem_cache_grow(struct kmem_cache *cache)
     return !empty;
 }
 
-static void kmem_cache_reap(struct kmem_cache *cache)
+static void kmem_cache_reap(struct kmem_cache *cache, struct list *dead_slabs)
 {
-    struct kmem_slab *slab;
-    struct list dead_slabs;
-    unsigned long nr_free_slabs;
-
     simple_lock(&cache->lock);
-    list_set_head(&dead_slabs, &cache->free_slabs);
+
+    list_concat(dead_slabs, &cache->free_slabs);
     list_init(&cache->free_slabs);
-    nr_free_slabs = cache->nr_free_slabs;
-    cache->nr_bufs -= cache->bufs_per_slab * nr_free_slabs;
-    cache->nr_slabs -= nr_free_slabs;
+    cache->nr_bufs -= cache->bufs_per_slab * cache->nr_free_slabs;
+    cache->nr_slabs -= cache->nr_free_slabs;
     cache->nr_free_slabs = 0;
+
     simple_unlock(&cache->lock);
-
-    while (!list_empty(&dead_slabs)) {
-        slab = list_first_entry(&dead_slabs, struct kmem_slab, list_node);
-        list_remove(&slab->list_node);
-        kmem_slab_destroy(slab, cache);
-        nr_free_slabs--;
-    }
-
-    assert(nr_free_slabs == 0);
 }
 
 /*
@@ -1286,18 +1275,28 @@ slab_free:
 void slab_collect(void)
 {
     struct kmem_cache *cache;
+    struct kmem_slab *slab;
+    struct list dead_slabs;
 
     if (elapsed_ticks <= (kmem_gc_last_tick + KMEM_GC_INTERVAL))
         return;
 
     kmem_gc_last_tick = elapsed_ticks;
 
+    list_init(&dead_slabs);
+
     simple_lock(&kmem_cache_list_lock);
 
     list_for_each_entry(&kmem_cache_list, cache, node)
-        kmem_cache_reap(cache);
+        kmem_cache_reap(cache, &dead_slabs);
 
     simple_unlock(&kmem_cache_list_lock);
+
+    while (!list_empty(&dead_slabs)) {
+        slab = list_first_entry(&dead_slabs, struct kmem_slab, list_node);
+        list_remove(&slab->list_node);
+        kmem_slab_destroy(slab, slab->cache);
+    }
 }
 
 void slab_bootstrap(void)
@@ -1503,38 +1502,32 @@ kern_return_t host_slab_info(host_t host, cache_info_array_t *infop,
     struct kmem_cache *cache;
     cache_info_t *info;
     unsigned int i, nr_caches;
-    vm_size_t info_size = 0;
+    vm_size_t info_size;
     kern_return_t kr;
 
     if (host == HOST_NULL)
         return KERN_INVALID_HOST;
 
-    /*
-     * Assume the cache list is unaltered once the kernel is ready.
-     */
+    /* Assume the cache list is mostly unaltered once the kernel is ready */
 
-    simple_lock(&kmem_cache_list_lock);
+retry:
+    /* Harmless unsynchronized access, real value checked later */
     nr_caches = kmem_nr_caches;
-    simple_unlock(&kmem_cache_list_lock);
-
-    if (nr_caches <= *infoCntp)
-        info = *infop;
-    else {
-        vm_offset_t info_addr;
-
-        info_size = round_page(nr_caches * sizeof(*info));
-        kr = kmem_alloc_pageable(ipc_kernel_map, &info_addr, info_size);
-
-        if (kr != KERN_SUCCESS)
-            return kr;
-
-        info = (cache_info_t *)info_addr;
-    }
+    info_size = nr_caches * sizeof(*info);
+    info = (cache_info_t *)kalloc(info_size);
 
     if (info == NULL)
         return KERN_RESOURCE_SHORTAGE;
 
     i = 0;
+
+    simple_lock(&kmem_cache_list_lock);
+
+    if (nr_caches != kmem_nr_caches) {
+        simple_unlock(&kmem_cache_list_lock);
+        kfree((vm_offset_t)info, info_size);
+        goto retry;
+    }
 
     list_for_each_entry(&kmem_cache_list, cache, node) {
         simple_lock(&cache->lock);
@@ -1560,24 +1553,38 @@ kern_return_t host_slab_info(host_t host, cache_info_array_t *infop,
         i++;
     }
 
-    if (info != *infop) {
+    simple_unlock(&kmem_cache_list_lock);
+
+    if (nr_caches <= *infoCntp) {
+        memcpy(*infop, info, info_size);
+    } else {
+        vm_offset_t info_addr;
+        vm_size_t total_size;
         vm_map_copy_t copy;
-        vm_size_t used;
 
-        used = nr_caches * sizeof(*info);
+        kr = kmem_alloc_pageable(ipc_kernel_map, &info_addr, info_size);
 
-        if (used != info_size)
-            memset((char *)info + used, 0, info_size - used);
+        if (kr != KERN_SUCCESS)
+            goto out;
 
-        kr = vm_map_copyin(ipc_kernel_map, (vm_offset_t)info, used, TRUE,
-                           &copy);
+        memcpy((char *)info_addr, info, info_size);
+        total_size = round_page(info_size);
 
+        if (info_size < total_size)
+            memset((char *)(info_addr + info_size),
+                   0, total_size - info_size);
+
+        kr = vm_map_copyin(ipc_kernel_map, info_addr, info_size, TRUE, &copy);
         assert(kr == KERN_SUCCESS);
         *infop = (cache_info_t *)copy;
     }
 
     *infoCntp = nr_caches;
+    kr = KERN_SUCCESS;
 
-    return KERN_SUCCESS;
+out:
+    kfree((vm_offset_t)info, info_size);
+
+    return kr;
 }
 #endif /* MACH_DEBUG */

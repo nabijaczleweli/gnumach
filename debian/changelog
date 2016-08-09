@@ -1,3 +1,9 @@
+gnumach (2:1.7+git20160809-1) UNRELEASED; urgency=medium
+
+  * New upstream snapshot.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 09 Aug 2016 21:47:23 +0000
+
 gnumach (2:1.7+git20160607-1) unstable; urgency=medium
 
   * New upstream snapshot.
