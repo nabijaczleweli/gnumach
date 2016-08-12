@@ -1,3 +1,10 @@
+gnumach (2:1.7+git20160809-2) unstable; urgency=medium
+
+  * patches/99_biosmem.patch: New patch to brown-tape-fix memory allocation
+    against debugging symbols.
+
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 12 Aug 2016 17:41:51 +0000
+
 gnumach (2:1.7+git20160809-1) unstable; urgency=medium
 
   * New upstream snapshot.
