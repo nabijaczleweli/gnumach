@@ -1076,6 +1076,7 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@	i386/i386/setjmp.h \
 @HOST_ix86_TRUE@	i386/i386/spl.S \
 @HOST_ix86_TRUE@	i386/i386/spl.h \
+@HOST_ix86_TRUE@	i386/i386/strings.c \
 @HOST_ix86_TRUE@	i386/i386/task.h \
 @HOST_ix86_TRUE@	i386/i386/thread.h \
 @HOST_ix86_TRUE@	i386/i386/time_stamp.h \
@@ -1353,16 +1354,17 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	i386/i386/pio.h i386/i386/pmap.h i386/i386/proc_reg.h \
 	i386/i386/sched_param.h i386/i386/seg.c i386/i386/seg.h \
 	i386/i386/setjmp.h i386/i386/spl.S i386/i386/spl.h \
-	i386/i386/task.h i386/i386/thread.h i386/i386/time_stamp.h \
-	i386/i386/trap.c i386/i386/trap.h i386/i386/tss.h \
-	i386/i386/user_ldt.c i386/i386/user_ldt.h i386/i386/vm_param.h \
-	i386/i386/xpr.h i386/intel/pmap.c i386/intel/pmap.h \
-	i386/intel/read_fault.c i386/intel/read_fault.h \
-	i386/i386/hardclock.c i386/i386/hardclock.h i386/i386/io_map.c \
-	i386/i386/pic.c i386/i386/pic.h i386/i386/pit.c \
-	i386/i386/pit.h i386/i386/_setjmp.S chips/busses.c \
-	chips/busses.h device/cirbuf.c i386/xen/xen.c \
-	i386/xen/xen_locore.S i386/xen/xen_boothdr.S i386/i386/xen.h
+	i386/i386/strings.c i386/i386/task.h i386/i386/thread.h \
+	i386/i386/time_stamp.h i386/i386/trap.c i386/i386/trap.h \
+	i386/i386/tss.h i386/i386/user_ldt.c i386/i386/user_ldt.h \
+	i386/i386/vm_param.h i386/i386/xpr.h i386/intel/pmap.c \
+	i386/intel/pmap.h i386/intel/read_fault.c \
+	i386/intel/read_fault.h i386/i386/hardclock.c \
+	i386/i386/hardclock.h i386/i386/io_map.c i386/i386/pic.c \
+	i386/i386/pic.h i386/i386/pit.c i386/i386/pit.h \
+	i386/i386/_setjmp.S chips/busses.c chips/busses.h \
+	device/cirbuf.c i386/xen/xen.c i386/xen/xen_locore.S \
+	i386/xen/xen_boothdr.S i386/i386/xen.h
 @enable_kdb_TRUE@am__objects_2 = ddb/db_access.$(OBJEXT) \
 @enable_kdb_TRUE@	ddb/db_aout.$(OBJEXT) ddb/db_elf.$(OBJEXT) \
 @enable_kdb_TRUE@	ddb/db_break.$(OBJEXT) \
@@ -1433,6 +1435,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 @HOST_ix86_TRUE@	i386/i386/phys.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386/seg.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386/spl.$(OBJEXT) \
+@HOST_ix86_TRUE@	i386/i386/strings.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386/trap.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/i386/user_ldt.$(OBJEXT) \
 @HOST_ix86_TRUE@	i386/intel/pmap.$(OBJEXT) \
@@ -2941,9 +2944,7 @@ gnumach_o_SOURCES =
 gnumach_o_LINK = $(LD) -u _start -r -o $@
 
 # This is the list of routines we decide is OK to steal from the C library.
-clib_routines := memcmp memcpy memmove				\
-		 strchr strstr strsep strtok			\
-		 htonl htons ntohl ntohs			\
+clib_routines := htonl htons ntohl ntohs			\
 		 udivdi3 __udivdi3 __umoddi3			\
 		 __rel_iplt_start __rel_iplt_end		\
 		 __ffsdi2					\
@@ -3421,6 +3422,8 @@ i386/i386/phys.$(OBJEXT): i386/i386/$(am__dirstamp) \
 i386/i386/seg.$(OBJEXT): i386/i386/$(am__dirstamp) \
 	i386/i386/$(DEPDIR)/$(am__dirstamp)
 i386/i386/spl.$(OBJEXT): i386/i386/$(am__dirstamp) \
+	i386/i386/$(DEPDIR)/$(am__dirstamp)
+i386/i386/strings.$(OBJEXT): i386/i386/$(am__dirstamp) \
 	i386/i386/$(DEPDIR)/$(am__dirstamp)
 i386/i386/trap.$(OBJEXT): i386/i386/$(am__dirstamp) \
 	i386/i386/$(DEPDIR)/$(am__dirstamp)
@@ -4242,6 +4245,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/pit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/seg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/spl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/strings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/trap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/user_ldt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/acpi.Po@am__quote@

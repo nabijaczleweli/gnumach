@@ -66,6 +66,7 @@
 #include <i386/model_dep.h>
 #include <i386at/autoconf.h>
 #include <i386at/biosmem.h>
+#include <i386at/elf.h>
 #include <i386at/idt.h>
 #include <i386at/int_init.h>
 #include <i386at/kd.h>
@@ -104,11 +105,6 @@ static unsigned elf_shdr_shndx;
 #endif /* MACH_KDB */
 
 #define RESERVED_BIOS 0x10000
-
-/* These indicate the total extent of physical memory addresses we're using.
-   They are page-aligned.  */
-vm_offset_t phys_first_addr = 0;
-vm_offset_t phys_last_addr;
 
 /* A copy of the multiboot info structure passed by the boot loader.  */
 #ifdef MACH_XEN
@@ -151,6 +147,14 @@ void machine_init(void)
 	 * Initialize the console.
 	 */
 	cninit();
+
+	/*
+	 * Make more free memory.
+	 *
+	 * This is particularly important for the Linux drivers which
+	 * require available DMA memory.
+	 */
+	biosmem_free_usable();
 
 	/*
 	 * Set up to use floating point.
@@ -264,6 +268,67 @@ void db_reset_cpu(void)
 	halt_all_cpus(1);
 }
 
+#ifndef	MACH_HYP
+
+static void
+register_boot_data(const struct multiboot_raw_info *mbi)
+{
+	struct multiboot_raw_module *mod;
+	struct elf_shdr *shdr;
+	unsigned long tmp;
+	unsigned int i;
+
+	extern char _start[], _end[];
+
+	/* XXX For now, register all boot data as permanent */
+
+	biosmem_register_boot_data(_kvtophys(&_start), _kvtophys(&_end), FALSE);
+
+	if ((mbi->flags & MULTIBOOT_LOADER_CMDLINE) && (mbi->cmdline != 0)) {
+		biosmem_register_boot_data(mbi->cmdline,
+					   mbi->cmdline
+					   + strlen((void *)phystokv(mbi->cmdline)) + 1, FALSE);
+	}
+
+	if (mbi->flags & MULTIBOOT_LOADER_MODULES) {
+		i = mbi->mods_count * sizeof(struct multiboot_raw_module);
+		biosmem_register_boot_data(mbi->mods_addr, mbi->mods_addr + i, FALSE);
+
+		tmp = phystokv(mbi->mods_addr);
+
+		for (i = 0; i < mbi->mods_count; i++) {
+			mod = (struct multiboot_raw_module *)tmp + i;
+			biosmem_register_boot_data(mod->mod_start, mod->mod_end, FALSE);
+
+			if (mod->string != 0) {
+				biosmem_register_boot_data(mod->string,
+							   mod->string
+							   + strlen((void *)phystokv(mod->string)) + 1,
+							   FALSE);
+			}
+		}
+	}
+
+	if (mbi->flags & MULTIBOOT_LOADER_SHDR) {
+		tmp = mbi->shdr_num * mbi->shdr_size;
+		biosmem_register_boot_data(mbi->shdr_addr, mbi->shdr_addr + tmp, FALSE);
+
+		tmp = phystokv(mbi->shdr_addr);
+
+		for (i = 0; i < mbi->shdr_num; i++) {
+			shdr = (struct elf_shdr *)(tmp + (i * mbi->shdr_size));
+
+			if ((shdr->type != ELF_SHT_SYMTAB)
+			    && (shdr->type != ELF_SHT_STRTAB))
+				continue;
+
+			biosmem_register_boot_data(shdr->addr, shdr->addr + shdr->size, FALSE);
+		}
+	}
+}
+
+#endif /* MACH_HYP */
+
 /*
  * Basic PC VM initialization.
  * Turns on paging and changes the kernel segments to use high linear addresses.
@@ -291,6 +356,7 @@ i386at_init(void)
 #ifdef MACH_HYP
 	biosmem_xen_bootstrap();
 #else /* MACH_HYP */
+	register_boot_data((struct multiboot_raw_info *) &boot_info);
 	biosmem_bootstrap((struct multiboot_raw_info *) &boot_info);
 #endif /* MACH_HYP */
 
@@ -619,11 +685,6 @@ resettodr(void)
 	writetodc();
 }
 
-unsigned int pmap_free_pages(void)
-{
-	return vm_page_atop(phys_last_addr); /* XXX */
-}
-
 boolean_t
 init_alloc_aligned(vm_size_t size, vm_offset_t *addrp)
 {
@@ -645,16 +706,4 @@ pmap_grab_page(void)
 	if (!init_alloc_aligned(PAGE_SIZE, &addr))
 		panic("Not enough memory to initialize Mach");
 	return addr;
-}
-
-boolean_t pmap_valid_page(vm_offset_t x)
-{
-	/* XXX is this OK?  What does it matter for?  */
-	return (((phys_first_addr <= x) && (x < phys_last_addr))
-#ifndef MACH_HYP
-		&& !(
-		((boot_info.mem_lower * 1024) <= x) && 
-		(x < 1024*1024))
-#endif	/* MACH_HYP */
-		);
 }

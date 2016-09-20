@@ -494,8 +494,8 @@ Index: gnumach/kern/startup.c
 --- gnumach.orig/kern/startup.c
 +++ gnumach/kern/startup.c
 @@ -79,6 +79,7 @@ boolean_t reboot_on_panic = TRUE;
+ 
  /* XX */
- extern vm_offset_t phys_first_addr, phys_last_addr;
  extern char *kernel_cmdline;
 +extern void	intr_thread();
  
