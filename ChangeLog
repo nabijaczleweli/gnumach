@@ -1,3 +1,523 @@
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Enable high memory
+	* i386/i386at/biosmem.c (biosmem_setup): Load the HIGHMEM segment if
+	present.
+	(biosmem_free_usable): Report high memory as usable.
+	* vm/vm_page.c (vm_page_boot_table_size, vm_page_table_size,
+	vm_page_mem_size, vm_page_mem_free): Scan all segments.
+	* vm/vm_resident.c (vm_page_grab): Describe allocation strategy
+	with regard to the HIGHMEM segment.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Update device drivers for highmem support
+	Unconditionally use bounce buffers for now.
+
+	* linux/dev/glue/net.c (device_write): Unconditionally use a
+	bounce buffer.
+	* xen/block.c (device_write): Likewise.
+	* xen/net.c: Include <device/ds_routines.h>.
+	(device_write): Unconditionally use a bounce buffer.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Update Linux block layer glue code
+	The Linux block layer glue code needs to use page nodes with the
+	appropriate interface since their redefinition as struct list.
+
+	* linux/dev/glue/block.c: Include <kern/list.h>.
+	(struct temp_data): Define member `pages' as a struct list.
+	(alloc_buffer): Update to use list_xxx functions.
+	(free_buffer, INIT_DATA, device_open, device_read): Likewise.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Rework pageout to handle multiple segments
+	As we're about to use a new HIGHMEM segment, potentially much larger
+	than the existing DMA and DIRECTMAP ones, it's now compulsory to make
+	the pageout daemon aware of those segments.
+
+	And while we're at it, let's fix some of the defects that have been
+	plaguing pageout forever, such as throttling, and pageout of internal
+	versus external pages (this commit notably introduces a hardcoded
+	policy in which as many external pages are selected before considering
+	internal pages).
+
+	* kern/slab.c (kmem_pagefree_physmem): Update call to vm_page_release.
+	* vm/vm_page.c: Include <kern/counters.h> and <vm/vm_pageout.h>.
+	(VM_PAGE_SEG_THRESHOLD_MIN_NUM, VM_PAGE_SEG_THRESHOLD_MIN_DENOM,
+	VM_PAGE_SEG_THRESHOLD_MIN, VM_PAGE_SEG_THRESHOLD_LOW_NUM,
+	VM_PAGE_SEG_THRESHOLD_LOW_DENOM, VM_PAGE_SEG_THRESHOLD_LOW,
+	VM_PAGE_SEG_THRESHOLD_HIGH_NUM, VM_PAGE_SEG_THRESHOLD_HIGH_DENOM,
+	VM_PAGE_SEG_THRESHOLD_HIGH, VM_PAGE_SEG_MIN_PAGES,
+	VM_PAGE_HIGH_ACTIVE_PAGE_NUM, VM_PAGE_HIGH_ACTIVE_PAGE_DENOM): New macros.
+	(struct vm_page_queue): New type.
+	(struct vm_page_seg): Add new members `min_free_pages', `low_free_pages',
+	`high_free_pages', `active_pages', `nr_active_pages', `high_active_pages',
+	`inactive_pages', `nr_inactive_pages'.
+	(vm_page_alloc_paused): New variable.
+	(vm_page_pageable, vm_page_can_move, vm_page_remove_mappings): New functions.
+	(vm_page_seg_alloc_from_buddy): Pause allocations and start the pageout
+	daemon as appropriate.
+	(vm_page_queue_init, vm_page_queue_push, vm_page_queue_remove,
+	vm_page_queue_first, vm_page_seg_get, vm_page_seg_index,
+	vm_page_seg_compute_pageout_thresholds): New functions.
+	(vm_page_seg_init): Initialize the new segment members.
+	(vm_page_seg_add_active_page, vm_page_seg_remove_active_page,
+	vm_page_seg_add_inactive_page, vm_page_seg_remove_inactive_page,
+	vm_page_seg_pull_active_page, vm_page_seg_pull_inactive_page,
+	vm_page_seg_pull_cache_page): New functions.
+	(vm_page_seg_min_page_available, vm_page_seg_page_available,
+	vm_page_seg_usable, vm_page_seg_double_lock, vm_page_seg_double_unlock,
+	vm_page_seg_balance_page, vm_page_seg_balance, vm_page_seg_evict,
+	vm_page_seg_compute_high_active_page, vm_page_seg_refill_inactive,
+	vm_page_lookup_seg, vm_page_check): New functions.
+	(vm_page_alloc_pa): Handle allocation failure from VM privileged thread.
+	(vm_page_info_all): Display additional segment properties.
+	(vm_page_wire, vm_page_unwire, vm_page_deactivate, vm_page_activate,
+	vm_page_wait): Move from vm/vm_resident.c and rewrite to use segments.
+	(vm_page_queues_remove, vm_page_check_usable, vm_page_may_balance,
+	vm_page_balance_once, vm_page_balance, vm_page_evict_once): New functions.
+	(VM_PAGE_MAX_LAUNDRY, VM_PAGE_MAX_EVICTIONS): New macros.
+	(vm_page_evict, vm_page_refill_inactive): New functions.
+	* vm/vm_page.h: Include <kern/list.h>.
+	(struct vm_page): Remove member `pageq', reuse the `node' member instead,
+	move the `listq' and `next' members above `vm_page_header'.
+	(VM_PAGE_CHECK): Define as an alias to vm_page_check.
+	(vm_page_check): New function declaration.
+	(vm_page_queue_fictitious, vm_page_queue_active, vm_page_queue_inactive,
+	vm_page_free_target, vm_page_free_min, vm_page_inactive_target,
+	vm_page_free_reserved, vm_page_free_wanted): Remove extern declarations.
+	(vm_page_external_pagedout): New extern declaration.
+	(vm_page_release): Update declaration.
+	(VM_PAGE_QUEUES_REMOVE): Define as an alias to vm_page_queues_remove.
+	(VM_PT_PMAP, VM_PT_KMEM, VM_PT_STACK): Remove macros.
+	(VM_PT_KERNEL): Update value.
+	(vm_page_queues_remove, vm_page_balance, vm_page_evict,
+	vm_page_refill_inactive): New function declarations.
+	* vm/vm_pageout.c (VM_PAGEOUT_BURST_MAX, VM_PAGEOUT_BURST_MIN,
+	VM_PAGEOUT_BURST_WAIT, VM_PAGEOUT_EMPTY_WAIT, VM_PAGEOUT_PAUSE_MAX,
+	VM_PAGE_INACTIVE_TARGET, VM_PAGE_FREE_TARGET, VM_PAGE_FREE_MIN,
+	VM_PAGE_FREE_RESERVED, VM_PAGEOUT_RESERVED_INTERNAL,
+	VM_PAGEOUT_RESERVED_REALLY): Remove macros.
+	(vm_pageout_reserved_internal, vm_pageout_reserved_really,
+	vm_pageout_burst_max, vm_pageout_burst_min, vm_pageout_burst_wait,
+	vm_pageout_empty_wait, vm_pageout_pause_count, vm_pageout_pause_max,
+	vm_pageout_active, vm_pageout_inactive, vm_pageout_inactive_nolock,
+	vm_pageout_inactive_busy, vm_pageout_inactive_absent,
+	vm_pageout_inactive_used, vm_pageout_inactive_clean,
+	vm_pageout_inactive_dirty, vm_pageout_inactive_double,
+	vm_pageout_inactive_cleaned_external): Remove variables.
+	(vm_pageout_requested, vm_pageout_continue): New variables.
+	(vm_pageout_setup): Wait for page allocation to succeed instead of
+	falling back to flush, update double paging protocol with caller,
+	add pageout throttling setup.
+	(vm_pageout_scan): Rewrite to use the new vm_page balancing,
+	eviction and inactive queue refill functions.
+	(vm_pageout_scan_continue, vm_pageout_continue): Remove functions.
+	(vm_pageout): Rewrite.
+	(vm_pageout_start, vm_pageout_resume): New functions.
+	* vm/vm_pageout.h (vm_pageout_continue, vm_pageout_scan_continue): Remove
+	function declarations.
+	(vm_pageout_start, vm_pageout_resume): New function declarations.
+	* vm/vm_resident.c: Include <kern/list.h>.
+	(vm_page_queue_fictitious): Define as a struct list.
+	(vm_page_free_wanted, vm_page_external_count, vm_page_free_avail,
+	vm_page_queue_active, vm_page_queue_inactive, vm_page_free_target,
+	vm_page_free_min, vm_page_inactive_target, vm_page_free_reserved):
+	Remove variables.
+	(vm_page_external_pagedout): New variable.
+	(vm_page_bootstrap): Don't initialize removed variable, update
+	initialization of vm_page_queue_fictitious.
+	(vm_page_replace): Call VM_PAGE_QUEUES_REMOVE where appropriate.
+	(vm_page_remove): Likewise.
+	(vm_page_grab_fictitious): Update to use list_xxx functions.
+	(vm_page_release_fictitious): Likewise.
+	(vm_page_grab): Remove pageout related code.
+	(vm_page_release): Add `laundry' and `external' parameters for
+	pageout throttling.
+	(vm_page_grab_contig): Remove pageout related code.
+	(vm_page_free_contig): Likewise.
+	(vm_page_free): Remove pageout related code, update call to
+	vm_page_release.
+	(vm_page_wait, vm_page_wire, vm_page_unwire, vm_page_deactivate,
+	vm_page_activate): Move to vm/vm_page.c.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Redefine what an external page is
+	Instead of a "page considered external", which apparently takes into
+	account whether a page is dirty or not, redefine this property to
+	reliably mean "is in an external object".
+
+	This commit mostly deals with the impact of this change on the page
+	allocation interface.
+
+	* i386/intel/pmap.c (pmap_page_table_page_alloc): Update call to
+	vm_page_grab.
+	* kern/slab.c (kmem_pagealloc_physmem): Use vm_page_grab instead of
+	vm_page_grab_contig.
+	(kmem_pagefree_physmem): Use vm_page_release instead of
+	vm_page_free_contig.
+	* linux/dev/glue/block.c (alloc_buffer, device_read): Update call
+	to vm_page_grab.
+	* vm/vm_fault.c (vm_fault_page): Update calls to vm_page_grab and
+	vm_page_convert.
+	* vm/vm_map.c (vm_map_copy_steal_pages): Update call to vm_page_grab.
+	* vm/vm_page.h (struct vm_page): Remove `extcounted' member.
+	(vm_page_external_limit, vm_page_external_count): Remove extern
+	declarations.
+	(vm_page_convert, vm_page_grab): Update declarations.
+	(vm_page_release, vm_page_grab_phys_addr): New function declarations.
+	* vm/vm_pageout.c (VM_PAGE_EXTERNAL_LIMIT): Remove macro.
+	(VM_PAGE_EXTERNAL_TARGET): Likewise.
+	(vm_page_external_target): Remove variable.
+	(vm_pageout_scan): Remove specific handling of external pages.
+	(vm_pageout): Don't set vm_page_external_limit and
+	vm_page_external_target.
+	* vm/vm_resident.c (vm_page_external_limit): Remove variable.
+	(vm_page_insert, vm_page_replace, vm_page_remove): Update external
+	page tracking.
+	(vm_page_convert): Remove `external' parameter.
+	(vm_page_grab): Likewise. Remove specific handling of external pages.
+	(vm_page_grab_phys_addr): Update call to vm_page_grab.
+	(vm_page_release): Remove `external' parameter and remove specific
+	handling of external pages.
+	(vm_page_wait): Remove specific handling of external pages.
+	(vm_page_alloc): Update call to vm_page_grab.
+	(vm_page_free): Update call to vm_page_release.
+	* xen/block.c (device_read): Update call to vm_page_grab.
+	* xen/net.c (device_write): Likewise.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Replace vm_offset_t with phys_addr_t where appropriate
+	* i386/i386/phys.c (pmap_zero_page, pmap_copy_page, copy_to_phys,
+	copy_from_phys, kvtophys): Use the phys_addr_t type for physical
+	addresses.
+	* i386/intel/pmap.c (pmap_map, pmap_map_bd, pmap_destroy,
+	pmap_remove_range, pmap_page_protect, pmap_enter, pmap_extract,
+	pmap_collect, phys_attribute_clear, phys_attribute_test,
+	pmap_clear_modify, pmap_is_modified, pmap_clear_reference,
+	pmap_is_referenced): Likewise.
+	* i386/intel/pmap.h (pt_entry_t): Unconditionally define as a
+	phys_addr_t.
+	(pmap_zero_page, pmap_copy_page, kvtophys): Use the phys_addr_t
+	type for physical addresses.
+	* vm/pmap.h (pmap_enter, pmap_page_protect, pmap_clear_reference,
+	pmap_is_referenced, pmap_clear_modify, pmap_is_modified,
+	pmap_extract, pmap_map_bd): Likewise.
+	* vm/vm_page.h (vm_page_fictitious_addr): Declare as a phys_addr_t.
+	* vm/vm_resident.c (vm_page_fictitious_addr): Likewise.
+	(vm_page_grab_phys_addr): Change return type to phys_addr_t.
+
+2016-09-21  Richard Braun  <rbraun@sceen.net>
+
+	Remove phys_first_addr and phys_last_addr global variables
+	The old assumption that all physical memory is directly mapped in
+	kernel space is about to go away. Those variables are directly linked
+	to that assumption.
+
+	* i386/i386/model_dep.h (phys_first_addr): Remove extern declaration.
+	(phys_last_addr): Likewise.
+	* i386/i386/phys.c (pmap_zero_page): Use VM_PAGE_DIRECTMAP_LIMIT
+	instead of phys_last_addr.
+	(pmap_copy_page, copy_to_phys, copy_from_phys): Likewise.
+	* i386/i386/trap.c (user_trap): Remove check against phys_last_addr.
+	* i386/i386at/biosmem.c (biosmem_bootstrap_common): Don't set
+	phys_last_addr.
+	* i386/i386at/mem.c (memmmap): Use vm_page_lookup_pa to determine if
+	a physical address references physical memory.
+	* i386/i386at/model_dep.c (phys_first_addr): Remove variable.
+	(phys_last_addr): Likewise.
+	(pmap_free_pages, pmap_valid_page): Remove functions.
+	* i386/intel/pmap.c: Include i386at/biosmem.h.
+	(pa_index): Turn into an alias for vm_page_table_index.
+	(pmap_bootstrap): Replace uses of phys_first_addr and phys_last_addr
+	as appropriate.
+	(pmap_virtual_space): Use vm_page_table_size instead of phys_first_addr
+	and phys_last_addr to obtain the number of physical pages.
+	(pmap_verify_free): Remove function.
+	(valid_page): Turn this macro into an inline function and rewrite
+	using vm_page_lookup_pa.
+	(pmap_page_table_page_alloc): Build the pmap VM object using
+	vm_page_table_size to determine its size.
+	(pmap_remove_range, pmap_page_protect, phys_attribute_clear,
+	phys_attribute_test): Turn page indexes into unsigned long integers.
+	(pmap_enter): Likewise. In addition, use either vm_page_lookup_pa or
+	biosmem_directmap_end to determine if a physical address references
+	physical memory.
+	* i386/xen/xen.c (hyp_p2m_init): Use vm_page_table_size instead of
+	phys_last_addr to obtain the number of physical pages.
+	* kern/startup.c (phys_first_addr): Remove extern declaration.
+	(phys_last_addr): Likewise.
+	* linux/dev/init/main.c (linux_init): Use vm_page_seg_end with the
+	appropriate segment selector instead of phys_last_addr to determine
+	where high memory starts.
+	* vm/pmap.h: Update requirements description.
+	(pmap_free_pages, pmap_valid_page): Remove declarations.
+	* vm/vm_page.c (vm_page_seg_end, vm_page_boot_table_size,
+	vm_page_table_size, vm_page_table_index): New functions.
+	* vm/vm_page.h (vm_page_seg_end, vm_page_table_size,
+	vm_page_table_index): New function declarations.
+	* vm/vm_resident.c (vm_page_bucket_count, vm_page_hash_mask): Define
+	as unsigned long integers.
+	(vm_page_bootstrap): Compute VP table size based on the page table
+	size instead of the value returned by pmap_free_pages.
+
+2016-09-20  Richard Braun  <rbraun@sceen.net>
+
+	VM: remove commented out code
+	The vm_page_direct_va, vm_page_direct_pa and vm_page_direct_ptr
+	functions were imported along with the new vm_page module, but
+	never actually used since the kernel already has phystokv and
+	kvtophys functions.
+
+2016-09-16  Richard Braun  <rbraun@sceen.net>
+
+	VM: improve pageout deadlock workaround
+	Commit 5dd4f67522ad0d49a2cecdb9b109251f546d4dd1 makes VM map entry
+	allocation done with VM privilege, so that a VM map isn't held locked
+	while physical allocations are paused, which may block the default
+	pager during page eviction, causing a system-wide deadlock.
+
+	First, it turns out that map entries aren't the only buffers allocated,
+	and second, their number can't be easily determined, which makes a
+	preallocation strategy very hard to implement.
+
+	This change generalizes the strategy of VM privilege increase when a
+	VM map is locked.
+
+	* device/ds_routines.c (io_done_thread): Use integer values instead
+	of booleans when setting VM privilege.
+	* kern/thread.c (thread_init, thread_wire): Likewise.
+	* vm/vm_pageout.c (vm_pageout): Likewise.
+	* kern/thread.h (struct thread): Turn member `vm_privilege' into an
+	unsigned integer.
+	* vm/vm_map.c (vm_map_lock): New function, where VM privilege is
+	temporarily increased.
+	(vm_map_unlock): New function, where VM privilege is decreased.
+	(_vm_map_entry_create): Remove VM privilege workaround from this
+	function.
+	* vm/vm_map.h (vm_map_lock, vm_map_unlock): Turn into functions.
+
+2016-09-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix spurious warning
+	* i386/i386/db_trace.c (db_i386_stack_trace): Do not check for frame
+	validity if it is 0.
+
+	Fix size of functions interrupt and syscall
+	* i386/i386/locore.S (syscall): Add END(syscall).
+	* i386/i386at/interrupt.S (interrupt): Add END(interrupt).
+
+	Set function type on symbols created by ENTRY macro
+	* i386/include/mach/i386/asm.h (ENTRY, ENTRY2, ASENTRY, Entry): Use .type
+	@function on created entries.
+
+	Close parenthesis
+	* i386/i386/db_trace.c (db_i386_stack_trace): When stopping on zero frame,
+	close parameters parenthesis.
+
+	Fix exploring stack trace up to assembly
+	* i386/i386/db_trace.c (db_i386_stack_trace): Do not stop as soon as frame
+	is 0, lookup PC first, and stop only before accessing the frame content.
+
+2016-09-11  Justus Winter  <justus@gnupg.org>
+
+	ipc: Fix crash in debug code.
+	* ipc/mach_debug.c (mach_port_kernel_object): Check that the receiver
+	is valid.
+
+2016-09-07  Richard Braun  <rbraun@sceen.net>
+
+	Remove map entry pageability property.
+	Since the replacement of the zone allocator, kernel objects have been
+	wired in memory. Besides, as of 5e9f6f (Stack the slab allocator
+	directly on top of the physical allocator), there is a single cache
+	used to allocate map entries.
+
+	Those changes make the pageability attribute of VM maps irrelevant.
+
+	* device/ds_routines.c (mach_device_init): Update call to kmem_submap.
+	* ipc/ipc_init.c (ipc_init): Likewise.
+	* kern/task.c (task_create): Update call to vm_map_create.
+	* vm/vm_kern.c (kmem_submap): Remove `pageable' argument. Update call
+	to vm_map_setup.
+	(kmem_init): Update call to vm_map_setup.
+	* vm/vm_kern.h (kmem_submap): Update declaration.
+	* vm/vm_map.c (vm_map_setup): Remove `pageable' argument. Don't set
+	`entries_pageable' member.
+	(vm_map_create): Likewise.
+	(vm_map_copyout): Don't bother creating copies of page entries with
+	the right pageability.
+	(vm_map_copyin): Don't set `entries_pageable' member.
+	(vm_map_fork): Update call to vm_map_create.
+	* vm/vm_map.h (struct vm_map_header): Remove `entries_pageable' member.
+	(vm_map_setup, vm_map_create): Remove `pageable' argument.
+
+2016-09-06  Richard Braun  <rbraun@sceen.net>
+
+	Fix registration of strings from in boot data
+	* i386/i386at/model_dep.c (register_boot_data): Use phystokv on strings
+	when computing their length.
+
+2016-09-06  Richard Braun  <rbraun@sceen.net>
+
+	Make early physical page allocation truely reliable
+	Import upstream biosmem changes and adjust for local modifications.
+
+	Specifically, this change makes the biosmem module reliably track all
+	boot data by storing their addresses in a sorted array. This allows
+	both the early page allocator and the biosmem_free_usable function
+	to accurately find any range of free pages.
+
+	* i386/i386at/biosmem.c: Remove inclusion of <i386at/elf.h>.
+	(_start, _end): Remove variable declarations.
+	(BIOSMEM_MAX_BOOT_DATA): New macro.
+	(struct biosmem_boot_data): New type.
+	(biosmem_boot_data_array, biosmem_nr_boot_data): New variables.
+	(biosmem_heap_start, biosmem_heap_bottom, biosmem_heap_top,
+	biosmem_heap_end): Change type to phys_addr_t.
+	(biosmem_panic_inval_boot_data): New variable.
+	(biosmem_panic_too_many_boot_data): Likewise.
+	(biosmem_panic_toobig_msg): Variable renamed ...
+	(biosmem_panic_too_big_msg): ... to this.
+	(biosmem_register_boot_data): New function.
+	(biosmem_unregister_boot_data): Likewise.
+	(biosmem_map_adjust): Update reference to panic message.
+	(biosmem_map_find_avail): Add detailed description.
+	(biosmem_save_cmdline_sizes): Remove function.
+	(biosmem_find_heap_clip): Likewise.
+	(biosmem_find_heap): Likewise.
+	(biosmem_find_avail_clip, biosmem_find_avail): New functions.
+	(biosmem_setup_allocator): Receive const multiboot info, replace
+	calls to biosmem_find_heap with calls to biosmem_find_avail and
+	update accordingly. Register the heap as boot data.
+	(biosmem_xen_bootstrap): Register the Xen boot info and the heap as
+	boot data.
+	(biosmem_bootstrap): Receive const multiboot information. Remove call
+	to biosmem_save_cmdline_sizes.
+	(biosmem_bootalloc): Remove assertion on the VM system state.
+	(biosmem_type_desc, biosmem_map_show): Build only if DEBUG is true.
+	(biosmem_unregister_temporary_boot_data): New function.
+	(biosmem_free_usable_range): Change address range format.
+	(biosmem_free_usable_entry): Rewrite to use biosmem_find_avail
+	without abusing it.
+	(biosmem_free_usable): Call biosmem_unregister_temporary_boot_data,
+	update call to biosmem_free_usable_entry.
+	* i386/i386at/biosmem.h (biosmem_register_boot_data): New function.
+	(biosmem_bootalloc): Update description.
+	(biosmem_bootstrap): Update description and declaration.
+	(biosmem_free_usable): Likewise.
+	* i386/i386at/model_dep.c: Include <i386at/elf.h>.
+	(machine_init): Update call to biosmem_free_usable.
+	(register_boot_data): New function.
+	(i386at_init): Call register_boot_data where appropriate.
+
+2016-09-03  Richard Braun  <rbraun@sceen.net>
+
+	Fix early physical page allocation
+	Import upstream biosmem and vm_page changes, and adjust for local
+	modifications.
+
+	Specifically, the biosmem module was mistakenly loading physical
+	segments that did not clip with the heap as completely available.
+	This change makes it load them as completely unavailable during
+	startup, and once the VM system is ready, additional pages are
+	loaded.
+
+	* i386/i386at/biosmem.c (DEBUG): New macro.
+	(struct biosmem_segment): Remove members `avail_start' and `avail_end'.
+	(biosmem_heap_cur): Remove variable.
+	(biosmem_heap_bottom, biosmem_heap_top, biosmem_heap_topdown): New variables.
+	(biosmem_find_boot_data_update, biosmem_find_boot_data): Remove functions.
+	(biosmem_find_heap_clip, biosmem_find_heap): New functions.
+	(biosmem_setup_allocator): Rewritten to use the new biosmem_find_heap
+	function.
+	(biosmem_bootalloc): Support both bottom-up and top-down allocations.
+	(biosmem_directmap_size): Renamed to ...
+	(biosmem_directmap_end): ... this function.
+	(biosmem_load_segment): Fix segment loading.
+	(biosmem_setup): Restrict usable memory to the directmap segment.
+	(biosmem_free_usable_range): Add checks on input parameters.
+	(biosmem_free_usable_update_start, biosmem_free_usable_start,
+	biosmem_free_usable_reserved, biosmem_free_usable_end): Remove functions.
+	(biosmem_free_usable_entry): Rewritten to use the new biosmem_find_heap
+	function.
+	(biosmem_free_usable): Restrict usable memory to the directmap segment.
+	* i386/i386at/biosmem.h (biosmem_bootalloc): Update description.
+	(biosmem_directmap_size): Renamed to ...
+	(biosmem_directmap_end): ... this function.
+	(biosmem_free_usable): Update declaration.
+	* i386/i386at/model_dep.c (machine_init): Call biosmem_free_usable.
+	* vm/vm_page.c (DEBUG): New macro.
+	(struct vm_page_seg): New member `heap_present'.
+	(vm_page_load): Remove heap related parameters.
+	(vm_page_load_heap): New function.
+	* vm/vm_page.h (vm_page_load): Remove heap related parameters. Update
+	description.
+	(vm_page_load_heap): New function.
+
+2016-09-01  Richard Braun  <rbraun@sceen.net>
+
+	pmap: fix map window creation on xen
+	* i386/intel/pmap.c (pmap_get_mapwindow, pmap_put_mapwindow): Use
+	the appropriate xen hypercall if building for paravirtualized page
+	table management.
+
+2016-08-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Avoid using non-ascii source encoding
+	* xen/console.c (hypcnintr): Replace latin1 £ character with the 0xA3
+	number.
+
+2016-08-29  Richard Braun  <rbraun@sceen.net>
+
+	vm: fix boot on xen
+	* vm/vm_map.c (_vm_map_entry_create: Make sure there is a thread
+	before accessing VM privilege.
+
+2016-08-26  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Revert "Fix documentation for vm_map"
+	This reverts commit 57694037a02dda29bd678dc3b8531bd437682ba7.
+
+	We rather prefer the kernel just use whatever slot it sees fit. Userland has
+	already been fixed into not using the behavior anyway.
+
+2016-08-25  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing memory barriers in simple lock debugging
+	* kern/lock.c (_simple_lock, _simple_lock_try, simple_unlock): Add compiler
+	memory barrier to separate simple_locks_taken update from information
+	filling.
+
+	Use invlpg for single-page pagetable changes
+	* i386/intel/pmap.c (INVALIDATE_TLB): When e-s is constant, equal to
+	PAGE_SIZE, use just one invlpg instruction to flush the TLB.
+
+	Drop unused macro
+	* i386/intel/pmap.c (MAX_TBIS_SIZE): Drop unused macro.
+
+2016-08-16  Richard Braun  <rbraun@sceen.net>
+
+	Replace libc string functions with internal implementations
+	* Makefile.am (clib_routines): Remove memcmp, memcpy, memmove,
+	strchr, strstr and strsep.
+	* kern/strings.c (memset): Comment out.
+	(strchr, strsep, strstr): New functions.
+
+	i386: import string functions from X15 and relicense to GPLv2+
+	* i386/Makefrag.am (libkernel_a_SOURCES): Add i386/i386/strings.c.
+	* i386/i386/strings.c: New file.
+
+2016-08-12  Richard Braun  <rbraun@sceen.net>
+
+	i386: request the boot loader to page-align modules
+	* i386/i386at/boothdr.S (MULTIBOOT_FLAGS): Set LSB bit.
+
 2016-08-07  Richard Braun  <rbraun@sceen.net>
 
 	VM: fix pageout-related deadlock

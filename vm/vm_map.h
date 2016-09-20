@@ -153,8 +153,6 @@ struct vm_map_header {
 	struct rbtree		gap_tree;	/* Sorted tree of gap lists
 						   for allocations */
 	int			nentries;	/* Number of entries */
-	boolean_t		entries_pageable;
-						/* are map entries pageable? */
 };
 
 /*
@@ -354,13 +352,9 @@ MACRO_BEGIN					\
 	(map)->timestamp = 0;			\
 MACRO_END
 
-#define vm_map_lock(map)			\
-MACRO_BEGIN					\
-	lock_write(&(map)->lock);		\
-	(map)->timestamp++;			\
-MACRO_END
+void vm_map_lock(struct vm_map *map);
+void vm_map_unlock(struct vm_map *map);
 
-#define vm_map_unlock(map)	lock_write_done(&(map)->lock)
 #define vm_map_lock_read(map)	lock_read(&(map)->lock)
 #define vm_map_unlock_read(map)	lock_read_done(&(map)->lock)
 #define vm_map_lock_write_to_read(map) \
@@ -380,11 +374,9 @@ MACRO_END
 extern void		vm_map_init(void);
 
 /* Initialize an empty map */
-extern void		vm_map_setup(vm_map_t, pmap_t, vm_offset_t, vm_offset_t,
-				     boolean_t);
+extern void		vm_map_setup(vm_map_t, pmap_t, vm_offset_t, vm_offset_t);
 /* Create an empty map */
-extern vm_map_t		vm_map_create(pmap_t, vm_offset_t, vm_offset_t,
-				      boolean_t);
+extern vm_map_t		vm_map_create(pmap_t, vm_offset_t, vm_offset_t);
 /* Create a map in the image of an existing map */
 extern vm_map_t		vm_map_fork(vm_map_t);
 
