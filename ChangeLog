@@ -1,3 +1,105 @@
+2016-10-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix warnings
+	* i386/i386/seg.h (fill_descriptor): Fix format for vm_offset_t.
+	* i386/i386/xen.h (hyp_free_mfn, hyp_free_page): Fix format for unsigned
+	long.
+
+2016-10-22  Justus Winter  <justus@gnupg.org>
+
+	i386: Allocate page directories using the slab allocator.
+	* i386/intel/pmap.c (pd_cache): New variable.
+	(pdp_cache): Likewise.
+	(pmap_init): Initialize new caches.
+	(pmap_create): Use the caches.
+	(pmap_destroy): Free to the caches.
+
+2016-10-21  Justus Winter  <justus@gnupg.org>
+
+	Gracefully handle pmap allocation failures.
+	* kern/task.c (task_create): Gracefully handle pmap allocation
+	failures.
+	* vm/vm_map.c (vm_map_fork): Likewise.
+
+	vm: Print map names in case of failures.
+	* vm/vm_kern.c (kmem_alloc): Print map names in case of failures.
+	(kmem_alloc_wired): Likewise.
+	(kmem_alloc_aligned): Likewise.
+	(kmem_alloc_pageable): Likewise.
+
+2016-10-13  Justus Winter  <justus@gnupg.org>
+
+	Make task notification ports mutable.
+	* include/mach/task_notify.defs (task_notify_port_t): New type.
+	(mach_notify_new_task): Use the specialized type.
+
+2016-10-12  Justus Winter  <justus@gnupg.org>
+
+	linux: Remove incompatible local prototype.
+	* linux/dev/glue/kmem.c (vremap): Remove prototype, include the right
+	header instead.
+
+2016-10-03  Justus Winter  <justus@gnupg.org>
+
+	Remove deprecated external memory management interface.
+	* NEWS: Update.
+	* device/dev_pager.c (device_pager_data_request): Prune unused branch.
+	(device_pager_data_request_done): Remove function.
+	(device_pager_data_write): Likewise.
+	(device_pager_data_write_done): Likewise.
+	(device_pager_copy): Use 'memory_object_ready'.
+	* device/dev_pager.h (device_pager_data_write_done): Remove prototype.
+	* device/device_pager.srv (memory_object_data_write): Remove macro.
+	* doc/mach.texi: Update documentation.
+	* include/mach/mach.defs (memory_object_data_provided): Drop RPC.
+	(memory_object_set_attributes): Likewise.
+	* include/mach/memory_object.defs: Update comments.
+	(memory_object_data_write): Drop RPC.
+	* include/mach/memory_object_default.defs: Update comments.
+	* include/mach_debug/vm_info.h (VOI_STATE_USE_OLD_PAGEOUT): Drop
+	macro.
+	* vm/memory_object.c (memory_object_data_provided): Remove function.
+	(memory_object_data_error): Simplify.
+	(memory_object_set_attributes_common): Make static, remove unused
+	parameters, simplify.
+	(memory_object_change_attributes): Update callsite.
+	(memory_object_set_attributes): Remove function.
+	(memory_object_ready): Update callsite.
+	* vm/vm_debug.c (mach_vm_object_info): Adapt to the changes.
+	* vm/vm_object.c (vm_object_bootstrap): Likewise.
+	* vm/vm_object.h (struct vm_object): Drop flag 'use_old_pageout'.
+	* vm/vm_pageout.c: Update comments.
+	(vm_pageout_page): Simplify.
+
+2016-10-02  David Michael  <fedora.dm0@gmail.com>
+
+	Fix format security
+	* i386/i386at/biosmem.c (boot_panic): Use %s format instead of passing
+	the string directly to `panic'.
+	(biosmem_unregister_boot_data): Use %s format instead of passing
+	`biosmem_panic_inval_boot_data' directly to `panic'.
+
+2016-10-01  Justus Winter  <justus@gnupg.org>
+
+	kern: Improve panic messages from the scheduler.
+	* kern/sched_prim.c (state_panic): Turn into macro, print symbolic
+	values of thread state.
+
+	kern: Improve assertions and panics.
+	* kern/assert.h (Assert): Add function argument.
+	(assert): Supply function argument.
+	* kern/debug.c (Assert): Add function argument.  Unify message format.
+	(panic): Rename to 'Panic', add location information.
+	* kern/debug.h (panic): Rename, and add a macro version that supplies
+	the location.
+	* linux/dev/include/linux/kernel.h: Use the new panic macro.
+
+2016-09-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	biosmem: show memory map at boot
+	* i386/i386at/biosmem.c (biosmem_type_desc, biosmem_map_show): Define
+	even if DEBUG is 0.  But show biosmem heap addresses only if DEBUG is 1.
+
 2016-09-21  Richard Braun  <rbraun@sceen.net>
 
 	Enable high memory

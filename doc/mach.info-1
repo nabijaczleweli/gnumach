@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 6.3 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 31 August 2016, of 'The GNU Mach
-Reference Manual', for version 1.7+git20160921.
+   This is edition 0.4, last updated on 16 October 2016, of 'The GNU
+Mach Reference Manual', for version 1.7+git20161023.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 31 August 2016, of 'The GNU Mach
-Reference Manual', for version 1.7+git20160921.
+   This is edition 0.4, last updated on 16 October 2016, of 'The GNU
+Mach Reference Manual', for version 1.7+git20161023.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -3467,14 +3467,14 @@ File: mach.info,  Node: Memory Object Server,  Next: Memory Object Creation,  Up
      procedure, 'memory_object_server', to handle a received message.
      This function does all necessary argument handling, and actually
      calls one of the following functions: 'memory_object_init',
-     'memory_object_data_write', 'memory_object_data_return',
-     'memory_object_data_request', 'memory_object_data_unlock',
-     'memory_object_lock_completed', 'memory_object_copy',
-     'memory_object_terminate'.  The *default memory manager* may get
-     two additional requests from the kernel: 'memory_object_create' and
-     'memory_object_data_initialize'.  The remote procedure call
-     generator produces a procedure 'memory_object_default_server' to
-     handle those functions specific to the default memory manager.
+     'memory_object_data_return', 'memory_object_data_request',
+     'memory_object_data_unlock', 'memory_object_lock_completed',
+     'memory_object_copy', 'memory_object_terminate'.  The *default
+     memory manager* may get two additional requests from the kernel:
+     'memory_object_create' and 'memory_object_data_initialize'.  The
+     remote procedure call generator produces a procedure
+     'memory_object_default_server' to handle those functions specific
+     to the default memory manager.
 
      The 'seqnos_memory_object_server' and
      'seqnos_memory_object_default_server' differ from
@@ -3524,10 +3524,10 @@ File: mach.info,  Node: Memory Object Creation,  Next: Memory Object Termination
      the calling kernel is included for planning purposes.
 
      When the memory manager is prepared to accept requests for data for
-     this object, it must call 'memory_object_ready', or set the ready
-     flag using 'memory_object_set_attributes'.  Otherwise the kernel
-     will not process requests on this object.  To reject all mappings
-     of this object, the memory manager may use 'memory_object_destroy'.
+     this object, it must call 'memory_object_ready'.  Otherwise the
+     kernel will not process requests on this object.  To reject all
+     mappings of this object, the memory manager may use
+     'memory_object_destroy'.
 
      The argument MEMORY_OBJECT is the port that represents the memory
      object data, as supplied to the kernel in a 'vm_map' call.
@@ -3811,8 +3811,8 @@ File: mach.info,  Node: Memory Objects and Data,  Next: Memory Object Locking,  
 
        1. The object was created by 'memory_object_create' and the
           kernel has not yet provided data for this range (either via a
-          'memory_object_data_initialize', 'memory_object_data_write' or
-          a 'memory_object_data_return' for the object.
+          'memory_object_data_initialize', or a
+          'memory_object_data_return' for the object.
 
        2. The object was created by an 'memory_object_data_copy' and the
           kernel should copy this region from the original memory
@@ -3881,63 +3881,6 @@ File: mach.info,  Node: Memory Objects and Data,  Next: Memory Object Locking,  
      is called by the kernel, which does not wait for a reply message,
      this value is ignored.
 
-   The remaining interfaces in this section are obsolete.
-
- -- Function: kern_return_t memory_object_data_write
-          (memory_object_t MEMORY_OBJECT,
-          memory_object_control_t MEMORY_CONTROL, vm_offset_t OFFSET,
-          vm_offset_t DATA, vm_size_t DATA_COUNT)
- -- Function: kern_return_t seqnos_memory_object_data_write
-          (memory_object_t MEMORY_OBJECT, mach_port_seqno_t SEQNO,
-          memory_object_control_t MEMORY_CONTROL, vm_offset_t OFFSET,
-          vm_offset_t DATA, vm_size_t DATA_COUNT)
-     The function 'memory_object_data_write' provides the memory manager
-     with data that has been modified while cached in physical memory.
-     It is the old form of 'memory_object_data_return'.  Once the memory
-     manager no longer needs this data (e.g., it has been written to
-     another storage medium), it should be deallocated using
-     'vm_deallocate'.
-
-     The argument MEMORY_OBJECT is the port that represents the memory
-     object data, as supplied to the kernel in a 'vm_map' call.
-     MEMORY_CONTROL is the request port to which a response is
-     requested.  (In the event that a memory object has been supplied to
-     more than one the kernel that has made the request.)  OFFSET is the
-     offset within a memory object to which this call refers.  This will
-     be page aligned.  DATA is the data which has been modified while
-     cached in physical memory.  DATA_COUNT is the amount of data to be
-     written, in bytes.  This will be an integral number of memory
-     object pages.
-
-     The function should return 'KERN_SUCCESS', but since this routine
-     is called by the kernel, which does not wait for a reply message,
-     this value is ignored.
-
- -- Function: kern_return_t memory_object_data_provided
-          (memory_object_control_t MEMORY_CONTROL, vm_offset_t OFFSET,
-          vm_offset_t DATA, vm_size_t DATA_COUNT, vm_prot_t LOCK_VALUE)
-     The function 'memory_object_data_provided' supplies the kernel with
-     data for the specified memory object.  It is the old form of
-     'memory_object_data_supply'.  Ordinarily, memory managers should
-     only provide data in response to 'memory_object_data_request' calls
-     from the kernel.  The LOCK_VALUE specifies what type of access will
-     not be allowed to the data range.  The lock values must be one or
-     more of the set: 'VM_PROT_NONE', 'VM_PROT_READ', 'VM_PROT_WRITE',
-     'VM_PROT_EXECUTE' and 'VM_PROT_ALL' as defined in 'mach/vm_prot.h'.
-
-     The argument MEMORY_CONTROL is the port, provided by the kernel in
-     a 'memory_object_init' call, to which cache management requests may
-     be issued.  OFFSET is an offset within a memory object in bytes.
-     This must be page aligned.  DATA is the data that is being provided
-     to the kernel.  This is a pointer to the data.  DATA_COUNT is the
-     amount of data to be provided.  This must be an integral number of
-     memory object pages.  LOCK_VALUE is a protection value indicating
-     those forms of access that should *not* be permitted to the
-     specified cached data.
-
-     This routine does not receive a reply message (and consequently has
-     no return value), so only message transmission errors apply.
-
 
 File: mach.info,  Node: Memory Object Locking,  Next: Memory Object Attributes,  Prev: Memory Objects and Data,  Up: External Memory Management
 
@@ -3952,9 +3895,9 @@ File: mach.info,  Node: Memory Object Locking,  Next: Memory Object Attributes, 
      The function 'memory_object_lock_request' allows a memory manager
      to make cache management requests.  As specified in arguments to
      the call, the kernel will:
-        * clean (i.e., write back using 'memory_object_data_supply' or
-          'memory_object_data_write') any cached data which has been
-          modified since the last time it was written
+        * clean (i.e., write back using 'memory_object_data_supply' any
+          cached data which has been modified since the last time it was
+          written
 
         * flush (i.e., remove any uses of) that data from memory
 
@@ -4079,11 +4022,13 @@ File: mach.info,  Node: Memory Object Attributes,  Next: Default Memory Manager,
           boolean_t MAY_CACHE_OBJECT,
           memory_object_copy_strategy_t COPY_STRATEGY,
           mach_port_t REPLY_TO)
-     The function 'memory_object_change_attribute' sets
-     performance-related attributes for the specified memory object.  If
-     the caching attribute is asserted, the kernel is permitted (and
-     encouraged) to maintain cached data for this memory object even
-     after no virtual address space contains this data.
+     The function 'memory_object_change_attribute' informs the kernel
+     that the memory manager is ready to receive data or unlock requests
+     on behalf of the clients and sets performance-related attributes
+     for the specified memory object.  If the caching attribute is
+     asserted, the kernel is permitted (and encouraged) to maintain
+     cached data for this memory object even after no virtual address
+     space contains this data.
 
      There are three possible caching strategies:
      'MEMORY_OBJECT_COPY_NONE' which specifies that nothing special
@@ -4118,46 +4063,6 @@ File: mach.info,  Node: Memory Object Attributes,  Next: Default Memory Manager,
           memory_object_copy_strategy_t COPY_STRATEGY)
      The function 'memory_object_change_completed' indicates the
      completion of an attribute change call.
-
-   The following interface is obsoleted by 'memory_object_ready' and
-'memory_object_change_attributes'.  If the old form
-'memory_object_set_attributes' is used to make a memory object ready,
-the kernel will write back data using the old 'memory_object_data_write'
-interface rather than 'memory_object_data_return'..
-
- -- Function: kern_return_t memory_object_set_attributes
-          (memory_object_control_t MEMORY_CONTROL, boolean OBJECT_READY,
-          boolean_t MAY_CACHE_OBJECT,
-          memory_object_copy_strategy_t COPY_STRATEGY)
-     The function 'memory_object_set_attribute' controls how the memory
-     object.  The kernel will only make data or unlock requests when the
-     ready attribute is asserted.  If the caching attribute is asserted,
-     the kernel is permitted (and encouraged) to maintain cached data
-     for this memory object even after no virtual address space contains
-     this data.
-
-     There are three possible caching strategies:
-     'MEMORY_OBJECT_COPY_NONE' which specifies that nothing special
-     should be done when data in the object is copied;
-     'MEMORY_OBJECT_COPY_CALL' which specifies that the memory manager
-     should be notified via a 'memory_object_copy' call before any part
-     of the object is copied; and 'MEMORY_OBJECT_COPY_DELAY' which
-     guarantees that the memory manager does not externally modify the
-     data so that the kernel can use its normal copy-on-write
-     algorithms.  'MEMORY_OBJECT_COPY_DELAY' is the strategy most
-     commonly used.
-
-     The argument MEMORY_CONTROL is the port, provided by the kernel in
-     a 'memory_object_init' call, to which cache management requests may
-     be issued.  If OBJECT_READY is set, the kernel may issue new data
-     and unlock requests on the associated memory object.  If
-     MAY_CACHE_OBJECT is set, the kernel may keep data associated with
-     this memory object, even after virtual memory references to it are
-     gone.  COPY_STRATEGY tells how the kernel should copy regions of
-     the associated memory object.
-
-     This routine does not receive a reply message (and consequently has
-     no return value), so only message transmission errors apply.
 
 
 File: mach.info,  Node: Default Memory Manager,  Prev: Memory Object Attributes,  Up: External Memory Management
@@ -4207,7 +4112,7 @@ File: mach.info,  Node: Default Memory Manager,  Prev: Memory Object Attributes,
      No reply is expected after this call.  Since this call is directed
      to the default memory manager, the kernel assumes that it will be
      ready to handle data requests to this object and does not need the
-     confirmation of a 'memory_object_set_attributes' call.
+     confirmation of a 'memory_object_ready' call.
 
      The argument OLD_MEMORY_OBJECT is a memory object provided by the
      default memory manager on which the kernel can make
@@ -4239,13 +4144,12 @@ File: mach.info,  Node: Default Memory Manager,  Prev: Memory Object Attributes,
      The function 'memory_object_data_initialize' provides the memory
      manager with initial data for a kernel-created memory object.  If
      the memory manager already has been supplied data (by a previous
-     'memory_object_data_initialize', 'memory_object_data_write' or
-     'memory_object_data_return'), then this data should be ignored.
-     Otherwise, this call behaves exactly as does
-     'memory_object_data_return' on memory objects created by the kernel
-     via 'memory_object_create' and thus will only be made to default
-     memory managers.  This call will not be made on objects created via
-     'memory_object_copy'.
+     'memory_object_data_initialize', or 'memory_object_data_return'),
+     then this data should be ignored.  Otherwise, this call behaves
+     exactly as does 'memory_object_data_return' on memory objects
+     created by the kernel via 'memory_object_create' and thus will only
+     be made to default memory managers.  This call will not be made on
+     objects created via 'memory_object_copy'.
 
      The argument MEMORY_OBJECT the port that represents the memory
      object data, as supplied by the kernel in a 'memory_object_create'
@@ -6630,5 +6534,166 @@ File: mach.info,  Node: Device Status,  Next: Device Filter,  Prev: Device Map, 
 
      The function returns 'D_SUCCESS' if some data was successfully
      written and 'D_NO_SUCH_DEVICE' if DEVICE does not denote a device
+     port or the device is dead or not completely open.
+
+
+File: mach.info,  Node: Device Filter,  Prev: Device Status,  Up: Device Interface
+
+10.8 Device Filter
+==================
+
+ -- Function: kern_return_t device_set_filter (device_t DEVICE,
+          mach_port_t RECEIVE_PORT,
+          mach_msg_type_name_t RECEIVE_PORT_TYPE, int PRIORITY,
+          filter_array_t FILTER, mach_msg_type_number_t FILTER_COUNT)
+     The function 'device_set_filter' makes it possible to filter out
+     selected data arriving at or leaving the device and forward it to a
+     port.  FILTER is a list of filter commands, which are applied to
+     incoming data to determine if the data should be sent to
+     RECEIVE_PORT.  The IPC type of the send right is specified by
+     RECEIVE_PORT_RIGHT, it is either 'MACH_MSG_TYPE_MAKE_SEND' or
+     'MACH_MSG_TYPE_MOVE_SEND'.  The PRIORITY value is used to order
+     multiple filters.
+
+     There can be up to 'NET_MAX_FILTER' commands in FILTER.  The actual
+     number of commands is passed in FILTER_COUNT.  For the purpose of
+     the filter test, an internal stack is provided.  After all commands
+     have been processed, the value on the top of the stack determines
+     if the data is forwarded or the next filter is tried.
+
+     The first command is a header which contains two fields: one for
+     flags and the other for the type of interpreter used to run the
+     rest of the commands.
+
+     Any combination of the following flags is allowed but at least one
+     of them must be specified.
+
+     'NETF_IN'
+          The filter will be applied to data received by the device.
+
+     'NETF_OUT'
+          The filter will be applied to data transmitted by the device.
+
+     Unless the type is given explicitly the native NETF interpreter
+     will be used.  To select an alternative implementation use one of
+     the following types:
+
+     'NETF_BPF'
+          Use Berkeley Packet Filter.
+
+     For the listener to know what kind of packet is being received,
+     when the filter code accepts a packet the message sent to
+     RECEIVE_PORT is tagged with either NETF_IN or NETF_OUT.
+
+     Each word of the command list specifies a data (push) operation
+     (high order NETF_NBPO bits) as well as a binary operator (low order
+     NETF_NBPA bits).  The value to be pushed onto the stack is chosen
+     as follows.
+
+     'NETF_PUSHLIT'
+          Use the next short word of the filter as the value.
+
+     'NETF_PUSHZERO'
+          Use 0 as the value.
+
+     'NETF_PUSHWORD+N'
+          Use short word N of the "data" portion of the message as the
+          value.
+
+     'NETF_PUSHHDR+N'
+          Use short word N of the "header" portion of the message as the
+          value.
+
+     'NETF_PUSHIND+N'
+          Pops the top long word from the stack and then uses short word
+          N of the "data" portion of the message as the value.
+
+     'NETF_PUSHHDRIND+N'
+          Pops the top long word from the stack and then uses short word
+          N of the "header" portion of the message as the value.
+
+     'NETF_PUSHSTK+N'
+          Use long word N of the stack (where the top of stack is long
+          word 0) as the value.
+
+     'NETF_NOPUSH'
+          Don't push a value.
+
+     The unsigned value so chosen is promoted to a long word before
+     being pushed.  Once a value is pushed (except for the case of
+     'NETF_NOPUSH'), the top two long words of the stack are popped and
+     a binary operator applied to them (with the old top of stack as the
+     second operand).  The result of the operator is pushed on the
+     stack.  These operators are:
+
+     'NETF_NOP'
+          Don't pop off any values and do no operation.
+
+     'NETF_EQ'
+          Perform an equal comparison.
+
+     'NETF_LT'
+          Perform a less than comparison.
+
+     'NETF_LE'
+          Perform a less than or equal comparison.
+
+     'NETF_GT'
+          Perform a greater than comparison.
+
+     'NETF_GE'
+          Perform a greater than or equal comparison.
+
+     'NETF_AND'
+          Perform a bitise boolean AND operation.
+
+     'NETF_OR'
+          Perform a bitise boolean inclusive OR operation.
+
+     'NETF_XOR'
+          Perform a bitise boolean exclusive OR operation.
+
+     'NETF_NEQ'
+          Perform a not equal comparison.
+
+     'NETF_LSH'
+          Perform a left shift operation.
+
+     'NETF_RSH'
+          Perform a right shift operation.
+
+     'NETF_ADD'
+          Perform an addition.
+
+     'NETF_SUB'
+          Perform a subtraction.
+
+     'NETF_COR'
+          Perform an equal comparison.  If the comparison is 'TRUE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CAND'
+          Perform an equal comparison.  If the comparison is 'FALSE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CNOR'
+          Perform a not equal comparison.  If the comparison is 'FALSE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.
+
+     'NETF_CNAND'
+          Perform a not equal comparison.  If the comparison is 'TRUE',
+          terminate the filter list.  Otherwise, pop the result of the
+          comparison off the stack.  The scan of the filter list
+          terminates when the filter list is emptied, or a 'NETF_C...'
+          operation terminates the list.  At this time, if the final
+          value of the top of the stack is 'TRUE', then the message is
+          accepted for the filter.
+
+     The function returns 'D_SUCCESS' if some data was successfully
+     written, 'D_INVALID_OPERATION' if RECEIVE_PORT is not a valid send
+     right, and 'D_NO_SUCH_DEVICE' if DEVICE does not denote a device
      port or the device is dead or not completely open.
 
