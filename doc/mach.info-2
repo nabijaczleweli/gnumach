@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 6.3 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 31 August 2016, of 'The GNU Mach
-Reference Manual', for version 1.7+git20160921.
+   This is edition 0.4, last updated on 16 October 2016, of 'The GNU
+Mach Reference Manual', for version 1.7+git20161023.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -36,167 +36,6 @@ INFO-DIR-SECTION Kernel
 START-INFO-DIR-ENTRY
 * GNUMach: (mach).              Using and programming the GNU Mach microkernel.
 END-INFO-DIR-ENTRY
-
-
-File: mach.info,  Node: Device Filter,  Prev: Device Status,  Up: Device Interface
-
-10.8 Device Filter
-==================
-
- -- Function: kern_return_t device_set_filter (device_t DEVICE,
-          mach_port_t RECEIVE_PORT,
-          mach_msg_type_name_t RECEIVE_PORT_TYPE, int PRIORITY,
-          filter_array_t FILTER, mach_msg_type_number_t FILTER_COUNT)
-     The function 'device_set_filter' makes it possible to filter out
-     selected data arriving at or leaving the device and forward it to a
-     port.  FILTER is a list of filter commands, which are applied to
-     incoming data to determine if the data should be sent to
-     RECEIVE_PORT.  The IPC type of the send right is specified by
-     RECEIVE_PORT_RIGHT, it is either 'MACH_MSG_TYPE_MAKE_SEND' or
-     'MACH_MSG_TYPE_MOVE_SEND'.  The PRIORITY value is used to order
-     multiple filters.
-
-     There can be up to 'NET_MAX_FILTER' commands in FILTER.  The actual
-     number of commands is passed in FILTER_COUNT.  For the purpose of
-     the filter test, an internal stack is provided.  After all commands
-     have been processed, the value on the top of the stack determines
-     if the data is forwarded or the next filter is tried.
-
-     The first command is a header which contains two fields: one for
-     flags and the other for the type of interpreter used to run the
-     rest of the commands.
-
-     Any combination of the following flags is allowed but at least one
-     of them must be specified.
-
-     'NETF_IN'
-          The filter will be applied to data received by the device.
-
-     'NETF_OUT'
-          The filter will be applied to data transmitted by the device.
-
-     Unless the type is given explicitly the native NETF interpreter
-     will be used.  To select an alternative implementation use one of
-     the following types:
-
-     'NETF_BPF'
-          Use Berkeley Packet Filter.
-
-     For the listener to know what kind of packet is being received,
-     when the filter code accepts a packet the message sent to
-     RECEIVE_PORT is tagged with either NETF_IN or NETF_OUT.
-
-     Each word of the command list specifies a data (push) operation
-     (high order NETF_NBPO bits) as well as a binary operator (low order
-     NETF_NBPA bits).  The value to be pushed onto the stack is chosen
-     as follows.
-
-     'NETF_PUSHLIT'
-          Use the next short word of the filter as the value.
-
-     'NETF_PUSHZERO'
-          Use 0 as the value.
-
-     'NETF_PUSHWORD+N'
-          Use short word N of the "data" portion of the message as the
-          value.
-
-     'NETF_PUSHHDR+N'
-          Use short word N of the "header" portion of the message as the
-          value.
-
-     'NETF_PUSHIND+N'
-          Pops the top long word from the stack and then uses short word
-          N of the "data" portion of the message as the value.
-
-     'NETF_PUSHHDRIND+N'
-          Pops the top long word from the stack and then uses short word
-          N of the "header" portion of the message as the value.
-
-     'NETF_PUSHSTK+N'
-          Use long word N of the stack (where the top of stack is long
-          word 0) as the value.
-
-     'NETF_NOPUSH'
-          Don't push a value.
-
-     The unsigned value so chosen is promoted to a long word before
-     being pushed.  Once a value is pushed (except for the case of
-     'NETF_NOPUSH'), the top two long words of the stack are popped and
-     a binary operator applied to them (with the old top of stack as the
-     second operand).  The result of the operator is pushed on the
-     stack.  These operators are:
-
-     'NETF_NOP'
-          Don't pop off any values and do no operation.
-
-     'NETF_EQ'
-          Perform an equal comparison.
-
-     'NETF_LT'
-          Perform a less than comparison.
-
-     'NETF_LE'
-          Perform a less than or equal comparison.
-
-     'NETF_GT'
-          Perform a greater than comparison.
-
-     'NETF_GE'
-          Perform a greater than or equal comparison.
-
-     'NETF_AND'
-          Perform a bitise boolean AND operation.
-
-     'NETF_OR'
-          Perform a bitise boolean inclusive OR operation.
-
-     'NETF_XOR'
-          Perform a bitise boolean exclusive OR operation.
-
-     'NETF_NEQ'
-          Perform a not equal comparison.
-
-     'NETF_LSH'
-          Perform a left shift operation.
-
-     'NETF_RSH'
-          Perform a right shift operation.
-
-     'NETF_ADD'
-          Perform an addition.
-
-     'NETF_SUB'
-          Perform a subtraction.
-
-     'NETF_COR'
-          Perform an equal comparison.  If the comparison is 'TRUE',
-          terminate the filter list.  Otherwise, pop the result of the
-          comparison off the stack.
-
-     'NETF_CAND'
-          Perform an equal comparison.  If the comparison is 'FALSE',
-          terminate the filter list.  Otherwise, pop the result of the
-          comparison off the stack.
-
-     'NETF_CNOR'
-          Perform a not equal comparison.  If the comparison is 'FALSE',
-          terminate the filter list.  Otherwise, pop the result of the
-          comparison off the stack.
-
-     'NETF_CNAND'
-          Perform a not equal comparison.  If the comparison is 'TRUE',
-          terminate the filter list.  Otherwise, pop the result of the
-          comparison off the stack.  The scan of the filter list
-          terminates when the filter list is emptied, or a 'NETF_C...'
-          operation terminates the list.  At this time, if the final
-          value of the top of the stack is 'TRUE', then the message is
-          accepted for the filter.
-
-     The function returns 'D_SUCCESS' if some data was successfully
-     written, 'D_INVALID_OPERATION' if RECEIVE_PORT is not a valid send
-     right, and 'D_NO_SUCH_DEVICE' if DEVICE does not denote a device
-     port or the device is dead or not completely open.
 
 
 File: mach.info,  Node: Kernel Debugger,  Next: Copying,  Prev: Device Interface,  Up: Top
@@ -1746,7 +1585,7 @@ Function and Data Index
 * memory_object_change_attributes:       Memory Object Attributes.
                                                               (line  26)
 * memory_object_change_completed:        Memory Object Attributes.
-                                                              (line  64)
+                                                              (line  66)
 * memory_object_copy:                    Memory Objects and Data.
                                                               (line 209)
 * memory_object_create:                  Default Memory Manager.
@@ -1755,8 +1594,6 @@ Function and Data Index
                                                               (line 159)
 * memory_object_data_initialize:         Default Memory Manager.
                                                               (line  73)
-* memory_object_data_provided:           Memory Objects and Data.
-                                                              (line 298)
 * memory_object_data_request:            Memory Objects and Data.
                                                               (line  47)
 * memory_object_data_return:             Memory Objects and Data.
@@ -1767,8 +1604,6 @@ Function and Data Index
                                                               (line 179)
 * memory_object_data_unlock:             Memory Object Locking.
                                                               (line  83)
-* memory_object_data_write:              Memory Objects and Data.
-                                                              (line 266)
 * memory_object_default_server:          Memory Object Server.
                                                               (line   8)
 * memory_object_destroy:                 Memory Object Termination.
@@ -1785,8 +1620,6 @@ Function and Data Index
                                                               (line  55)
 * memory_object_server:                  Memory Object Server.
                                                               (line   6)
-* memory_object_set_attributes:          Memory Object Attributes.
-                                                              (line  81)
 * memory_object_supply_completed:        Memory Objects and Data.
                                                               (line 125)
 * memory_object_terminate:               Memory Object Termination.
@@ -1823,7 +1656,7 @@ Function and Data Index
 * sampled_pc_flavor_t:                   Profiling.           (line  69)
 * sampled_pc_t:                          Profiling.           (line  54)
 * seqnos_memory_object_change_completed: Memory Object Attributes.
-                                                              (line  67)
+                                                              (line  69)
 * seqnos_memory_object_copy:             Memory Objects and Data.
                                                               (line 217)
 * seqnos_memory_object_create:           Default Memory Manager.
@@ -1836,8 +1669,6 @@ Function and Data Index
                                                               (line  13)
 * seqnos_memory_object_data_unlock:      Memory Object Locking.
                                                               (line  89)
-* seqnos_memory_object_data_write:       Memory Objects and Data.
-                                                              (line 272)
 * seqnos_memory_object_default_server:   Memory Object Server.
                                                               (line  14)
 * seqnos_memory_object_init:             Memory Object Creation.

@@ -35,7 +35,7 @@
 #define __init
 
 #define boot_memmove    memmove
-#define boot_panic      panic
+#define boot_panic(s)   panic("%s", s)
 #define boot_strlen     strlen
 
 #define BOOT_CGAMEM     phystokv(0xb8000)
@@ -216,7 +216,7 @@ biosmem_unregister_boot_data(phys_addr_t start, phys_addr_t end)
     unsigned int i;
 
     if (start >= end) {
-        panic(biosmem_panic_inval_boot_data);
+        panic("%s", biosmem_panic_inval_boot_data);
     }
 
     assert(biosmem_nr_boot_data != 0);
@@ -800,8 +800,6 @@ biosmem_directmap_end(void)
         return biosmem_segment_end(VM_PAGE_SEG_DMA);
 }
 
-#if DEBUG
-
 static const char * __init
 biosmem_type_desc(unsigned int type)
 {
@@ -835,14 +833,12 @@ biosmem_map_show(void)
                entry->base_addr + entry->length,
                biosmem_type_desc(entry->type));
 
+#if DEBUG
     printf("biosmem: heap: %llx:%llx\n",
            (unsigned long long)biosmem_heap_start,
            (unsigned long long)biosmem_heap_end);
+#endif
 }
-
-#else /* DEBUG */
-#define biosmem_map_show()
-#endif /* DEBUG */
 
 static void __init
 biosmem_load_segment(struct biosmem_segment *seg, uint64_t max_phys_end)
