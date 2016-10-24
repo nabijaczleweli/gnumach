@@ -41,7 +41,8 @@ D_XEN_DBG := $(D)-xen-dbg
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
-CFLAGS = -Wall -g -pipe -fno-strict-aliasing
+CFLAGS = -Wall -g -pipe -fno-strict-aliasing -no-pie
+LDFLAGS = -no-pie
 
 ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
@@ -86,6 +87,7 @@ build/config.status: configure
 	-mkdir build
 	cd build && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-486 ../configure $(drivers) \
 		CFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" \
 		$(common_configure)
 
 build-xen/config.status: configure
@@ -94,6 +96,7 @@ build-xen/config.status: configure
 	-mkdir build-xen
 	cd build-xen && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-xen-486 ../configure \
 		CFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" \
 		$(common_configure) \
 		--enable-platform=xen
 
@@ -102,6 +105,8 @@ build-dbg/config.status: configure
 	
 	-mkdir build-dbg
 	cd build-dbg && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-486-dbg ../configure --enable-kdb $(drivers) \
+		CFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" \
 		$(common_configure) \
 
 build-xen-dbg/config.status: configure
@@ -109,6 +114,8 @@ build-xen-dbg/config.status: configure
 	
 	-mkdir build-xen-dbg
 	cd build-xen-dbg && PACKAGE_VERSION_SUFFIX=$(CUSTOM)-xen-486-dbg ../configure --enable-kdb \
+		CFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" \
 		$(common_configure) \
 		--enable-platform=xen
 
