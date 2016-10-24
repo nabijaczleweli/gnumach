@@ -3,3 +3,4 @@
 20_FP_NO.patch
 50_initrd.patch
 70_dde.patch
+git-LDFLAGS

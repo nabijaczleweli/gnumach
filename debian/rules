@@ -41,7 +41,7 @@ D_XEN_DBG := $(D)-xen-dbg
 DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_TYPE := $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
-CFLAGS = -Wall -g -pipe -fno-strict-aliasing -no-pie
+CFLAGS = -Wall -g -pipe -fno-strict-aliasing -no-pie -fno-PIE -fno-pie
 LDFLAGS = -no-pie
 
 ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
