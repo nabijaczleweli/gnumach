@@ -4,3 +4,4 @@
 50_initrd.patch
 70_dde.patch
 git-LDFLAGS
+git-unregister-boot-data.patch
