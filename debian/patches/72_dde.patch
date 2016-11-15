@@ -1,0 +1,18 @@
+commit 89d914869bb0802d6148fdb4c2bac83ec1fe15c0
+Author: Richard Braun <rbraun@sceen.net>
+Date:   Tue Nov 8 17:36:27 2016 +0100
+
+    Fix experimental_vm_allocate_contiguous to wire down pages early
+
+diff --git a/vm/vm_user.c b/vm/vm_user.c
+index 597d7a3..403c7ee 100644
+--- a/vm/vm_user.c
++++ b/vm/vm_user.c
+@@ -509,6 +509,7 @@ kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr,
+ 		 */
+ 		pages[i].busy = FALSE;
+ 		vm_page_insert(&pages[i], object, vm_page_ptoa(i));
++		vm_page_wire(&pages[i]);
+ 	}
+ 
+ 	vm_page_unlock_queues();
