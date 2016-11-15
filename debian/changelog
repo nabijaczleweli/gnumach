@@ -1,3 +1,9 @@
+gnumach (2:1.7+git20161115-1) UNRELEASED; urgency=medium
+
+  * New upstream snapshot.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 15 Nov 2016 00:23:19 +0000
+
 gnumach (2:1.7+git20161023-2) unstable; urgency=medium
 
   * git-LDFLAGS: New patch to make build system take LDFLAGS into account.

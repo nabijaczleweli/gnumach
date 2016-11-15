@@ -963,7 +963,7 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@	i386/i386at/model_dep.h \
 @HOST_ix86_TRUE@	i386/include/mach/sa/stdarg.h
 
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@am__append_114 =  \
+@HOST_ix86_TRUE@@PLATFORM_at_TRUE@am__append_114 = \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/boothdr.S \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/com.c \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/com.h \
@@ -989,24 +989,8 @@ noinst_PROGRAMS = gnumach.o$(EXEEXT)
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/mem.h \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/pic_isa.c \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/rtc.c \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/rtc.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/acpihalt.c \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/acpihalt.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/acpi.c \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/grub_glue.c \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/err.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/cpu/io.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/cpu/types.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/cpu/time.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/mm.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/acpi.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/symbol.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/misc.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/types.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/time.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/i18n.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/compiler.h \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/grub/glue.h
+@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/rtc.h
+
 
 #
 # `lpr' device support.
@@ -1326,12 +1310,6 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	i386/i386at/kd_mouse.h i386/i386at/kdasm.S \
 	i386/i386at/kdsoft.h i386/i386at/mem.c i386/i386at/mem.h \
 	i386/i386at/pic_isa.c i386/i386at/rtc.c i386/i386at/rtc.h \
-	i386/i386at/acpihalt.c i386/i386at/acpihalt.h \
-	i386/i386at/acpi.c i386/i386at/grub_glue.c i386/grub/err.h \
-	i386/grub/cpu/io.h i386/grub/cpu/types.h i386/grub/cpu/time.h \
-	i386/grub/mm.h i386/grub/acpi.h i386/grub/symbol.h \
-	i386/grub/misc.h i386/grub/types.h i386/grub/time.h \
-	i386/grub/i18n.h i386/grub/compiler.h i386/grub/glue.h \
 	i386/i386at/lpr.c i386/i386at/lpr.h i386/i386/ast.h \
 	i386/i386/ast_check.c i386/i386/ast_types.h i386/i386/cpu.h \
 	i386/i386/cpu_number.h i386/i386/cswitch.S \
@@ -1406,10 +1384,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/kdasm.$(OBJEXT) \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/mem.$(OBJEXT) \
 @HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/pic_isa.$(OBJEXT) \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/rtc.$(OBJEXT) \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/acpihalt.$(OBJEXT) \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/acpi.$(OBJEXT) \
-@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/grub_glue.$(OBJEXT)
+@HOST_ix86_TRUE@@PLATFORM_at_TRUE@	i386/i386at/rtc.$(OBJEXT)
 @HOST_ix86_TRUE@@enable_lpr_TRUE@am__objects_7 =  \
 @HOST_ix86_TRUE@@enable_lpr_TRUE@	i386/i386at/lpr.$(OBJEXT)
 @HOST_ix86_TRUE@am__objects_8 = i386/i386/ast_check.$(OBJEXT) \
@@ -2941,7 +2916,7 @@ web = doc/web
 # program `gnumach.o' that is then later used again as an object file.)
 gnumach_o_SOURCES = 
 # TODO.  ``-u _start''.  System dependent?
-gnumach_o_LINK = $(LD) -u _start -r -o $@
+gnumach_o_LINK = $(LD) $(LDFLAGS) -u _start -r -o $@
 
 # This is the list of routines we decide is OK to steal from the C library.
 clib_routines := htonl htons ntohl ntohs			\
@@ -2950,7 +2925,7 @@ clib_routines := htonl htons ntohl ntohs			\
 		 __ffsdi2					\
 		 _START _start etext _edata end _end # actually ld magic, not libc.
 
-gnumach_LINK = $(LD) $(LINKFLAGS) $(gnumach_LINKFLAGS) -o $@
+gnumach_LINK = $(LD) $(LDFLAGS) $(LINKFLAGS) $(gnumach_LINKFLAGS) -o $@
 gnumach_LDADD = gnumach.o clib-routines.o
 
 #
@@ -3368,12 +3343,6 @@ i386/i386at/mem.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 i386/i386at/pic_isa.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
 i386/i386at/rtc.$(OBJEXT): i386/i386at/$(am__dirstamp) \
-	i386/i386at/$(DEPDIR)/$(am__dirstamp)
-i386/i386at/acpihalt.$(OBJEXT): i386/i386at/$(am__dirstamp) \
-	i386/i386at/$(DEPDIR)/$(am__dirstamp)
-i386/i386at/acpi.$(OBJEXT): i386/i386at/$(am__dirstamp) \
-	i386/i386at/$(DEPDIR)/$(am__dirstamp)
-i386/i386at/grub_glue.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
 i386/i386at/lpr.$(OBJEXT): i386/i386at/$(am__dirstamp) \
 	i386/i386at/$(DEPDIR)/$(am__dirstamp)
@@ -4248,15 +4217,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/strings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/trap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386/$(DEPDIR)/user_ldt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/acpi.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/acpihalt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/autoconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/biosmem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/boothdr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/com.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/conf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/cons_conf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/grub_glue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/immc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/int_init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@i386/i386at/$(DEPDIR)/interrupt.Po@am__quote@
@@ -8103,7 +8069,7 @@ gnumach-undef-bad: gnumach-undef Makefile
 clib-routines.o: gnumach-undef gnumach-undef-bad
 	$(AM_V_at) if test -s gnumach-undef-bad; \
 	then cat gnumach-undef-bad; exit 2; else true; fi
-	$(AM_V_CCLD) $(CCLD) -nostdlib -nostartfiles -r -static \
+	$(AM_V_CCLD) $(CCLD) $(LDFLAGS) -nostdlib -nostartfiles -r -static \
 	  -o $@ `sed 's/^/-Wl,-u,/' < $<` -x c /dev/null -lc -lgcc
 	@if nm $@ | grep __init_cpu_features; \
 	then echo "Please install a 32bit libc without multiarch support (on Debian systems, the libc6-dev:i386 package containing /usr/lib/i386-linux-gnu/libc.a)". ; \

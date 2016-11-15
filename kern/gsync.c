@@ -4,7 +4,7 @@
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either
-   version 3 of the license, or (at your option) any later version.
+   version 2 of the license, or (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -185,19 +185,23 @@ gsync_find_key (const struct list *entries,
 kern_return_t gsync_wait (task_t task, vm_offset_t addr,
   unsigned int lo, unsigned int hi, natural_t msec, int flags)
 {
+  if (unlikely (task != current_task()))
+    /* Not implemented yet.  */
+    return (KERN_FAILURE);
+
   struct gsync_waiter w;
   int bucket = gsync_fill_key (task, addr, flags, &w.key);
 
   if (unlikely (bucket < 0))
     return (KERN_INVALID_ADDRESS);
 
-  struct gsync_hbucket *hbp = gsync_buckets + bucket;
-  simple_lock (&hbp->lock);
-
-  /* Now test that the address is actually valid for the
+  /* Test that the address is actually valid for the
    * given task. Do so with the read-lock held in order
    * to prevent memory deallocations. */
   vm_map_lock_read (task->map);
+
+  struct gsync_hbucket *hbp = gsync_buckets + bucket;
+  simple_lock (&hbp->lock);
 
   if (unlikely (!valid_access_p (task->map, addr, flags)))
     {
@@ -277,6 +281,10 @@ dequeue_waiter (struct list *nodep)
 kern_return_t gsync_wake (task_t task,
   vm_offset_t addr, unsigned int val, int flags)
 {
+  if (unlikely (task != current_task()))
+    /* Not implemented yet.  */
+    return (KERN_FAILURE);
+
   struct gsync_key key;
   int bucket = gsync_fill_key (task, addr, flags, &key);
 
@@ -285,9 +293,9 @@ kern_return_t gsync_wake (task_t task,
 
   kern_return_t ret = KERN_INVALID_ARGUMENT;
 
+  vm_map_lock_read (task->map);
   struct gsync_hbucket *hbp = gsync_buckets + bucket;
   simple_lock (&hbp->lock);
-  vm_map_lock_read (task->map);
 
   if (unlikely (!valid_access_p (task->map, addr, flags)))
     {
@@ -324,6 +332,10 @@ kern_return_t gsync_wake (task_t task,
 kern_return_t gsync_requeue (task_t task, vm_offset_t src,
   vm_offset_t dst, boolean_t wake_one, int flags)
 {
+  if (unlikely (task != current_task()))
+    /* Not implemented yet.  */
+    return (KERN_FAILURE);
+
   struct gsync_key src_k, dst_k;
   int src_bkt = gsync_fill_key (task, src, flags, &src_k);
   int dst_bkt = gsync_fill_key (task, dst, flags, &dst_k);

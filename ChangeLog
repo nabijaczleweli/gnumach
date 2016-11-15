@@ -1,4 +1,94 @@
+2016-11-10  Brent Baccala  <cosine@freesoft.org>
+
+	gsync: Avoid NULL pointer dereference
+	* kern/gsync.c (gsync_wait, gsync_wake, gsync_requeue):
+	Return immediately if task argument is TASK_NULL
+
+2016-11-06  Justus Winter  <justus@gnupg.org>
+
+	Revert "i386: use ACPI to power off the machine"
+	This reverts commit c031b41b783cc99c0bd5aac7d14c1d6e34520397.
+
+	Adding the ACPI parser from GRUB was a mistake as its license
+	conflicts with the one used by the legacy Linux drivers.  Furthermore,
+	adding support for ACPI to the kernel violates the minimality
+	principle.
+
+2016-11-04  Justus Winter  <justus@gnupg.org>
+
+	vm: Print names of maps in the debugger.
+	* vm/vm_map.c (vm_map_print): Print name of the map.
+
+2016-11-01  Justus Winter  <justus@gnupg.org>
+
+	include: Fix new task notifications.
+	Instead of copying the send right, move it.  This fixes a send-right
+	leak.
+
+	* include/mach/task_notify.defs (task_move_t): New type.
+	(mach_notify_new_task): Use the new type.
+
+2016-11-01  Justus Winter  <justus@gnupg.org>
+
+	i386: Use discontiguous page directories when using PAE.
+	Previously, we used contiguous page directories four pages in length
+	when using PAE.  To prevent physical memory fragmentation, we need to
+	use virtual memory for objects spanning multiple pages.  Virtual
+	kernel memory, however, is a scarce commodity.
+
+	* i386/intel/pmap.h (lin2pdenum): Never include the page directory pointer table index.
+	(lin2pdenum_cont): New macro which does include said index.
+	(struct pmap): Remove the directory base pointer when using PAE.
+	* i386/intel/pmap.c (pmap_pde): Fix lookup.
+	(pmap_pte): Fix check for uninitialized pmap.
+	(pmap_bootstrap): Do not store the page directory base if PAE.
+	(pmap_init): Reduce size of page directories to one page, use
+	direct-mapped memory.
+	(pmap_create): Allocate four page directories per pmap.
+	(pmap_destroy): Adapt to the discontinuous directories.
+	(pmap_collect): Likewise.
+	* i386/i386/xen.h (hyp_mmu_update_la): Adapt code manipulating the
+	kernels page directory.
+	* i386/i386at/model_dep.c (i386at_init): Likewise.
+
+2016-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	gsync: fix licence
+	Agustina relicenced her work.
+
+	* kern/gsync.c: Relicence to GPL 2+.
+	* kern/gsync.h: Relicence to GPL 2+.
+
+2016-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	gsync: Fix crash when task is not current task
+	* kern/gsync.c (gsync_wait, gsync_wake, gsync_requeue): Return
+	KERN_FAILURE when task != current_task().
+
+2016-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	gsync: Fix assertion failure with MACH_LDEBUG
+	vm_map_lock_read calls check_simple_locks(), so we need to lock hbp
+	after taking the vm_map read lock.
+
+	* kern/gsync.c (gsync_wait): Call vm_map_lock_read before locking
+	&hbp->lock.
+	(gsync_wake): Likewise.
+
+2016-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make multiboot cmdline and modules non-permanent reservations
+	* i386/i386at/model_dep.c (register_boot_data): For multiboot cmdline,
+	module structure, module data and module strings, set
+	biosmem_register_boot_data temporary parameter to TRUE.
+
 2016-10-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix taking LDFLAGS into account
+	* Makefile.am (clib-routines.o): Add $(LDFLAGS) to link command.
+
+	Fix taking LDFLAGS into account
+	* Makefile.am (gnumach_o_LINK, gnumach_LINK): Add $(LDFLAGS).
 
 	Fix warnings
 	* i386/i386/seg.h (fill_descriptor): Fix format for vm_offset_t.
