@@ -1,6 +1,7 @@
 gnumach (2:1.7+git20161115-1) UNRELEASED; urgency=medium
 
   * New upstream snapshot.
+  * copyright: Add missing licence terms. Closes: Bug#792622.
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 15 Nov 2016 00:23:19 +0000
 

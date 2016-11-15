@@ -54,7 +54,82 @@ Some of these files are licensed under the following terms:
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-On Debian systems, the complete text of the GNU General Public License
-can be found in '/usr/share/common-licenses/GPL-2'.
+linux/pcmcia-cs/include/pcmcia/* are licensed under the following terms:
 
-FIXME: Add MPL/BSD
+    The contents of this file are subject to the Mozilla Public License
+    Version 1.1 (the "License"); you may not use this file except in
+    compliance with the License. You may obtain a copy of the License
+    at http://www.mozilla.org/MPL/
+
+    Software distributed under the License is distributed on an "AS IS"
+    basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+    the License for the specific language governing rights and
+    limitations under the License.
+
+    The initial developer of the original code is David A. Hinds
+    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
+    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
+
+    Alternatively, the contents of this file may be used under the
+    terms of the GNU General Public License version 2 (the "GPL"), in
+    which case the provisions of the GPL are applicable instead of the
+    above.  If you wish to allow the use of your version of this file
+    only under the terms of the GPL and not to allow others to use
+    your version of this file under the MPL, indicate your decision by
+    deleting the provisions above and replace them with the notice and
+    other provisions required by the GPL.  If you do not delete the
+    provisions above, a recipient may use your version of this file
+    under either the MPL or the GPL.
+
+xen/* are licensed under the following terms:
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+    deal in the Software without restriction, including without limitation the
+    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+doc/mach* are licensed under the following terms:
+
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.2 or
+    any later version published by the Free Software Foundation; with no
+    Invariant Section, with no Front-Cover Texts, and with no Back-Cover
+    Texts. A copy of the license is included in the section entitled
+    `GNU Free Documentation License'.
+
+    This work is based on manual pages under the following copyright and license:
+
+    Mach Operating System
+    Copyright @ 1991,1990 Carnegie Mellon University
+    All Rights Reserved.
+
+    Permission to use, copy, modify and distribute this software and its
+    documentation is hereby granted, provided that both the copyright
+    notice and this permission notice appear in all copies of the
+    software, derivative works or modified versions, and any portions
+    thereof, and that both notices appear in supporting documentation.
+
+    CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
+    CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
+    ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
+
+On Debian systems,
+
+- the complete text of the GNU General Public License can be found in
+'/usr/share/common-licenses/GPL-2'.
+
+- the complete text of the GNU Free Documentation License can be found in
+'/usr/share/common-licenses/GFDL-1.2'.
