@@ -72,7 +72,6 @@
 #include <i386at/kd.h>
 #include <i386at/rtc.h>
 #include <i386at/model_dep.h>
-#include <i386at/acpihalt.h>
 #ifdef	MACH_XEN
 #include <xen/console.h>
 #include <xen/store.h>
@@ -245,7 +244,6 @@ void halt_all_cpus(boolean_t reboot)
 #ifdef	MACH_HYP
 	    hyp_halt();
 #endif	/* MACH_HYP */
-	    grub_acpi_halt();
 	    printf("In tight loop: hit ctl-alt-del to reboot\n");
 	    (void) spl0();
 	}
@@ -280,31 +278,31 @@ register_boot_data(const struct multiboot_raw_info *mbi)
 
 	extern char _start[], _end[];
 
-	/* XXX For now, register all boot data as permanent */
-
 	biosmem_register_boot_data(_kvtophys(&_start), _kvtophys(&_end), FALSE);
+
+	/* cmdline and modules are moved to a safe place by i386at_init.  */
 
 	if ((mbi->flags & MULTIBOOT_LOADER_CMDLINE) && (mbi->cmdline != 0)) {
 		biosmem_register_boot_data(mbi->cmdline,
 					   mbi->cmdline
-					   + strlen((void *)phystokv(mbi->cmdline)) + 1, FALSE);
+					   + strlen((void *)phystokv(mbi->cmdline)) + 1, TRUE);
 	}
 
 	if (mbi->flags & MULTIBOOT_LOADER_MODULES) {
 		i = mbi->mods_count * sizeof(struct multiboot_raw_module);
-		biosmem_register_boot_data(mbi->mods_addr, mbi->mods_addr + i, FALSE);
+		biosmem_register_boot_data(mbi->mods_addr, mbi->mods_addr + i, TRUE);
 
 		tmp = phystokv(mbi->mods_addr);
 
 		for (i = 0; i < mbi->mods_count; i++) {
 			mod = (struct multiboot_raw_module *)tmp + i;
-			biosmem_register_boot_data(mod->mod_start, mod->mod_end, FALSE);
+			biosmem_register_boot_data(mod->mod_start, mod->mod_end, TRUE);
 
 			if (mod->string != 0) {
 				biosmem_register_boot_data(mod->string,
 							   mod->string
 							   + strlen((void *)phystokv(mod->string)) + 1,
-							   FALSE);
+							   TRUE);
 			}
 		}
 	}
@@ -364,7 +362,8 @@ i386at_init(void)
 	kernel_cmdline = (char*) boot_info.cmd_line;
 #else	/* MACH_XEN */
 	/* Copy content pointed by boot_info before losing access to it when it
-	 * is too far in physical memory.  */
+	 * is too far in physical memory.
+	 * Also avoids leaving them in precious areas such as DMA memory.  */
 	if (boot_info.flags & MULTIBOOT_CMDLINE) {
 		int len = strlen ((char*)phystokv(boot_info.cmdline)) + 1;
 		if (! init_alloc_aligned(round_page(len), &addr))
@@ -430,14 +429,14 @@ i386at_init(void)
 		delta = (vm_offset_t)(-delta);
 	nb_direct = delta >> PDESHIFT;
 	for (i = 0; i < nb_direct; i++)
-		kernel_page_dir[lin2pdenum(INIT_VM_MIN_KERNEL_ADDRESS) + i] =
-			kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS) + i];
+		kernel_page_dir[lin2pdenum_cont(INIT_VM_MIN_KERNEL_ADDRESS) + i] =
+			kernel_page_dir[lin2pdenum_cont(LINEAR_MIN_KERNEL_ADDRESS) + i];
 #endif
 	/* We need BIOS memory mapped at 0xc0000 & co for Linux drivers */
 #ifdef LINUX_DEV
 #if VM_MIN_KERNEL_ADDRESS != 0
-	kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
-		kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS)];
+	kernel_page_dir[lin2pdenum_cont(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
+		kernel_page_dir[lin2pdenum_cont(LINEAR_MIN_KERNEL_ADDRESS)];
 #endif
 #endif
 
@@ -489,21 +488,21 @@ i386at_init(void)
 	for (i = 0 ; i < nb_direct; i++) {
 #ifdef	MACH_XEN
 #ifdef	MACH_PSEUDO_PHYS
-		if (!hyp_mmu_update_pte(kv_to_ma(&kernel_page_dir[lin2pdenum(VM_MIN_KERNEL_ADDRESS) + i]), 0))
+		if (!hyp_mmu_update_pte(kv_to_ma(&kernel_page_dir[lin2pdenum_cont(VM_MIN_KERNEL_ADDRESS) + i]), 0))
 #else	/* MACH_PSEUDO_PHYS */
 		if (hyp_do_update_va_mapping(VM_MIN_KERNEL_ADDRESS + i * INTEL_PGBYTES, 0, UVMF_INVLPG | UVMF_ALL))
 #endif	/* MACH_PSEUDO_PHYS */
 			printf("couldn't unmap frame %d\n", i);
 #else	/* MACH_XEN */
-		kernel_page_dir[lin2pdenum(INIT_VM_MIN_KERNEL_ADDRESS) + i] = 0;
+		kernel_page_dir[lin2pdenum_cont(INIT_VM_MIN_KERNEL_ADDRESS) + i] = 0;
 #endif	/* MACH_XEN */
 	}
 #endif
 	/* Keep BIOS memory mapped */
 #ifdef LINUX_DEV
 #if VM_MIN_KERNEL_ADDRESS != 0
-	kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
-		kernel_page_dir[lin2pdenum(LINEAR_MIN_KERNEL_ADDRESS)];
+	kernel_page_dir[lin2pdenum_cont(LINEAR_MIN_KERNEL_ADDRESS - VM_MIN_KERNEL_ADDRESS)] =
+		kernel_page_dir[lin2pdenum_cont(LINEAR_MIN_KERNEL_ADDRESS)];
 #endif
 #endif
 
