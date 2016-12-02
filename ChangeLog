@@ -1,3 +1,82 @@
+2032-05-12  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout throttling to external pagers
+	Since the VM system has been tracking whether pages belong to internal
+	or external objects, pageout throttling to external pagers has simply
+	not been working. The reason is that, on pageout, requests for external
+	pages are correctly tracked, but on page release (which is used to
+	acknowledge the request), external pages are not marked external
+	any more. This is because the external bit tracks whether a page
+	belongs to an external object, and all pages, including external
+	ones, are moved to an internal object during pageout.
+
+	To solve this issue, a new "external_laundry" bit is added. It has
+	the same purpose as the laundry bit, but for external pagers.
+
+	* vm/vm_page.c (vm_page_seg_min_page_available): Function unused, remove.
+	(vm_page_seg_evict): Use vm_page_external_laundry_count instead of
+	vm_page_external_pagedout. Add an assertion about double paging.
+	(vm_page_check_usable): Use vm_page_external_laundry_count instead of
+	vm_page_external_pagedout.
+	(vm_page_evict): Likewise.
+	* vm/vm_page.h (struct vm_page): New `external_laundry' member.
+	(vm_page_external_pagedout): Rename to ...
+	(vm_page_external_laundry_count): ... this.
+	* vm/vm_pageout.c: Include kern/printf.h.
+	(DEBUG): New macro.
+	(VM_PAGEOUT_TIMEOUT): Likewise.
+	(vm_pageout_setup): Use vm_page_external_laundry_count instead of
+	vm_page_external_pagedout. Set `external_laundry' where appropriate.
+	(vm_pageout): Use VM_PAGEOUT_TIMEOUT with thread_set_timeout.
+	Add debugging code, commented out by default.
+	* vm/vm_resident.c (vm_page_external_pagedout): Rename to ...
+	(vm_page_external_laundry_count): ... this.
+	(vm_page_init_template): Set `external_laundry' member to FALSE.
+	(vm_page_release): Rename external parameter to external_laundry.
+	Slightly change pageout resuming.
+	(vm_page_free): Rename external variable to external_laundry.
+
+2016-11-30  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout on low memory
+	Instead of determining if memory is low, directly use the
+	vm_page_alloc_paused variable, which is true when memory has reached
+	a minimum threshold until it gets back above the high thresholds.
+
+	This makes sure double paging is used when external pagers are unable
+	to allocate memory.
+
+	* vm/vm_page.c (vm_page_seg_evict): Rename low_memory to alloc_paused.
+	(vm_page_evict_once): Remove low_memory and its computation. Blindly
+	pass the new alloc_paused argument instead.
+	(vm_page_evict): Pass the value of vm_page_alloc_paused to
+	vm_page_evict_once.
+
+2016-11-30  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix eviction logic error
+	* vm/vm_page.c (vm_page_evict): Test both vm_page_external_pagedout
+	and vm_page_laundry_count in order to determine there was "no pageout".
+
+2016-11-30  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout stop condition
+	When checking whether to continue paging out or not, the pageout daemon
+	only considers the high free page threshold of a segment. But if e.g.
+	the default pager had to allocate reserved pages during a previous
+	pageout cycle, it could have exhausted a segment (this is currently
+	only seen with the DMA segment). In that case, the high threshold
+	cannot be reached because the segment has currently no pageable page.
+
+	This change makes the pageout daemon identify this condition and
+	consider the segment as usable in order to make progress. The segment
+	will simply be ignored on the allocation path for unprivileged threads,
+	and if this happens with too many segments, the system will fail at
+	allocation time.
+
+	* vm/vm_page.c (vm_page_seg_usable): Report usable if the segment has
+	no pageable page.
+
 2016-11-10  Brent Baccala  <cosine@freesoft.org>
 
 	gsync: Avoid NULL pointer dereference
