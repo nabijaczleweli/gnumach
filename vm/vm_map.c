@@ -744,7 +744,7 @@ restart:
 	return entry;
 
 error:
-	printf("no more room in %p (%s)\n", map, map->name);
+	printf("no more room in %p (%s) for allocating %u\n", map, map->name, size);
 	return NULL;
 }
 
