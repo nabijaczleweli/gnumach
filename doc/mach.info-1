@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 6.3 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 16 October 2016, of 'The GNU
-Mach Reference Manual', for version 1.7+git20161202.
+   This is edition 0.4, last updated on 14 December 2016, of 'The GNU
+Mach Reference Manual', for version 1.8.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 16 October 2016, of 'The GNU
-Mach Reference Manual', for version 1.7+git20161202.
+   This is edition 0.4, last updated on 14 December 2016, of 'The GNU
+Mach Reference Manual', for version 1.8.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -3237,10 +3237,8 @@ File: mach.info,  Node: Memory Attributes,  Next: Mapping Memory Objects,  Prev:
      'KERN_INVALID_HOST' if HOST was not a valid host port,
      'KERN_INVALID_TASK' if TASK was not a valid task,
      'KERN_INVALID_VALUE' if ACCESS specified an invalid access mode,
-     'KERN_FAILURE' if some memory in the specified range is not present
-     or has an inappropriate protection value, and
-     'KERN_INVALID_ARGUMENT' if unwiring (ACCESS is 'VM_PROT_NONE') and
-     the memory is not already wired.
+     and 'KERN_NO_SPACE' if some memory in the specified range is not
+     present or has an inappropriate protection value.
 
      The 'vm_wire' call is actually an RPC to HOST, normally a send
      right for a privileged host port, but potentially any send right.

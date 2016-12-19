@@ -1,3 +1,27 @@
+2016-12-18  Thomas Schwinge  <thomas@codesourcery.com>
+
+	GNU Mach 1.8
+	* version.m4 (AC_PACKAGE_VERSION): Set to 1.8.
+	* NEWS: Finalize for 1.8.
+
+2016-12-11  Richard Braun  <rbraun@sceen.net>
+
+	VM: make vm_wire more POSIX-friendly
+	* doc/mach.texi: Update return codes.
+	* vm/vm_map.c (vm_map_pageable_common): Return KERN_NO_SPACE instead
+	of KERN_FAILURE if some of the specified address range does not
+	correspond to mapped pages. Skip unwired entries instead of failing
+	when unwiring.
+
+2016-12-09  Justus Winter  <justus@gnupg.org>
+
+	Update the NEWS file
+
+2016-12-09  Richard Braun  <rbraun@sceen.net>
+
+	rbtree: minor change
+	* kern/rbtree.h (rbtree_for_each_remove): Remove trailing slash.
+
 2032-05-12  Richard Braun  <rbraun@sceen.net>
 
 	VM: fix pageout throttling to external pagers
