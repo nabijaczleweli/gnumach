@@ -1,0 +1,368 @@
+For now DDE is not committed into the main upstream branch, so this is still
+marked experimental.
+
+This is the output of
+
+git diff master-user_level_drivers master-user_level_drivers-debian
+
+diff --git a/Makefrag.am b/Makefrag.am
+index 0b4b7c51..a44b1a65 100644
+--- a/Makefrag.am
++++ b/Makefrag.am
+@@ -224,6 +224,7 @@ EXTRA_DIST += \
+ 	kern/mach.srv \
+ 	kern/mach4.srv \
+ 	kern/gnumach.srv \
++	kern/experimental.srv \
+ 	kern/mach_debug.srv \
+ 	kern/mach_host.srv \
+ 	kern/task_notify.cli
+@@ -355,10 +356,9 @@ include_device_HEADERS = \
+ 	include/device/device_reply.defs \
+ 	include/device/device_request.defs \
+ 	include/device/device_types.defs \
+-	include/device/intr.defs \
+-	include/device/intr.h \
+ 	include/device/device_types.h \
+ 	include/device/disk_status.h \
++	include/device/intr.h \
+ 	include/device/net_status.h \
+ 	include/device/tape_status.h \
+ 	include/device/tty_status.h
+@@ -381,6 +381,7 @@ include_mach_HEADERS = \
+ 	include/mach/memory_object_default.defs \
+ 	include/mach/notify.defs \
+ 	include/mach/std_types.defs \
++	include/mach/experimental.defs \
+ 	include/mach/alert.h \
+ 	include/mach/boolean.h \
+ 	include/mach/boot.h \
+@@ -530,6 +531,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
+ 	kern/mach.server.defs.c \
+ 	kern/mach4.server.defs.c \
+ 	kern/gnumach.server.defs.c \
++	kern/experimental.server.defs.c \
+ 	kern/mach_debug.server.defs.c \
+ 	kern/mach_host.server.defs.c
+ nodist_libkernel_a_SOURCES += \
+@@ -542,6 +544,9 @@ nodist_libkernel_a_SOURCES += \
+ 	kern/gnumach.server.h \
+ 	kern/gnumach.server.c \
+ 	kern/gnumach.server.msgids \
++	kern/experimental.server.h \
++	kern/experimental.server.c \
++	kern/experimental.server.msgids \
+ 	kern/mach_debug.server.h \
+ 	kern/mach_debug.server.c \
+ 	kern/mach_debug.server.msgids \
+@@ -551,6 +556,7 @@ nodist_libkernel_a_SOURCES += \
+ #	kern/mach.server.defs
+ #	kern/mach4.server.defs
+ #	kern/gnumach.server.defs
++#	kern/experimental.server.defs
+ #	kern/mach_debug.server.defs
+ #	kern/mach_host.server.defs
+ 
+diff --git a/device/ds_routines.c b/device/ds_routines.c
+index 06fe4e96..c1cb9d43 100644
+--- a/device/ds_routines.c
++++ b/device/ds_routines.c
+@@ -319,7 +319,7 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
+ }
+ 
+ io_return_t
+-ds_device_intr_register (ipc_port_t master_port, int line,
++experimental_device_intr_register (ipc_port_t master_port, int line,
+ 		       int id, int flags, ipc_port_t receive_port)
+ {
+ #ifdef MACH_XEN
+@@ -1836,7 +1836,7 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
+ }
+ 
+ kern_return_t
+-ds_device_intr_enable(ipc_port_t master_port, int line, char status)
++experimental_device_intr_enable(ipc_port_t master_port, int line, char status)
+ {
+ #ifdef MACH_XEN
+   return D_INVALID_OPERATION;
+diff --git a/include/device/device.defs b/include/device/device.defs
+index dca1be4e..409146f5 100644
+--- a/include/device/device.defs
++++ b/include/device/device.defs
+@@ -142,23 +142,3 @@ routine device_set_filter(
+ 	in	filter		: filter_array_t
+ 	);
+ 
+-routine device_intr_register(
+-		master_port	: mach_port_t;
+-	in	line		: int;
+-	in	id		: int;
+-	in	flags		: int;
+-	in	receive_port	: mach_port_send_t
+-	);
+-
+-/*
+- *	enable/disable the specified line.
+- */
+-/* XXX: Naming a function taht can disable something "xxx_enable" is confusing. */
+-/* Is the disable part actually used at all? AIUI, the kernel IRQ handler
+-should always disable the line; and the userspace driver only has to
+-reenable it, after acknowledging and handling the interrupt...
+-*/
+-routine device_intr_enable(
+-		master_port	: mach_port_t;
+-		line		: int;
+-		status		: char);
+diff --git a/include/device/intr.defs b/include/device/intr.defs
+deleted file mode 100644
+index 368b96c6..00000000
+--- a/include/device/intr.defs
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/* 
+- * Mach Operating System
+- * Copyright (c) 1991,1990,1989 Carnegie Mellon University
+- * All Rights Reserved.
+- * 
+- * Permission to use, copy, modify and distribute this software and its
+- * documentation is hereby granted, provided that both the copyright
+- * notice and this permission notice appear in all copies of the
+- * software, derivative works or modified versions, and any portions
+- * thereof, and that both notices appear in supporting documentation.
+- * 
+- * CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
+- * CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
+- * ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
+- * 
+- * Carnegie Mellon requests users of this software to return to
+- * 
+- *  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
+- *  School of Computer Science
+- *  Carnegie Mellon University
+- *  Pittsburgh PA 15213-3890
+- * 
+- * any improvements or extensions that they make and grant Carnegie Mellon
+- * the rights to redistribute these changes.
+- */
+-
+-subsystem notify 100;
+-
+-#include <mach/std_types.defs>
+-
+-serverprefix do_;
+-serverdemux intr_notify_server;
+-
+-simpleroutine mach_intr_notify(
+-		notify	: notify_port_t;
+-		name	: int);
+diff --git a/include/device/intr.h b/include/device/intr.h
+index 3c0e1b8c..a02b64c9 100644
+--- a/include/device/intr.h
++++ b/include/device/intr.h
+@@ -12,6 +12,6 @@ typedef struct
+ } mach_intr_notification_t;
+ 
+ #define INTR_NOTIFY_MSGH_SEQNO 0
+-#define MACH_INTR_NOTIFY 100
++#define MACH_INTR_NOTIFY 424242
+ 
+ #endif
+diff --git a/include/mach/experimental.defs b/include/mach/experimental.defs
+new file mode 100644
+index 00000000..ca1eb922
+--- /dev/null
++++ b/include/mach/experimental.defs
+@@ -0,0 +1,100 @@
++/* 
++ * Mach Operating System
++ * Copyright (c) 1991,1990,1989 Carnegie Mellon University
++ * All Rights Reserved.
++ * 
++ * Permission to use, copy, modify and distribute this software and its
++ * documentation is hereby granted, provided that both the copyright
++ * notice and this permission notice appear in all copies of the
++ * software, derivative works or modified versions, and any portions
++ * thereof, and that both notices appear in supporting documentation.
++ * 
++ * CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
++ * CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
++ * ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
++ * 
++ * Carnegie Mellon requests users of this software to return to
++ * 
++ *  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
++ *  School of Computer Science
++ *  Carnegie Mellon University
++ *  Pittsburgh PA 15213-3890
++ * 
++ * any improvements or extensions that they make and grant Carnegie Mellon
++ * the rights to redistribute these changes.
++ */
++
++subsystem
++#if	KERNEL_USER
++	  KernelUser
++#endif	/* KERNEL_USER */
++#if	KERNEL_SERVER
++	  KernelServer
++#endif	/* KERNEL_SERVER */
++		experimental 424242;
++
++#include <mach/std_types.defs>
++#include <mach/mach_types.defs>
++
++serverprefix experimental_;
++
++type notify_port_t = MACH_MSG_TYPE_MOVE_SEND_ONCE
++	ctype: mach_port_t;
++
++skip; /*simpleroutine mach_intr_notify(
++		notify	: notify_port_t;
++		name	: int);*/
++
++routine device_intr_register(
++		master_port	: mach_port_t;
++	in	line		: int;
++	in	id		: int;
++	in	flags		: int;
++	in	receive_port	: mach_port_send_t
++	);
++
++/*
++ *	enable/disable the specified line.
++ */
++/* XXX: Naming a function taht can disable something "xxx_enable" is confusing. */
++/* Is the disable part actually used at all? AIUI, the kernel IRQ handler
++should always disable the line; and the userspace driver only has to
++reenable it, after acknowledging and handling the interrupt...
++*/
++routine device_intr_enable(
++		master_port	: mach_port_t;
++		line		: int;
++		status		: char);
++
++/*
++ *	This routine is created for allocating DMA buffers.
++ *	We are going to get a contiguous physical memory
++ *	and its physical address in addition to the virtual address.
++ */
++
++ /* XXX
++ This RPC lacks a few additional constraints like boundaries, alignment
++and maybe phase. We may not use them now, but they're important for
++portability (e.g. if GNU Mach supports PAE, drivers that can't use
++physical memory beyond the 4 GiB limit must be able to express it).
++
++> What do you mean by "phase"?
++
++Offset from the alignment. But I don't think it's useful at all in this
++case. Minimum and maximum addresses and alignment should do. Maybe
++boundary crossing but usually, specifying the right alignment and size
++is enough.
++
++For upstream
++inclusion, we need to do it properly: the RPC should return a special
++memory object (similar to device_map() ), which can then be mapped into
++the process address space with vm_map() like any other memory object.
++
++phys_address_t?
++ */
++routine vm_allocate_contiguous(
++		host_priv	: host_priv_t;
++		target_task	: vm_task_t;
++	out	vaddr		: vm_address_t;
++	out	paddr		: vm_address_t;
++		size		: vm_size_t);
+diff --git a/include/mach/mach.defs b/include/mach/mach.defs
+index 77cc7d49..c6ad0770 100644
+--- a/include/mach/mach.defs
++++ b/include/mach/mach.defs
+@@ -720,38 +720,5 @@ skip;	/* old host_fpa_counters_reset */
+ #endif	/* ! KERNEL_USER */
+ 
+ /*
+- *	This routine is created for allocating DMA buffers.
+- *	We are going to get a contiguous physical memory
+- *	and its physical address in addition to the virtual address.
+- */
+-
+- /* XXX
+- This RPC lacks a few additional constraints like boundaries, alignment
+-and maybe phase. We may not use them now, but they're important for
+-portability (e.g. if GNU Mach supports PAE, drivers that can't use
+-physical memory beyond the 4 GiB limit must be able to express it).
+-
+-> What do you mean by "phase"?
+-
+-Offset from the alignment. But I don't think it's useful at all in this
+-case. Minimum and maximum addresses and alignment should do. Maybe
+-boundary crossing but usually, specifying the right alignment and size
+-is enough.
+-
+-For upstream
+-inclusion, we need to do it properly: the RPC should return a special
+-memory object (similar to device_map() ), which can then be mapped into
+-the process address space with vm_map() like any other memory object.
+-
+-phys_address_t?
+- */
+-routine vm_allocate_contiguous(
+-		host_priv	: host_priv_t;
+-		target_task	: vm_task_t;
+-	out	vaddr		: vm_address_t;
+-	out	paddr		: vm_address_t;
+-		size		: vm_size_t);
+-
+-/*
+  *	There is no more room in this interface for additional calls.
+  */
+diff --git a/kern/experimental.srv b/kern/experimental.srv
+new file mode 100644
+index 00000000..2ccfd783
+--- /dev/null
++++ b/kern/experimental.srv
+@@ -0,0 +1,3 @@
++#define KERNEL_SERVER 1
++
++#include <mach/experimental.defs>
+diff --git a/kern/ipc_kobject.c b/kern/ipc_kobject.c
+index 709ec9ec..c65458ba 100644
+--- a/kern/ipc_kobject.c
++++ b/kern/ipc_kobject.c
+@@ -56,6 +56,7 @@
+ #include <device/device_pager.server.h>
+ #include <kern/mach4.server.h>
+ #include <kern/gnumach.server.h>
++#include <kern/experimental.server.h>
+ 
+ #if MACH_DEBUG
+ #include <kern/mach_debug.server.h>
+@@ -159,6 +160,7 @@ ipc_kobject_server(request)
+ 	 * to perform the kernel function
+ 	 */
+     {
++	extern mig_routine_t	experimental_server_routine();
+ 	check_simple_locks();
+ 	if ((routine = mach_server_routine(&request->ikm_header)) != 0
+ 	 || (routine = mach_port_server_routine(&request->ikm_header)) != 0
+@@ -170,6 +172,7 @@ ipc_kobject_server(request)
+ #endif	/* MACH_DEBUG */
+ 	 || (routine = mach4_server_routine(&request->ikm_header)) != 0
+ 	 || (routine = gnumach_server_routine(&request->ikm_header)) != 0
++	 || (routine = experimental_server_routine(&request->ikm_header)) != 0
+ #if	MACH_MACHINE_ROUTINES
+ 	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0
+ #endif	/* MACH_MACHINE_ROUTINES */
+diff --git a/vm/vm_user.c b/vm/vm_user.c
+index 24c4c64b..d29bbb23 100644
+--- a/vm/vm_user.c
++++ b/vm/vm_user.c
+@@ -480,7 +480,7 @@ kern_return_t vm_wire_all(const ipc_port_t port, vm_map_t map, vm_wire_t flags)
+ 	return vm_map_pageable_all(map, flags);
+ }
+ 
+-kern_return_t vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
++kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
+ 	host_t			host_priv;
+ 	vm_map_t		map;
+ 	vm_address_t		*result_vaddr;

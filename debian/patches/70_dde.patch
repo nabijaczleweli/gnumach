@@ -2,19 +2,15 @@ TODO: This needs to be cleaned to be pushed upstream. Notably, userland
 shouldn't be able to mask a kernel IRQ. Instead, device_intr_enable() should
 just disable/enable IRQ delivery to userland.
 
-Index: gnumach/Makefrag.am
-===================================================================
---- gnumach.orig/Makefrag.am
-+++ gnumach/Makefrag.am
-@@ -220,6 +220,7 @@ EXTRA_DIST += \
- 	kern/mach.srv \
- 	kern/mach4.srv \
- 	kern/gnumach.srv \
-+	kern/experimental.srv \
- 	kern/mach_debug.srv \
- 	kern/mach_host.srv \
- 	kern/task_notify.cli
-@@ -303,6 +304,7 @@ libkernel_a_SOURCES += \
+This is the output of
+
+git diff master master-user_level_drivers
+
+diff --git a/Makefrag.am b/Makefrag.am
+index c16f1c72..0b4b7c51 100644
+--- a/Makefrag.am
++++ b/Makefrag.am
+@@ -308,6 +308,7 @@ libkernel_a_SOURCES += \
  	device/device_types_kernel.h \
  	device/ds_routines.c \
  	device/ds_routines.h \
@@ -22,58 +18,25 @@ Index: gnumach/Makefrag.am
  	device/if_ether.h \
  	device/if_hdr.h \
  	device/io_req.h \
-@@ -353,6 +355,7 @@ include_device_HEADERS = \
+@@ -354,6 +355,8 @@ include_device_HEADERS = \
+ 	include/device/device_reply.defs \
+ 	include/device/device_request.defs \
  	include/device/device_types.defs \
++	include/device/intr.defs \
++	include/device/intr.h \
  	include/device/device_types.h \
  	include/device/disk_status.h \
-+	include/device/intr.h \
  	include/device/net_status.h \
- 	include/device/tape_status.h \
- 	include/device/tty_status.h
-@@ -375,6 +378,7 @@ include_mach_HEADERS = \
- 	include/mach/memory_object_default.defs \
- 	include/mach/notify.defs \
- 	include/mach/std_types.defs \
-+	include/mach/experimental.defs \
- 	include/mach/alert.h \
- 	include/mach/boolean.h \
- 	include/mach/boot.h \
-@@ -523,6 +527,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
- 	kern/mach.server.defs.c \
- 	kern/mach4.server.defs.c \
- 	kern/gnumach.server.defs.c \
-+	kern/experimental.server.defs.c \
- 	kern/mach_debug.server.defs.c \
- 	kern/mach_host.server.defs.c
- nodist_libkernel_a_SOURCES += \
-@@ -535,6 +540,9 @@ nodist_libkernel_a_SOURCES += \
- 	kern/gnumach.server.h \
- 	kern/gnumach.server.c \
- 	kern/gnumach.server.msgids \
-+	kern/experimental.server.h \
-+	kern/experimental.server.c \
-+	kern/experimental.server.msgids \
- 	kern/mach_debug.server.h \
- 	kern/mach_debug.server.c \
- 	kern/mach_debug.server.msgids \
-@@ -544,6 +552,7 @@ nodist_libkernel_a_SOURCES += \
- #	kern/mach.server.defs
- #	kern/mach4.server.defs
- #	kern/gnumach.server.defs
-+#	kern/experimental.server.defs
- #	kern/mach_debug.server.defs
- #	kern/mach_host.server.defs
- 
-Index: gnumach/device/ds_routines.c
-===================================================================
---- gnumach.orig/device/ds_routines.c
-+++ gnumach/device/ds_routines.c
-@@ -318,6 +318,43 @@ ds_device_map (device_t dev, vm_prot_t p
+diff --git a/device/ds_routines.c b/device/ds_routines.c
+index 1fabec3c..06fe4e96 100644
+--- a/device/ds_routines.c
++++ b/device/ds_routines.c
+@@ -318,6 +318,43 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
  				offset, size, pager, unmap);
  }
  
 +io_return_t
-+experimental_device_intr_register (ipc_port_t master_port, int line,
++ds_device_intr_register (ipc_port_t master_port, int line,
 +		       int id, int flags, ipc_port_t receive_port)
 +{
 +#ifdef MACH_XEN
@@ -112,12 +75,12 @@ Index: gnumach/device/ds_routines.c
  boolean_t
  ds_notify (mach_msg_header_t *msg)
  {
-@@ -1798,6 +1835,24 @@ device_writev_trap (mach_device_t device
+@@ -1798,6 +1835,24 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
  	return (result);
  }
  
 +kern_return_t
-+experimental_device_intr_enable(ipc_port_t master_port, int line, char status)
++ds_device_intr_enable(ipc_port_t master_port, int line, char status)
 +{
 +#ifdef MACH_XEN
 +  return D_INVALID_OPERATION;
@@ -137,10 +100,10 @@ Index: gnumach/device/ds_routines.c
  struct device_emulation_ops mach_device_emulation_ops =
  {
    (void*) mach_device_reference,
-Index: gnumach/device/ds_routines.h
-===================================================================
---- gnumach.orig/device/ds_routines.h
-+++ gnumach/device/ds_routines.h
+diff --git a/device/ds_routines.h b/device/ds_routines.h
+index c0543cbc..e9f115fc 100644
+--- a/device/ds_routines.h
++++ b/device/ds_routines.h
 @@ -83,4 +83,7 @@ io_return_t ds_device_writev_trap(
  	io_buf_vec_t 	*iovec,
  	vm_size_t 	count);
@@ -149,10 +112,11 @@ Index: gnumach/device/ds_routines.h
 +extern ipc_port_t intr_rcv_ports[16];
 +
  #endif	/* DS_ROUTINES_H */
-Index: gnumach/device/intr.c
-===================================================================
+diff --git a/device/intr.c b/device/intr.c
+new file mode 100644
+index 00000000..cf5d93f6
 --- /dev/null
-+++ gnumach/device/intr.c
++++ b/device/intr.c
 @@ -0,0 +1,200 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
@@ -354,19 +318,40 @@ Index: gnumach/device/intr.c
 +  return TRUE;
 +}
 +#endif	/* MACH_XEN */
-Index: gnumach/kern/experimental.srv
-===================================================================
---- /dev/null
-+++ gnumach/kern/experimental.srv
-@@ -0,0 +1,3 @@
-+#define KERNEL_SERVER 1
+diff --git a/include/device/device.defs b/include/device/device.defs
+index 409146f5..dca1be4e 100644
+--- a/include/device/device.defs
++++ b/include/device/device.defs
+@@ -142,3 +142,23 @@ routine device_set_filter(
+ 	in	filter		: filter_array_t
+ 	);
+ 
++routine device_intr_register(
++		master_port	: mach_port_t;
++	in	line		: int;
++	in	id		: int;
++	in	flags		: int;
++	in	receive_port	: mach_port_send_t
++	);
 +
-+#include <mach/experimental.defs>
-Index: gnumach/include/mach/experimental.defs
-===================================================================
++/*
++ *	enable/disable the specified line.
++ */
++/* XXX: Naming a function taht can disable something "xxx_enable" is confusing. */
++/* Is the disable part actually used at all? AIUI, the kernel IRQ handler
++should always disable the line; and the userspace driver only has to
++reenable it, after acknowledging and handling the interrupt...
++*/
++routine device_intr_enable(
++		master_port	: mach_port_t;
++		line		: int;
++		status		: char);
+diff --git a/include/device/intr.defs b/include/device/intr.defs
+new file mode 100644
+index 00000000..368b96c6
 --- /dev/null
-+++ gnumach/include/mach/experimental.defs
-@@ -0,0 +1,100 @@
++++ b/include/device/intr.defs
+@@ -0,0 +1,36 @@
 +/* 
 + * Mach Operating System
 + * Copyright (c) 1991,1990,1989 Carnegie Mellon University
@@ -393,49 +378,24 @@ Index: gnumach/include/mach/experimental.defs
 + * the rights to redistribute these changes.
 + */
 +
-+subsystem
-+#if	KERNEL_USER
-+	  KernelUser
-+#endif	/* KERNEL_USER */
-+#if	KERNEL_SERVER
-+	  KernelServer
-+#endif	/* KERNEL_SERVER */
-+		experimental 424242;
++subsystem notify 100;
 +
 +#include <mach/std_types.defs>
-+#include <mach/mach_types.defs>
 +
-+serverprefix experimental_;
++serverprefix do_;
++serverdemux intr_notify_server;
 +
-+type notify_port_t = MACH_MSG_TYPE_MOVE_SEND_ONCE
-+	ctype: mach_port_t;
-+
-+skip; /*simpleroutine mach_intr_notify(
++simpleroutine mach_intr_notify(
 +		notify	: notify_port_t;
-+		name	: int);*/
-+
-+routine device_intr_register(
-+		master_port	: mach_port_t;
-+	in	line		: int;
-+	in	id		: int;
-+	in	flags		: int;
-+	in	receive_port	: mach_port_send_t
-+	);
-+
-+/*
-+ *	enable/disable the specified line.
-+ */
-+/* XXX: Naming a function taht can disable something "xxx_enable" is confusing. */
-+/* Is the disable part actually used at all? AIUI, the kernel IRQ handler
-+should always disable the line; and the userspace driver only has to
-+reenable it, after acknowledging and handling the interrupt...
-+*/
-+routine device_intr_enable(
-+		master_port	: mach_port_t;
-+		line		: int;
-+		status		: char);
-+
-+/*
++		name	: int);
+diff --git a/include/mach/mach.defs b/include/mach/mach.defs
+index c6ad0770..77cc7d49 100644
+--- a/include/mach/mach.defs
++++ b/include/mach/mach.defs
+@@ -720,5 +720,38 @@ skip;	/* old host_fpa_counters_reset */
+ #endif	/* ! KERNEL_USER */
+ 
+ /*
 + *	This routine is created for allocating DMA buffers.
 + *	We are going to get a contiguous physical memory
 + *	and its physical address in addition to the virtual address.
@@ -467,10 +427,15 @@ Index: gnumach/include/mach/experimental.defs
 +	out	vaddr		: vm_address_t;
 +	out	paddr		: vm_address_t;
 +		size		: vm_size_t);
-Index: gnumach/include/device/intr.h
-===================================================================
++
++/*
+  *	There is no more room in this interface for additional calls.
+  */
+diff --git a/include/device/intr.h b/include/device/intr.h
+new file mode 100644
+index 00000000..3c0e1b8c
 --- /dev/null
-+++ gnumach/include/device/intr.h
++++ b/include/device/intr.h
 @@ -0,0 +1,17 @@
 +#ifndef __INTR_H__
 +
@@ -486,13 +451,13 @@ Index: gnumach/include/device/intr.h
 +} mach_intr_notification_t;
 +
 +#define INTR_NOTIFY_MSGH_SEQNO 0
-+#define MACH_INTR_NOTIFY 424242
++#define MACH_INTR_NOTIFY 100
 +
 +#endif
-Index: gnumach/kern/startup.c
-===================================================================
---- gnumach.orig/kern/startup.c
-+++ gnumach/kern/startup.c
+diff --git a/kern/startup.c b/kern/startup.c
+index 19bd7bf6..fa9571c1 100644
+--- a/kern/startup.c
++++ b/kern/startup.c
 @@ -79,6 +79,7 @@ boolean_t reboot_on_panic = TRUE;
  
  /* XX */
@@ -501,7 +466,7 @@ Index: gnumach/kern/startup.c
  
  /*
   *	Running in virtual memory, on the interrupt stack.
-@@ -221,6 +222,9 @@ void start_kernel_threads(void)
+@@ -223,6 +224,9 @@ void start_kernel_threads(void)
  	(void) kernel_thread(kernel_task, reaper_thread, (char *) 0);
  	(void) kernel_thread(kernel_task, swapin_thread, (char *) 0);
  	(void) kernel_thread(kernel_task, sched_thread, (char *) 0);
@@ -511,10 +476,10 @@ Index: gnumach/kern/startup.c
  
  #if	NCPUS > 1
  	/*
-Index: gnumach/linux/dev/arch/i386/kernel/irq.c
-===================================================================
---- gnumach.orig/linux/dev/arch/i386/kernel/irq.c
-+++ gnumach/linux/dev/arch/i386/kernel/irq.c
+diff --git a/linux/dev/arch/i386/kernel/irq.c b/linux/dev/arch/i386/kernel/irq.c
+index 7753814b..b7dfa1a9 100644
+--- a/linux/dev/arch/i386/kernel/irq.c
++++ b/linux/dev/arch/i386/kernel/irq.c
 @@ -83,6 +83,7 @@ struct linux_action
    void *dev_id;
    struct linux_action *next;
@@ -570,7 +535,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
        action = action->next;
      }
  
-@@ -233,6 +265,7 @@ setup_x86_irq (int irq, struct linux_act
+@@ -233,6 +265,7 @@ setup_x86_irq (int irq, struct linux_action *new)
  	}
        while (old);
        shared = 1;
@@ -578,7 +543,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
      }
  
    save_flags (flags);
-@@ -250,6 +283,51 @@ setup_x86_irq (int irq, struct linux_act
+@@ -250,6 +283,51 @@ setup_x86_irq (int irq, struct linux_action *new)
    return 0;
  }
  
@@ -630,7 +595,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  /*
   * Attach a handler to an IRQ.
   */
-@@ -278,6 +356,7 @@ request_irq (unsigned int irq, void (*ha
+@@ -278,6 +356,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
    action->next = NULL;
    action->dev_id = dev_id;
    action->flags = flags;
@@ -638,31 +603,30 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
    
    retval = setup_x86_irq (irq, action);
    if (retval)
-Index: gnumach/vm/vm_user.c
-===================================================================
---- gnumach.orig/vm/vm_user.c
-+++ gnumach/vm/vm_user.c
-@@ -479,3 +479,106 @@ kern_return_t vm_wire_all(const ipc_port
+diff --git a/vm/vm_user.c b/vm/vm_user.c
+index 6c1e3d6f..24c4c64b 100644
+--- a/vm/vm_user.c
++++ b/vm/vm_user.c
+@@ -479,3 +479,97 @@ kern_return_t vm_wire_all(const ipc_port_t port, vm_map_t map, vm_wire_t flags)
  
  	return vm_map_pageable_all(map, flags);
  }
 +
-+kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
++kern_return_t vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
 +	host_t			host_priv;
 +	vm_map_t		map;
 +	vm_address_t		*result_vaddr;
 +	vm_address_t		*result_paddr;
 +	vm_size_t		size;
 +{
++	vm_size_t		alloc_size;
 +	unsigned int		npages;
 +	unsigned int		i;
 +	unsigned int		order;
 +	vm_page_t		pages;
 +	vm_object_t		object;
-+	vm_map_entry_t		entry;
 +	kern_return_t		kr;
 +	vm_address_t		vaddr;
-+	vm_offset_t		offset = 0;
 +
 +	if (host_priv == HOST_NULL)
 +		return KERN_INVALID_HOST;
@@ -670,89 +634,81 @@ Index: gnumach/vm/vm_user.c
 +	if (map == VM_MAP_NULL)
 +		return KERN_INVALID_TASK;
 +
-+	/*
-+	 * XXX The page allocator returns blocks with a power-of-two size.
-+	 * The requested size may not be a power-of-two, causing the pages
-+	 * at the end of a block to be unused. In order to keep track of
-+	 * those pages, they must all be inserted in the VM object created
-+	 * by this function.
-+	 */
-+	order = vm_page_order(size);
-+	size = (1 << (order + PAGE_SHIFT));
++	size = vm_page_round(size);
 +
-+	/* We allocate the contiguous physical pages for the buffer. */
-+
-+	npages = size / PAGE_SIZE;
-+	pages = vm_page_grab_contig(size, VM_PAGE_SEL_DIRECTMAP);
-+	if (pages == NULL)
-+	{
-+		return KERN_RESOURCE_SHORTAGE;
-+	}
-+	
-+#if 0
-+	kr = vm_page_grab_contig(npages, pages, NULL, TRUE);
-+	if (kr)
-+	{
-+		kfree (pages, npages * sizeof (vm_page_t));
-+		return kr;
-+	}
-+#endif
-+
-+	/* Allocate the object 
-+	 * and find the virtual address for the DMA buffer */
++	if (size == 0)
++		return KERN_INVALID_ARGUMENT;
 +
 +	object = vm_object_allocate(size);
-+	vm_map_lock(map);
-+	/* TODO user_wired_count might need to be set as 1 */
-+	kr = vm_map_find_entry(map, &vaddr, size, (vm_offset_t) 0,
-+			       VM_OBJECT_NULL, &entry);
-+	if (kr != KERN_SUCCESS) 
-+	{
-+		vm_map_unlock(map);
++
++	if (object == NULL)
++		return KERN_RESOURCE_SHORTAGE;
++
++	/*
++	 * XXX The page allocator returns blocks with a power-of-two size.
++	 * The requested size may not be a power-of-two, requiring some
++	 * work to release back the pages that aren't needed.
++	 */
++	order = vm_page_order(size);
++	alloc_size = (1 << (order + PAGE_SHIFT));
++	npages = vm_page_atop(alloc_size);
++
++	pages = vm_page_grab_contig(alloc_size, VM_PAGE_SEL_DIRECTMAP);
++
++	if (pages == NULL) {
 +		vm_object_deallocate(object);
-+		vm_page_free_contig(pages, size);
++		return KERN_RESOURCE_SHORTAGE;
++	}
++
++	vm_object_lock(object);
++	vm_page_lock_queues();
++
++	for (i = 0; i < vm_page_atop(size); i++) {
++		/*
++		 * XXX We can safely handle contiguous pages as an array,
++		 * but this relies on knowing the implementation of the
++		 * page allocator.
++		 */
++		pages[i].busy = FALSE;
++		vm_page_insert(&pages[i], object, vm_page_ptoa(i));
++		vm_page_wire(&pages[i]);
++	}
++
++	vm_page_unlock_queues();
++	vm_object_unlock(object);
++
++	for (i = vm_page_atop(size); i < npages; i++) {
++		vm_page_release(&pages[i], FALSE, FALSE);
++	}
++
++	vaddr = 0;
++	kr = vm_map_enter(map, &vaddr, size, 0, TRUE, object, 0, FALSE,
++			  VM_PROT_READ | VM_PROT_WRITE,
++			  VM_PROT_READ | VM_PROT_WRITE, VM_INHERIT_DEFAULT);
++
++	if (kr != KERN_SUCCESS) {
++		vm_object_deallocate(object);
 +		return kr;
 +	}
-+	        
-+	entry->object.vm_object = object;
-+	entry->offset = 0;
 +
-+	/* We can unlock map now.  */
-+	vm_map_unlock(map);
++	kr = vm_map_pageable(map, vaddr, vaddr + size,
++			     VM_PROT_READ | VM_PROT_WRITE,
++			     TRUE, TRUE);
 +
-+	/* We have physical pages we need and now we need to do the mapping. */
-+
-+	pmap_pageable (map->pmap, vaddr, vaddr + size, FALSE);
++	if (kr != KERN_SUCCESS) {
++		vm_map_remove(map, vaddr, vaddr + size);
++		return kr;
++	}
 +
 +	*result_vaddr = vaddr;
 +	*result_paddr = pages->phys_addr;
 +
-+	for (i = 0; i < npages; i++)
-+	{
-+		vm_object_lock(object);
-+		vm_page_lock_queues();
-+		vm_page_insert(&pages[i], object, offset);
-+		vm_page_wire(&pages[i]);
-+		vm_page_unlock_queues();
-+		vm_object_unlock(object);
-+
-+		/* Enter it in the kernel pmap */
-+		PMAP_ENTER(map->pmap, vaddr, &pages[i], VM_PROT_DEFAULT, TRUE);
-+
-+		vm_object_lock(object);
-+		PAGE_WAKEUP_DONE(&pages[i]);
-+		vm_object_unlock(object);
-+
-+		vaddr += PAGE_SIZE;
-+		offset += PAGE_SIZE;
-+	}
-+
 +	return KERN_SUCCESS;
 +}
-Index: gnumach/linux/dev/drivers/block/genhd.c
-===================================================================
---- gnumach.orig/linux/dev/drivers/block/genhd.c
-+++ gnumach/linux/dev/drivers/block/genhd.c
+diff --git a/linux/dev/drivers/block/genhd.c b/linux/dev/drivers/block/genhd.c
+index 3a861386..4a36f7ff 100644
+--- a/linux/dev/drivers/block/genhd.c
++++ b/linux/dev/drivers/block/genhd.c
 @@ -812,7 +812,9 @@ void device_setup(void)
  #ifdef MACH
  	linux_intr_pri = SPL6;
@@ -764,31 +720,3 @@ Index: gnumach/linux/dev/drivers/block/genhd.c
  #endif
  #ifndef MACH
  	console_map_init();
-Index: gnumach/kern/ipc_kobject.c
-===================================================================
---- gnumach.orig/kern/ipc_kobject.c
-+++ gnumach/kern/ipc_kobject.c
-@@ -56,6 +56,7 @@
- #include <device/device_pager.server.h>
- #include <kern/mach4.server.h>
- #include <kern/gnumach.server.h>
-+#include <kern/experimental.server.h>
- 
- #if MACH_DEBUG
- #include <kern/mach_debug.server.h>
-@@ -159,6 +160,7 @@ ipc_kobject_server(request)
- 	 * to perform the kernel function
- 	 */
-     {
-+	extern mig_routine_t	experimental_server_routine();
- 	check_simple_locks();
- 	if ((routine = mach_server_routine(&request->ikm_header)) != 0
- 	 || (routine = mach_port_server_routine(&request->ikm_header)) != 0
-@@ -170,6 +172,7 @@ ipc_kobject_server(request)
- #endif	/* MACH_DEBUG */
- 	 || (routine = mach4_server_routine(&request->ikm_header)) != 0
- 	 || (routine = gnumach_server_routine(&request->ikm_header)) != 0
-+	 || (routine = experimental_server_routine(&request->ikm_header)) != 0
- #if	MACH_MACHINE_ROUTINES
- 	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0
- #endif	/* MACH_MACHINE_ROUTINES */

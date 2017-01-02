@@ -3,4 +3,4 @@
 20_FP_NO.patch
 50_initrd.patch
 70_dde.patch
-71_dde.patch
+79_dde-debian.patch
