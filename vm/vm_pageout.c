@@ -47,6 +47,7 @@
 #include <kern/task.h>
 #include <kern/thread.h>
 #include <kern/printf.h>
+#include <vm/memory_object.h>
 #include <vm/pmap.h>
 #include <vm/vm_map.h>
 #include <vm/vm_object.h>
@@ -253,7 +254,8 @@ vm_pageout_setup(
 
 		assert(!old_object->internal);
 		m->laundry = FALSE;
-	} else if (old_object->internal) {
+	} else if (old_object->internal ||
+		   memory_manager_default_port(old_object->pager)) {
 		m->laundry = TRUE;
 		vm_page_laundry_count++;
 
@@ -470,7 +472,7 @@ void vm_pageout(void)
 				     FALSE);
 		} else if (should_wait) {
 			assert_wait(&vm_pageout_continue, FALSE);
-			thread_set_timeout(VM_PAGEOUT_TIMEOUT);
+			thread_set_timeout(VM_PAGEOUT_TIMEOUT * hz / 1000);
 			simple_unlock(&vm_page_queue_free_lock);
 			thread_block(NULL);
 

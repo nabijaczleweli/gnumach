@@ -642,9 +642,9 @@ Index: gnumach/vm/vm_user.c
 ===================================================================
 --- gnumach.orig/vm/vm_user.c
 +++ gnumach/vm/vm_user.c
-@@ -449,3 +449,106 @@ kern_return_t vm_wire(port, map, start, size, access)
- 				    round_page(start+size),
- 				    access);
+@@ -479,3 +479,106 @@ kern_return_t vm_wire_all(const ipc_port
+ 
+ 	return vm_map_pageable_all(map, flags);
  }
 +
 +kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
