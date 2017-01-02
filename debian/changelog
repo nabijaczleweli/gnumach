@@ -3,7 +3,7 @@ gnumach (2:1.8+git20170102-1) unstable; urgency=medium
   * New upstream snapshot.
     - 70_dde.patch: Update.
     - 71_dde.patch,72_dde.patch: Drop, merged into 70_dde.patch.
-    - 79_dde-debian.patch: Splitted out from 70_dde.patch.
+    - 79_dde-debian.patch: Split out from 70_dde.patch.
 
  -- Samuel Thibault <sthibault@debian.org>  Mon, 02 Jan 2017 12:25:41 +0000
 
