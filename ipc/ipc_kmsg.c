@@ -1391,8 +1391,6 @@ ipc_kmsg_copyin_body(
 			if (length == 0)
 				data = 0;
 			else if (is_port) {
-				if (length > 1<<20)
-					printf("allocating %llu for message %u\n", length, kmsg->ikm_header.msgh_id);
 				data = kalloc(length);
 				if (data == 0)
 					goto invalid_memory;

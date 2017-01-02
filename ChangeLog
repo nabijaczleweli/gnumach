@@ -1,3 +1,169 @@
+2016-12-27  Richard Braun  <rbraun@sceen.net>
+
+	VM: really fix pageout of external objects backed by the default pager
+	Commit eb07428ffb0009085fcd01dd1b79d9953af8e0ad does fix pageout of
+	external objects backed by the default pager, but the way it's done
+	has a vicious side effect: because they're considered external, the
+	pageout daemon can keep evicting them even though the external pagers
+	haven't released them, unlike internal pages which must all be
+	released before the pageout daemon can make progress. This can lead
+	to a situation where too many pages become wired, the default pager
+	cannot allocate memory to process new requests, and the pageout
+	daemon cannot recycle any more page, causing a panic.
+
+	This change makes the pageout daemon use the same strategy for both
+	internal pages and external pages sent to the default pager: use
+	the laundry bit and wait for all laundry pages to be released,
+	thereby completely synchronizing the pageout daemon and the default
+	pager.
+
+	* vm/vm_page.c (vm_page_can_move): Allow external laundry pages to
+	be moved.
+	(vm_page_seg_evict): Don't alter the `external_laundry' bit, merely
+	disable double paging for external pages sent to the default pager.
+	* vm/vm_pageout.c: Include vm/memory_object.h.
+	(vm_pageout_setup): Don't check whether the `external_laundry' bit
+	is set, but handle external pages sent to the default pager the same
+	as internal pages.
+
+2016-12-25  Richard Braun  <rbraun@sceen.net>
+
+	Increase the size of the kernel map
+	Sometimes, in particular during IO spikes, the slab allocator needs
+	more virtual memory than is currently available. The new size should
+	also be fine for the Xen version.
+
+	* i386/i386/vm_param.h (VM_KERNEL_MAP_SIZE): Increase value.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	doc: update documentation about wiring
+	* doc/mach.texi: Describe vm_wire_all, and add more information
+	about vm_wire and vm_protect.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	VM: add the vm_wire_all call
+	This call maps the POSIX mlockall and munlockall calls.
+
+	* Makefrag.am (include_mach_HEADERS): Add include/mach/vm_wire.h.
+	* include/mach/gnumach.defs (vm_wire_t): New type.
+	(vm_wire_all): New routine.
+	* include/mach/mach_types.h: Include mach/vm_wire.h.
+	* vm/vm_map.c: Likewise.
+	(vm_map_enter): Automatically wire new entries if requested.
+	(vm_map_copyout): Likewise.
+	(vm_map_pageable_all): New function.
+	vm/vm_map.h: Include mach/vm_wire.h.
+	(struct vm_map): Update description of member `wiring_required'.
+	(vm_map_pageable_all): New function.
+	* vm/vm_user.c (vm_wire_all): New function.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	VM: rework map entry wiring
+	First, user wiring is removed, simply because it has never been used.
+
+	Second, make the VM system track wiring requests to better handle
+	protection. This change makes it possible to wire entries with
+	VM_PROT_NONE protection without actually reserving any page for
+	them until protection changes, and even make those pages pageable
+	if protection is downgraded to VM_PROT_NONE.
+
+	* ddb/db_ext_symtab.c: Update call to vm_map_pageable.
+	* i386/i386/user_ldt.c: Likewise.
+	* ipc/mach_port.c: Likewise.
+	* vm/vm_debug.c (mach_vm_region_info): Update values returned
+	as appropriate.
+	* vm/vm_map.c (vm_map_entry_copy): Update operation as appropriate.
+	(vm_map_setup): Update member names as appropriate.
+	(vm_map_find_entry): Update to account for map member variable changes.
+	(vm_map_enter): Likewise.
+	(vm_map_entry_inc_wired): New function.
+	(vm_map_entry_reset_wired): Likewise.
+	(vm_map_pageable_scan): Likewise.
+	(vm_map_protect): Update wired access, call vm_map_pageable_scan.
+	(vm_map_pageable_common): Rename to ...
+	(vm_map_pageable): ... and rewrite to use vm_map_pageable_scan.
+	(vm_map_entry_delete): Fix unwiring.
+	(vm_map_copy_overwrite): Replace inline code with a call to
+	vm_map_entry_reset_wired.
+	(vm_map_copyin_page_list): Likewise.
+	(vm_map_print): Likewise. Also print map size and wired size.
+	(vm_map_copyout_page_list): Update to account for map member variable
+	changes.
+	* vm/vm_map.h (struct vm_map_entry): Remove `user_wired_count' member,
+	add `wired_access' member.
+	(struct vm_map): Rename `user_wired' member to `size_wired'.
+	(vm_map_pageable_common): Remove function.
+	(vm_map_pageable_user): Remove macro.
+	(vm_map_pageable): Replace macro with function declaration.
+	* vm/vm_user.c (vm_wire): Update call to vm_map_pageable.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout of external objects backed by the default pager
+	Double paging on such objects causes deadlocks.
+
+	* vm/vm_page.c: Include <vm/memory_object.h>.
+	(vm_page_seg_evict): Rename laundry to double_paging to increase
+	clarity. Set the `external_laundry' bit when evicting a page
+	from an external object backed by the default pager.
+	* vm/vm_pageout.c (vm_pageout_setup): Wire page if the
+	`external_laundry' bit is set.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageability check
+	Unlike laundry pages sent to the default pager, pages marked with the
+	`external_laundry' bit remain in the page queues and must be filtered
+	out by the pageability check.
+
+	* vm/vm_page.c (vm_page_can_move): Check the `external_laundry' bit.
+
+2016-12-24  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix mapping removal on wired pages
+	Memory wiring is about to be reworked, at which point the VM system
+	will properly track wired mappings. Removing them when changing
+	protection makes sense, and is fine as long as the VM system
+	rewires them when access is restored.
+
+	* i386/intel/pmap.c (pmap_page_protect): Decrease wiring count instead
+	of causing a panic when removing a wired mapping.
+
+2016-12-21  Richard Braun  <rbraun@sceen.net>
+
+	VM: fix pageout timeout
+	The interval parameter to the thread_set_timeout function is actually
+	in ticks.
+
+	* vm/vm_pageout.c (vm_pageout): Fix call to thread_set_timeout.
+
+2016-12-18  Thomas Schwinge  <thomas@codesourcery.com>
+
+	GNU Mach 1.8
+	* version.m4 (AC_PACKAGE_VERSION): Set to 1.8.
+	* NEWS: Finalize for 1.8.
+
+2016-12-11  Richard Braun  <rbraun@sceen.net>
+
+	VM: make vm_wire more POSIX-friendly
+	* doc/mach.texi: Update return codes.
+	* vm/vm_map.c (vm_map_pageable_common): Return KERN_NO_SPACE instead
+	of KERN_FAILURE if some of the specified address range does not
+	correspond to mapped pages. Skip unwired entries instead of failing
+	when unwiring.
+
+2016-12-09  Justus Winter  <justus@gnupg.org>
+
+	Update the NEWS file
+
+2016-12-09  Richard Braun  <rbraun@sceen.net>
+
+	rbtree: minor change
+	* kern/rbtree.h (rbtree_for_each_remove): Remove trailing slash.
+
 2032-05-12  Richard Braun  <rbraun@sceen.net>
 
 	VM: fix pageout throttling to external pagers
