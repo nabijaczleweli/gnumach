@@ -1,14 +1,14 @@
-commit d3b5f56297204bf8b9b7df94ddf72fe81cb4786d
+commit 962f153f1ac1e7a2e31970b3de08a483f94a2866
 Author: Richard Braun <rbraun@sceen.net>
-Date:   Tue Nov 8 17:28:14 2016 +0100
+Date:   Sat Dec 24 03:32:42 2016 +0100
 
-    Make experimental_vm_allocate_contiguous cleaner
+    Fix experimental_vm_allocate_contiguous
 
 diff --git a/vm/vm_user.c b/vm/vm_user.c
-index 1f68297..597d7a3 100644
+index 47d50b24..d29bbb23 100644
 --- a/vm/vm_user.c
 +++ b/vm/vm_user.c
-@@ -457,15 +457,14 @@ kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr,
+@@ -487,15 +487,14 @@ kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr,
  	vm_address_t		*result_paddr;
  	vm_size_t		size;
  {
@@ -25,7 +25,7 @@ index 1f68297..597d7a3 100644
  
  	if (host_priv == HOST_NULL)
  		return KERN_INVALID_HOST;
-@@ -473,82 +472,72 @@ kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr,
+@@ -503,82 +502,74 @@ kern_return_t experimental_vm_allocate_contiguous(host_priv, map, result_vaddr,
  	if (map == VM_MAP_NULL)
  		return KERN_INVALID_TASK;
  
@@ -83,6 +83,7 @@ index 1f68297..597d7a3 100644
 +		 */
 +		pages[i].busy = FALSE;
 +		vm_page_insert(&pages[i], object, vm_page_ptoa(i));
++		vm_page_wire(&pages[i]);
  	}
 -#endif
  
@@ -116,14 +117,15 @@ index 1f68297..597d7a3 100644
 -	        
 -	entry->object.vm_object = object;
 -	entry->offset = 0;
- 
+-
 -	/* We can unlock map now.  */
 -	vm_map_unlock(map);
-+	kr = vm_map_pageable(map, vaddr, vaddr + size,
-+			     VM_PROT_READ | VM_PROT_WRITE);
  
 -	/* We have physical pages we need and now we need to do the mapping. */
--
++	kr = vm_map_pageable(map, vaddr, vaddr + size,
++			     VM_PROT_READ | VM_PROT_WRITE,
++			     TRUE, TRUE);
+ 
 -	pmap_pageable (map->pmap, vaddr, vaddr + size, FALSE);
 +	if (kr != KERN_SUCCESS) {
 +		vm_map_remove(map, vaddr, vaddr + size);
