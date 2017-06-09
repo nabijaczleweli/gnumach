@@ -1,3 +1,51 @@
+2017-06-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix year computation
+	* i386/i386at/rtc.c (readtodc): Do not spuriously add 70 to the year.
+
+	Fix Epoch computation
+	* i386/i386at/rtc.c (CENTURY_START): New macro.
+	(readtodc): Use CENTURY_START instead of assuming it is equal to 1970,
+	and set yr to an absolute date before calling yeartoday.
+
+2017-05-07  David Michael  <fedora.dm0@gmail.com>
+
+	Support GCC 7
+	* Makefile.am (clib_routines): Add __udivmoddi4.
+	* linux/src/include/linux/compiler-gcc7.h: New file.
+
+2017-05-07  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/hurd/gnumach
+
+2017-03-18  Justus Winter  <justus@gnupg.org>
+
+	kern: Make kernel task available to bootscript.
+	* kern/bootstrap.c (bootstrap_create): Insert the variable
+	'kernel-task' into the bootscript environment.  Userspace can use this
+	instead of guessing based on the order of the first tasks.
+
+2017-03-04  Agustina Arzille  <avarzille@riseup.net>
+
+	Rewrite gsync so that it works with remote tasks v2
+
+	Implement basic sleeping locks for gnumach
+	* kern/atomic.h: New file.
+	* kern/kmutex.h: New file.
+	* kern/kmutex.c: New file.
+	* Makefrag.am (libkernel_a_SOURCES): Add atomic.h, kmutex.h, kmutex.c.
+	* kern/sched_prim.h (thread_wakeup_prim): Make it return boolean_t.
+	* kern/sched_prim.c (thread_wakeup_prim): Return TRUE if we woke a
+	thread, and FALSE otherwise.
+
+2017-01-24  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix bissextile years computation
+	In practice, fixes 2100, 2200, 2300, 2500, 2600, 2700, etc.
+
+	* i386/i386at/rtc.c (yeartoday): Make years divisible by 100 but not
+	divisible by 400 non-bisextile.
+
 2016-12-27  Richard Braun  <rbraun@sceen.net>
 
 	VM: really fix pageout of external objects backed by the default pager

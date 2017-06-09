@@ -1230,7 +1230,7 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	ipc/ipc_thread.c ipc/ipc_thread.h ipc/ipc_types.h \
 	ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c ipc/mach_port.h \
 	ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h kern/act.c \
-	kern/act.h kern/assert.h kern/ast.c kern/ast.h \
+	kern/act.h kern/assert.h kern/ast.c kern/ast.h kern/atomic.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
@@ -1238,16 +1238,17 @@ am__libkernel_a_SOURCES_DIST = ddb/db_access.c ddb/db_access.h \
 	kern/host.c kern/host.h kern/ipc_host.c kern/ipc_host.h \
 	kern/ipc_kobject.c kern/ipc_kobject.h kern/ipc_mig.c \
 	kern/ipc_mig.h kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c \
-	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/list.h \
-	kern/lock.c kern/lock.h kern/lock_mon.c kern/log2.h \
-	kern/mach_clock.c kern/mach_clock.h kern/mach_factor.c \
-	kern/mach_factor.h kern/machine.c kern/machine.h kern/macros.h \
-	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
-	kern/priority.c kern/priority.h kern/processor.c \
-	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
-	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c \
-	kern/rdxtree.h kern/rdxtree_i.h kern/refcount.h kern/slab.c \
-	kern/slab.h kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/kmutex.c \
+	kern/kmutex.h kern/list.h kern/lock.c kern/lock.h \
+	kern/lock_mon.c kern/log2.h kern/mach_clock.c \
+	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
+	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
+	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
+	kern/priority.h kern/processor.c kern/processor.h \
+	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
+	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
+	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
+	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
 	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
 	kern/syscall_emulation.c kern/syscall_emulation.h \
 	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
@@ -1443,21 +1444,22 @@ am_libkernel_a_OBJECTS = $(am__objects_2) ipc/ipc_entry.$(OBJEXT) \
 	kern/host.$(OBJEXT) kern/ipc_host.$(OBJEXT) \
 	kern/ipc_kobject.$(OBJEXT) kern/ipc_mig.$(OBJEXT) \
 	kern/ipc_sched.$(OBJEXT) kern/ipc_tt.$(OBJEXT) \
-	kern/lock.$(OBJEXT) kern/lock_mon.$(OBJEXT) \
-	kern/mach_clock.$(OBJEXT) kern/mach_factor.$(OBJEXT) \
-	kern/machine.$(OBJEXT) kern/pc_sample.$(OBJEXT) \
-	kern/printf.$(OBJEXT) kern/priority.$(OBJEXT) \
-	kern/processor.$(OBJEXT) kern/profile.$(OBJEXT) \
-	kern/queue.$(OBJEXT) kern/rbtree.$(OBJEXT) \
-	kern/rdxtree.$(OBJEXT) kern/slab.$(OBJEXT) \
-	kern/sched_prim.$(OBJEXT) kern/startup.$(OBJEXT) \
-	kern/strings.$(OBJEXT) kern/syscall_emulation.$(OBJEXT) \
-	kern/syscall_subr.$(OBJEXT) kern/syscall_sw.$(OBJEXT) \
-	kern/task.$(OBJEXT) kern/thread.$(OBJEXT) \
-	kern/thread_swap.$(OBJEXT) kern/time_stamp.$(OBJEXT) \
-	kern/timer.$(OBJEXT) kern/xpr.$(OBJEXT) \
-	kern/elf-load.$(OBJEXT) kern/boot_script.$(OBJEXT) \
-	util/putchar.$(OBJEXT) util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
+	kern/kmutex.$(OBJEXT) kern/lock.$(OBJEXT) \
+	kern/lock_mon.$(OBJEXT) kern/mach_clock.$(OBJEXT) \
+	kern/mach_factor.$(OBJEXT) kern/machine.$(OBJEXT) \
+	kern/pc_sample.$(OBJEXT) kern/printf.$(OBJEXT) \
+	kern/priority.$(OBJEXT) kern/processor.$(OBJEXT) \
+	kern/profile.$(OBJEXT) kern/queue.$(OBJEXT) \
+	kern/rbtree.$(OBJEXT) kern/rdxtree.$(OBJEXT) \
+	kern/slab.$(OBJEXT) kern/sched_prim.$(OBJEXT) \
+	kern/startup.$(OBJEXT) kern/strings.$(OBJEXT) \
+	kern/syscall_emulation.$(OBJEXT) kern/syscall_subr.$(OBJEXT) \
+	kern/syscall_sw.$(OBJEXT) kern/task.$(OBJEXT) \
+	kern/thread.$(OBJEXT) kern/thread_swap.$(OBJEXT) \
+	kern/time_stamp.$(OBJEXT) kern/timer.$(OBJEXT) \
+	kern/xpr.$(OBJEXT) kern/elf-load.$(OBJEXT) \
+	kern/boot_script.$(OBJEXT) util/putchar.$(OBJEXT) \
+	util/puts.$(OBJEXT) util/atoi.$(OBJEXT) \
 	vm/memory_object_proxy.$(OBJEXT) vm/memory_object.$(OBJEXT) \
 	vm/vm_debug.$(OBJEXT) vm/vm_external.$(OBJEXT) \
 	vm/vm_fault.$(OBJEXT) vm/vm_init.$(OBJEXT) \
@@ -2555,7 +2557,7 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	ipc/ipc_thread.c ipc/ipc_thread.h ipc/ipc_types.h \
 	ipc/mach_msg.c ipc/mach_msg.h ipc/mach_port.c ipc/mach_port.h \
 	ipc/mach_rpc.c ipc/mach_debug.c ipc/port.h kern/act.c \
-	kern/act.h kern/assert.h kern/ast.c kern/ast.h \
+	kern/act.h kern/assert.h kern/ast.c kern/ast.h kern/atomic.h \
 	kern/boot_script.h kern/bootstrap.c kern/bootstrap.h \
 	kern/counters.c kern/counters.h kern/cpu_number.h kern/debug.c \
 	kern/debug.h kern/eventcount.c kern/eventcount.h \
@@ -2563,16 +2565,17 @@ libkernel_a_SOURCES = $(am__append_2) ipc/ipc_entry.c ipc/ipc_entry.h \
 	kern/host.c kern/host.h kern/ipc_host.c kern/ipc_host.h \
 	kern/ipc_kobject.c kern/ipc_kobject.h kern/ipc_mig.c \
 	kern/ipc_mig.h kern/ipc_sched.c kern/ipc_sched.h kern/ipc_tt.c \
-	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/list.h \
-	kern/lock.c kern/lock.h kern/lock_mon.c kern/log2.h \
-	kern/mach_clock.c kern/mach_clock.h kern/mach_factor.c \
-	kern/mach_factor.h kern/machine.c kern/machine.h kern/macros.h \
-	kern/pc_sample.c kern/pc_sample.h kern/printf.c kern/printf.h \
-	kern/priority.c kern/priority.h kern/processor.c \
-	kern/processor.h kern/profile.c kern/queue.c kern/queue.h \
-	kern/rbtree.c kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c \
-	kern/rdxtree.h kern/rdxtree_i.h kern/refcount.h kern/slab.c \
-	kern/slab.h kern/sched.h kern/sched_prim.c kern/sched_prim.h \
+	kern/ipc_tt.h kern/kalloc.h kern/kern_types.h kern/kmutex.c \
+	kern/kmutex.h kern/list.h kern/lock.c kern/lock.h \
+	kern/lock_mon.c kern/log2.h kern/mach_clock.c \
+	kern/mach_clock.h kern/mach_factor.c kern/mach_factor.h \
+	kern/machine.c kern/machine.h kern/macros.h kern/pc_sample.c \
+	kern/pc_sample.h kern/printf.c kern/printf.h kern/priority.c \
+	kern/priority.h kern/processor.c kern/processor.h \
+	kern/profile.c kern/queue.c kern/queue.h kern/rbtree.c \
+	kern/rbtree.h kern/rbtree_i.h kern/rdxtree.c kern/rdxtree.h \
+	kern/rdxtree_i.h kern/refcount.h kern/slab.c kern/slab.h \
+	kern/sched.h kern/sched_prim.c kern/sched_prim.h \
 	kern/shuttle.h kern/startup.c kern/startup.h kern/strings.c \
 	kern/syscall_emulation.c kern/syscall_emulation.h \
 	kern/syscall_subr.c kern/syscall_subr.h kern/syscall_sw.c \
@@ -2921,7 +2924,7 @@ gnumach_o_LINK = $(LD) $(LDFLAGS) -u _start -r -o $@
 
 # This is the list of routines we decide is OK to steal from the C library.
 clib_routines := htonl htons ntohl ntohs			\
-		 udivdi3 __udivdi3 __umoddi3			\
+		 udivdi3 __udivdi3 __udivmoddi4 __umoddi3	\
 		 __rel_iplt_start __rel_iplt_end		\
 		 __ffsdi2					\
 		 _START _start etext _edata end _end # actually ld magic, not libc.
@@ -3177,6 +3180,8 @@ kern/ipc_mig.$(OBJEXT): kern/$(am__dirstamp) \
 kern/ipc_sched.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/ipc_tt.$(OBJEXT): kern/$(am__dirstamp) \
+	kern/$(DEPDIR)/$(am__dirstamp)
+kern/kmutex.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
 kern/lock.$(OBJEXT): kern/$(am__dirstamp) \
 	kern/$(DEPDIR)/$(am__dirstamp)
@@ -4280,6 +4285,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_mig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_sched.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/ipc_tt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/kmutex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-exc.none.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-gnumach.server.defs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kern/$(DEPDIR)/lib_dep_tr_for_defs_a-mach.server.defs.Po@am__quote@
