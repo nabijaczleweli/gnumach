@@ -128,6 +128,9 @@ doc/mach* are licensed under the following terms:
 
 On Debian systems,
 
+- the complete text of the Mozilla Public License Version 1.1 can be found in
+'/usr/share/common-licenses/MPL-1.1'.
+
 - the complete text of the GNU General Public License can be found in
 '/usr/share/common-licenses/GPL-2'.
 
