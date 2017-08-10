@@ -21,7 +21,6 @@ Description: Dummy transition package for gnumach-image-*
 
 Package: gnumach-dbg
 Section: debug
-Priority: extra
 Architecture: any-i386
 Build-Profiles: <!stage1>
 Depends: ${misc:Depends}, gnumach-image-1.8-486-dbg
@@ -96,7 +95,6 @@ Description: GNU version of the Mach microkernel for the Debian installer
 
 Package: gnumach-image-1.8-486-dbg
 Section: debug
-Priority: extra
 Provides: gnumach
 Architecture: any-i386
 Build-Profiles: <!stage1>
@@ -111,7 +109,6 @@ Description: GNU version of the Mach microkernel for debugging
 
 Package: gnumach-image-1.8-xen-486-dbg
 Section: debug
-Priority: extra
 Provides: gnumach
 Architecture: any-i386
 Build-Profiles: <!stage1>
