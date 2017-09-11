@@ -32,7 +32,7 @@ extern boolean_t kdb_trap (
 	int			code,
 	struct i386_saved_state *regs);
 
-extern void db_read_bytes (
+extern boolean_t db_read_bytes (
 	vm_offset_t	addr,
 	int		size,
 	char		*data,
@@ -128,5 +128,7 @@ db_write_bytes_user_space(
 	int		size,
 	char		*data,
 	task_t		task);
+
+void db_debug_all_traps (boolean_t enable);
 
 #endif /* _I386_DB_INTERFACE_H_ */

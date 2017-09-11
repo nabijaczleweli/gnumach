@@ -1,9 +1,9 @@
-This is mach.info, produced by makeinfo version 6.3 from mach.texi.
+This is mach.info, produced by makeinfo version 6.4.90 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 2 January 2017, of 'The GNU Mach
-Reference Manual', for version 1.8+git20170609.
+   This is edition 0.4, last updated on 16 August 2017, of 'The GNU Mach
+Reference Manual', for version 1.8+git20170911.
 
    Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -390,7 +390,7 @@ File: mach.info,  Node: Commands,  Next: Variables,  Prev: Operation,  Up: Kerne
 'dmacro NAME'
      Delete the macro named NAME.
 
-'show all threads[/ul]'
+'show all threads[/uls]'
      Display all tasks and threads information.  This version of 'ddb'
      prints more information than previous one.  It shows UNIX process
      information like 'ps' for each task.  The UNIX process information
@@ -408,7 +408,12 @@ File: mach.info,  Node: Commands,  Next: Variables,  Prev: Operation,  Up: Kerne
      F(loating) point arithmetic used (if supported by the platform).
      If the corresponding status bit is off, '.' is printed instead.  If
      'l' option is specified, more detail information is printed for
-     each thread.
+     each thread.  If the 's' option is given, scheduling information is
+     displayed.
+
+'show all tasks'
+     Displays all tasks similar to 'show all threads', but omits
+     information about the individual threads.
 
 'show task [ ADDR ]'
      Display the information of a task specified by ADDR.  If ADDR is
@@ -474,6 +479,13 @@ File: mach.info,  Node: Commands,  Next: Variables,  Prev: Operation,  Up: Kerne
      you specify a wrong space address, the request is rejected with an
      error message.
 
+'debug traps /on|/off'
+     Enables or disables debugging of all traps with 'ddb'.
+
+'debug references /on|/off'
+     Enables or disables debugging of all port reference counting errors
+     with 'ddb'.
+
 
 File: mach.info,  Node: Variables,  Next: Expressions,  Prev: Commands,  Up: Kernel Debugger
 
@@ -493,6 +505,10 @@ thread instead of that of the current thread (e.g.  '$eax:tu').
      Task or thread structure address.  XX and YY are task and thread
      identification numbers printed by a 'show all threads' command
      respectively.  This variable is read only.
+
+'mapXX'
+     VM map structure address.  XX is a task identification number
+     printed by a 'show all tasks' command.  This variable is read only.
 
 'thread'
      The default target thread.  The value is used when 't' option is

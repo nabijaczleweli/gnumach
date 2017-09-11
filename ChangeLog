@@ -1,3 +1,79 @@
+2017-08-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	ddb: More gracefully handle address errors
+	* i386/i386/db_interface.h (db_read_bytes): Return boolean_t instead of
+	void.
+	* i386/i386/db_interface.c (db_user_to_kernel_address): Return -1
+	instead of calling db_error() if address is bogus.
+	(db_read_bytes): Return FALSE instead of calling db_error() if address
+	is bogus.
+	* ddb/db_access.c (db_get_task_value): Return 0 if db_read_bytes failed.
+	* ddb/db_examine.c (db_xcdump): Only print * if db_read_bytes failed.
+
+2017-08-14  Justus Winter  <justus@gnupg.org>
+
+	i386: Fix pmap_remove on PAE kernels.
+	* i386/intel/pmap.c (pmap_remove): Fix iteration over page directory.
+	(pmap_enter): Explain why it is ok here.
+
+	vm: Improve error handling.
+	* vm/vm_map.c (vm_map_create): Gracefully handle resource exhaustion.
+	(vm_map_fork): Likewise at the callsite.
+
+	Fix typo.
+
+2017-08-12  Justus Winter  <justus@gnupg.org>
+
+	ddb: Add magic variable $mapXX.
+	Maps '$mapXX' to a VM map structure address.  @var{xx} is a task
+	identification number printed by a @code{show all tasks} command.
+
+	* ddb/db_task_thread.c (db_get_map): New function.
+	* ddb/db_task_thread.h (db_get_map): New declaration.
+	* ddb/db_variables.c (db_vars): Add new variable.
+	* doc/mach.texi: Document this.
+
+2017-08-12  Justus Winter  <justus@gnupg.org>
+
+	vm: Mute paging error message.
+	* vm/vm_fault.c (vm_fault_page): Mute paging error message if the
+	objects pager is NULL.  This happens when a pager is destroyed,
+	e.g. at system shutdown time when the root filesystem terminates.
+
+2017-08-05  Justus Winter  <justus@gnupg.org>
+
+	ddb: debug traps and port references
+	* ddb/db_command.c (db_debug_all_traps_cmd): New declaration and
+	function.
+	(db_debug_port_references_cmd): Likewise.
+	* doc/mach.texi: Describe new commands.
+	* i386/i386/db_interface.h (db_debug_all_traps): New declaration.
+	* i386/i386/trap.c (db_debug_all_traps): New function.
+	* ipc/mach_port.c (db_debug_port_references): New function.
+	* ipc/mach_port.h (db_debug_port_references): New declaration.
+
+	ddb: Print scheduling information.
+	* ddb/db_print.c (OPTION_SCHED): New macro.
+	(db_print_thread): Display scheduling information if the flag is
+	given.
+	(db_print_task): Adapt.
+	(db_show_all_threads): Parse new modifier.
+	(db_show_one_thread): Likewise.
+	* doc/mach.texi: Document the new flag.
+
+	doc: Document 'show all tasks'.
+
+	kern: Fix reporting the minimum quantum used for scheduling.
+	* kern/host.c (host_info): Scale 'min_quantum' by 'tick', then convert
+	to milliseconds.
+
+	Steal '__divdi3'.
+	* Makefile.am (clib_routines): Steal '__divdi3' from the gcc runtime.
+
+	i386: Make function static.
+	* i386/intel/pmap.c (pmap_remove_range): Make function static.
+	* i386/intel/pmap.h (pmap_remove_range): Remove declaration.
+
 2017-06-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Fix year computation
