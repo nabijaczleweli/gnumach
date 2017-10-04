@@ -8,7 +8,7 @@ Vcs-Browser: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
 Build-Depends: debhelper (>= 9.20141010), mig (>= 1.6+git20160502-1~) <!stage1>, sharutils,
  autoconf, automake, texinfo, dpkg-dev (>= 1.17.14)
-Standards-Version: 4.1.0
+Standards-Version: 4.1.1
 
 Package: gnumach
 Architecture: any-i386
