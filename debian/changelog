@@ -3,6 +3,7 @@ gnumach (2:1.8+git20170911-2) unstable; urgency=medium
   * control: Bump Standards-Version to 4.1.1 (no changes).
   * 80_vm_object_coalesce.patch: New patch to potentially avoid coalescing
     between swappable object and non-swappable anonymous area.
+  * rules: Fix building mach.info.
 
  -- Samuel Thibault <sthibault@debian.org>  Wed, 04 Oct 2017 00:13:30 +0000
 

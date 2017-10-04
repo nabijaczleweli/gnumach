@@ -129,7 +129,7 @@ build: build-arch build-indep
 
 doc/mach.info: build/config.status
 	dh_testdir
-	$(MAKE) -C build ../doc/mach.info
+	$(MAKE) -C build $(PWD)/build/../doc/mach.info
 
 build/stamp: build/config.status doc/mach.info
 	dh_testdir
