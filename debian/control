@@ -10,25 +10,6 @@ Build-Depends: debhelper (>= 9.20141010), mig (>= 1.6+git20160502-1~) <!stage1>,
  autoconf, automake, texinfo, dpkg-dev (>= 1.17.14)
 Standards-Version: 4.1.1
 
-Package: gnumach
-Architecture: any-i386
-Build-Profiles: <!stage1>
-Depends: ${misc:Depends}, gnumach-image-1-486
-Breaks: grub-pc (<< 1.98+20100527-1)
-Description: Dummy transition package for gnumach-image-*
- This is a dummy package to ease the transition to gnumach-image-*
- package names.  It can be purged safely after upgrade.
-
-Package: gnumach-dbg
-Section: debug
-Architecture: any-i386
-Build-Profiles: <!stage1>
-Depends: ${misc:Depends}, gnumach-image-1.8-486-dbg
-Breaks: grub-pc (<< 1.98+20100527-1)
-Description: Dummy transition package for gnumach-image-*-dbg
- This is a dummy package to ease the transition to gnumach-image-*dbg
- package names.  It can be purged safely after upgrade.
-
 Package: gnumach-image-1-486
 Architecture: any-i386
 Build-Profiles: <!stage1>
