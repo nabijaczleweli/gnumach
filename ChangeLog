@@ -1,3 +1,78 @@
+2017-11-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	linux block: fix outbound access to non-directmap user data
+	* linux/dev/glue/block.c (rdwr_full): Set BH_Bounce if the physical
+	address of the user data is not in directmap.
+
+2017-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	linux-block: Fix calling vm_map_copy_discard on uninitialized variable
+	This happens if passed count is 0.
+
+	Reported by Richard Braun.
+
+	* linux/dev/glue/block.c (device_write): Set copy variable before
+	vm_map_copy_discard() is called.
+
+2017-10-27  Justus Winter  <teythoon@avior.uberspace.de>
+
+	Fix commit 10ebf9565f69760e46a8f271e22c5367d54e10ff.
+	* kern/task.c (task_ledger_acquire): Remove function that I added by
+	accident.
+	(task_ledger_release): Likewise.
+
+2017-10-26  Justus Winter  <teythoon@avior.uberspace.de>
+
+	kern: Fix new task notifications.
+	* kern/task.c (task_create_kernel): Handle NULL parent tasks.
+
+2017-10-26  Justus Winter  <teythoon@avior.uberspace.de>
+
+	kern: Fix crash.
+	Check receiver in task_create.  Fixes a crash when sending that
+	message to a non-task port.
+
+	* kern/bootstrap.c (boot_script_task_create): Use the new function.
+	* kern/task.c (task_create): Rename to task_create_internal, create a
+	new function in its place that checks the receiver first.
+	* kern/task.h (task_create_internal): New prototype.
+
+2017-10-26  Justus Winter  <teythoon@avior.uberspace.de>
+
+	linux: Fix warnings.
+	* linux/dev/glue/net.c (device_write): Remove unused variables.
+
+2017-10-23  Justus Winter  <justus@gnupg.org>
+
+	Drop the register qualifier.
+	* i386/intel/pmap.c: Drop the register qualifier.
+	* ipc/ipc_kmsg.h: Likewise.
+	* kern/bootstrap.c: Likewise.
+	* kern/profile.c: Likewise.
+	* kern/thread.c: Likewise.
+	* vm/vm_object.c: Likewise.
+
+2017-09-30  Justus Winter  <justus@gnupg.org>
+
+	linux: Fix interrupt glue.
+	Previously, we used an invalid pointer to mark interrupts as reserved
+	by Mach.  This, however, crashes code trying to iterate over the list
+	of interrupt handlers.  Use a valid structure instead.
+
+	* linux/dev/arch/i386/kernel/irq.c (reserved_mach_handler): New
+	function.
+	(reserved_mach): New variable.
+	(reserve_mach_irqs): Use the new variable.
+
+2017-09-21  Justus Winter  <justus@gnupg.org>
+
+	device: Remove unused file.
+	* device/dev_forward.defs: Remove unused file.
+
+	vm: Remove old memory manager remnants.
+	* vm/vm_object.c (vm_object_accept_old_init_protocol): Remove.
+	(vm_object_enter): Adapt.
+
 2017-08-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	ddb: More gracefully handle address errors
