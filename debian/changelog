@@ -2,6 +2,7 @@ gnumach (2:1.8+git20171101-1) unstable; urgency=medium
 
   * New upstream snapshot.
   * control: Remove old gnumach and gnumach-dbg transitional packages.
+  * rules: Fix again building mach.info...
 
  -- Samuel Thibault <sthibault@debian.org>  Wed, 01 Nov 2017 00:34:33 +0000
 
