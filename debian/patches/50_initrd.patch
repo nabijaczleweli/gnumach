@@ -1,11 +1,11 @@
 Jérémie Koenig <jk@jk.fr.eu.org>
 Add ramdisk support for d-i.
 
-Index: gnumach-1.4+git20141107/Makefrag.am
+Index: gnumach/Makefrag.am
 ===================================================================
---- gnumach-1.4+git20141107.orig/Makefrag.am
-+++ gnumach-1.4+git20141107/Makefrag.am
-@@ -308,6 +308,8 @@ libkernel_a_SOURCES += \
+--- gnumach.orig/Makefrag.am
++++ gnumach/Makefrag.am
+@@ -317,6 +317,8 @@ libkernel_a_SOURCES += \
  	device/net_io.c \
  	device/net_io.h \
  	device/param.h \
@@ -14,10 +14,10 @@ Index: gnumach-1.4+git20141107/Makefrag.am
  	device/subrs.c \
  	device/subrs.h \
  	device/tty.h
-Index: gnumach-1.4+git20141107/i386/i386at/conf.c
+Index: gnumach/i386/i386at/conf.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/i386/i386at/conf.c
-+++ gnumach-1.4+git20141107/i386/i386at/conf.c
+--- gnumach.orig/i386/i386at/conf.c
++++ gnumach/i386/i386at/conf.c
 @@ -31,6 +31,7 @@
  #include <device/conf.h>
  #include <kern/mach_clock.h>
@@ -26,7 +26,7 @@ Index: gnumach-1.4+git20141107/i386/i386at/conf.c
  
  #define	timename		"time"
  
-@@ -129,6 +130,8 @@ struct dev_ops	dev_name_list[] =
+@@ -135,6 +136,8 @@ struct dev_ops	dev_name_list[] =
  	  nodev },
  #endif	/* MACH_HYP */
  
@@ -35,10 +35,10 @@ Index: gnumach-1.4+git20141107/i386/i386at/conf.c
  #ifdef	MACH_KMSG
          { kmsgname,     kmsgopen,       kmsgclose,       kmsgread,
            nulldev_write,        kmsggetstat,    nulldev_setstat,           nomap,
-Index: gnumach-1.4+git20141107/kern/boot_script.c
+Index: gnumach/kern/boot_script.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/kern/boot_script.c
-+++ gnumach-1.4+git20141107/kern/boot_script.c
+--- gnumach.orig/kern/boot_script.c
++++ gnumach/kern/boot_script.c
 @@ -88,12 +88,20 @@ prompt_resume_task (struct cmd *cmd, con
    return boot_script_prompt_task_resume (cmd);
  }
@@ -60,10 +60,10 @@ Index: gnumach-1.4+git20141107/kern/boot_script.c
  };
  #define NUM_BUILTIN (sizeof (builtin_symbols) / sizeof (builtin_symbols[0]))
  
-Index: gnumach-1.4+git20141107/kern/bootstrap.c
+Index: gnumach/kern/bootstrap.c
 ===================================================================
---- gnumach-1.4+git20141107.orig/kern/bootstrap.c
-+++ gnumach-1.4+git20141107/kern/bootstrap.c
+--- gnumach.orig/kern/bootstrap.c
++++ gnumach/kern/bootstrap.c
 @@ -51,6 +51,7 @@
  #include <vm/vm_user.h>
  #include <vm/pmap.h>
@@ -72,7 +72,7 @@ Index: gnumach-1.4+git20141107/kern/bootstrap.c
  
  #if	MACH_KDB
  #include <machine/db_machdep.h>
-@@ -792,6 +793,23 @@ boot_script_free (void *ptr, unsigned in
+@@ -817,6 +818,23 @@ boot_script_free (void *ptr, unsigned in
  }
  
  int
@@ -95,11 +95,11 @@ Index: gnumach-1.4+git20141107/kern/bootstrap.c
 +int
  boot_script_task_create (struct cmd *cmd)
  {
-   kern_return_t rc = task_create(TASK_NULL, FALSE, &cmd->task);
-Index: gnumach-1.4+git20141107/device/ramdisk.c
+   kern_return_t rc = task_create_kernel(TASK_NULL, FALSE, &cmd->task);
+Index: gnumach/device/ramdisk.c
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/device/ramdisk.c
++++ gnumach/device/ramdisk.c
 @@ -0,0 +1,160 @@
 +#include <mach/vm_param.h>
 +#include <machine/vm_param.h>
@@ -261,10 +261,10 @@ Index: gnumach-1.4+git20141107/device/ramdisk.c
 +	return pmap_phys_to_frame(kvtophys((vm_offset_t) ramdisk[dev].data + off));
 +}
 +
-Index: gnumach-1.4+git20141107/device/ramdisk.h
+Index: gnumach/device/ramdisk.h
 ===================================================================
 --- /dev/null
-+++ gnumach-1.4+git20141107/device/ramdisk.h
++++ gnumach/device/ramdisk.h
 @@ -0,0 +1,47 @@
 +#ifndef _KERN_RAMDISK_H_
 +#define _KERN_RAMDISK_H_
