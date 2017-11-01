@@ -1,5 +1,6 @@
-gnumach (2:1.8+git20170911-3) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20171101-1) UNRELEASED; urgency=medium
 
+  * New upstream snapshot.
   * control: Remove old gnumach and gnumach-dbg transitional packages.
 
  -- Samuel Thibault <sthibault@debian.org>  Thu, 12 Oct 2017 01:09:53 +0200

@@ -73,12 +73,25 @@ void task_init(void)
 	 * Task_create must assign to kernel_task as a side effect,
 	 * for other initialization. (:-()
 	 */
-	(void) task_create(TASK_NULL, FALSE, &kernel_task);
+	(void) task_create_kernel(TASK_NULL, FALSE, &kernel_task);
 	(void) task_set_name(kernel_task, "gnumach");
 	vm_map_set_name(kernel_map, kernel_task->name);
 }
 
 kern_return_t task_create(
+	task_t		parent_task,
+	boolean_t	inherit_memory,
+	task_t		*child_task)		/* OUT */
+{
+	if (parent_task == TASK_NULL)
+		return KERN_INVALID_TASK;
+
+	return task_create_kernel (parent_task, inherit_memory,
+				   child_task);
+}
+
+kern_return_t
+task_create_kernel(
 	task_t		parent_task,
 	boolean_t	inherit_memory,
 	task_t		*child_task)		/* OUT */
@@ -196,7 +209,9 @@ kern_return_t task_create(
 		task_reference (parent_task);
 		mach_notify_new_task (new_task_notification,
 				      convert_task_to_port (new_task),
-				      convert_task_to_port (parent_task));
+				      parent_task
+				      ? convert_task_to_port (parent_task)
+				      : IP_NULL);
 	}
 
 	ipc_task_enable(new_task);
