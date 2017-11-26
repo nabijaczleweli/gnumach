@@ -1,3 +1,9 @@
+gnumach (2:1.8+git20171101-2) unstable; urgency=medium
+
+  * Fix stage1 installation of headers.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 26 Nov 2017 19:39:32 +0100
+
 gnumach (2:1.8+git20171101-1) unstable; urgency=medium
 
   * New upstream snapshot.

@@ -261,8 +261,8 @@ binary-arch: install debian/control.stamp
 	dh_testdir
 	dh_testroot
 	
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	dh_install -a -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg) --sourcedir=$(D)
+ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	dh_install -p$(pkg) --sourcedir=$(D) boot
 	dh_install -p$(pkg_xen) --sourcedir=$(D_XEN) boot
 ifeq ($(DEB_HOST_ARCH_OS),hurd)
