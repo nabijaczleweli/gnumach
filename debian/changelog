@@ -1,5 +1,6 @@
-gnumach (2:1.8+git20171101-2) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20180218-1) UNRELEASED; urgency=medium
 
+  * New upstream snapshot.
   * debian/control: Fix gnumach-common's Replaces/Breaks.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 18 Feb 2018 18:04:00 +0000

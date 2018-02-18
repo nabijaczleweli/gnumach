@@ -1,3 +1,28 @@
+2018-01-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add const MIG types
+	* i386/include/mach/i386/mach_i386_types.h (const_descriptor_list_t):
+	New type.
+	* include/mach/port.h (const_mach_port_array_t): New type.
+
+	Fix warning
+	* i386/i386at/lpr.c (lpropen): Cast io port to void *.
+
+	Fix warning
+	* vm/vm_map.c (vm_map_copyout): Fix panic format.
+
+	Fix warning
+	* kern/sched_prim.c (assert_wait): Fix panic format.
+
+	Fix warning
+	* kern/ast.c (ast_check): Fix panic format.
+
+2017-11-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix halt message
+	* i386/i386at/model_dep.c (halt_all_cpus): Change halt message to better
+	explain what happened.
+
 2017-11-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	linux block: fix outbound access to non-directmap user data
