@@ -150,13 +150,13 @@ Index: gnumach/device/ramdisk.c
 +}
 +
 +/* On d_open() we just check whether the ramdisk exists */
-+int ramdisk_open(int dev, int mode, io_req_t ior)
++int ramdisk_open(dev_t dev, int mode, io_req_t ior)
 +{
 +	return (dev < ramdisk_num) ? D_SUCCESS : D_NO_SUCH_DEVICE;
 +}
 +
 +/* d_getstat() is used to query the device characteristics */
-+int ramdisk_getstat(int dev, dev_flavor_t flavor, dev_status_t status,
++int ramdisk_getstat(dev_t dev, dev_flavor_t flavor, dev_status_t status,
 +		mach_msg_type_number_t *status_count)
 +{
 +	switch(flavor) {
@@ -209,7 +209,7 @@ Index: gnumach/device/ramdisk.c
 +	return KERN_SUCCESS;
 +}
 +
-+int ramdisk_read(int dev, io_req_t ior)
++int ramdisk_read(dev_t dev, io_req_t ior)
 +{
 +	void *data;
 +	int amt, err;
@@ -228,7 +228,7 @@ Index: gnumach/device/ramdisk.c
 +	return D_SUCCESS;
 +}
 +
-+int ramdisk_write(int dev, io_req_t ior)
++int ramdisk_write(dev_t dev, io_req_t ior)
 +{
 +	void *data;
 +	int amt, err;
@@ -251,7 +251,7 @@ Index: gnumach/device/ramdisk.c
 +	return D_SUCCESS;
 +}
 +
-+vm_offset_t ramdisk_mmap(int dev, vm_offset_t off, vm_prot_t prot)
++vm_offset_t ramdisk_mmap(dev_t dev, vm_offset_t off, vm_prot_t prot)
 +{
 +	if(dev >= ramdisk_num)
 +		return -1;
@@ -289,17 +289,17 @@ Index: gnumach/device/ramdisk.h
 +int ramdisk_create(vm_size_t size, const void *initdata, int *out_no);
 +
 +/* Device operations */
-+int ramdisk_open(int, int, io_req_t);
-+int ramdisk_getstat(int, dev_flavor_t, dev_status_t, mach_msg_type_number_t *);
-+int ramdisk_read(int, io_req_t);
-+int ramdisk_write(int, io_req_t);
-+vm_offset_t ramdisk_mmap(int, vm_offset_t, vm_prot_t);
++int ramdisk_open(dev_t, int, io_req_t);
++int ramdisk_getstat(dev_t, dev_flavor_t, dev_status_t, mach_msg_type_number_t *);
++int ramdisk_read(dev_t, io_req_t);
++int ramdisk_write(dev_t, io_req_t);
++vm_offset_t ramdisk_mmap(dev_t, vm_offset_t, vm_prot_t);
 +
 +/* dev_ops initializer to be used from <machine>/conf.c */
 +#define RAMDISK_DEV_OPS { \
 +		.d_name = RAMDISK_NAME, \
 +		.d_open = ramdisk_open, \
-+		.d_close = nulldev, \
++		.d_close = nulldev_close, \
 +		.d_read = ramdisk_read, \
 +		.d_write = ramdisk_write, \
 +		.d_getstat = ramdisk_getstat, \
@@ -307,7 +307,7 @@ Index: gnumach/device/ramdisk.h
 +		.d_mmap = ramdisk_mmap, \
 +		.d_async_in = nodev, \
 +		.d_reset = nulldev, \
-+		.d_port_death = nulldev, \
++		.d_port_death = nulldev_port_death, \
 +		.d_subdev = 0, \
 +		.d_dev_info = nodev, \
 +	}
