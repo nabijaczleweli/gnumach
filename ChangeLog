@@ -1,5 +1,42 @@
 2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
+	Fix dev_ops types
+	* device/conf.h: Include <device/device_types.h>.
+	(dev_ops): Make d_getstat and d_setstat fields use dev_flavor_t,
+	dev_status_t, and mach_msg_type_number_t types.
+	* device/tty.h: (t_getstat, t_setstat): Likewise.
+
+	* device/conf.h (nulldev_getstat, nulldev_setstat): Fix parameter types
+	accordingly.
+	* device/dev_name.c (nulldev_getstat, nulldev_setstat): Likewise.
+	* device/kmsg.c (kmsggetstat): Likewise.
+	* device/kmsg.h (kmsggetstat): Likewise.
+	* device/net_io.c (net_getstat): Likewise.
+	* device/net_io.h (net_getstat): Likewise.
+	* i386/i386at/com.c (comgetstat, comsetstat): Likewise.
+	* i386/i386at/com.h (comgetstat, comsetstat): Likewise.
+	* i386/i386at/kd.c (kdgetstat, kdsetstat): Likewise.
+	* i386/i386at/kd.h (kdgetstat, kdsetstat): Likewise.
+	* i386/i386at/kd_event.c (kbdgetstat, kbdsetstat): Likewise.
+	* i386/i386at/kd_event.h (kbdgetstat, kbdsetstat): Likewise.
+	* i386/i386at/kd_mouse.c (mousegetstat): Likewise.
+	* i386/i386at/kd_mouse.h (mousegetstat): Likewise.
+	* i386/i386at/lpr.c (lprgetstat, lprsetstat): Likewise.
+	* i386/i386at/lpr.h (lprgetstat, lprsetstat): Likewise.
+	* xen/console.c (hypcngetstat, hypcnsetstat): Likewise.
+	* xen/console.h (hypcngetstat, hypcnsetstat): Likewise.
+
+	* device/dev_hdr.h: Forward-declare struct dev_ops and dev_ops_t type
+	instead of including <device/conf.h>.
+	* device/dev_pager.c: Include <device/conf.h>
+	* i386/i386/pcb.h: Include <machine/io_perm.h>
+	* i386/i386/thread.h: Do not include <i386/tss.h>
+
+2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix warning
+	* i386/intel/pmap.c (pmap_enter): Fix panic format.
+
 	Add gcc-8 compatibility
 	* linux/src/include/linux/compiler-gcc8.h: New file.
 
