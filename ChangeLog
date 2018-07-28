@@ -1,3 +1,87 @@
+2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add gcc-8 compatibility
+	* linux/src/include/linux/compiler-gcc8.h: New file.
+
+2018-07-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add ffs to clib_routines
+	Since pmap.c uses it in SMP mode.
+
+	* Makefile.am (clib_routines): Add ffs.
+
+2018-06-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix interrupt_processor prototype
+	* i386/i386/mp_desc.h [MULTIPROCESSOR] (interrupt_processor): Add
+	prototype.
+	* i386/intel/pmap.c [NCPUS > 1]: Include <i386/mp_desc.h>
+
+	Add missing include
+	* i386/intel/pmap.c: Include <i386/spl.h>.
+
+	Fix pmap name
+	* i386/intel/pmap.c (pmap_map_bd): Lock kernel_pmap, not just the
+	inexistent pmap.
+
+	Add splvm prototype
+	* i386/i386/spl.h (splvm): Add prototype.
+
+2018-06-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add cause_ast_check prototype
+	As reported by Almudena Garcia <liberamenso10000@gmail.com>
+
+	* kern/ast.h [NCPUS > 1] (cause_ast_check): Add prototype.
+
+2018-06-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Define CPU_L1_SIZE even when NCPUS != 1
+	As reported by Almudena Garcia <liberamenso10000@gmail.com>
+
+	* kern/cpu_number.h [NCPUS != 1] (CPU_L1_SIZE): Define macro.
+
+2018-06-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Disable position-independant compilation
+	as now enabled automatically by some distributions...
+
+	Reported and tested by Almudena Garcia <liberamenso10000@gmail.com>
+
+	* Makefile.am (AM_CFLAGS): Add -no-pie -fno-pic.
+
+2018-06-17  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add missing prototype
+	* kern/machine.h (action_thread): Add prototype.
+
+	Re-fix typo
+	* machine/lock.h (_simple_lock_xchg_): Remove spurious parenthesis.
+
+	Fix typo
+	* machine/lock.h (_simple_lock_xchg_): Add missing parenthesis.
+
+2018-06-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Keep DMA enabled on QEMU disks
+	When the host is very loaded, some requests might time out, but that is
+	not a reason for disabling DMA, so keep it enabled.
+
+	* linux/src/drivers/block/triton.c (config_drive_for_dma): When disk is
+	QEMU, set using_dma and keep_settings to 1.
+
+2018-04-22  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	vm_map: Fix bugs on huge masks parameters
+	* vm/vm_map.c (vm_map_find_entry_anywhere): Also check that (min + mask) &
+	~mask remains bigger than min.
+
+2018-03-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Avoid old type
+	* include/device/bpf.h: Do not include <sys/types.h>
+	(struct bpf_version): Use unsigned short type instead of u_short.
+
 2018-01-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Add const MIG types
