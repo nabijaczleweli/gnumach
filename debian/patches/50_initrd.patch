@@ -307,7 +307,7 @@ Index: gnumach/device/ramdisk.h
 +		.d_mmap = ramdisk_mmap, \
 +		.d_async_in = nodev, \
 +		.d_reset = nulldev, \
-+		.d_port_death = nulldev_port_death, \
++		.d_port_death = nulldev_portdeath, \
 +		.d_subdev = 0, \
 +		.d_dev_info = nodev, \
 +	}
