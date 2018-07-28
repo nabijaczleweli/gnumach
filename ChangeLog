@@ -1,5 +1,21 @@
 2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
+	device: Fix d_mmap type
+	* device/conf.h (dev_ops): Make d_mmap return vm_offset_t instead of
+	int.
+	(nomap): Update accordingly.
+	* device/blkio.c (block_io_mmap): Likewise.
+	* device/blkio.h (block_io_mmap): Likewise.
+	* device/dev_name.c (nomap): Likewise.
+	* i386/i386at/kd.c (kdmmap): Likewise.
+	* i386/i386at/kd.h (kdmmap): Likewise.
+	* i386/i386at/mem.c (memmmap): Likewise.
+	* i386/i386at/mem.h (memmmap): Likewise.
+	* i386/i386at/model_dep.c (timemmap): Likewise.
+	* i386/i386at/model_dep.h (timemmap): Likewise.
+
+2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
 	Fix dev_ops types
 	* device/conf.h: Include <device/device_types.h>.
 	(dev_ops): Make d_getstat and d_setstat fields use dev_flavor_t,
