@@ -1,6 +1,7 @@
 gnumach (2:1.8+git20180728-2) UNRELEASED; urgency=medium
 
   * control: Bump Standards-Version to 4.2.0 (no changes).
+  * patches/git-automake-1.16.patch: Fix build against automake-1.16.
 
  -- Samuel Thibault <sthibault@debian.org>  Fri, 10 Aug 2018 02:09:52 +0200
 
