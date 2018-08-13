@@ -1,0 +1,3 @@
+# These are complete packages, not debugging symbols packages
+gnumach source: dbg-package-missing-depends gnumach-image-1.8-486-dbg
+gnumach source: dbg-package-missing-depends gnumach-image-1.8-xen-486-dbg
