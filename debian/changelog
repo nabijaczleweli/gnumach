@@ -2,6 +2,8 @@ gnumach (2:1.8+git20180728-2) unstable; urgency=medium
 
   * control: Bump Standards-Version to 4.2.0 (no changes).
   * patches/git-automake-1.16.patch: Fix build against automake-1.16.
+  * rules: Include /usr/share/dpkg/architecture.mk instead of calling
+    dpkg-architecture.
 
  -- Samuel Thibault <sthibault@debian.org>  Mon, 13 Aug 2018 21:44:49 +0200
 
