@@ -1,3 +1,10 @@
+gnumach (2:1.8+git20180728-3) UNRELEASED; urgency=medium
+
+  * control: Make gnumach-common any-i386 so it does not need to be built on
+    the "all" buildd which is amd64 (Closes: Bug#906440).
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 03 Sep 2018 21:51:12 +0200
+
 gnumach (2:1.8+git20180728-2) unstable; urgency=medium
 
   * control: Bump Standards-Version to 4.2.0 (no changes).

@@ -104,7 +104,7 @@ Description: GNU version of the Mach microkernel for Xen for debugging
 
 Package: gnumach-common
 Section: devel
-Architecture: all
+Architecture: any-i386
 Build-Profiles: <!stage1>
 Multi-Arch: foreign
 Depends: ${misc:Depends}
