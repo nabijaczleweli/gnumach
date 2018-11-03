@@ -609,7 +609,7 @@ index 6c1e3d6f..24c4c64b 100644
 +++ b/vm/vm_user.c
 @@ -479,3 +479,97 @@ kern_return_t vm_wire_all(const ipc_port_t port, vm_map_t map, vm_wire_t flags)
  
- 	return vm_map_pageable_all(map, flags);
+ 	return vm_map_msync(map, (vm_offset_t) address, size, sync_flags);
  }
 +
 +kern_return_t vm_allocate_contiguous(host_priv, map, result_vaddr, result_paddr, size)
