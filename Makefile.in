@@ -2735,7 +2735,8 @@ EXTRA_DIST = gensym.awk ipc/mach_port.srv ipc/notify.defs \
 	linux/src/drivers/scsi/eata_pio_proc.c \
 	linux/src/drivers/scsi/scsiiom.c linux/dev/include \
 	linux/src/include linux/pcmcia-cs/include $(am__append_117) \
-	$(mach_TEXINFOS) config.status.dep.patch DEVELOPMENT
+	$(mach_TEXINFOS) config.status.dep.patch Makefile.in.dep.patch \
+	DEVELOPMENT
 
 #
 # Building a distribution.
@@ -4786,15 +4787,7 @@ distclean-compile:
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
-	# Ugly bootstrap hack to get to-be-generated files created
-	# Try to guess what file this dependency file is from...
-	@f=$(srcdir)/`dirname "$(@D)"`/`basename "$@" .Po | sed s/lib[^-]\*-//` ; \
-	for f in "$$f"*; do \
-		case $$f in \
-			*.c | *.S) echo "$$f"': $$(filter-out $$(DIST_SOURCES),$$(SOURCES))' ;; \
-			*) echo '# dummy';; \
-		esac ; \
-	done >$@-t && $(am__mv) $@-t $@
+	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
 

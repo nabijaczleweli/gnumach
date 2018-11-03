@@ -1,5 +1,8 @@
 2018-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
+	Add missing patch file
+	* Makefile.am (EXTRA_DIST): Add Makefile.in.dep.patch.
+
 	Add vm_object_sync support
 	* include/mach/vm_sync.h: New file.
 	* include/mach/mach_types.h: Include <mach/vm_sync.h>
