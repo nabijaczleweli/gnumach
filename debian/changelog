@@ -4,6 +4,7 @@ gnumach (2:1.8+git20181103-1) unstable; urgency=medium
     - patches/git-automake-1.16.patch: Merged.
     - patches/70_dde.patch: Refresh.
     - patches/79_dde-debian.patch: Refresh.
+  * control.in: Fix making gnumach-common any-i386.
 
  -- Samuel Thibault <sthibault@debian.org>  Sat, 03 Nov 2018 20:50:32 +0000
 

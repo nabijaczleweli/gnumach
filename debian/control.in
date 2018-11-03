@@ -8,7 +8,7 @@ Vcs-Browser: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
 Build-Depends: debhelper (>= 9.20141010), mig (>= 1.6+git20160502-1~) <!stage1>, sharutils,
  autoconf, automake, texinfo, dpkg-dev (>= 1.17.14)
-Standards-Version: 4.1.5
+Standards-Version: 4.2.0
 
 Package: gnumach-image-1-486
 Architecture: any-i386
@@ -104,7 +104,7 @@ Description: GNU version of the Mach microkernel for Xen for debugging
 
 Package: gnumach-common
 Section: devel
-Architecture: all
+Architecture: any-i386
 Build-Profiles: <!stage1>
 Multi-Arch: foreign
 Depends: ${misc:Depends}
