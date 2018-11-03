@@ -1,3 +1,31 @@
+2018-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add vm_object_sync support
+	* include/mach/vm_sync.h: New file.
+	* include/mach/mach_types.h: Include <mach/vm_sync.h>
+	* Makefrag.am (include_mach_HEADERS): Add include/mach/vm_sync.h.
+	* include/mach/mach_types.defs (vm_sync_t): Add type.
+	* include/mach/gnumach.defs (vm_object_sync, vm_msync): Add RPCs.
+	* vm/vm_map.h: Include <mach/vm_sync.h>.
+	(vm_map_msync): New declaration.
+	* vm/vm_map.c (vm_map_msync): New function.
+	* vm/vm_user.c: Include <mach/vm_sync.h> and <kern/mach.server.h>.
+	(vm_object_sync, vm_msync): New functions.
+
+	Fix typo
+
+2018-08-13  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop spurious changes
+
+	Fix building out of source
+	* configure.ac: Fix patching Makefile.in in $srcdir.
+
+	Fix bootstrap hack for automake 1.16
+	* Makefile.in.dep.patch: New file.
+	* configure.ac: Try to apply Makefile.in.dep.patch if
+	config.status.dep.patch failed to apply.
+
 2018-07-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	device: Fix d_mmap type
