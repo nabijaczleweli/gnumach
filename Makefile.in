@@ -2576,9 +2576,9 @@ am__relativize = \
     dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
   done; \
   reldir="$$dir2"
-DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.bz2
+DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.xz
 GZIP_ENV = --best
-DIST_TARGETS = dist-bzip2 dist-gzip
+DIST_TARGETS = dist-xz dist-gzip
 distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
@@ -2767,7 +2767,7 @@ AM_CPPFLAGS = -ffreestanding -nostdinc -imacros config.h -I$(systype) \
 	-I. -I$(top_srcdir)/$(systype) \
 	-I$(top_srcdir)/$(systype)/include/mach/sa \
 	-I$(top_srcdir)/include
-AM_CCASFLAGS = 
+AM_CCASFLAGS = -D__ASSEMBLY__
 
 # Yes, this makes the eyes hurt.  But perhaps someone will finally take care of
 # all that scruffy Mach code...  Also see <http://savannah.gnu.org/task/?5726>.
@@ -3080,7 +3080,7 @@ liblinux_a_CFLAGS = -O2 $(AM_CFLAGS) -fno-strict-aliasing
 
 # TODO.  Do we really need `-traditional'?
 liblinux_a_CCASFLAGS = $(AM_CCASFLAGS) \
-	-D__ASSEMBLY__ -traditional \
+	-traditional \
 	$(liblinux_a_CPPFLAGS)
 
 liblinux_a_SOURCES = linux/dev/init/version.c \
@@ -4787,7 +4787,15 @@ distclean-compile:
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
-	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
+	# Ugly bootstrap hack to get to-be-generated files created
+	# Try to guess what file this dependency file is from...
+	@f=$(srcdir)/`dirname "$(@D)"`/`basename "$@" .Po | sed s/lib[^-]\*-//` ; \
+	for f in "$$f"*; do \
+		case $$f in \
+			*.c | *.S) echo "$$f"': $$(filter-out $$(DIST_SOURCES),$$(SOURCES))' ;; \
+			*) echo '# dummy';; \
+		esac ; \
+	done >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
 
@@ -7705,6 +7713,7 @@ distdir-am: $(DISTFILES)
 dist-gzip: distdir
 	tardir=$(distdir) && $(am__tar) | eval GZIP= gzip $(GZIP_ENV) -c >$(distdir).tar.gz
 	$(am__post_remove_distdir)
+
 dist-bzip2: distdir
 	tardir=$(distdir) && $(am__tar) | BZIP2=$${BZIP2--9} bzip2 -c >$(distdir).tar.bz2
 	$(am__post_remove_distdir)
@@ -7712,7 +7721,6 @@ dist-bzip2: distdir
 dist-lzip: distdir
 	tardir=$(distdir) && $(am__tar) | lzip -c $${LZIP_OPT--9} >$(distdir).tar.lz
 	$(am__post_remove_distdir)
-
 dist-xz: distdir
 	tardir=$(distdir) && $(am__tar) | XZ_OPT=$${XZ_OPT--e} xz -c >$(distdir).tar.xz
 	$(am__post_remove_distdir)
