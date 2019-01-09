@@ -1,8 +1,8 @@
-gnumach (2:1.8+git20190109-1) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20190109-1) unstable; urgency=medium
 
   * New upstream snapshot. Fixes interactive thread reactivity.
 
- -- Samuel Thibault <sthibault@debian.org>  Wed, 09 Jan 2019 11:35:58 +0100
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 09 Jan 2019 11:59:08 +0100
 
 gnumach (2:1.8+git20181103-1) unstable; urgency=medium
 
