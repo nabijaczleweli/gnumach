@@ -557,9 +557,6 @@
 /* POWER_SAVE */
 #undef POWER_SAVE
 
-/* SIMPLE_CLOCK */
-#undef SIMPLE_CLOCK
-
 /* SLAB_USE_CPU_POOLS */
 #undef SLAB_USE_CPU_POOLS
 

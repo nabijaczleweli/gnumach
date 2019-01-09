@@ -83,8 +83,13 @@
 #include <i386/proc_reg.h>
 #include <i386/locore.h>
 #include <i386/model_dep.h>
+#include <i386/spl.h>
 #include <i386at/biosmem.h>
 #include <i386at/model_dep.h>
+
+#if	NCPUS > 1
+#include <i386/mp_desc.h>
+#endif
 
 #ifdef	MACH_PSEUDO_PHYS
 #define	WRITE_PTE(pte_p, pte_entry)		*(pte_p) = pte_entry?pa_to_ma(pte_entry):0;
@@ -543,7 +548,7 @@ vm_offset_t pmap_map_bd(
 	if (prot & VM_PROT_WRITE)
 	    template |= INTEL_PTE_WRITE;
 
-	PMAP_READ_LOCK(pmap, spl);
+	PMAP_READ_LOCK(kernel_pmap, spl);
 	while (start < end) {
 		pte = pmap_pte(kernel_pmap, virt);
 		if (pte == PT_ENTRY_NULL)
@@ -572,7 +577,7 @@ vm_offset_t pmap_map_bd(
 	if (n != i)
 		panic("couldn't pmap_map_bd\n");
 #endif	/* MACH_PV_PAGETABLES */
-	PMAP_READ_UNLOCK(pmap, spl);
+	PMAP_READ_UNLOCK(kernel_pmap, spl);
 	return(virt);
 }
 
@@ -1920,7 +1925,7 @@ Retry:
 		 * Would have to enter the new page-table page in
 		 * EVERY pmap.
 		 */
-		panic("pmap_expand kernel pmap to %#x", v);
+		panic("pmap_expand kernel pmap to %#lx", v);
 	    }
 
 	    /*

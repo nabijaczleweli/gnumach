@@ -685,7 +685,7 @@ restart:
 		start = (map->min_offset + mask) & ~mask;
 		end = start + size;
 
-		if ((end <= start) || (end > map->max_offset)) {
+		if ((start < map->min_offset) || (end <= start) || (end > map->max_offset)) {
 			goto error;
 		}
 
@@ -699,7 +699,8 @@ restart:
 		start = (entry->vme_end + mask) & ~mask;
 		end = start + size;
 
-		if ((end > start)
+		if ((start >= entry->vme_end)
+		    && (end > start)
 		    && (end <= map->max_offset)
 		    && (end <= (entry->vme_end + entry->gap_size))) {
 			*startp = start;
@@ -738,6 +739,7 @@ restart:
 
 	assert(entry->gap_size >= max_size);
 	start = (entry->vme_end + mask) & ~mask;
+	assert(start >= entry->vme_end);
 	end = start + size;
 	assert(end > start);
 	assert(end <= (entry->vme_end + entry->gap_size));
@@ -4865,6 +4867,37 @@ kern_return_t vm_map_machine_attribute(
 
 	return ret;
 }
+
+/*
+ *	Routine:	vm_map_msync
+ *	Purpose:
+ *		Synchronize out pages of the given map out to their memory
+ *		manager, if any.
+ */
+kern_return_t vm_map_msync(
+	vm_map_t	map,
+	vm_offset_t	address,
+	vm_size_t	size,
+	vm_sync_t	sync_flags)
+{
+	if (map == VM_MAP_NULL)
+		KERN_INVALID_ARGUMENT;
+
+	if (sync_flags & (VM_SYNC_ASYNCHRONOUS | VM_SYNC_SYNCHRONOUS) ==
+			 (VM_SYNC_ASYNCHRONOUS | VM_SYNC_SYNCHRONOUS))
+		KERN_INVALID_ARGUMENT;
+
+	size =	round_page(address + size) - trunc_page(address);
+	address = trunc_page(address);
+
+	if (size == 0)
+		return KERN_SUCCESS;
+
+	/* TODO */
+
+	return KERN_INVALID_ARGUMENT;
+}
+
 
 
 #if	MACH_KDB
