@@ -118,7 +118,16 @@ build-xen-dbg/config.status: configure
 		--enable-platform=xen
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-build-arch: build/stamp build-xen/stamp build-dbg/stamp build-xen-dbg/stamp
+build-arch: build/stamp
+  ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
+build-arch: build-dbg/stamp
+  endif
+  ifeq ($(filter noxen,$(DEB_BUILD_PROFILES)),)
+build-arch: build-xen/stamp
+    ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
+build-arch: build-xen-dbg/stamp
+    endif
+  endif
 else
 build-arch: build/config.status
 endif
@@ -201,25 +210,38 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) -C build install \
 		DESTDIR=$(D)
 	
+  ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
+	$(MAKE) -C build-dbg install-exec \
+		DESTDIR=$(D_DBG)
+  endif
+	
+  ifeq ($(filter noxen,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) -C build-xen install \
 		DESTDIR=$(D_XEN)
 	
-	$(MAKE) -C build-dbg install-exec \
-		DESTDIR=$(D_DBG) \
-	
+    ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) -C build-xen-dbg install-exec \
-		DESTDIR=$(D_XEN_DBG) \
+		DESTDIR=$(D_XEN_DBG)
+    endif
+  endif
 	
 	mkdir -p $(D_UDEB)/boot
 	cp $(D)/boot/gnumach $(D_UDEB)/boot/
 	mv $(D)/boot/gnumach $(D)/boot/gnumach-$(VERSION)-$(MACHINE)
+  ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
+	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-$(VERSION)-$(MACHINE)-dbg
+  endif
+
+  ifeq ($(filter noxen,$(DEB_BUILD_PROFILES)),)
 	mkdir -p $(D_XEN_UDEB)/boot
 	cp $(D_XEN)/boot/gnumach $(D_XEN_UDEB)/boot/
 	mv $(D_XEN)/boot/gnumach $(D_XEN)/boot/gnumach-$(VERSION)-xen-$(MACHINE)
-	mv $(D_DBG)/boot/gnumach $(D_DBG)/boot/gnumach-$(VERSION)-$(MACHINE)-dbg
+    ifeq ($(filter nodbg,$(DEB_BUILD_PROFILES)),)
 	mv $(D_XEN_DBG)/boot/gnumach $(D_XEN_DBG)/boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
+    endif
+  endif
 
-ifeq ($(DEB_HOST_ARCH_OS),hurd)
+  ifeq ($(DEB_HOST_ARCH_OS),hurd)
 	for script in preinst prerm postinst postrm ; do \
 		for prefix in "" -xen ; do \
 			for suffix in "" -dbg ; do \
@@ -230,7 +252,7 @@ ifeq ($(DEB_HOST_ARCH_OS),hurd)
 			done ; \
 		done ; \
 	done
-endif
+  endif
 else
 	$(MAKE) -C build install-data \
 		DESTDIR=$(D)
@@ -260,16 +282,12 @@ binary-arch: install debian/control.stamp
 	dh_testroot
 	
 	dh_install -a -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg) --sourcedir=$(D)
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	dh_install -p$(pkg) --sourcedir=$(D) boot
 	dh_install -p$(pkg_xen) --sourcedir=$(D_XEN) boot
-ifeq ($(DEB_HOST_ARCH_OS),hurd)
 	dh_install -p$(pkg_udeb) --sourcedir=$(D_UDEB) boot
 	dh_install -p$(pkg_xen_udeb) --sourcedir=$(D_XEN_UDEB) boot
-endif
 	dh_install -p$(pkg_dbg) --sourcedir=$(D_DBG) boot
 	dh_install -p$(pkg_xen_dbg) --sourcedir=$(D_XEN_DBG) boot
-endif
 	
 	dh_installdocs -p$(pkg) README NEWS i386/README-Drivers
 	dh_installdocs -p$(pkg_xen) README NEWS
@@ -282,16 +300,12 @@ endif
 	dh_link -a
 	dh_strip -a -N$(pkg_dbg) -N$(pkg_xen_dbg)
 	dh_compress -a -N$(pkg) -N$(pkg_udeb) -N$(pkg_xen) -N$(pkg_xen_udeb) -N$(pkg_dbg) -N$(pkg_xen_dbg)
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	dh_compress -p$(pkg) boot/gnumach-$(VERSION)-$(MACHINE)
 	dh_compress -p$(pkg_xen) boot/gnumach-$(VERSION)-xen-$(MACHINE)
-ifeq ($(DEB_HOST_ARCH_OS),hurd)
 	dh_compress -p$(pkg_udeb) boot/gnumach
 	dh_compress -p$(pkg_xen_udeb) boot/gnumach
-endif
 	dh_compress -p$(pkg_dbg) boot/gnumach-$(VERSION)-$(MACHINE)-dbg
 	dh_compress -p$(pkg_xen_dbg) boot/gnumach-$(VERSION)-xen-$(MACHINE)-dbg
-endif
 	dh_fixperms -a
 	dh_installdeb -a
 	dh_gencontrol -a

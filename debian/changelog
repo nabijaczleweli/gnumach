@@ -1,3 +1,9 @@
+gnumach (2:1.8+git20190109-1+hurd.1) unreleased; urgency=medium
+
+  * control.in, rules: Add noxen nodbg build profiles.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 27 Apr 2019 13:13:52 +0000
+
 gnumach (2:1.8+git20190109-1) unstable; urgency=medium
 
   * New upstream snapshot. Fixes interactive thread reactivity.
