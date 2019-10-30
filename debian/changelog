@@ -1,4 +1,4 @@
-gnumach (2:1.8+git20191029-1) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20191029-1) unstable; urgency=medium
 
   * New upstream snapshot.
     - patches/ahci-hdrtype: Upstreamed.
@@ -6,7 +6,7 @@ gnumach (2:1.8+git20191029-1) UNRELEASED; urgency=medium
   * control: Bump Standards-Version to 4.4.0 (no changes).
   * watch: Generalize pattern.
 
- -- Samuel Thibault <sthibault@debian.org>  Mon, 05 Aug 2019 21:20:43 +0200
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 30 Oct 2019 00:59:07 +0000
 
 gnumach (2:1.8+git20190109-1+hurd.1) unreleased; urgency=medium
 
