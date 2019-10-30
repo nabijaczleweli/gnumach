@@ -202,7 +202,7 @@ task_create_kernel(
 			  new_task);
 	else
 		snprintf (new_task->name, sizeof new_task->name, "(%.*s)",
-			  sizeof new_task->name - 3, parent_task->name);
+			  (int) (sizeof new_task->name - 3), parent_task->name);
 
 	if (new_task_notification != NULL) {
 		task_reference (new_task);
@@ -1224,7 +1224,8 @@ void consider_task_collect(void)
 		task_collect_max_rate = hz;
 
 	if (task_collect_allowed &&
-	    (sched_tick > (task_collect_last_tick + task_collect_max_rate))) {
+	    (sched_tick > (task_collect_last_tick +
+			   task_collect_max_rate / (hz / 1)))) {
 		task_collect_last_tick = sched_tick;
 		task_collect_scan();
 	}

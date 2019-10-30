@@ -1,11 +1,11 @@
-This is mach.info, produced by makeinfo version 6.5 from mach.texi.
+This is mach.info, produced by makeinfo version 6.7 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 16 August 2017, of 'The GNU Mach
-Reference Manual', for version 1.8+git20181103.
+   This is edition 0.4, last updated on 24 October 2019, of 'The GNU
+Mach Reference Manual', for version 1.8+git20191029.
 
-   Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
+   Copyright © 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
 
      Permission is granted to copy, distribute and/or modify this
@@ -19,7 +19,7 @@ Inc.
      and license:
 
      Mach Operating System
-     Copyright (C) 1991,1990 Carnegie Mellon University
+     Copyright © 1991,1990 Carnegie Mellon University
      All Rights Reserved.
 
      Permission to use, copy, modify and distribute this software and
@@ -45,10 +45,10 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 16 August 2017, of 'The GNU Mach
-Reference Manual', for version 1.8+git20181103.
+   This is edition 0.4, last updated on 24 October 2019, of 'The GNU
+Mach Reference Manual', for version 1.8+git20191029.
 
-   Copyright (C) 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
+   Copyright © 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
 
      Permission is granted to copy, distribute and/or modify this
@@ -62,7 +62,7 @@ Inc.
      and license:
 
      Mach Operating System
-     Copyright (C) 1991,1990 Carnegie Mellon University
+     Copyright © 1991,1990 Carnegie Mellon University
      All Rights Reserved.
 
      Permission to use, copy, modify and distribute this software and

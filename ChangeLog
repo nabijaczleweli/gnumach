@@ -1,3 +1,193 @@
+2019-10-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop spurious change
+	* version.m4: Remove spurious git tag qualifier.
+
+2019-10-27  Almudena Garcia  <liberamenso10000@gmail.com>
+
+	patch: add last_processor to thread info structures
+	* include/mach/thread_info.h (thread info structures): Add new member
+	"last_processor" in thread_sched_info.
+	* kern/thread.c (thread management): Fill new member "last_processor" in
+	thread_info() function.
+
+2019-10-24  Luca Weiss  <luca@z3ntu.xyz>
+
+	Fix build with texinfo 6.7
+	doc/mach.texi: Specify document encoding as ISO-8859-1.
+
+2019-09-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	compiler-gcc*.h: Keep on the gcc 5 version for now
+	We can introduce other versions if we ever need to (which is unlikely
+	since we plan to get rid of the Linux drivers).
+
+	* compiler-gcc.h: Include compiler-gcc5.h for all compiler versions starting
+	from gcc 5.
+	* compiler-gcc6.h, compiler-gcc7.h, compiler-gcc8.h, compiler-gcc9.h:
+	Remove.
+
+2019-08-31  guy fleury iteriteka  <gfleury@disroot.org>
+
+	satisfy 'werror=parantheses'.
+	* vm/vm_map.c(vm_map_msync): explit group of first condition.
+
+	Fix the pointer comparison of different type.
+	* vm/vm_map.c(vm_map_fork): use VM_MAP_NULL instead of PMAP_NULL when compare
+	  with new_map.
+
+2019-08-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add gcc-9 compatibility
+	    * linux/src/include/linux/compiler-gcc9.h: New file.
+
+2019-08-30  guy fleury iteriteka  <gfleury@disroot.org>
+
+	fix return KERN_INVALID_ARGUMENT when the map is NULL.
+	* vm/vm_map.c(vm_map_msync): Add missing return keyword.
+
+2019-08-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix format
+	* ipc/mach_port.c (mach_port_mod_refs): Fix passing string size.
+
+	Fix format
+	* kern/task.c (task_create_kernel): Fix passing string size.
+
+	Fix allocation test
+	* vm/vm_map.c (vm_map_fork): Check for `new_map` being non-NULL, and not
+	for `new_pmap` a second time.
+
+	Fix printk format
+	* linux/dev/drivers/block/ahci.c (ahci_identify, ahci_probe_port): Fix
+	format.
+
+	Fix printf format
+	* ipc/mach_port.c (mach_port_destroy, mach_port_deallocate): Fix format.
+
+	Fix uninitialized value
+	* kern/gsync.c (temp_mapping): Initialize start address to
+	VM_MIN_KERNEL_ADDRESS.
+
+2019-04-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Avoid calling biosmem with size 0
+	* i386/i386at/model_dep.c (register_boot_data): Register reserved
+	biosmem areas only when they have a non-zero size.
+
+	Avoid calling biosmem with size 0
+	* i386/configfrag.ac (register_boot_data): Process modules only when
+	their count is non-zero.
+	(i386at_init): Likewise.
+
+2019-04-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	ahci: Ignore multifunction bit in PCI header type
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Clear bit 7 of
+	hdrtype.
+
+2018-12-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Move -D__ASSEMBLY__ to general AM_CCASFLAGS
+	Since it is used not only by linux bits.
+
+	* linux/Makefrag.am (liblinux_a_CCASFLAGS): Remove -D__ASSEMBLY__
+	* Makefile.am (AM_CCASFLAGS): Add -D__ASSEMBLY__
+
+2018-12-05  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	io_perm: Rename macro to better name
+	* i386/i386/io_perm.c (IS_IN_PROTECTED_RANGE): Rename to
+	CONTAINS_PCI_CFG.
+
+2018-12-05  Damien Zammit  <damien@zamaudio.com>
+
+	Restrict access to PCI cfg io ports to one process
+	* i386/i386/io_perm.c (PCI_CFG1_START, PCI_CFG1_END, PCI_CFG2_START,
+	PCI_CFG2_END, IS_IN_PROTECTED_RANGE): New macros.
+	(taken_pci_cfg): New variable.
+	(io_perm_deallocate): New function.
+	(i386_io_perm_create): Return KERN_PROTECTION_FAILURE if requested port
+	range contains PCI config registers and that is already taken. Set
+	taken_pci_cfg to true when taking them.
+	* i386/i386/io_perm.h (io_perm_deallocate): New declaration.
+	* i386/include/mach/i386/mach_i386.defs (io_perm_t): Add
+	io_perm_deallocate destructor.
+
+2018-11-26  Kalle Olavi Niemitalo  <kon@iki.fi>
+
+	Add GPLv3 license text
+	To help people satisfy the license when they convey clones
+	of the gnumach Git repository, in which gitlog-to-changelog
+	and some deleted files are licensed under GPLv3-or-later.
+
+	A normal build does not use the GPLv3-or-later files.  "make dist"
+	runs gitlog-to-changelog but does not copy it to gnumach-*.tar.
+
+	Bug: https://savannah.gnu.org/bugs/?49024
+
+2018-11-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix interactivity of inactive threads
+	A new thread will mosty probably start working, assume it will take
+	its share of CPU, to avoid having to find it out slowly.  Decaying will
+	however fix that quickly if it actually does not work.
+
+	This fixes stalling issues when a program keeps creating threads.
+
+	* kern/thread.c (thread_create): Set new_thread's cpu_usage and
+	sched_usage to a fair share of the current load.
+
+2018-11-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix task and thread collection frequency
+	sched_tick is incremented only once per second, not once per tick.
+
+	* kern/task.c (consider_task_collect): Divide task_collect_max_rate by
+	(hz / 1) to get a number of scheduler ticks.
+	* kern/thread.c (consider_thread_collect): Divide thread_collect_max_rate by
+	(hz / 1) to get a number of scheduler ticks.
+
+2018-11-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop SIMPLE_CLOCK support
+	This wasn't building and is not useful with nowaday's hardware.
+
+	* configfrag.ac (SIMPLE_CLOCK): Do not define.
+	* kern/sched.h [SIMPLE_CLOCK] (sched_usec): Remove variable declaration.
+	* kern/sched_prim.c [SIMPLE_CLOCK] (sched_usec): Remove variable.
+	[SIMPLE_CLOCK] (sched_init): Do not initialize sched_usec variable.
+	[SIMPLE_CLOCK] (recompute_priorities): Do not tinker sched_usec
+	variable.
+	* kern/thread.c [SIMPLE_CLOCK] (thread_info): Do not ajust for clock
+	drift.
+
+2018-11-19  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make scheduling more reactive
+	Give smaller quantums to processes, to get more frequent context
+	switches. This fixes some reactivity for concurrent processes.
+
+	* kern/sched.h (MIN_QUANTUM): Define to hz / 33.
+	* kern/sched_prim.c (sched_init): Use MIN_QUANTUM instead of hz / 10.
+
+2018-11-06  Guillem Jover  <guillem@hadrons.org>
+
+	build: Distribute tarball compressed with xz instead of bzip2
+	* configure.ac (AM_INIT_AUTOMAKE): Change dist-bzip2 to dist-xz.
+
+2018-11-04  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix using all dynamic priorities
+	6a2342010811 ("Increase number of priorities") increased NRQS but didn't
+	increase PRI_SHIFT to extend the use of the additional queues by the
+	scheduler.  This does it.  While at it, extend to NRQS to 64, the double
+	of the original 32, to keep all values coherent.
+
+	* i386/i386/sched_param.h (PRI_SHIFT): Set from 18 to 17.
+	* kern/sched.h (PRI_SHIFT):  Set from 18 to 17.
+	(NRQS): Set to 64.
+
 2018-11-03  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Add missing patch file
