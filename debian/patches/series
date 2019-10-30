@@ -5,4 +5,3 @@
 70_dde.patch
 79_dde-debian.patch
 80_vm_object_coalesce.patch
-ahci-hdrtype
