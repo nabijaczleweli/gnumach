@@ -1,3 +1,91 @@
+2019-10-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Drop spurious change
+	* version.m4: Remove spurious git tag qualifier.
+
+2019-10-27  Almudena Garcia  <liberamenso10000@gmail.com>
+
+	patch: add last_processor to thread info structures
+	* include/mach/thread_info.h (thread info structures): Add new member
+	"last_processor" in thread_sched_info.
+	* kern/thread.c (thread management): Fill new member "last_processor" in
+	thread_info() function.
+
+2019-10-24  Luca Weiss  <luca@z3ntu.xyz>
+
+	Fix build with texinfo 6.7
+	doc/mach.texi: Specify document encoding as ISO-8859-1.
+
+2019-09-06  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	compiler-gcc*.h: Keep on the gcc 5 version for now
+	We can introduce other versions if we ever need to (which is unlikely
+	since we plan to get rid of the Linux drivers).
+
+	* compiler-gcc.h: Include compiler-gcc5.h for all compiler versions starting
+	from gcc 5.
+	* compiler-gcc6.h, compiler-gcc7.h, compiler-gcc8.h, compiler-gcc9.h:
+	Remove.
+
+2019-08-31  guy fleury iteriteka  <gfleury@disroot.org>
+
+	satisfy 'werror=parantheses'.
+	* vm/vm_map.c(vm_map_msync): explit group of first condition.
+
+	Fix the pointer comparison of different type.
+	* vm/vm_map.c(vm_map_fork): use VM_MAP_NULL instead of PMAP_NULL when compare
+	  with new_map.
+
+2019-08-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Add gcc-9 compatibility
+	    * linux/src/include/linux/compiler-gcc9.h: New file.
+
+2019-08-30  guy fleury iteriteka  <gfleury@disroot.org>
+
+	fix return KERN_INVALID_ARGUMENT when the map is NULL.
+	* vm/vm_map.c(vm_map_msync): Add missing return keyword.
+
+2019-08-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Fix format
+	* ipc/mach_port.c (mach_port_mod_refs): Fix passing string size.
+
+	Fix format
+	* kern/task.c (task_create_kernel): Fix passing string size.
+
+	Fix allocation test
+	* vm/vm_map.c (vm_map_fork): Check for `new_map` being non-NULL, and not
+	for `new_pmap` a second time.
+
+	Fix printk format
+	* linux/dev/drivers/block/ahci.c (ahci_identify, ahci_probe_port): Fix
+	format.
+
+	Fix printf format
+	* ipc/mach_port.c (mach_port_destroy, mach_port_deallocate): Fix format.
+
+	Fix uninitialized value
+	* kern/gsync.c (temp_mapping): Initialize start address to
+	VM_MIN_KERNEL_ADDRESS.
+
+2019-04-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Avoid calling biosmem with size 0
+	* i386/i386at/model_dep.c (register_boot_data): Register reserved
+	biosmem areas only when they have a non-zero size.
+
+	Avoid calling biosmem with size 0
+	* i386/configfrag.ac (register_boot_data): Process modules only when
+	their count is non-zero.
+	(i386at_init): Likewise.
+
+2019-04-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	ahci: Ignore multifunction bit in PCI header type
+	* linux/dev/drivers/block/ahci.c (ahci_probe_dev): Clear bit 7 of
+	hdrtype.
+
 2018-12-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Move -D__ASSEMBLY__ to general AM_CCASFLAGS

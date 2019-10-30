@@ -1,5 +1,6 @@
-gnumach (2:1.8+git20190109-2) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20191029-1) UNRELEASED; urgency=medium
 
+  * New upstream snapshot.
   * control: Set Vcs-* to salsa.debian.org.
   * control: Bump Standards-Version to 4.4.0 (no changes).
   * watch: Generalize pattern.
