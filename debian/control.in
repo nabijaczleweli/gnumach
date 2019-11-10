@@ -4,11 +4,11 @@ Priority: optional
 Maintainer: GNU Hurd Maintainers <debian-hurd@lists.debian.org>
 Uploaders: Samuel Thibault <sthibault@debian.org>
 Homepage: http://www.gnu.org/software/hurd/microkernel/mach/gnumach.html
-Vcs-Browser: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
-Vcs-Git: https://anonscm.debian.org/git/pkg-hurd/gnumach.git
+Vcs-Browser: https://salsa.debian.org/hurd-team/gnumach
+Vcs-Git: https://salsa.debian.org/hurd-team/gnumach.git
 Build-Depends: debhelper (>= 9.20141010), mig (>= 1.6+git20160502-1~) <!stage1>, sharutils,
  autoconf, automake, texinfo, dpkg-dev (>= 1.17.14)
-Standards-Version: 4.2.0
+Standards-Version: 4.4.0
 
 Package: gnumach-image-1-486
 Architecture: any-i386
