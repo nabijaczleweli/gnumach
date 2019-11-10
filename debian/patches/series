@@ -6,3 +6,4 @@
 79_dde-debian.patch
 80_vm_object_coalesce.patch
 git-xen-fix
+git-spl-squash
