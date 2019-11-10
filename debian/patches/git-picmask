@@ -503,3 +503,28 @@ Index: gnumach/linux/src/drivers/scsi/NCR53c406a.c
          if (irq_level < 0) {		/* Trouble */
              printk("NCR53c406a: IRQ problem, irq_level=%d, giving up\n", irq_level);
              return 0;
+
+commit 09c207eb2e7dd63d51c1f5e2abccf2562e6fd87e
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Nov 10 13:39:03 2019 +0100
+
+    ide: Use default IRQ by default
+    
+    To avoid even trying to probe IRQs. Nowadays' hardware use the default
+    IRQ anyway.
+    
+    * linux/src/drivers/block/ide.c (init_hwif_data): Set hwif->irq to
+    default_irqs[index].
+
+diff --git a/linux/src/drivers/block/ide.c b/linux/src/drivers/block/ide.c
+index dc20fcba..43b12f1f 100644
+--- a/linux/src/drivers/block/ide.c
++++ b/linux/src/drivers/block/ide.c
+@@ -395,6 +395,7 @@ static void init_hwif_data (unsigned int index)
+ 	/* fill in any non-zero initial values */
+ 	hwif->index     = index;
+ 	hwif->io_base	= default_io_base[index];
++	hwif->irq	= default_irqs[index];
+ 	hwif->ctl_port	= hwif->io_base ? hwif->io_base+0x206 : 0x000;
+ #ifdef CONFIG_BLK_DEV_HD
+ 	if (hwif->io_base == HD_DATA)
