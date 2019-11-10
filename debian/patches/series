@@ -7,3 +7,4 @@
 80_vm_object_coalesce.patch
 git-xen-fix
 git-spl-squash
+git-picmask
