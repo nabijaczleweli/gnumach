@@ -1,0 +1,395 @@
+commit e45601b0780b2c81a6448cdafd952cb98112b9f4
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Sun Nov 10 17:36:07 2019 +0100
+
+    spl: Remove intpri array
+    
+    And simplify prtnull vs intnull vs linux_bad_intr.
+    
+    * i386/i386/ipl.h (intpri): Remove declaration
+    * i386/i386/pic.c (prtnull_count): Remove variable.
+    (prtnull): Remove function.
+    * i386/i386/pic.h (prtnull): Remove declaration.
+    * i386/i386at/autoconf.c (take_dev_irq, take_ctlr_irq): Use ivect instead of
+    intpri to determine irq availability. Do not set intpri.
+    * i386/i386at/pic_isa.c (ivect): Replace prtnull with intnull.
+    (intpri): Remove array.
+    * linux/dev/arch/i386/kernel/irq.c (linux_intr_pri): Remove variable.
+    (linux_bad_intr): Remove function.
+    (setup_x86_irq): Do not check intpri coherency. Do not set intpri. Set
+    default ivect to intnull instead of linux_bad_intr.
+    (probe_irq_on): Check ivect against intnull instead of linux_bad_intr.
+    Do not set intpri.
+    (probe_irq_off): Likewise.
+    (reserve_mach_irqs): Do not check against prtnull.
+    (old_clock_pri): Remove variable.
+    (init_IRQ): Do not set intpri. Do not set ivect to linux_bad_intr.
+    (restore_IRQ): Do not set ivect.
+    * i386/i386/pit.c (clkstart): Do not set intpri.
+    * i386/i386at/kd_mouse.c (kd_mouse_open, kd_mouse_close): Likewise.
+    * linux/dev/drivers/block/genhd.c (device_setup): Do not set linux_intr_pri.
+    * linux/dev/glue/block.c (init_partition, device_open): Likewise.
+    * linux/dev/glue/net.c (device_open): Likewise.
+    * linux/dev/glue/glue.h (linux_intr_pri, linux_bad_intr): Remove
+    declarations.
+
+Index: gnumach/i386/i386/ipl.h
+===================================================================
+--- gnumach.orig/i386/i386/ipl.h
++++ gnumach/i386/i386/ipl.h
+@@ -74,7 +74,6 @@ WITH THE USE OR PERFORMANCE OF THIS SOFT
+ #include <machine/machspl.h>
+ extern void	(*ivect[])();
+ extern int	iunit[];
+-extern int	intpri[];
+ extern spl_t	curr_ipl;
+ #endif	/* __ASSEMBLER__ */
+ #endif	/* KERNEL */
+Index: gnumach/i386/i386/pic.c
+===================================================================
+--- gnumach.orig/i386/i386/pic.c
++++ gnumach/i386/i386/pic.c
+@@ -176,11 +176,3 @@ intnull(int unit_dev)
+ {
+ 	printf("intnull(%d)\n", unit_dev);
+ }
+-
+-int prtnull_count = 0;
+-
+-void
+-prtnull(int unit)
+-{
+-	++prtnull_count;
+-}
+Index: gnumach/i386/i386/pic.h
+===================================================================
+--- gnumach.orig/i386/i386/pic.h
++++ gnumach/i386/i386/pic.h
+@@ -179,7 +179,6 @@ WITH THE USE OR PERFORMANCE OF THIS SOFT
+ #ifndef __ASSEMBLER__
+ extern void picinit (void);
+ extern int curr_pic_mask;
+-extern void prtnull(int unit);
+ extern void intnull(int unit);
+ #endif /* __ASSEMBLER__ */
+ 
+Index: gnumach/i386/i386/pit.c
+===================================================================
+--- gnumach.orig/i386/i386/pit.c
++++ gnumach/i386/i386/pit.c
+@@ -70,8 +70,6 @@ clkstart(void)
+ 	unsigned char	byte;
+ 	unsigned long s;
+ 
+-	intpri[0] = SPLHI;
+-
+ 	s = sploff();         /* disable interrupts */
+ 
+ 	/* Since we use only timer 0, we program that.
+Index: gnumach/i386/i386at/autoconf.c
+===================================================================
+--- gnumach.orig/i386/i386at/autoconf.c
++++ gnumach/i386/i386at/autoconf.c
+@@ -126,12 +126,11 @@ void take_dev_irq(
+ {
+ 	int pic = (int)dev->sysdep1;
+ 
+-	if (intpri[pic] == 0) {
++	if (ivect[pic] == intnull) {
+ 		iunit[pic] = dev->unit;
+ 		ivect[pic] = dev->intr;
+-		intpri[pic] = (int)dev->sysdep;
+ 	} else {
+-		printf("The device below will clobber IRQ %d.\n", pic);
++		printf("The device below will clobber IRQ %d (%p).\n", pic, ivect[pic]);
+ 		printf("You have two devices at the same IRQ.\n");
+ 		printf("This won't work.  Reconfigure your hardware and try again.\n");
+ 		printf("%s%d: port = %lx, spl = %ld, pic = %d.\n",
+@@ -146,12 +145,11 @@ void take_ctlr_irq(
+ 	const struct bus_ctlr *ctlr)
+ {
+ 	int pic = ctlr->sysdep1;
+-	if (intpri[pic] == 0) {
++	if (ivect[pic] == intnull) {
+ 		iunit[pic] = ctlr->unit;
+ 		ivect[pic] = ctlr->intr;
+-		intpri[pic] = (int)ctlr->sysdep;
+ 	} else {
+-		printf("The device below will clobber IRQ %d.\n", pic);
++		printf("The device below will clobber IRQ %d (%p).\n", pic, ivect[pic]);
+ 		printf("You have two devices at the same IRQ.  This won't work.\n");
+ 		printf("Reconfigure your hardware and try again.\n");
+ 		while (1);
+Index: gnumach/i386/i386at/kd_mouse.c
+===================================================================
+--- gnumach.orig/i386/i386at/kd_mouse.c
++++ gnumach/i386/i386at/kd_mouse.c
+@@ -84,7 +84,6 @@ WITH THE USE OR PERFORMANCE OF THIS SOFT
+ 
+ static void (*oldvect)();		/* old interrupt vector */
+ static int oldunit;
+-static spl_t oldspl;
+ extern	struct	bus_device *cominfo[];
+ 
+ kd_event_queue mouse_queue;		/* queue of mouse events */
+@@ -226,8 +225,6 @@ kd_mouse_open(
+ 
+ 	oldvect = ivect[mouse_pic];
+ 	ivect[mouse_pic] = kdintr;
+-	oldspl = intpri[mouse_pic];
+-	intpri[mouse_pic] = SPL6;
+ 	splx(s);
+ }
+ 
+@@ -289,7 +286,6 @@ kd_mouse_close(
+ 	spl_t s = splhi();
+ 
+ 	ivect[mouse_pic] = oldvect;
+-	intpri[mouse_pic] = oldspl;
+ 	splx(s);
+ }
+ 
+Index: gnumach/i386/i386at/pic_isa.c
+===================================================================
+--- gnumach.orig/i386/i386at/pic_isa.c
++++ gnumach/i386/i386at/pic_isa.c
+@@ -42,7 +42,7 @@ void (*ivect[NINTR])() = {
+ 	/* 04 */	intnull,	/* comintr, ... */
+ 	/* 05 */	intnull,	/* comintr, wtintr, ... */
+ 	/* 06 */	intnull,	/* fdintr, ... */
+-	/* 07 */	prtnull,	/* qdintr, ... */
++	/* 07 */	intnull,	/* qdintr, ... */
+ 
+ 	/* 08 */	intnull,
+ 	/* 09 */	intnull,	/* ether */
+@@ -54,10 +54,3 @@ void (*ivect[NINTR])() = {
+ 	/* 14 */	intnull,	/* hdintr, ... */
+ 	/* 15 */	intnull,	/* ??? */
+ };
+-
+-int intpri[NINTR] = {
+-	/* 00 */   	0,	SPL6,	0,	0,
+-	/* 04 */	0,	0,	0,	0,
+-	/* 08 */	0,	0,	0,	0,
+-	/* 12 */	0,	SPL1,	0,	0,
+-};
+Index: gnumach/linux/dev/arch/i386/kernel/irq.c
+===================================================================
+--- gnumach.orig/linux/dev/arch/i386/kernel/irq.c
++++ gnumach/linux/dev/arch/i386/kernel/irq.c
+@@ -63,13 +63,6 @@ unsigned int local_irq_count[NR_CPUS];
+ int EISA_bus = 0;
+ 
+ /*
+- * Priority at which a Linux handler should be called.
+- * This is used at the time of an IRQ allocation.  It is
+- * set by emulation routines for each class of device.
+- */
+-spl_t linux_intr_pri;
+-
+-/*
+  * Flag indicating an interrupt is being handled.
+  */
+ unsigned int intr_count = 0;
+@@ -223,15 +216,6 @@ enable_irq (unsigned int irq_nr)
+   restore_flags (flags);
+ }
+ 
+-/*
+- * Default interrupt handler for Linux.
+- */
+-void
+-linux_bad_intr (int irq)
+-{
+-  mask_irq (irq);
+-}
+-
+ static int
+ setup_x86_irq (int irq, struct linux_action *new)
+ {
+@@ -250,10 +234,6 @@ setup_x86_irq (int irq, struct linux_act
+       if ((old->flags ^ new->flags) & SA_INTERRUPT)
+ 	return (-EBUSY);
+ 
+-      /* Can't share at different levels */
+-      if (intpri[irq] && linux_intr_pri != intpri[irq])
+-	return (-EBUSY);
+-
+       /* add new interrupt at end of irq queue */
+       do
+ 	{
+@@ -273,7 +253,6 @@ setup_x86_irq (int irq, struct linux_act
+     {
+       ivect[irq] = linux_intr;
+       iunit[irq] = irq;
+-      intpri[irq] = linux_intr_pri;
+       unmask_irq (irq);
+     }
+   restore_flags (flags);
+@@ -385,9 +364,8 @@ free_irq (unsigned int irq, void *dev_id
+       if (!irq_action[irq])
+ 	{
+ 	  mask_irq (irq);
+-	  ivect[irq] = linux_bad_intr;
++	  ivect[irq] = intnull;
+ 	  iunit[irq] = irq;
+-	  intpri[irq] = SPL0;
+ 	}
+       restore_flags (flags);
+       linux_kfree (action);
+@@ -413,9 +391,8 @@ probe_irq_on (void)
+    */
+   for (i = 15; i > 0; i--)
+     {
+-      if (!irq_action[i] && ivect[i] == linux_bad_intr)
++      if (!irq_action[i] && ivect[i] == intnull)
+ 	{
+-	  intpri[i] = linux_intr_pri;
+ 	  enable_irq (i);
+ 	  irqs |= 1 << i;
+ 	}
+@@ -447,10 +424,9 @@ probe_irq_off (unsigned long irqs)
+    */
+   for (i = 15; i > 0; i--)
+     {
+-      if (!irq_action[i] && ivect[i] == linux_bad_intr)
++      if (!irq_action[i] && ivect[i] == intnull)
+ 	{
+ 	  disable_irq (i);
+-	  intpri[i] = SPL0;
+ 	}
+     }
+   
+@@ -488,7 +464,7 @@ reserve_mach_irqs (void)
+ 
+   for (i = 0; i < 16; i++)
+     {
+-      if (ivect[i] != prtnull && ivect[i] != intnull)
++      if (ivect[i] != intnull)
+ 	/* This dummy action does not specify SA_SHIRQ, so
+ 	   setup_x86_irq will not try to add a handler to this
+ 	   slot.  Therefore, the cast is safe.  */
+@@ -767,12 +743,10 @@ void __global_restore_flags(unsigned lon
+ #endif
+ 
+ static void (*old_clock_handler) ();
+-static int old_clock_pri;
+ 
+ void
+ init_IRQ (void)
+ {
+-  int i;
+   char *p;
+   int latch = (CLKNUM + hz / 2) / hz;
+   
+@@ -792,27 +766,10 @@ init_IRQ (void)
+    * Install our clock interrupt handler.
+    */
+   old_clock_handler = ivect[0];
+-  old_clock_pri = intpri[0];
+   ivect[0] = linux_timer_intr;
+-  intpri[0] = SPLHI;
+ 
+   reserve_mach_irqs ();
+ 
+-  for (i = 1; i < 16; i++)
+-    {
+-      /*
+-       * irq2 and irq13 should be igonored.
+-       */
+-      if (i == 2 || i == 13)
+-	continue;
+-      if (ivect[i] == prtnull || ivect[i] == intnull)
+-	{
+-          ivect[i] = linux_bad_intr;
+-          iunit[i] = i;
+-          intpri[i] = SPL0;
+-	}
+-    }
+-  
+   /*
+    * Enable interrupts.
+    */
+@@ -850,6 +807,5 @@ restore_IRQ (void)
+    * Restore clock interrupt handler.
+    */
+   ivect[0] = old_clock_handler;
+-  intpri[0] = old_clock_pri;
+ }
+   
+Index: gnumach/linux/dev/drivers/block/genhd.c
+===================================================================
+--- gnumach.orig/linux/dev/drivers/block/genhd.c
++++ gnumach/linux/dev/drivers/block/genhd.c
+@@ -774,9 +774,6 @@ void device_setup(void)
+ 	char *c, *param, *white;
+ 	struct gendisk *p;
+ 	int nr=0;
+-#ifdef MACH
+-	linux_intr_pri = SPL6;
+-#endif
+ 
+ 	for (c = kernel_cmdline; c; )
+ 	{
+@@ -809,9 +806,6 @@ void device_setup(void)
+ 	scsi_dev_init();
+ #endif
+ #ifdef CONFIG_INET
+-#ifdef MACH
+-	linux_intr_pri = SPL6;
+-#endif
+ 	extern char *kernel_cmdline;
+ 	if (!strstr(kernel_cmdline, " nonetdev"))
+ 		net_dev_init();
+Index: gnumach/linux/dev/glue/block.c
+===================================================================
+--- gnumach.orig/linux/dev/glue/block.c
++++ gnumach/linux/dev/glue/block.c
+@@ -943,7 +943,6 @@ init_partition (struct name_map *np, kde
+       if (gd->part[MINOR (d->inode.i_rdev)].nr_sects <= 0
+ 	  || gd->part[MINOR (d->inode.i_rdev)].start_sect < 0)
+ 	continue;
+-      linux_intr_pri = SPL6;
+       d->file.f_flags = 0;
+       d->file.f_mode = O_RDONLY;
+       if (ds->fops->open && (*ds->fops->open) (&d->inode, &d->file))
+@@ -1089,7 +1088,6 @@ device_open (ipc_port_t reply_port, mach
+   if (ds->fops->open)
+     {
+       td.inode.i_rdev = dev;
+-      linux_intr_pri = SPL6;
+       err = (*ds->fops->open) (&td.inode, &td.file);
+       if (err)
+ 	{
+Index: gnumach/linux/dev/glue/glue.h
+===================================================================
+--- gnumach.orig/linux/dev/glue/glue.h
++++ gnumach/linux/dev/glue/glue.h
+@@ -23,7 +23,6 @@
+ #include <mach/machine/vm_types.h>
+ 
+ extern int linux_auto_config;
+-extern int linux_intr_pri;
+ 
+ extern unsigned long alloc_contig_mem (unsigned, unsigned, unsigned, vm_page_t *);
+ extern void free_contig_mem (vm_page_t, unsigned);
+@@ -33,7 +32,6 @@ extern void linux_kmem_init (void);
+ extern void linux_net_emulation_init (void);
+ extern void device_setup (void);
+ extern void linux_timer_intr (void);
+-extern void linux_bad_intr (int);
+ extern void linux_sched_init (void);
+ extern void pcmcia_init (void);
+ extern void linux_soft_intr (void);
+Index: gnumach/linux/dev/glue/net.c
+===================================================================
+--- gnumach.orig/linux/dev/glue/net.c
++++ gnumach/linux/dev/glue/net.c
+@@ -380,7 +380,6 @@ device_open (ipc_port_t reply_port, mach
+ 
+       if (dev->open)
+ 	{
+-	  linux_intr_pri = SPL6;
+ 	  if ((*dev->open) (dev))
+ 	    err = D_NO_SUCH_DEVICE;
+ 	}

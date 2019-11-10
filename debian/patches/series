@@ -9,3 +9,4 @@ git-xen-fix
 git-spl-squash
 git-picmask
 git-interrupt-spl7
+git-intpri
