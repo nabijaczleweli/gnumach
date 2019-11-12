@@ -612,7 +612,7 @@ index 19bd7bf6..5077a0b8 100644
  #if	NCPUS > 1
  	/*
 diff --git a/linux/dev/arch/i386/kernel/irq.c b/linux/dev/arch/i386/kernel/irq.c
-index 18448638..39f88b6b 100644
+index 18448638..a3b34956 100644
 --- a/linux/dev/arch/i386/kernel/irq.c
 +++ b/linux/dev/arch/i386/kernel/irq.c
 @@ -50,6 +50,8 @@
@@ -632,19 +632,67 @@ index 18448638..39f88b6b 100644
  };
  
  static struct linux_action *irq_action[16] =
-@@ -95,6 +98,7 @@ linux_intr (int irq)
- {
-   struct pt_regs regs;
-   struct linux_action *action = *(irq_action + irq);
-+  struct linux_action **prev = &irq_action[irq];
-   unsigned long flags;
+@@ -86,35 +89,6 @@ static struct linux_action *irq_action[16] =
+   NULL, NULL, NULL, NULL
+ };
  
-   kstat.interrupts[irq]++;
-@@ -106,7 +110,20 @@ linux_intr (int irq)
- 
-   while (action)
-     {
+-/*
+- * Generic interrupt handler for Linux devices.
+- * Set up a fake `struct pt_regs' then call the real handler.
+- */
+-static void
+-linux_intr (int irq)
+-{
+-  struct pt_regs regs;
+-  struct linux_action *action = *(irq_action + irq);
+-  unsigned long flags;
+-
+-  kstat.interrupts[irq]++;
+-  intr_count++;
+-
+-  save_flags (flags);
+-  if (action && (action->flags & SA_INTERRUPT))
+-    cli ();
+-
+-  while (action)
+-    {
 -      action->handler (irq, action->dev_id, &regs);
+-      action = action->next;
+-    }
+-
+-  restore_flags (flags);
+-
+-  intr_count--;
+-}
+-
+ /*
+  * Mask an IRQ.
+  */
+@@ -158,6 +132,58 @@ unmask_irq (unsigned int irq_nr)
+     }
+ }
+ 
++/*
++ * Generic interrupt handler for Linux devices.
++ * Set up a fake `struct pt_regs' then call the real handler.
++ */
++static void
++linux_intr (int irq)
++{
++  struct pt_regs regs;
++  struct linux_action *action = *(irq_action + irq);
++  struct linux_action **prev = &irq_action[irq];
++  unsigned long flags;
++
++  kstat.interrupts[irq]++;
++  intr_count++;
++
++  save_flags (flags);
++  if (action && (action->flags & SA_INTERRUPT))
++    cli ();
++
++  while (action)
++    {
 +      // TODO I might need to check whether the interrupt belongs to
 +      // the current device. But I don't do it for now.
 +      if (action->user_intr)
@@ -654,15 +702,32 @@ index 18448638..39f88b6b 100644
 +	    *prev = action->next;
 +	    linux_kfree(action);
 +	    action = *prev;
++	    continue;
 +	  }
 +	}
 +      else if (action->handler)
 +	action->handler (irq, action->dev_id, &regs);
 +      prev = &action->next;
-       action = action->next;
-     }
++      action = action->next;
++    }
++
++  if (!irq_action[irq])
++    {
++      /* No handler any more, disable interrupt */
++      mask_irq (irq);
++      ivect[irq] = intnull;
++      iunit[irq] = irq;
++    }
++
++  restore_flags (flags);
++
++  intr_count--;
++}
++
+ /* Count how many subsystems requested to disable each IRQ */
+ static unsigned ndisabled_irq[NR_IRQS];
  
-@@ -257,6 +274,7 @@ setup_x86_irq (int irq, struct linux_action *new)
+@@ -257,6 +283,7 @@ setup_x86_irq (int irq, struct linux_action *new)
  	}
        while (old);
        shared = 1;
@@ -670,7 +735,7 @@ index 18448638..39f88b6b 100644
      }
  
    save_flags (flags);
-@@ -273,6 +291,51 @@ setup_x86_irq (int irq, struct linux_action *new)
+@@ -273,6 +300,51 @@ setup_x86_irq (int irq, struct linux_action *new)
    return 0;
  }
  
@@ -722,7 +787,7 @@ index 18448638..39f88b6b 100644
  /*
   * Attach a handler to an IRQ.
   */
-@@ -301,6 +364,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
+@@ -301,6 +373,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
    action->next = NULL;
    action->dev_id = dev_id;
    action->flags = flags;
