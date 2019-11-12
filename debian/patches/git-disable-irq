@@ -1,0 +1,113 @@
+commit 097f9cf735ffa1212b828682ad92f0f6c5f1c552
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Nov 11 23:50:03 2019 +0100
+
+    irq: Add disabling counter
+    
+    * linux/dev/arch/i386/kernel/irq.c (ndisabled_irq): New array.
+    (__disable_irq, __enable_irq): New functions, count with ndisabled_irq
+    before really calling mask_irq/unmask_irq.
+    (linux_pic_mask): New variable.
+    (disable_irq, enable_irq): Manage linux_pic_mask and call
+    __disable_irq/__enable_irq instead of calling mask_irq/unmask_irq.
+    * linux/src/include/asm-i386/irq.h (__disable_irq, __enable_irq): New
+    prototypes.
+
+diff --git a/linux/dev/arch/i386/kernel/irq.c b/linux/dev/arch/i386/kernel/irq.c
+index 75f8f812..18448638 100644
+--- a/linux/dev/arch/i386/kernel/irq.c
++++ b/linux/dev/arch/i386/kernel/irq.c
+@@ -158,8 +158,13 @@ unmask_irq (unsigned int irq_nr)
+     }
+ }
+ 
++/* Count how many subsystems requested to disable each IRQ */
++static unsigned ndisabled_irq[NR_IRQS];
++
++/* These disable/enable IRQs for real after counting how many subsystems
++ * requested that */
+ void
+-disable_irq (unsigned int irq_nr)
++__disable_irq (unsigned int irq_nr)
+ {
+   unsigned long flags;
+ 
+@@ -167,12 +172,15 @@ disable_irq (unsigned int irq_nr)
+ 
+   save_flags (flags);
+   cli ();
+-  mask_irq (irq_nr);
++  ndisabled_irq[irq_nr]++;
++  assert (ndisabled_irq[irq_nr] > 0);
++  if (ndisabled_irq[irq_nr] == 1)
++    mask_irq (irq_nr);
+   restore_flags (flags);
+ }
+ 
+ void
+-enable_irq (unsigned int irq_nr)
++__enable_irq (unsigned int irq_nr)
+ {
+   unsigned long flags;
+ 
+@@ -180,7 +188,46 @@ enable_irq (unsigned int irq_nr)
+ 
+   save_flags (flags);
+   cli ();
+-  unmask_irq (irq_nr);
++  assert (ndisabled_irq[irq_nr] > 0);
++  ndisabled_irq[irq_nr]--;
++  if (ndisabled_irq[irq_nr] == 0)
++    unmask_irq (irq_nr);
++  restore_flags (flags);
++}
++
++/* IRQ mask according to Linux drivers */
++static unsigned linux_pic_mask;
++
++/* These only record that Linux requested to mask IRQs */
++void
++disable_irq (unsigned int irq_nr)
++{
++  unsigned long flags;
++  unsigned mask = 1U << irq_nr;
++
++  save_flags (flags);
++  cli ();
++  if (!(linux_pic_mask & mask))
++  {
++    linux_pic_mask |= mask;
++    __disable_irq(irq_nr);
++  }
++  restore_flags (flags);
++}
++
++void
++enable_irq (unsigned int irq_nr)
++{
++  unsigned long flags;
++  unsigned mask = 1U << irq_nr;
++
++  save_flags (flags);
++  cli ();
++  if (linux_pic_mask & mask)
++  {
++    linux_pic_mask &= ~mask;
++    __enable_irq(irq_nr);
++  }
+   restore_flags (flags);
+ }
+ 
+diff --git a/linux/src/include/asm-i386/irq.h b/linux/src/include/asm-i386/irq.h
+index c75744a5..d7d1e3c5 100644
+--- a/linux/src/include/asm-i386/irq.h
++++ b/linux/src/include/asm-i386/irq.h
+@@ -16,6 +16,8 @@
+ 
+ #define TIMER_IRQ 0
+ 
++extern void __disable_irq(unsigned int);
++extern void __enable_irq(unsigned int);
+ extern void disable_irq(unsigned int);
+ extern void enable_irq(unsigned int);
+ 

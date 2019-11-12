@@ -6,10 +6,10 @@ This is the output of
 git diff master-user_level_drivers master-user_level_drivers-debian
 
 diff --git a/Makefrag.am b/Makefrag.am
-index 0b4b7c51..a44b1a65 100644
+index d9dbc150..fee77894 100644
 --- a/Makefrag.am
 +++ b/Makefrag.am
-@@ -224,6 +224,7 @@ EXTRA_DIST += \
+@@ -227,6 +227,7 @@ EXTRA_DIST += \
  	kern/mach.srv \
  	kern/mach4.srv \
  	kern/gnumach.srv \
@@ -17,7 +17,7 @@ index 0b4b7c51..a44b1a65 100644
  	kern/mach_debug.srv \
  	kern/mach_host.srv \
  	kern/task_notify.cli
-@@ -355,10 +356,9 @@ include_device_HEADERS = \
+@@ -358,10 +359,9 @@ include_device_HEADERS = \
  	include/device/device_reply.defs \
  	include/device/device_request.defs \
  	include/device/device_types.defs \
@@ -29,7 +29,7 @@ index 0b4b7c51..a44b1a65 100644
  	include/device/net_status.h \
  	include/device/tape_status.h \
  	include/device/tty_status.h
-@@ -381,6 +381,7 @@ include_mach_HEADERS = \
+@@ -384,6 +384,7 @@ include_mach_HEADERS = \
  	include/mach/memory_object_default.defs \
  	include/mach/notify.defs \
  	include/mach/std_types.defs \
@@ -37,7 +37,7 @@ index 0b4b7c51..a44b1a65 100644
  	include/mach/alert.h \
  	include/mach/boolean.h \
  	include/mach/boot.h \
-@@ -530,6 +531,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
+@@ -534,6 +535,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
  	kern/gnumach.server.defs.c \
@@ -45,7 +45,7 @@ index 0b4b7c51..a44b1a65 100644
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
-@@ -542,6 +544,9 @@ nodist_libkernel_a_SOURCES += \
+@@ -546,6 +548,9 @@ nodist_libkernel_a_SOURCES += \
  	kern/gnumach.server.h \
  	kern/gnumach.server.c \
  	kern/gnumach.server.msgids \
@@ -55,7 +55,7 @@ index 0b4b7c51..a44b1a65 100644
  	kern/mach_debug.server.h \
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
-@@ -551,6 +556,7 @@ nodist_libkernel_a_SOURCES += \
+@@ -555,6 +560,7 @@ nodist_libkernel_a_SOURCES += \
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/gnumach.server.defs
@@ -64,19 +64,19 @@ index 0b4b7c51..a44b1a65 100644
  #	kern/mach_host.server.defs
  
 diff --git a/device/ds_routines.c b/device/ds_routines.c
-index 06fe4e96..c1cb9d43 100644
+index 13c9a63e..91862693 100644
 --- a/device/ds_routines.c
 +++ b/device/ds_routines.c
-@@ -319,7 +319,7 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
- }
+@@ -321,7 +321,7 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
  
+ /* TODO: missing deregister support */
  io_return_t
 -ds_device_intr_register (ipc_port_t master_port, int line,
 +experimental_device_intr_register (ipc_port_t master_port, int line,
  		       int id, int flags, ipc_port_t receive_port)
  {
  #ifdef MACH_XEN
-@@ -1836,7 +1836,7 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
+@@ -1842,7 +1842,7 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
  }
  
  kern_return_t
@@ -156,17 +156,18 @@ index 368b96c6..00000000
 -		notify	: notify_port_t;
 -		name	: int);
 diff --git a/include/device/intr.h b/include/device/intr.h
-index 3c0e1b8c..a02b64c9 100644
+index 53d81bb5..6da21035 100644
 --- a/include/device/intr.h
 +++ b/include/device/intr.h
-@@ -12,6 +12,6 @@ typedef struct
- } mach_intr_notification_t;
+@@ -22,7 +22,7 @@ typedef struct intr_entry
+ } user_intr_t;
  
  #define INTR_NOTIFY_MSGH_SEQNO 0
 -#define MACH_INTR_NOTIFY 100
 +#define MACH_INTR_NOTIFY 424242
  
- #endif
+ int install_user_intr_handler (unsigned int line,
+ 					unsigned long flags,
 diff --git a/include/mach/experimental.defs b/include/mach/experimental.defs
 new file mode 100644
 index 00000000..ca1eb922
@@ -277,10 +278,11 @@ diff --git a/include/mach/mach.defs b/include/mach/mach.defs
 index 77cc7d49..c6ad0770 100644
 --- a/include/mach/mach.defs
 +++ b/include/mach/mach.defs
-@@ -720,38 +720,5 @@ skip;	/* old host_fpa_counters_reset */
+@@ -719,39 +719,6 @@ skip;	/* old host_fpa_counters_reset */
+ 
  #endif	/* ! KERNEL_USER */
  
- /*
+-/*
 - *	This routine is created for allocating DMA buffers.
 - *	We are going to get a contiguous physical memory
 - *	and its physical address in addition to the virtual address.
@@ -313,7 +315,7 @@ index 77cc7d49..c6ad0770 100644
 -	out	paddr		: vm_address_t;
 -		size		: vm_size_t);
 -
--/*
+ /*
   *	There is no more room in this interface for additional calls.
   */
 diff --git a/kern/experimental.srv b/kern/experimental.srv
@@ -354,10 +356,10 @@ index 709ec9ec..c65458ba 100644
  	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0
  #endif	/* MACH_MACHINE_ROUTINES */
 diff --git a/vm/vm_user.c b/vm/vm_user.c
-index 24c4c64b..d29bbb23 100644
+index 1789dbfa..2f41d322 100644
 --- a/vm/vm_user.c
 +++ b/vm/vm_user.c
-@@ -480,7 +480,7 @@ kern_return_t vm_wire_all(const ipc_port_t port, vm_map_t map, vm_wire_t flags)
+@@ -532,7 +532,7 @@ kern_return_t vm_msync(
  	return vm_map_msync(map, (vm_offset_t) address, size, sync_flags);
  }
  

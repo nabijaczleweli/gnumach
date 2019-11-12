@@ -191,7 +191,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
   * Flag indicating an interrupt is being handled.
   */
  unsigned int intr_count = 0;
-@@ -223,15 +216,6 @@ enable_irq (unsigned int irq_nr)
+@@ -191,15 +184,6 @@ enable_irq (unsigned int irq_nr)
    restore_flags (flags);
  }
  
@@ -207,7 +207,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  static int
  setup_x86_irq (int irq, struct linux_action *new)
  {
-@@ -250,10 +234,6 @@ setup_x86_irq (int irq, struct linux_act
+@@ -218,10 +202,6 @@ setup_x86_irq (int irq, struct linux_act
        if ((old->flags ^ new->flags) & SA_INTERRUPT)
  	return (-EBUSY);
  
@@ -218,7 +218,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
        /* add new interrupt at end of irq queue */
        do
  	{
-@@ -273,7 +253,6 @@ setup_x86_irq (int irq, struct linux_act
+@@ -240,7 +220,6 @@ setup_x86_irq (int irq, struct linux_act
      {
        ivect[irq] = linux_intr;
        iunit[irq] = irq;
@@ -226,7 +226,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
        unmask_irq (irq);
      }
    restore_flags (flags);
-@@ -385,9 +364,8 @@ free_irq (unsigned int irq, void *dev_id
+@@ -306,9 +285,8 @@ free_irq (unsigned int irq, void *dev_id
        if (!irq_action[irq])
  	{
  	  mask_irq (irq);
@@ -237,7 +237,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  	}
        restore_flags (flags);
        linux_kfree (action);
-@@ -413,9 +391,8 @@ probe_irq_on (void)
+@@ -334,9 +312,8 @@ probe_irq_on (void)
     */
    for (i = 15; i > 0; i--)
      {
@@ -248,7 +248,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  	  enable_irq (i);
  	  irqs |= 1 << i;
  	}
-@@ -447,10 +424,9 @@ probe_irq_off (unsigned long irqs)
+@@ -368,10 +345,9 @@ probe_irq_off (unsigned long irqs)
     */
    for (i = 15; i > 0; i--)
      {
@@ -260,7 +260,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  	}
      }
    
-@@ -488,7 +464,7 @@ reserve_mach_irqs (void)
+@@ -409,7 +385,7 @@ reserve_mach_irqs (void)
  
    for (i = 0; i < 16; i++)
      {
@@ -269,7 +269,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
  	/* This dummy action does not specify SA_SHIRQ, so
  	   setup_x86_irq will not try to add a handler to this
  	   slot.  Therefore, the cast is safe.  */
-@@ -767,12 +743,10 @@ void __global_restore_flags(unsigned lon
+@@ -688,12 +664,10 @@ void __global_restore_flags(unsigned lon
  #endif
  
  static void (*old_clock_handler) ();
@@ -282,7 +282,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
    char *p;
    int latch = (CLKNUM + hz / 2) / hz;
    
-@@ -792,27 +766,10 @@ init_IRQ (void)
+@@ -713,27 +687,10 @@ init_IRQ (void)
     * Install our clock interrupt handler.
     */
    old_clock_handler = ivect[0];
@@ -310,7 +310,7 @@ Index: gnumach/linux/dev/arch/i386/kernel/irq.c
    /*
     * Enable interrupts.
     */
-@@ -850,6 +807,5 @@ restore_IRQ (void)
+@@ -771,6 +728,5 @@ restore_IRQ (void)
     * Restore clock interrupt handler.
     */
    ivect[0] = old_clock_handler;
@@ -338,9 +338,9 @@ Index: gnumach/linux/dev/drivers/block/genhd.c
 -#ifdef MACH
 -	linux_intr_pri = SPL6;
 -#endif
- 	extern char *kernel_cmdline;
- 	if (!strstr(kernel_cmdline, " nonetdev"))
- 		net_dev_init();
+ 	net_dev_init();
+ #endif
+ #ifndef MACH
 Index: gnumach/linux/dev/glue/block.c
 ===================================================================
 --- gnumach.orig/linux/dev/glue/block.c

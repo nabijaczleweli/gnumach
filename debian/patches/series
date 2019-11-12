@@ -2,11 +2,12 @@
 12_version_suffix.patch
 20_FP_NO.patch
 50_initrd.patch
-70_dde.patch
-79_dde-debian.patch
 80_vm_object_coalesce.patch
 git-xen-fix
 git-spl-squash
 git-picmask
 git-interrupt-spl7
 git-intpri
+git-disable-irq
+70_dde.patch
+79_dde-debian.patch

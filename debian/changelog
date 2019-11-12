@@ -1,3 +1,13 @@
+gnumach (2:1.8+git20191029-5) unstable; urgency=medium
+
+  * patches/git-intpri: Refresh.
+  * patches/git-disable-irq: Could number of IRQ disabling.
+  * patches/70_dde.patch: Update from upstream branch, fixes shared irq between
+    kernel and netdde.
+  * patches/79_dde-debian.patch: Refresh.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 12 Nov 2019 01:38:31 +0000
+
 gnumach (2:1.8+git20191029-4) unstable; urgency=medium
 
   * patches/git-intpri: Drop intpri array.

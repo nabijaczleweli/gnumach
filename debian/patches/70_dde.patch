@@ -1,16 +1,21 @@
-TODO: This needs to be cleaned to be pushed upstream. Notably, userland
-shouldn't be able to mask a kernel IRQ. Instead, device_intr_enable() should
-just disable/enable IRQ delivery to userland.
+TODO: This needs to be cleaned to be pushed upstream. Notably device_intr_enable
+should take the delivery port to be able to properly clean stuff.
+
+Using a send-once right would also allow to detect process termination
+immediately.
+
 
 This is the output of
 
 git diff master master-user_level_drivers
 
+(master was 097f9cf735ffa1212b828682ad92f0f6c5f1c552 at the time)
+
 diff --git a/Makefrag.am b/Makefrag.am
-index c16f1c72..0b4b7c51 100644
+index 754d87e2..d9dbc150 100644
 --- a/Makefrag.am
 +++ b/Makefrag.am
-@@ -308,6 +308,7 @@ libkernel_a_SOURCES += \
+@@ -311,6 +311,7 @@ libkernel_a_SOURCES += \
  	device/device_types_kernel.h \
  	device/ds_routines.c \
  	device/ds_routines.h \
@@ -18,7 +23,7 @@ index c16f1c72..0b4b7c51 100644
  	device/if_ether.h \
  	device/if_hdr.h \
  	device/io_req.h \
-@@ -354,6 +355,8 @@ include_device_HEADERS = \
+@@ -357,6 +358,8 @@ include_device_HEADERS = \
  	include/device/device_reply.defs \
  	include/device/device_request.defs \
  	include/device/device_types.defs \
@@ -28,13 +33,22 @@ index c16f1c72..0b4b7c51 100644
  	include/device/disk_status.h \
  	include/device/net_status.h \
 diff --git a/device/ds_routines.c b/device/ds_routines.c
-index 1fabec3c..06fe4e96 100644
+index 1fabec3c..13c9a63e 100644
 --- a/device/ds_routines.c
 +++ b/device/ds_routines.c
-@@ -318,6 +318,43 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
+@@ -92,6 +92,7 @@
+ #include <device/device_port.h>
+ #include <device/device_reply.user.h>
+ #include <device/device_emul.h>
++#include <device/intr.h>
+ 
+ #include <machine/machspl.h>
+ 
+@@ -318,6 +319,48 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
  				offset, size, pager, unmap);
  }
  
++/* TODO: missing deregister support */
 +io_return_t
 +ds_device_intr_register (ipc_port_t master_port, int line,
 +		       int id, int flags, ipc_port_t receive_port)
@@ -42,9 +56,6 @@ index 1fabec3c..06fe4e96 100644
 +#ifdef MACH_XEN
 +  return D_INVALID_OPERATION;
 +#else	/* MACH_XEN */
-+  extern int install_user_intr_handler (unsigned int line,
-+					unsigned long flags,
-+					ipc_port_t dest);
 +  io_return_t ret;
 +
 +  /* Open must be called on the master device port.  */
@@ -55,18 +66,25 @@ index 1fabec3c..06fe4e96 100644
 +  if (line < 0 || line >= 16)
 +    return D_INVALID_OPERATION;
 +
-+  ret = insert_intr_entry (line, receive_port);
-+  if (ret)
-+    return ret;
++  user_intr_t *user_intr = insert_intr_entry (line, receive_port);
++  if (!user_intr)
++    return D_NO_MEMORY;
 +  // TODO The original port should be replaced
 +  // when the same device driver calls it again, 
 +  // in order to handle the case that the device driver crashes and restarts.
-+  ret = install_user_intr_handler (line, flags, receive_port);
++  ret = install_user_intr_handler (line, flags, user_intr);
 +
-+  /* If the port is installed successfully, increase its reference by 1.
-+   * Thus, the port won't be destroyed after its task is terminated. */
 +  if (ret == 0)
++  {
++    /* If the port is installed successfully, increase its reference by 1.
++     * Thus, the port won't be destroyed after its task is terminated. */
 +    ip_reference (receive_port);
++
++    /* For now netdde calls device_intr_enable once after registration. Assume
++     * it does so for now. When we move to IRQ acknowledgment convention we will
++     * change this. */
++    __disable_irq (line);
++  }
 +
 +  return ret;
 +#endif	/* MACH_XEN */
@@ -75,7 +93,7 @@ index 1fabec3c..06fe4e96 100644
  boolean_t
  ds_notify (mach_msg_header_t *msg)
  {
-@@ -1798,6 +1835,24 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
+@@ -1798,6 +1841,19 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
  	return (result);
  }
  
@@ -88,12 +106,7 @@ index 1fabec3c..06fe4e96 100644
 +  if (master_port != master_device_port)
 +    return D_INVALID_OPERATION;
 +
-+  if (status)
-+    /* TODO: better name for generic-to-arch-specific call */
-+    enable_irq (line);
-+  else
-+    disable_irq (line);
-+  return 0;
++  return user_intr_enable(line, status);
 +#endif	/* MACH_XEN */
 +}
 +
@@ -114,10 +127,10 @@ index c0543cbc..e9f115fc 100644
  #endif	/* DS_ROUTINES_H */
 diff --git a/device/intr.c b/device/intr.c
 new file mode 100644
-index 00000000..cf5d93f6
+index 00000000..95c36719
 --- /dev/null
 +++ b/device/intr.c
-@@ -0,0 +1,200 @@
+@@ -0,0 +1,293 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
 +#include <kern/queue.h>
@@ -129,15 +142,6 @@ index 00000000..cf5d93f6
 +#define cli() __asm__ __volatile__ ("cli": : :"memory")
 +
 +static boolean_t deliver_intr (int line, ipc_port_t dest_port);
-+
-+struct intr_entry
-+{
-+  queue_chain_t chain;
-+  ipc_port_t dest;
-+  int line;
-+  /* The number of interrupts occur since last run of intr_thread. */
-+  int interrupts;
-+};
 +
 +static queue_head_t intr_queue;
 +/* The total number of unprocessed interrupts. */
@@ -155,16 +159,71 @@ index 00000000..cf5d93f6
 +  return NULL;
 +}
 +
-+/* This function can only be used in the interrupt handler. */
-+void
-+queue_intr (int line, ipc_port_t dest)
++static struct intr_entry *
++search_intr_line (int line)
 +{
-+  extern void intr_thread ();
 +  struct intr_entry *e;
-+  
++  queue_iterate (&intr_queue, e, struct intr_entry *, chain)
++    {
++      if (e->line == line &&
++	  (e->dest != MACH_PORT_NULL
++	   && e->dest->ip_references != 1
++	   && e->unacked_interrupts))
++	return e;
++    }
++  return NULL;
++}
++
++kern_return_t user_intr_enable (int line, char status)
++{
++  struct intr_entry *e;
++  kern_return_t ret = D_SUCCESS;
++
++  cli();
++  /* FIXME: Use search_intr instead once we get the delivery port from ds_device_intr_enable, and get rid of search_intr_line */
++  e = search_intr_line (line);
++
++  if (!e)
++    printf("didn't find user intr for interrupt %d!?\n", line);
++  else if (status)
++  {
++    if (!e->unacked_interrupts)
++      ret = D_INVALID_OPERATION;
++    else
++      e->unacked_interrupts--;
++  }
++  else
++  {
++    e->unacked_interrupts++;
++    if (!e->unacked_interrupts)
++    {
++      ret = D_INVALID_OPERATION;
++      e->unacked_interrupts--;
++    }
++  }
++  sti();
++
++  if (ret)
++    return ret;
++
++  if (status)
++    /* TODO: better name for generic-to-arch-specific call */
++    __enable_irq (line);
++  else
++    __disable_irq (line);
++  return D_SUCCESS;
++}
++
++/* This function can only be used in the interrupt handler. */
++static void
++queue_intr (int line, user_intr_t *e)
++{
++  /* Until userland has handled the IRQ in the driver, we have to keep it
++   * disabled. Level-triggered interrupts would keep raising otherwise. */
++  __disable_irq (line);
++
 +  cli ();
-+  e = search_intr (line, dest);
-+  assert (e);
++  e->unacked_interrupts++;
 +  e->interrupts++;
 +  tot_num_intr++;
 +  sti ();
@@ -172,54 +231,71 @@ index 00000000..cf5d93f6
 +  thread_wakeup ((event_t) &intr_thread);
 +}
 +
++int deliver_user_intr (int line, user_intr_t *intr)
++{
++  /* The reference of the port was increased
++   * when the port was installed.
++   * If the reference is 1, it means the port should
++   * have been destroyed and I destroy it now. */
++  if (intr->dest
++      && intr->dest->ip_references == 1)
++    {
++      ipc_port_release (intr->dest);
++      intr->dest = MACH_PORT_NULL;
++      printf ("irq handler %d: release a dead delivery port\n", line);
++      thread_wakeup ((event_t) &intr_thread);
++      return 0;
++    }
++  else
++    {
++      queue_intr (line, intr);
++      return 1;
++    }
++}
++
 +/* insert an interrupt entry in the queue.
 + * This entry exists in the queue until
 + * the corresponding interrupt port is removed.*/
-+int
++user_intr_t *
 +insert_intr_entry (int line, ipc_port_t dest)
 +{
-+  int err = 0;
-+  struct intr_entry *e, *new;
++  struct intr_entry *e, *new, *ret;
 +  int free = 0;
 +
 +  new = (struct intr_entry *) kalloc (sizeof (*new));
 +  if (new == NULL)
-+    return D_NO_MEMORY;
++    return NULL;
 +
 +  /* check whether the intr entry has been in the queue. */
 +  cli ();
 +  e = search_intr (line, dest);
 +  if (e)
 +    {
-+      printf ("the interrupt entry for line %d and port %p has been inserted\n",
-+	  line, dest);
++      printf ("the interrupt entry for line %d and port %p has already been inserted\n", line, dest);
 +      free = 1;
-+      err = D_ALREADY_OPEN;
++      ret = NULL;
 +      goto out;
 +    }
++  ret = new;
 +  new->line = line;
 +  new->dest = dest;
 +  new->interrupts = 0;
++
++  /* For now netdde calls device_intr_enable once after registration. Assume
++   * it does so for now. When we move to IRQ acknowledgment convention we will
++   * change this. */
++  new->unacked_interrupts = 1;
++
 +  queue_enter (&intr_queue, new, struct intr_entry *, chain);
 +out:
 +  sti ();
 +  if (free)
 +    kfree ((vm_offset_t) new, sizeof (*new));
-+  return err;
-+}
-+
-+/* this function should be called when line is disabled. */
-+void mark_intr_removed (int line, ipc_port_t dest)
-+{
-+  struct intr_entry *e;
-+
-+  e = search_intr (line, dest);
-+  if (e)
-+    e->dest = NULL;
++  return ret;
 +}
 +
 +void
-+intr_thread ()
++intr_thread (void)
 +{
 +  struct intr_entry *e;
 +  int line;
@@ -229,7 +305,32 @@ index 00000000..cf5d93f6
 +  for (;;)
 +    {
 +      assert_wait ((event_t) &intr_thread, FALSE);
++      /* Make sure we wake up from times to times to check for aborted processes */
++      thread_set_timeout (hz);
 +      cli ();
++
++      /* Check for aborted processes */
++      queue_iterate (&intr_queue, e, struct intr_entry *, chain)
++	{
++	  if (!e->dest || e->dest->ip_references == 1)
++	    {
++	      printf ("irq handler %d: release dead delivery %d unacked irqs\n", e->line, e->unacked_interrupts);
++	      /* The reference of the port was increased
++	       * when the port was installed.
++	       * If the reference is 1, it means the port should
++	       * have been destroyed and I clear unacked irqs now, so the Linux
++	       * handling can trigger, and we will cleanup later after the Linux
++	       * handler is cleared. */
++	      /* TODO: rather immediately remove from Linux handler */
++	      while (e->unacked_interrupts)
++	      {
++		__enable_irq(e->line);
++		e->unacked_interrupts--;
++	      }
++	    }
++	}
++
++      /* Now check for interrupts */
 +      while (tot_num_intr)
 +	{
 +	  int del = 0;
@@ -238,7 +339,7 @@ index 00000000..cf5d93f6
 +	    {
 +	      /* if an entry doesn't have dest port,
 +	       * we should remove it. */
-+	      if (e->dest == NULL)
++	      if (e->dest == MACH_PORT_NULL)
 +		{
 +		  clear_wait (current_thread (), 0, 0);
 +		  del = 1;
@@ -264,6 +365,11 @@ index 00000000..cf5d93f6
 +	    {
 +	      assert (!queue_empty (&intr_queue));
 +	      queue_remove (&intr_queue, e, struct intr_entry *, chain);
++	      while (e->unacked_interrupts)
++	      {
++		__enable_irq(e->line);
++		e->unacked_interrupts--;
++	      }
 +	      sti ();
 +	      kfree ((vm_offset_t) e, sizeof (*e));
 +	      cli ();
@@ -388,14 +494,65 @@ index 00000000..368b96c6
 +simpleroutine mach_intr_notify(
 +		notify	: notify_port_t;
 +		name	: int);
+diff --git a/include/device/intr.h b/include/device/intr.h
+new file mode 100644
+index 00000000..53d81bb5
+--- /dev/null
++++ b/include/device/intr.h
+@@ -0,0 +1,44 @@
++#ifndef __INTR_H__
++
++#define __INTR_H__
++
++#include <device/device_types.h>
++#include <kern/queue.h>
++
++typedef struct
++{
++  mach_msg_header_t intr_header;
++  mach_msg_type_t   intr_type;
++  int		    line;
++} mach_intr_notification_t;
++
++typedef struct intr_entry
++{
++  queue_chain_t chain;
++  ipc_port_t dest;
++  int line;
++  int interrupts;		/* The number of interrupts occur since last run of intr_thread. */
++  int unacked_interrupts;	/* Number of times irqs were disabled for this */
++} user_intr_t;
++
++#define INTR_NOTIFY_MSGH_SEQNO 0
++#define MACH_INTR_NOTIFY 100
++
++int install_user_intr_handler (unsigned int line,
++					unsigned long flags,
++					user_intr_t *user_intr);
++
++/* Returns 0 if action should be removed */
++int deliver_user_intr (int line, user_intr_t *intr);
++
++user_intr_t *insert_intr_entry (int line, ipc_port_t dest);
++
++/* TODO: should rather take delivery port */
++kern_return_t user_intr_enable (int line, char status);
++
++void intr_thread (void);
++
++void __disable_irq(unsigned int);
++void __enable_irq(unsigned int);
++
++#endif
 diff --git a/include/mach/mach.defs b/include/mach/mach.defs
 index c6ad0770..77cc7d49 100644
 --- a/include/mach/mach.defs
 +++ b/include/mach/mach.defs
-@@ -720,5 +720,38 @@ skip;	/* old host_fpa_counters_reset */
+@@ -719,6 +719,39 @@ skip;	/* old host_fpa_counters_reset */
+ 
  #endif	/* ! KERNEL_USER */
  
- /*
++/*
 + *	This routine is created for allocating DMA buffers.
 + *	We are going to get a contiguous physical memory
 + *	and its physical address in addition to the virtual address.
@@ -428,44 +585,21 @@ index c6ad0770..77cc7d49 100644
 +	out	paddr		: vm_address_t;
 +		size		: vm_size_t);
 +
-+/*
+ /*
   *	There is no more room in this interface for additional calls.
   */
-diff --git a/include/device/intr.h b/include/device/intr.h
-new file mode 100644
-index 00000000..3c0e1b8c
---- /dev/null
-+++ b/include/device/intr.h
-@@ -0,0 +1,17 @@
-+#ifndef __INTR_H__
-+
-+#define __INTR_H__
-+
-+#include <device/device_types.h>
-+
-+typedef struct
-+{
-+  mach_msg_header_t intr_header;
-+  mach_msg_type_t   intr_type;
-+  int		    line;
-+} mach_intr_notification_t;
-+
-+#define INTR_NOTIFY_MSGH_SEQNO 0
-+#define MACH_INTR_NOTIFY 100
-+
-+#endif
 diff --git a/kern/startup.c b/kern/startup.c
-index 19bd7bf6..fa9571c1 100644
+index 19bd7bf6..5077a0b8 100644
 --- a/kern/startup.c
 +++ b/kern/startup.c
-@@ -79,6 +79,7 @@ boolean_t reboot_on_panic = TRUE;
+@@ -63,6 +63,7 @@
+ #include <machine/model_dep.h>
+ #include <mach/version.h>
+ #include <device/device_init.h>
++#include <device/intr.h>
  
- /* XX */
- extern char *kernel_cmdline;
-+extern void	intr_thread();
- 
- /*
-  *	Running in virtual memory, on the interrupt stack.
+ #if MACH_KDB
+ #include <device/cons.h>
 @@ -223,6 +224,9 @@ void start_kernel_threads(void)
  	(void) kernel_thread(kernel_task, reaper_thread, (char *) 0);
  	(void) kernel_thread(kernel_task, swapin_thread, (char *) 0);
@@ -477,18 +611,27 @@ index 19bd7bf6..fa9571c1 100644
  #if	NCPUS > 1
  	/*
 diff --git a/linux/dev/arch/i386/kernel/irq.c b/linux/dev/arch/i386/kernel/irq.c
-index 7753814b..b7dfa1a9 100644
+index 18448638..39f88b6b 100644
 --- a/linux/dev/arch/i386/kernel/irq.c
 +++ b/linux/dev/arch/i386/kernel/irq.c
-@@ -83,6 +83,7 @@ struct linux_action
+@@ -50,6 +50,8 @@
+ #include <linux/dev/glue/glue.h>
+ #include <machine/machspl.h>
+ 
++#include <device/intr.h>
++
+ #if 0
+ /* XXX: This is the way it's done in linux 2.2. GNU Mach currently uses intr_count. It should be made using local_{bh/irq}_count instead (through hardirq_enter/exit) for SMP support. */
+ unsigned int local_bh_count[NR_CPUS];
+@@ -76,6 +78,7 @@ struct linux_action
    void *dev_id;
    struct linux_action *next;
    unsigned long flags;
-+  volatile ipc_port_t delivery_port;
++  user_intr_t *user_intr;
  };
  
  static struct linux_action *irq_action[16] =
-@@ -102,6 +103,7 @@ linux_intr (int irq)
+@@ -95,6 +98,7 @@ linux_intr (int irq)
  {
    struct pt_regs regs;
    struct linux_action *action = *(irq_action + irq);
@@ -496,38 +639,21 @@ index 7753814b..b7dfa1a9 100644
    unsigned long flags;
  
    kstat.interrupts[irq]++;
-@@ -113,7 +115,37 @@ linux_intr (int irq)
+@@ -106,7 +110,20 @@ linux_intr (int irq)
  
    while (action)
      {
 -      action->handler (irq, action->dev_id, &regs);
 +      // TODO I might need to check whether the interrupt belongs to
 +      // the current device. But I don't do it for now.
-+      if (action->delivery_port)
++      if (action->user_intr)
 +	{
-+	  /* The reference of the port was increased
-+	   * when the port was installed.
-+	   * If the reference is 1, it means the port should
-+	   * have been destroyed and I destroy it now. */
-+	  if (action->delivery_port
-+	      && action->delivery_port->ip_references == 1)
-+	    {
-+	      mark_intr_removed (irq, action->delivery_port);
-+	      ipc_port_release (action->delivery_port);
-+	      *prev = action->next;
-+	      printk ("irq handler %d: release a dead delivery port\n", irq);
-+	      linux_kfree(action);
-+	      action = *prev;
-+	      continue;
-+	    }
-+	  else
-+	    {
-+	      /* We disable the irq here and it will be enabled
-+	       * after the interrupt is handled by the user space driver. */
-+	      disable_irq (irq);
-+	      queue_intr (irq, action->delivery_port);
-+	    }
-+
++	  if (!deliver_user_intr(irq, action->user_intr))
++	  {
++	    *prev = action->next;
++	    linux_kfree(action);
++	    action = *prev;
++	  }
 +	}
 +      else if (action->handler)
 +	action->handler (irq, action->dev_id, &regs);
@@ -535,7 +661,7 @@ index 7753814b..b7dfa1a9 100644
        action = action->next;
      }
  
-@@ -233,6 +265,7 @@ setup_x86_irq (int irq, struct linux_action *new)
+@@ -257,6 +274,7 @@ setup_x86_irq (int irq, struct linux_action *new)
  	}
        while (old);
        shared = 1;
@@ -543,13 +669,13 @@ index 7753814b..b7dfa1a9 100644
      }
  
    save_flags (flags);
-@@ -250,6 +283,51 @@ setup_x86_irq (int irq, struct linux_action *new)
+@@ -273,6 +291,51 @@ setup_x86_irq (int irq, struct linux_action *new)
    return 0;
  }
  
 +int
 +install_user_intr_handler (unsigned int irq, unsigned long flags,
-+			  ipc_port_t dest)
++			  user_intr_t *user_intr)
 +{
 +  struct linux_action *action;
 +  struct linux_action *old;
@@ -562,9 +688,9 @@ index 7753814b..b7dfa1a9 100644
 +  old = irq_action[irq];
 +  while (old)
 +    {
-+      if (old->delivery_port == dest)
++      if (old->user_intr && old->user_intr->dest == user_intr->dest)
 +	{
-+	  printk ("The interrupt handler has been installed on line %d", irq);
++	  printk ("The interrupt handler has already been installed on line %d", irq);
 +	  return linux_to_mach_error (-EAGAIN);
 +	}
 +      old = old->next;
@@ -583,7 +709,7 @@ index 7753814b..b7dfa1a9 100644
 +  action->next = NULL;
 +  action->dev_id = NULL;
 +  action->flags = flags;
-+  action->delivery_port = dest;
++  action->user_intr = user_intr;
 +  
 +  retval = setup_x86_irq (irq, action);
 +  if (retval)
@@ -595,19 +721,47 @@ index 7753814b..b7dfa1a9 100644
  /*
   * Attach a handler to an IRQ.
   */
-@@ -278,6 +356,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
+@@ -301,6 +364,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
    action->next = NULL;
    action->dev_id = dev_id;
    action->flags = flags;
-+  action->delivery_port = NULL;
++  action->user_intr = NULL;
    
    retval = setup_x86_irq (irq, action);
    if (retval)
+diff --git a/linux/dev/drivers/block/genhd.c b/linux/dev/drivers/block/genhd.c
+index f38654b6..ee1ac32b 100644
+--- a/linux/dev/drivers/block/genhd.c
++++ b/linux/dev/drivers/block/genhd.c
+@@ -806,7 +806,9 @@ void device_setup(void)
+ 	scsi_dev_init();
+ #endif
+ #ifdef CONFIG_INET
+-	net_dev_init();
++	extern char *kernel_cmdline;
++	if (!strstr(kernel_cmdline, " nonetdev"))
++		net_dev_init();
+ #endif
+ #ifndef MACH
+ 	console_map_init();
+diff --git a/linux/src/include/asm-i386/irq.h b/linux/src/include/asm-i386/irq.h
+index d7d1e3c5..c75744a5 100644
+--- a/linux/src/include/asm-i386/irq.h
++++ b/linux/src/include/asm-i386/irq.h
+@@ -16,8 +16,6 @@
+ 
+ #define TIMER_IRQ 0
+ 
+-extern void __disable_irq(unsigned int);
+-extern void __enable_irq(unsigned int);
+ extern void disable_irq(unsigned int);
+ extern void enable_irq(unsigned int);
+ 
 diff --git a/vm/vm_user.c b/vm/vm_user.c
-index 6c1e3d6f..24c4c64b 100644
+index b6a069a5..1789dbfa 100644
 --- a/vm/vm_user.c
 +++ b/vm/vm_user.c
-@@ -479,3 +479,97 @@ kern_return_t vm_wire_all(const ipc_port_t port, vm_map_t map, vm_wire_t flags)
+@@ -531,3 +531,97 @@ kern_return_t vm_msync(
  
  	return vm_map_msync(map, (vm_offset_t) address, size, sync_flags);
  }
@@ -705,18 +859,3 @@ index 6c1e3d6f..24c4c64b 100644
 +
 +	return KERN_SUCCESS;
 +}
-diff --git a/linux/dev/drivers/block/genhd.c b/linux/dev/drivers/block/genhd.c
-index 3a861386..4a36f7ff 100644
---- a/linux/dev/drivers/block/genhd.c
-+++ b/linux/dev/drivers/block/genhd.c
-@@ -812,7 +812,9 @@ void device_setup(void)
- #ifdef MACH
- 	linux_intr_pri = SPL6;
- #endif
--	net_dev_init();
-+	extern char *kernel_cmdline;
-+	if (!strstr(kernel_cmdline, " nonetdev"))
-+		net_dev_init();
- #endif
- #ifndef MACH
- 	console_map_init();
