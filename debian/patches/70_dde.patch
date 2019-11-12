@@ -127,19 +127,17 @@ index c0543cbc..e9f115fc 100644
  #endif	/* DS_ROUTINES_H */
 diff --git a/device/intr.c b/device/intr.c
 new file mode 100644
-index 00000000..864a9cfb
+index 00000000..de171fb2
 --- /dev/null
 +++ b/device/intr.c
-@@ -0,0 +1,293 @@
+@@ -0,0 +1,294 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
 +#include <kern/queue.h>
 +#include <kern/printf.h>
++#include <machine/spl.h>
 +
 +#ifndef MACH_XEN
-+// TODO this is only for x86 system
-+#define sti() __asm__ __volatile__ ("sti": : :"memory")
-+#define cli() __asm__ __volatile__ ("cli": : :"memory")
 +
 +static boolean_t deliver_intr (int line, ipc_port_t dest_port);
 +
@@ -179,7 +177,7 @@ index 00000000..864a9cfb
 +  struct intr_entry *e;
 +  kern_return_t ret = D_SUCCESS;
 +
-+  cli();
++  spl_t s = splhigh ();
 +  /* FIXME: Use search_intr instead once we get the delivery port from ds_device_intr_enable, and get rid of search_intr_line */
 +  e = search_intr_line (line);
 +
@@ -201,7 +199,7 @@ index 00000000..864a9cfb
 +      e->unacked_interrupts--;
 +    }
 +  }
-+  sti();
++  splx (s);
 +
 +  if (ret)
 +    return ret;
@@ -222,11 +220,11 @@ index 00000000..864a9cfb
 +   * disabled. Level-triggered interrupts would keep raising otherwise. */
 +  __disable_irq (line);
 +
-+  cli ();
++  spl_t s = splhigh ();
 +  e->unacked_interrupts++;
 +  e->interrupts++;
 +  tot_num_intr++;
-+  sti ();
++  splx (s);
 +
 +  thread_wakeup ((event_t) &intr_thread);
 +}
@@ -267,7 +265,7 @@ index 00000000..864a9cfb
 +    return NULL;
 +
 +  /* check whether the intr entry has been in the queue. */
-+  cli ();
++  spl_t s = splhigh ();
 +  e = search_intr (line, dest);
 +  if (e)
 +    {
@@ -288,7 +286,7 @@ index 00000000..864a9cfb
 +
 +  queue_enter (&intr_queue, new, struct intr_entry *, chain);
 +out:
-+  sti ();
++  splx (s);
 +  if (free)
 +    kfree ((vm_offset_t) new, sizeof (*new));
 +  return ret;
@@ -307,7 +305,7 @@ index 00000000..864a9cfb
 +      assert_wait ((event_t) &intr_thread, FALSE);
 +      /* Make sure we wake up from times to times to check for aborted processes */
 +      thread_set_timeout (hz);
-+      cli ();
++      spl_t s = splhigh ();
 +
 +      /* Check for aborted processes */
 +      queue_iterate (&intr_queue, e, struct intr_entry *, chain)
@@ -354,9 +352,9 @@ index 00000000..864a9cfb
 +		  e->interrupts--;
 +		  tot_num_intr--;
 +
-+		  sti ();
++		  splx (s);
 +		  deliver_intr (line, dest);
-+		  cli ();
++		  s = splhigh ();
 +		}
 +	    }
 +
@@ -365,17 +363,20 @@ index 00000000..864a9cfb
 +	    {
 +	      assert (!queue_empty (&intr_queue));
 +	      queue_remove (&intr_queue, e, struct intr_entry *, chain);
++	      if (e->unacked_interrupts)
++		printf("irq handler %d: still %d unacked irqs\n", e->line, e->unacked_interrupts);
 +	      while (e->unacked_interrupts)
 +	      {
 +		__enable_irq(e->line);
 +		e->unacked_interrupts--;
 +	      }
-+	      sti ();
++	      printf("irq handler %d: removed\n", e->line);
++	      splx (s);
 +	      kfree ((vm_offset_t) e, sizeof (*e));
-+	      cli ();
++	      s = splhigh ();
 +	    }
 +	}
-+      sti ();
++      splx (s);
 +      thread_block (NULL);
 +    }
 +}
