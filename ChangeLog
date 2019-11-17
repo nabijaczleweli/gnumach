@@ -1,3 +1,164 @@
+2019-11-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	irq: Add disabling counter
+	* linux/dev/arch/i386/kernel/irq.c (ndisabled_irq): New array.
+	(__disable_irq, __enable_irq): New functions, count with ndisabled_irq
+	before really calling mask_irq/unmask_irq.
+	(linux_pic_mask): New variable.
+	(disable_irq, enable_irq): Manage linux_pic_mask and call
+	__disable_irq/__enable_irq instead of calling mask_irq/unmask_irq.
+	* linux/src/include/asm-i386/irq.h (__disable_irq, __enable_irq): New
+	prototypes.
+
+2019-11-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	PIC: Acknowledge interrupts more carefully
+	Specs seems to be saying that we should mask an irq out while
+	acknowledging it with EOI. Also, better acknowledge only the concerned
+	irq.
+
+	* i386/i386at/interrupt.S (interrupt): Mask irq before notifying EOI.
+	Using specific EOI instead of unspecific EOI.
+
+2019-11-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	PIC: fix EOI values
+	* i386/i386/pic.h (SPECIFIC_EOI, ROT_NON_SPEC, SET_ROT_AEOI,
+	ROT_SPEC_EOI, SET_PRIORITY, NO_OPERATION): Shift value left by one bit.
+
+2019-11-11  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	intnull: Only warn once.
+	On real hardware, irq 7 seems to get raised often for some reason.
+
+	* i386/i386/pic.c (intnull): Only print once the warning about interrupt
+	being unexpectedly raised.
+
+2019-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	spl: Remove intpri array
+	And simplify prtnull vs intnull vs linux_bad_intr.
+
+	* i386/i386/ipl.h (intpri): Remove declaration
+	* i386/i386/pic.c (prtnull_count): Remove variable.
+	(prtnull): Remove function.
+	* i386/i386/pic.h (prtnull): Remove declaration.
+	* i386/i386at/autoconf.c (take_dev_irq, take_ctlr_irq): Use ivect instead of
+	intpri to determine irq availability. Do not set intpri.
+	* i386/i386at/pic_isa.c (ivect): Replace prtnull with intnull.
+	(intpri): Remove array.
+	* linux/dev/arch/i386/kernel/irq.c (linux_intr_pri): Remove variable.
+	(linux_bad_intr): Remove function.
+	(setup_x86_irq): Do not check intpri coherency. Do not set intpri. Set
+	default ivect to intnull instead of linux_bad_intr.
+	(probe_irq_on): Check ivect against intnull instead of linux_bad_intr.
+	Do not set intpri.
+	(probe_irq_off): Likewise.
+	(reserve_mach_irqs): Do not check against prtnull.
+	(old_clock_pri): Remove variable.
+	(init_IRQ): Do not set intpri. Do not set ivect to linux_bad_intr.
+	(restore_IRQ): Do not set ivect.
+	* i386/i386/pit.c (clkstart): Do not set intpri.
+	* i386/i386at/kd_mouse.c (kd_mouse_open, kd_mouse_close): Likewise.
+	* linux/dev/drivers/block/genhd.c (device_setup): Do not set linux_intr_pri.
+	* linux/dev/glue/block.c (init_partition, device_open): Likewise.
+	* linux/dev/glue/net.c (device_open): Likewise.
+	* linux/dev/glue/glue.h (linux_intr_pri, linux_bad_intr): Remove
+	declarations.
+
+2019-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Make default boot less scary
+	* linux/configfrag.ac (AM53C974, aha1542, eata, eata_pio, ppa, wd7000,
+	3c515, de600, de620): Disable by default drivers for elder hardware,
+	which have scary boot messages.
+	* linux/pcmcia-cs/modules/ds.c (init_pcmcia_ds): Make message about
+	socket not being found less scary.
+
+	Fix build warning
+	* ddb/db_command.c: Include <ipc/mach_port.h>.
+
+	Run interrupt handlers at spl7
+	* i386/i386at/interrupt.S (interrupt): Call spl7 instead of the
+	intpri-provided one.
+
+2019-11-10  Damien Zammit  <damien@zamaudio.com>
+
+	simplify interrupt handling
+	We have removed spl levels, now remove the machinery to manage different
+	PIC masks according to levels. Only keep machinery to disable interrupts
+	whatever the level.
+
+	* i386/i386/pic.c (pic_mask): Remove array.
+	(picinit): Do not form PIC mask. Set initial PIC mask to 0.
+	(form_pic_mask): Remove function.
+	* i386/i386/pic.h (form_pic_mask, pic_mask): Remove declarations.
+	* i386/i386/spl.S (SETMASK): Remove macro.
+	(XEN_SETMASK): Add macro, containing the Xen version of SETMASK.
+	(spl0, splx_cli, spl) [MACH_XEN]: Call XEN_SETMASK instead of SETMASK.
+	* i386/i386/pit.c (clkstart): Do not call form_pic_mask.
+	* i386/i386at/autoconf.c (take_dev_irq, take_ctlr_irq): Likewise.
+	* i386/i386at/kd_mouse.c (kd_mouse_open, kd_mouse_close): Likewise.
+	* linux/dev/arch/i386/kernel/irq.c (mask_irq, unmask_irq): Directly update
+	curr_pic_mask without using pic_mask array.
+	(init_IRQ, restore_IRQ): do not call form_pic_mask.
+	* linux/dev/include/asm-i386/system.h: Include <i386/ipl.h>.
+	(__save_flags, __restore_flags): Use curr_ipl and splx instead of
+	hardware flags.
+	* linux/dev/init/main.c (linux_init): Do not call cli.
+	* linux/dev/kernel/sched.c (linux_timer_intr): Do not use pic_mask.
+	* linux/src/drivers/block/ide.c (try_to_identify): Disable irq probing.
+	* linux/src/drivers/scsi/NCR53c406a.c (NCR53c406a_detect): Disable irq
+	probing.
+
+2019-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	ide: Use default IRQ by default
+	To avoid even trying to probe IRQs. Nowadays' hardware use the default
+	IRQ anyway.
+
+	* linux/src/drivers/block/ide.c (init_hwif_data): Set hwif->irq to
+	default_irqs[index].
+
+2019-11-10  Damien Zammit  <damien@zamaudio.com>
+
+	spl: Squash levels 1-6 into level 7
+	* i386/i386/spl.S (SETIPL): Remove macro.
+	(splsoftclock, spl1, spl2, spl3, splnet, splhdw, spl4, splbio, spldcm,
+	spl5, spltty, splimp, splvm, spl6): Move entries to the spl7 entry.
+
+2019-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	pmap: fix format warnings
+	* i386/intel/pmap.c (pmap_bootstrap, pmap_set_page_readwrite,
+	pmap_set_page_readonly, pmap_set_page_readonly_init,
+	pmap_clear_bootstrap_pagetable, pmap_map_mfn, pmap_destroy, pmap_enter,
+	pmap_collect, phys_attribute_clear): Fix format warnings.
+
+2019-11-10  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Xen: fix boot
+	Xen seems to want a whole page for the PAE pdp.
+
+	* i386/intel/pmap.c (pmap_init): Make pdpt cache use page-size
+	allocation.
+
+2019-11-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	sched: cause ast on master processor too
+	Nowadays' processors are way fast enough to handle everything fine.
+
+	* kern/sched_prim.c (thread_setrun): Do not check against target
+	processor being master.
+
+2019-10-31  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	pit: fix build
+	* i386/i386/pit.c: Include <kern/cpu_number.h>
+
+	pit: avoid initializating several times
+	i386/i386/pit.c (clkstart): Do not initialize PIT if cpu_number() is not 0.
+
 2019-10-30  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	Drop spurious change
