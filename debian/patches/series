@@ -9,5 +9,6 @@ git-picmask
 git-interrupt-spl7
 git-intpri
 git-disable-irq
+git-intnull-7
 70_dde.patch
 79_dde-debian.patch

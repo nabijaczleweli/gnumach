@@ -1,3 +1,9 @@
+gnumach (2:1.8+git20191029-8) UNRELEASED; urgency=medium
+
+  * patches/git-intnull-7: Fix not printing spurious PIC interrupts.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 17 Nov 2019 18:25:55 +0000
+
 gnumach (2:1.8+git20191029-7) unstable; urgency=medium
 
   * patches/70_dde.patch: Fix hang on netdde crash with a nacked interrupt.

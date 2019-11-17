@@ -1,0 +1,31 @@
+commit 3693b18c744c597326a2cd38b8d1605240771805
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Mon Nov 11 15:52:43 2019 +0100
+
+    intnull: Only warn once.
+    
+    On real hardware, irq 7 seems to get raised often for some reason.
+    
+    * i386/i386/pic.c (intnull): Only print once the warning about interrupt
+    being unexpectedly raised.
+
+diff --git a/i386/i386/pic.c b/i386/i386/pic.c
+index 1991103a..0feebc6f 100644
+--- a/i386/i386/pic.c
++++ b/i386/i386/pic.c
+@@ -174,5 +174,14 @@ picinit(void)
+ void
+ intnull(int unit_dev)
+ {
+-	printf("intnull(%d)\n", unit_dev);
++	static char warned[NINTR];
++
++	if (unit_dev >= NINTR)
++		printf("Unknown interrupt %d\n", unit_dev);
++	else if (!warned[unit_dev])
++	{
++		printf("intnull(%d)\n", unit_dev);
++		warned[unit_dev] = 1;
++	}
++
+ }
