@@ -3,12 +3,5 @@
 20_FP_NO.patch
 50_initrd.patch
 80_vm_object_coalesce.patch
-git-xen-fix
-git-spl-squash
-git-picmask
-git-interrupt-spl7
-git-intpri
-git-disable-irq
-git-intnull-7
 70_dde.patch
 79_dde-debian.patch

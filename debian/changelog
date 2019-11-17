@@ -1,7 +1,8 @@
 gnumach (2:1.8+git20191117-1) unstable; urgency=medium
 
   * New upstream snapshot.
-  * patches/git-intnull-7: Fix not printing spurious PIC interrupts.
+    - git-xen-fix, git-spl-squash, git-picmask, git-interrupt-spl7,
+      git-intpri, git-disable-irq: Merged.
   * patches/70_dde.patch: Update debugging prints.
 
  -- Samuel Thibault <sthibault@debian.org>  Sun, 17 Nov 2019 18:33:09 +0000
