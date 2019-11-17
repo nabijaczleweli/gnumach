@@ -1,10 +1,10 @@
-gnumach (2:1.8+git20191117-1) UNRELEASED; urgency=medium
+gnumach (2:1.8+git20191117-1) unstable; urgency=medium
 
   * New upstream snapshot.
   * patches/git-intnull-7: Fix not printing spurious PIC interrupts.
   * patches/70_dde.patch: Update debugging prints.
 
- -- Samuel Thibault <sthibault@debian.org>  Sun, 17 Nov 2019 18:25:55 +0000
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 17 Nov 2019 18:33:09 +0000
 
 gnumach (2:1.8+git20191029-7) unstable; urgency=medium
 
