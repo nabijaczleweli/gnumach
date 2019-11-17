@@ -127,10 +127,10 @@ index c0543cbc..e9f115fc 100644
  #endif	/* DS_ROUTINES_H */
 diff --git a/device/intr.c b/device/intr.c
 new file mode 100644
-index 00000000..de171fb2
+index 00000000..eb37ecf5
 --- /dev/null
 +++ b/device/intr.c
-@@ -0,0 +1,294 @@
+@@ -0,0 +1,295 @@
 +#include <device/intr.h>
 +#include <device/ds_routines.h>
 +#include <kern/queue.h>
@@ -238,9 +238,9 @@ index 00000000..de171fb2
 +  if (intr->dest
 +      && intr->dest->ip_references == 1)
 +    {
++      printf ("irq handler %d: release a dead delivery port %p entry %p\n", line, intr->dest, intr);
 +      ipc_port_release (intr->dest);
 +      intr->dest = MACH_PORT_NULL;
-+      printf ("irq handler %d: release a dead delivery port\n", line);
 +      thread_wakeup ((event_t) &intr_thread);
 +      return 0;
 +    }
@@ -274,6 +274,7 @@ index 00000000..de171fb2
 +      ret = NULL;
 +      goto out;
 +    }
++  printf("irq handler %d: new delivery port %p entry %p\n", line, dest, new);
 +  ret = new;
 +  new->line = line;
 +  new->dest = dest;
@@ -312,7 +313,7 @@ index 00000000..de171fb2
 +	{
 +	  if ((!e->dest || e->dest->ip_references == 1) && e->unacked_interrupts)
 +	    {
-+	      printf ("irq handler %d: release dead delivery %d unacked irqs\n", e->line, e->unacked_interrupts);
++	      printf ("irq handler %d: release dead delivery %d unacked irqs port %p entry %p\n", e->line, e->unacked_interrupts, e->dest, e);
 +	      /* The reference of the port was increased
 +	       * when the port was installed.
 +	       * If the reference is 1, it means the port should
@@ -364,13 +365,13 @@ index 00000000..de171fb2
 +	      assert (!queue_empty (&intr_queue));
 +	      queue_remove (&intr_queue, e, struct intr_entry *, chain);
 +	      if (e->unacked_interrupts)
-+		printf("irq handler %d: still %d unacked irqs\n", e->line, e->unacked_interrupts);
++		printf("irq handler %d: still %d unacked irqs in entry %p\n", e->line, e->unacked_interrupts, e);
 +	      while (e->unacked_interrupts)
 +	      {
 +		__enable_irq(e->line);
 +		e->unacked_interrupts--;
 +	      }
-+	      printf("irq handler %d: removed\n", e->line);
++	      printf("irq handler %d: removed entry %p\n", e->line, e);
 +	      splx (s);
 +	      kfree ((vm_offset_t) e, sizeof (*e));
 +	      s = splhigh ();
@@ -612,7 +613,7 @@ index 19bd7bf6..5077a0b8 100644
  #if	NCPUS > 1
  	/*
 diff --git a/linux/dev/arch/i386/kernel/irq.c b/linux/dev/arch/i386/kernel/irq.c
-index 18448638..a3b34956 100644
+index 18448638..bc752013 100644
 --- a/linux/dev/arch/i386/kernel/irq.c
 +++ b/linux/dev/arch/i386/kernel/irq.c
 @@ -50,6 +50,8 @@
@@ -727,15 +728,7 @@ index 18448638..a3b34956 100644
  /* Count how many subsystems requested to disable each IRQ */
  static unsigned ndisabled_irq[NR_IRQS];
  
-@@ -257,6 +283,7 @@ setup_x86_irq (int irq, struct linux_action *new)
- 	}
-       while (old);
-       shared = 1;
-+      printk("store a new irq %d\n", irq);
-     }
- 
-   save_flags (flags);
-@@ -273,6 +300,51 @@ setup_x86_irq (int irq, struct linux_action *new)
+@@ -273,6 +299,51 @@ setup_x86_irq (int irq, struct linux_action *new)
    return 0;
  }
  
@@ -787,7 +780,7 @@ index 18448638..a3b34956 100644
  /*
   * Attach a handler to an IRQ.
   */
-@@ -301,6 +373,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
+@@ -301,6 +372,7 @@ request_irq (unsigned int irq, void (*handler) (int, void *, struct pt_regs *),
    action->next = NULL;
    action->dev_id = dev_id;
    action->flags = flags;
