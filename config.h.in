@@ -10,7 +10,7 @@
 #undef CMU
 
 /* option 3c515: Linux device driver for Ethernet controller 3Com 515 ISA Fast
-   EtherLink; on ix86-at enabled by default */
+   EtherLink */
 #undef CONFIG_3C515
 
 /* option 3c574_cs: Linux device driver for 3Com 3c574 ``RoadRunner'' PCMCIA
@@ -56,12 +56,10 @@
    de425, de434, de435, de450, de500); on ix86-at enabled by default */
 #undef CONFIG_DE4X5
 
-/* option de600: Linux device driver for Ethernet controller D-Link DE-600; on
-   ix86-at enabled by default */
+/* option de600: Linux device driver for Ethernet controller D-Link DE-600 */
 #undef CONFIG_DE600
 
-/* option de620: Linux device driver for Ethernet controller D-Link DE-620; on
-   ix86-at enabled by default */
+/* option de620: Linux device driver for Ethernet controller D-Link DE-620 */
 #undef CONFIG_DE620
 
 /* option tulip: Linux device driver for Ethernet controller DECchip Tulip
@@ -231,8 +229,7 @@
 /* CONFIG_SCSI */
 #undef CONFIG_SCSI
 
-/* option wd7000: Linux device driver for SCSI controller WD 7000; on ix86-at
-   enabled by default */
+/* option wd7000: Linux device driver for SCSI controller WD 7000 */
 #undef CONFIG_SCSI_7000FASST
 
 /* option advansys: Linux device driver for SCSI controller AdvanSys; on
@@ -243,8 +240,7 @@
    AHA-152x/2825 (aha152x, aha2825); on ix86-at enabled by default */
 #undef CONFIG_SCSI_AHA152X
 
-/* option aha1542: Linux device driver for SCSI controller Adaptec AHA-1542;
-   on ix86-at enabled by default */
+/* option aha1542: Linux device driver for SCSI controller Adaptec AHA-1542 */
 #undef CONFIG_SCSI_AHA1542
 
 /* option aha1740: Linux device driver for SCSI controller Adaptec AHA-1740;
@@ -255,7 +251,7 @@
 #undef CONFIG_SCSI_AIC7XXX
 
 /* option AM53C974: Linux device driver for SCSI controller AM53/79C974
-   (am53c974, am79c974); on ix86-at enabled by default */
+   (am53c974, am79c974) */
 #undef CONFIG_SCSI_AM53C974
 
 /* option BusLogic: Linux device driver for SCSI controller BusLogic; on
@@ -271,7 +267,7 @@
 #undef CONFIG_SCSI_DTC3280
 
 /* option eata: Linux device driver for SCSI controller EATA ISA/EISA/PCI (DPT
-   and generic EATA/DMA-compliant boards); on ix86-at enabled by default */
+   and generic EATA/DMA-compliant boards) */
 #undef CONFIG_SCSI_EATA
 
 /* option eata_dma: Linux device driver for SCSI controller EATA-DMA (DPT,
@@ -279,7 +275,7 @@
 #undef CONFIG_SCSI_EATA_DMA
 
 /* option eata_pio: Linux device driver for SCSI controller EATA-PIO (old DPT
-   PM2001, PM2012A); on ix86-at enabled by default */
+   PM2001, PM2012A) */
 #undef CONFIG_SCSI_EATA_PIO
 
 /* option fdomain: Linux device driver for SCSI controller Future Domain 16xx;
@@ -315,8 +311,7 @@
    enabled by default */
 #undef CONFIG_SCSI_PASS16
 
-/* option ppa: Linux device driver for IOMEGA Parallel Port ZIP drive; on
-   ix86-at enabled by default */
+/* option ppa: Linux device driver for IOMEGA Parallel Port ZIP drive */
 #undef CONFIG_SCSI_PPA
 
 /* option qlogicfas: Linux device driver for SCSI controller Qlogic FAS; on
