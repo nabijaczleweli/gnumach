@@ -2,8 +2,8 @@ This is mach.info, produced by makeinfo version 6.7 from mach.texi.
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 11 November 2019, of 'The GNU
-Mach Reference Manual', for version 1.8+git20191117.
+   This is edition 0.4, last updated on 9 March 2020, of 'The GNU Mach
+Reference Manual', for version 1.8+git20200309.
 
    Copyright © 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -45,8 +45,8 @@ Main Menu
 
 This file documents the GNU Mach microkernel.
 
-   This is edition 0.4, last updated on 11 November 2019, of 'The GNU
-Mach Reference Manual', for version 1.8+git20191117.
+   This is edition 0.4, last updated on 9 March 2020, of 'The GNU Mach
+Reference Manual', for version 1.8+git20200309.
 
    Copyright © 2001, 2002, 2006, 2007, 2008 Free Software Foundation,
 Inc.
@@ -5671,7 +5671,9 @@ mapped-time interface:
      do
        {
          secs = mtime->seconds;
+         __sync_synchronize();
          usecs = mtime->microseconds;
+         __sync_synchronize();
        }
      while (secs != mtime->check_seconds);
 

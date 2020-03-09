@@ -1,3 +1,44 @@
+2020-03-09  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Set readtodc parameter 64bit
+	In order to fix year 2038 limit.
+
+	* i386/i386at/rtc.h (readtodc): Make tp parameter uint64_t *.
+	* i386/i386at/rtc.c (readtodc): Likewise.
+	* xen/time.c (readtodc): Likewise.
+	* i386/i386at/model_dep.c (inittodr): Pass uint64_t pointer to readtodc.
+
+2020-01-28  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Set time_t type to 64bit
+	In order to fix year 2038 limit in RTC driver
+
+	* include/sys/types.h (time_t): Bump type to 64bit.
+	* Makefile.am (clib_routines): Also allow __moddi3.
+
+2020-01-27  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	doc: Fix mapped-time example
+	One needs to use memory barriers to be sure to be reading values in the
+	proper order.
+
+	* doc/mach.texi (Host Time): Add __sync_synchronize() in mapped-time
+	example.
+
+2020-01-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	Cope with machine_info.memory_size overflow
+	* kern/startup.c (setup_main): When memory size overflows
+	machine_info.memory_size, set to maximum size.
+
+2019-12-01  Samuel Thibault  <samuel.thibault@ens-lyon.org>
+
+	i386: use 64bit precision by default
+	This is the System V ABI default.
+
+	* i386/i386/fpu.c (fpinit): Use FPC_PC_64 instead of FPC_PC_53.
+	(fp_state_alloc): Likewise.
+
 2019-11-12  Samuel Thibault  <samuel.thibault@ens-lyon.org>
 
 	irq: Add disabling counter
