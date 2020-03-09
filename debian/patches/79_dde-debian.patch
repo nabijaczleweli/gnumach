@@ -9,10 +9,10 @@ git diff master-user_level_drivers master-user_level_drivers-debian
 and master-user_level_drivers-debian was
 19283fdffa782b2e485ef39e0de1574006ec4a1a at the time)
 
-diff --git a/Makefrag.am b/Makefrag.am
-index 73508350..9f303525 100644
---- a/Makefrag.am
-+++ b/Makefrag.am
+Index: gnumach/Makefrag.am
+===================================================================
+--- gnumach.orig/Makefrag.am
++++ gnumach/Makefrag.am
 @@ -227,6 +227,7 @@ EXTRA_DIST += \
  	kern/mach.srv \
  	kern/mach4.srv \
@@ -21,7 +21,15 @@ index 73508350..9f303525 100644
  	kern/mach_debug.srv \
  	kern/mach_host.srv \
  	kern/task_notify.cli
-@@ -385,6 +386,7 @@ include_mach_HEADERS = \
+@@ -364,7 +365,6 @@ include_device_HEADERS = \
+ 	include/device/device_types.h \
+ 	include/device/disk_status.h \
+ 	include/device/net_status.h \
+-	include/device/notify.defs \
+ 	include/device/notify.h \
+ 	include/device/tape_status.h \
+ 	include/device/tty_status.h
+@@ -387,6 +387,7 @@ include_mach_HEADERS = \
  	include/mach/memory_object_default.defs \
  	include/mach/notify.defs \
  	include/mach/std_types.defs \
@@ -29,7 +37,7 @@ index 73508350..9f303525 100644
  	include/mach/alert.h \
  	include/mach/boolean.h \
  	include/mach/boot.h \
-@@ -535,6 +537,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
+@@ -537,6 +538,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES +=
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
  	kern/gnumach.server.defs.c \
@@ -37,7 +45,7 @@ index 73508350..9f303525 100644
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
-@@ -547,6 +550,9 @@ nodist_libkernel_a_SOURCES += \
+@@ -549,6 +551,9 @@ nodist_libkernel_a_SOURCES += \
  	kern/gnumach.server.h \
  	kern/gnumach.server.c \
  	kern/gnumach.server.msgids \
@@ -47,7 +55,7 @@ index 73508350..9f303525 100644
  	kern/mach_debug.server.h \
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
-@@ -556,6 +562,7 @@ nodist_libkernel_a_SOURCES += \
+@@ -558,6 +563,7 @@ nodist_libkernel_a_SOURCES += \
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/gnumach.server.defs
@@ -55,11 +63,11 @@ index 73508350..9f303525 100644
  #	kern/mach_debug.server.defs
  #	kern/mach_host.server.defs
  
-diff --git a/device/ds_routines.c b/device/ds_routines.c
-index 13c9a63e..91862693 100644
---- a/device/ds_routines.c
-+++ b/device/ds_routines.c
-@@ -321,7 +321,7 @@ ds_device_map (device_t dev, vm_prot_t prot, vm_offset_t offset,
+Index: gnumach/device/ds_routines.c
+===================================================================
+--- gnumach.orig/device/ds_routines.c
++++ gnumach/device/ds_routines.c
+@@ -321,7 +321,7 @@ ds_device_map (device_t dev, vm_prot_t p
  
  /* TODO: missing deregister support */
  io_return_t
@@ -68,7 +76,7 @@ index 13c9a63e..91862693 100644
  		       int id, int flags, ipc_port_t receive_port)
  {
  #ifdef MACH_XEN
-@@ -1842,7 +1842,7 @@ device_writev_trap (mach_device_t device, dev_mode_t mode,
+@@ -1842,7 +1842,7 @@ device_writev_trap (mach_device_t device
  }
  
  kern_return_t
@@ -77,10 +85,10 @@ index 13c9a63e..91862693 100644
  {
  #ifdef MACH_XEN
    return D_INVALID_OPERATION;
-diff --git a/include/device/device.defs b/include/device/device.defs
-index dca1be4e..409146f5 100644
---- a/include/device/device.defs
-+++ b/include/device/device.defs
+Index: gnumach/include/device/device.defs
+===================================================================
+--- gnumach.orig/include/device/device.defs
++++ gnumach/include/device/device.defs
 @@ -142,23 +142,3 @@ routine device_set_filter(
  	in	filter		: filter_array_t
  	);
@@ -105,10 +113,9 @@ index dca1be4e..409146f5 100644
 -		master_port	: mach_port_t;
 -		line		: int;
 -		status		: char);
-diff --git a/include/device/notify.defs b/include/device/notify.defs
-deleted file mode 100644
-index ea374d26..00000000
---- a/include/device/notify.defs
+Index: gnumach/include/device/notify.defs
+===================================================================
+--- gnumach.orig/include/device/notify.defs
 +++ /dev/null
 @@ -1,36 +0,0 @@
 -/* 
@@ -147,10 +154,10 @@ index ea374d26..00000000
 -simpleroutine device_intr_notify(
 -		notify	: notify_port_t;
 -		name	: int);
-diff --git a/include/device/notify.h b/include/device/notify.h
-index b6907b03..91d518ca 100644
---- a/include/device/notify.h
-+++ b/include/device/notify.h
+Index: gnumach/include/device/notify.h
+===================================================================
+--- gnumach.orig/include/device/notify.h
++++ gnumach/include/device/notify.h
 @@ -29,6 +29,6 @@ typedef struct
    int		    line;
  } device_intr_notification_t;
@@ -159,11 +166,10 @@ index b6907b03..91d518ca 100644
 +#define DEVICE_INTR_NOTIFY 424242
  
  #endif	/* _MACH_DEVICE_NOTIFY_H_ */
-diff --git a/include/mach/experimental.defs b/include/mach/experimental.defs
-new file mode 100644
-index 00000000..ca1eb922
+Index: gnumach/include/mach/experimental.defs
+===================================================================
 --- /dev/null
-+++ b/include/mach/experimental.defs
++++ gnumach/include/mach/experimental.defs
 @@ -0,0 +1,100 @@
 +/* 
 + * Mach Operating System
@@ -265,15 +271,14 @@ index 00000000..ca1eb922
 +	out	vaddr		: vm_address_t;
 +	out	paddr		: vm_address_t;
 +		size		: vm_size_t);
-diff --git a/include/mach/mach.defs b/include/mach/mach.defs
-index 77cc7d49..c6ad0770 100644
---- a/include/mach/mach.defs
-+++ b/include/mach/mach.defs
-@@ -719,39 +719,6 @@ skip;	/* old host_fpa_counters_reset */
- 
+Index: gnumach/include/mach/mach.defs
+===================================================================
+--- gnumach.orig/include/mach/mach.defs
++++ gnumach/include/mach/mach.defs
+@@ -720,38 +720,5 @@ skip;	/* old host_fpa_counters_reset */
  #endif	/* ! KERNEL_USER */
  
--/*
+ /*
 - *	This routine is created for allocating DMA buffers.
 - *	We are going to get a contiguous physical memory
 - *	and its physical address in addition to the virtual address.
@@ -306,22 +311,21 @@ index 77cc7d49..c6ad0770 100644
 -	out	paddr		: vm_address_t;
 -		size		: vm_size_t);
 -
- /*
+-/*
   *	There is no more room in this interface for additional calls.
   */
-diff --git a/kern/experimental.srv b/kern/experimental.srv
-new file mode 100644
-index 00000000..2ccfd783
+Index: gnumach/kern/experimental.srv
+===================================================================
 --- /dev/null
-+++ b/kern/experimental.srv
++++ gnumach/kern/experimental.srv
 @@ -0,0 +1,3 @@
 +#define KERNEL_SERVER 1
 +
 +#include <mach/experimental.defs>
-diff --git a/kern/ipc_kobject.c b/kern/ipc_kobject.c
-index 709ec9ec..c65458ba 100644
---- a/kern/ipc_kobject.c
-+++ b/kern/ipc_kobject.c
+Index: gnumach/kern/ipc_kobject.c
+===================================================================
+--- gnumach.orig/kern/ipc_kobject.c
++++ gnumach/kern/ipc_kobject.c
 @@ -56,6 +56,7 @@
  #include <device/device_pager.server.h>
  #include <kern/mach4.server.h>
@@ -346,10 +350,10 @@ index 709ec9ec..c65458ba 100644
  #if	MACH_MACHINE_ROUTINES
  	 || (routine = MACHINE_SERVER_ROUTINE(&request->ikm_header)) != 0
  #endif	/* MACH_MACHINE_ROUTINES */
-diff --git a/vm/vm_user.c b/vm/vm_user.c
-index 1789dbfa..2f41d322 100644
---- a/vm/vm_user.c
-+++ b/vm/vm_user.c
+Index: gnumach/vm/vm_user.c
+===================================================================
+--- gnumach.orig/vm/vm_user.c
++++ gnumach/vm/vm_user.c
 @@ -532,7 +532,7 @@ kern_return_t vm_msync(
  	return vm_map_msync(map, (vm_offset_t) address, size, sync_flags);
  }
