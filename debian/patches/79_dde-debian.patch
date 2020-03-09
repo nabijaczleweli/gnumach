@@ -5,8 +5,12 @@ This is the output of
 
 git diff master-user_level_drivers master-user_level_drivers-debian
 
+(master-user_level_drivers was 640b447be65d4cbdafa3b7f9c4317fd8d9a6ae33
+and master-user_level_drivers-debian was
+19283fdffa782b2e485ef39e0de1574006ec4a1a at the time)
+
 diff --git a/Makefrag.am b/Makefrag.am
-index d9dbc150..fee77894 100644
+index 73508350..9f303525 100644
 --- a/Makefrag.am
 +++ b/Makefrag.am
 @@ -227,6 +227,7 @@ EXTRA_DIST += \
@@ -17,19 +21,7 @@ index d9dbc150..fee77894 100644
  	kern/mach_debug.srv \
  	kern/mach_host.srv \
  	kern/task_notify.cli
-@@ -358,10 +359,9 @@ include_device_HEADERS = \
- 	include/device/device_reply.defs \
- 	include/device/device_request.defs \
- 	include/device/device_types.defs \
--	include/device/intr.defs \
--	include/device/intr.h \
- 	include/device/device_types.h \
- 	include/device/disk_status.h \
-+	include/device/intr.h \
- 	include/device/net_status.h \
- 	include/device/tape_status.h \
- 	include/device/tty_status.h
-@@ -384,6 +384,7 @@ include_mach_HEADERS = \
+@@ -385,6 +386,7 @@ include_mach_HEADERS = \
  	include/mach/memory_object_default.defs \
  	include/mach/notify.defs \
  	include/mach/std_types.defs \
@@ -37,7 +29,7 @@ index d9dbc150..fee77894 100644
  	include/mach/alert.h \
  	include/mach/boolean.h \
  	include/mach/boot.h \
-@@ -534,6 +535,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
+@@ -535,6 +537,7 @@ nodist_lib_dep_tr_for_defs_a_SOURCES += \
  	kern/mach.server.defs.c \
  	kern/mach4.server.defs.c \
  	kern/gnumach.server.defs.c \
@@ -45,7 +37,7 @@ index d9dbc150..fee77894 100644
  	kern/mach_debug.server.defs.c \
  	kern/mach_host.server.defs.c
  nodist_libkernel_a_SOURCES += \
-@@ -546,6 +548,9 @@ nodist_libkernel_a_SOURCES += \
+@@ -547,6 +550,9 @@ nodist_libkernel_a_SOURCES += \
  	kern/gnumach.server.h \
  	kern/gnumach.server.c \
  	kern/gnumach.server.msgids \
@@ -55,7 +47,7 @@ index d9dbc150..fee77894 100644
  	kern/mach_debug.server.h \
  	kern/mach_debug.server.c \
  	kern/mach_debug.server.msgids \
-@@ -555,6 +560,7 @@ nodist_libkernel_a_SOURCES += \
+@@ -556,6 +562,7 @@ nodist_libkernel_a_SOURCES += \
  #	kern/mach.server.defs
  #	kern/mach4.server.defs
  #	kern/gnumach.server.defs
@@ -113,10 +105,10 @@ index dca1be4e..409146f5 100644
 -		master_port	: mach_port_t;
 -		line		: int;
 -		status		: char);
-diff --git a/include/device/intr.defs b/include/device/intr.defs
+diff --git a/include/device/notify.defs b/include/device/notify.defs
 deleted file mode 100644
-index 368b96c6..00000000
---- a/include/device/intr.defs
+index ea374d26..00000000
+--- a/include/device/notify.defs
 +++ /dev/null
 @@ -1,36 +0,0 @@
 -/* 
@@ -150,24 +142,23 @@ index 368b96c6..00000000
 -#include <mach/std_types.defs>
 -
 -serverprefix do_;
--serverdemux intr_notify_server;
+-serverdemux device_intr_notify_server;
 -
--simpleroutine mach_intr_notify(
+-simpleroutine device_intr_notify(
 -		notify	: notify_port_t;
 -		name	: int);
-diff --git a/include/device/intr.h b/include/device/intr.h
-index 53d81bb5..6da21035 100644
---- a/include/device/intr.h
-+++ b/include/device/intr.h
-@@ -22,7 +22,7 @@ typedef struct intr_entry
- } user_intr_t;
+diff --git a/include/device/notify.h b/include/device/notify.h
+index b6907b03..91d518ca 100644
+--- a/include/device/notify.h
++++ b/include/device/notify.h
+@@ -29,6 +29,6 @@ typedef struct
+   int		    line;
+ } device_intr_notification_t;
  
- #define INTR_NOTIFY_MSGH_SEQNO 0
--#define MACH_INTR_NOTIFY 100
-+#define MACH_INTR_NOTIFY 424242
+-#define DEVICE_INTR_NOTIFY 100
++#define DEVICE_INTR_NOTIFY 424242
  
- int install_user_intr_handler (unsigned int line,
- 					unsigned long flags,
+ #endif	/* _MACH_DEVICE_NOTIFY_H_ */
 diff --git a/include/mach/experimental.defs b/include/mach/experimental.defs
 new file mode 100644
 index 00000000..ca1eb922

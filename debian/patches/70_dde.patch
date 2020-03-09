@@ -9,29 +9,32 @@ This is the output of
 
 git diff master master-user_level_drivers
 
-(master was 097f9cf735ffa1212b828682ad92f0f6c5f1c552 at the time)
+(master was 28b53508aa4cd06933fa1bcbbaa791ad12ecbf51 and
+master-user_level_drivers was 640b447be65d4cbdafa3b7f9c4317fd8d9a6ae33
+at the time)
 
 diff --git a/Makefrag.am b/Makefrag.am
-index 754d87e2..d9dbc150 100644
+index 754d87e2..73508350 100644
 --- a/Makefrag.am
 +++ b/Makefrag.am
-@@ -311,6 +311,7 @@ libkernel_a_SOURCES += \
- 	device/device_types_kernel.h \
- 	device/ds_routines.c \
+@@ -313,6 +313,8 @@ libkernel_a_SOURCES += \
  	device/ds_routines.h \
-+	device/intr.c \
  	device/if_ether.h \
  	device/if_hdr.h \
++	device/intr.c \
++	device/intr.h \
  	device/io_req.h \
-@@ -357,6 +358,8 @@ include_device_HEADERS = \
- 	include/device/device_reply.defs \
- 	include/device/device_request.defs \
- 	include/device/device_types.defs \
-+	include/device/intr.defs \
-+	include/device/intr.h \
+ 	device/net_io.c \
+ 	device/net_io.h \
+@@ -360,6 +362,8 @@ include_device_HEADERS = \
  	include/device/device_types.h \
  	include/device/disk_status.h \
  	include/device/net_status.h \
++	include/device/notify.defs \
++	include/device/notify.h \
+ 	include/device/tape_status.h \
+ 	include/device/tty_status.h
+ 
 diff --git a/device/ds_routines.c b/device/ds_routines.c
 index 1fabec3c..13c9a63e 100644
 --- a/device/ds_routines.c
@@ -127,7 +130,7 @@ index c0543cbc..e9f115fc 100644
  #endif	/* DS_ROUTINES_H */
 diff --git a/device/intr.c b/device/intr.c
 new file mode 100644
-index 00000000..eb37ecf5
+index 00000000..1e9ab898
 --- /dev/null
 +++ b/device/intr.c
 @@ -0,0 +1,295 @@
@@ -386,7 +389,7 @@ index 00000000..eb37ecf5
 +deliver_intr (int line, ipc_port_t dest_port)
 +{
 +  ipc_kmsg_t kmsg;
-+  mach_intr_notification_t *n;
++  device_intr_notification_t *n;
 +  mach_port_t dest = (mach_port_t) dest_port;
 +
 +  if (dest == MACH_PORT_NULL)
@@ -397,17 +400,17 @@ index 00000000..eb37ecf5
 +    return FALSE;
 +
 +  ikm_init(kmsg, sizeof *n);
-+  n = (mach_intr_notification_t *) &kmsg->ikm_header;
++  n = (device_intr_notification_t *) &kmsg->ikm_header;
 +
 +  mach_msg_header_t *m = &n->intr_header;
 +  mach_msg_type_t *t = &n->intr_type;
 +
 +  m->msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND, 0);
 +  m->msgh_size = sizeof *n;
-+  m->msgh_seqno = INTR_NOTIFY_MSGH_SEQNO;
++  m->msgh_seqno = DEVICE_NOTIFY_MSGH_SEQNO;
 +  m->msgh_local_port = MACH_PORT_NULL;
 +  m->msgh_remote_port = MACH_PORT_NULL;
-+  m->msgh_id = MACH_INTR_NOTIFY;
++  m->msgh_id = DEVICE_INTR_NOTIFY;
 +
 +  t->msgt_name = MACH_MSG_TYPE_INTEGER_32;
 +  t->msgt_size = 32;
@@ -426,6 +429,49 @@ index 00000000..eb37ecf5
 +  return TRUE;
 +}
 +#endif	/* MACH_XEN */
+diff --git a/device/intr.h b/device/intr.h
+new file mode 100644
+index 00000000..48843cf0
+--- /dev/null
++++ b/device/intr.h
+@@ -0,0 +1,37 @@
++#ifndef __INTR_H__
++
++#define __INTR_H__
++
++#include <device/device_types.h>
++#include <kern/queue.h>
++#include <device/notify.h>
++
++typedef struct intr_entry
++{
++  queue_chain_t chain;
++  ipc_port_t dest;
++  int line;
++  int interrupts;		/* The number of interrupts occur since last run of intr_thread. */
++  int unacked_interrupts;	/* Number of times irqs were disabled for this */
++} user_intr_t;
++
++#define DEVICE_NOTIFY_MSGH_SEQNO 0
++
++int install_user_intr_handler (unsigned int line,
++					unsigned long flags,
++					user_intr_t *user_intr);
++
++/* Returns 0 if action should be removed */
++int deliver_user_intr (int line, user_intr_t *intr);
++
++user_intr_t *insert_intr_entry (int line, ipc_port_t dest);
++
++/* TODO: should rather take delivery port */
++kern_return_t user_intr_enable (int line, char status);
++
++void intr_thread (void);
++
++void __disable_irq(unsigned int);
++void __enable_irq(unsigned int);
++
++#endif
 diff --git a/include/device/device.defs b/include/device/device.defs
 index 409146f5..dca1be4e 100644
 --- a/include/device/device.defs
@@ -454,11 +500,11 @@ index 409146f5..dca1be4e 100644
 +		master_port	: mach_port_t;
 +		line		: int;
 +		status		: char);
-diff --git a/include/device/intr.defs b/include/device/intr.defs
+diff --git a/include/device/notify.defs b/include/device/notify.defs
 new file mode 100644
-index 00000000..368b96c6
+index 00000000..ea374d26
 --- /dev/null
-+++ b/include/device/intr.defs
++++ b/include/device/notify.defs
 @@ -0,0 +1,36 @@
 +/* 
 + * Mach Operating System
@@ -491,61 +537,51 @@ index 00000000..368b96c6
 +#include <mach/std_types.defs>
 +
 +serverprefix do_;
-+serverdemux intr_notify_server;
++serverdemux device_intr_notify_server;
 +
-+simpleroutine mach_intr_notify(
++simpleroutine device_intr_notify(
 +		notify	: notify_port_t;
 +		name	: int);
-diff --git a/include/device/intr.h b/include/device/intr.h
+diff --git a/include/device/notify.h b/include/device/notify.h
 new file mode 100644
-index 00000000..53d81bb5
+index 00000000..b6907b03
 --- /dev/null
-+++ b/include/device/intr.h
-@@ -0,0 +1,44 @@
-+#ifndef __INTR_H__
++++ b/include/device/notify.h
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (c) 2010 Free Software Foundation, Inc.
++ *
++ * Permission to use, copy, modify and distribute this software and its
++ * documentation is hereby granted, provided that both the copyright
++ * notice and this permission notice appear in all copies of the
++ * software, derivative works or modified versions, and any portions
++ * thereof, and that both notices appear in supporting documentation.
++ *
++ * THE FREE SOFTWARE FOUNDATIONALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
++ * CONDITION.  THE FREE SOFTWARE FOUNDATION DISCLAIMS ANY LIABILITY OF ANY KIND
++ * FOR ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
++ */
 +
-+#define __INTR_H__
++/*
++ * Device notification definitions.
++ */
 +
-+#include <device/device_types.h>
-+#include <kern/queue.h>
++#ifndef	_MACH_DEVICE_NOTIFY_H_
++#define _MACH_DEVICE_NOTIFY_H_
++
++#include <mach/port.h>
++#include <mach/message.h>
 +
 +typedef struct
 +{
 +  mach_msg_header_t intr_header;
 +  mach_msg_type_t   intr_type;
 +  int		    line;
-+} mach_intr_notification_t;
++} device_intr_notification_t;
 +
-+typedef struct intr_entry
-+{
-+  queue_chain_t chain;
-+  ipc_port_t dest;
-+  int line;
-+  int interrupts;		/* The number of interrupts occur since last run of intr_thread. */
-+  int unacked_interrupts;	/* Number of times irqs were disabled for this */
-+} user_intr_t;
++#define DEVICE_INTR_NOTIFY 100
 +
-+#define INTR_NOTIFY_MSGH_SEQNO 0
-+#define MACH_INTR_NOTIFY 100
-+
-+int install_user_intr_handler (unsigned int line,
-+					unsigned long flags,
-+					user_intr_t *user_intr);
-+
-+/* Returns 0 if action should be removed */
-+int deliver_user_intr (int line, user_intr_t *intr);
-+
-+user_intr_t *insert_intr_entry (int line, ipc_port_t dest);
-+
-+/* TODO: should rather take delivery port */
-+kern_return_t user_intr_enable (int line, char status);
-+
-+void intr_thread (void);
-+
-+void __disable_irq(unsigned int);
-+void __enable_irq(unsigned int);
-+
-+#endif
++#endif	/* _MACH_DEVICE_NOTIFY_H_ */
 diff --git a/include/mach/mach.defs b/include/mach/mach.defs
 index c6ad0770..77cc7d49 100644
 --- a/include/mach/mach.defs
@@ -591,7 +627,7 @@ index c6ad0770..77cc7d49 100644
   *	There is no more room in this interface for additional calls.
   */
 diff --git a/kern/startup.c b/kern/startup.c
-index 19bd7bf6..5077a0b8 100644
+index 56e05b3f..1f873192 100644
 --- a/kern/startup.c
 +++ b/kern/startup.c
 @@ -63,6 +63,7 @@
@@ -602,7 +638,7 @@ index 19bd7bf6..5077a0b8 100644
  
  #if MACH_KDB
  #include <device/cons.h>
-@@ -223,6 +224,9 @@ void start_kernel_threads(void)
+@@ -228,6 +229,9 @@ void start_kernel_threads(void)
  	(void) kernel_thread(kernel_task, reaper_thread, (char *) 0);
  	(void) kernel_thread(kernel_task, swapin_thread, (char *) 0);
  	(void) kernel_thread(kernel_task, sched_thread, (char *) 0);
