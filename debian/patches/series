@@ -5,3 +5,4 @@
 80_vm_object_coalesce.patch
 70_dde.patch
 79_dde-debian.patch
+no-common

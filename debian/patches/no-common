@@ -1,0 +1,168 @@
+commit fc713515896de6dbbbcc61a8be54589bc657aefd
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Mar 31 23:39:20 2020 +0200
+
+    Fix build with -fno-common
+    
+    which will be the default in gcc-10.
+    
+    * device/io_req.h (io_inband_cache): Add extern qualifier.
+    * device/tty.h (tthiwat, ttlowat): Likewise.
+    * i386/i386/db_machdep.h (ddb_regs): Likewise.
+    * kern/cpu_number.h (master_cpu): Likewise.
+    * kern/time_stamp.h (ts_tick_count): Likewise.
+    * linux/src/drivers/scsi/in2000.h (proc_scsi_in2000): Likewise.
+    * device/ds_routines.c (io_inband_cache): New variable.
+    * i386/i386/db_interface.c (ddb_regs): Likewise.
+    * kern/processor.c (master_cpu): Likewise.
+    * kern/time_stamp.c (ts_tick_count): Likewise.
+    * linux/pcmcia-cs/modules/pci_fixup.c (pci_root): Remove variable.
+
+diff --git a/device/ds_routines.c b/device/ds_routines.c
+index 1fabec3c..fc051e8f 100644
+--- a/device/ds_routines.c
++++ b/device/ds_routines.c
+@@ -132,6 +132,7 @@ static struct device_emulation_ops *emulation_list[] =
+ 
+ static struct vm_map	device_io_map_store;
+ vm_map_t		device_io_map = &device_io_map_store;
++struct kmem_cache	io_inband_cache;
+ 
+ #define NUM_EMULATION (sizeof (emulation_list) / sizeof (emulation_list[0]))
+ 
+diff --git a/device/io_req.h b/device/io_req.h
+index 1ad46801..b80b3dde 100644
+--- a/device/io_req.h
++++ b/device/io_req.h
+@@ -137,6 +137,6 @@ void	iodone(io_req_t);
+ 	(kfree((vm_offset_t)(ior), sizeof(struct io_req)))
+ 
+ 
+-struct kmem_cache io_inband_cache; /* for inband reads */
++extern struct kmem_cache io_inband_cache; /* for inband reads */
+ 
+ #endif	/* _IO_REQ_ */
+diff --git a/device/tty.h b/device/tty.h
+index ea6f4404..0bdb2db9 100644
+--- a/device/tty.h
++++ b/device/tty.h
+@@ -125,7 +125,7 @@ extern void ttychars(
+ 
+ #define	TTMINBUF	90
+ 
+-short	tthiwat[NSPEEDS], ttlowat[NSPEEDS];
++extern short	tthiwat[NSPEEDS], ttlowat[NSPEEDS];
+ #define	TTHIWAT(tp)	tthiwat[(tp)->t_ospeed]
+ #define	TTLOWAT(tp)	ttlowat[(tp)->t_ospeed]
+ 
+diff --git a/i386/i386/db_interface.c b/i386/i386/db_interface.c
+index 62fdcf24..e61d2961 100644
+--- a/i386/i386/db_interface.c
++++ b/i386/i386/db_interface.c
+@@ -66,6 +66,8 @@ static boolean_t kernel_dr;
+ /* Whether the current debug registers are zero.  */
+ static boolean_t zero_dr;
+ 
++db_regs_t	ddb_regs;
++
+ void db_load_context(pcb_t pcb)
+ {
+ #if MACH_KDB
+diff --git a/i386/i386/db_machdep.h b/i386/i386/db_machdep.h
+index ae1f9c09..04c874b1 100644
+--- a/i386/i386/db_machdep.h
++++ b/i386/i386/db_machdep.h
+@@ -41,7 +41,7 @@ typedef	vm_offset_t	db_addr_t;	/* address - unsigned */
+ typedef	long		db_expr_t;	/* expression - signed */
+ 
+ typedef struct i386_saved_state db_regs_t;
+-db_regs_t	ddb_regs;	/* register state */
++extern db_regs_t	ddb_regs;	/* register state */
+ #define	DDB_REGS	(&ddb_regs)
+ #define	SAVE_DDB_REGS		DB_SAVE(db_regs_t, ddb_regs)
+ #define	RESTORE_DDB_REGS	DB_RESTORE(ddb_regs)
+diff --git a/kern/cpu_number.h b/kern/cpu_number.h
+index 5d3e4bd1..e7b65324 100644
+--- a/kern/cpu_number.h
++++ b/kern/cpu_number.h
+@@ -31,7 +31,7 @@
+  *	Definitions for cpu identification in multi-processors.
+  */
+ 
+-int	master_cpu;	/* 'master' processor - keeps time */
++extern int	master_cpu;	/* 'master' processor - keeps time */
+ 
+ #if	(NCPUS == 1)
+ 	/* cpu number is always 0 on a single processor system */
+diff --git a/kern/processor.c b/kern/processor.c
+index dffd7d0b..6ed716d3 100644
+--- a/kern/processor.c
++++ b/kern/processor.c
+@@ -55,6 +55,8 @@ struct kmem_cache pset_cache;
+ /*
+  *	Exported variables.
+  */
++int	master_cpu;
++
+ struct processor_set default_pset;
+ struct processor processor_array[NCPUS];
+ 
+diff --git a/kern/time_stamp.c b/kern/time_stamp.c
+index ee141a0e..b8ac9d82 100644
+--- a/kern/time_stamp.c
++++ b/kern/time_stamp.c
+@@ -29,6 +29,8 @@
+ #include <sys/time.h>
+ #include <kern/time_stamp.h>
+ 
++unsigned	ts_tick_count;
++
+ /*
+  *	ts.c - kern_timestamp system call.
+  */
+diff --git a/kern/time_stamp.h b/kern/time_stamp.h
+index becaae1b..2492e522 100644
+--- a/kern/time_stamp.h
++++ b/kern/time_stamp.h
+@@ -52,7 +52,7 @@ struct tsval {
+ #define	TS_FORMAT	1
+ 
+ #if	KERNEL
+-unsigned	ts_tick_count;
++extern unsigned	ts_tick_count;
+ #endif	/* KERNEL */
+ #endif	/* TS_FORMAT */
+ 
+diff --git a/linux/pcmcia-cs/modules/pci_fixup.c b/linux/pcmcia-cs/modules/pci_fixup.c
+index 3b5551ad..6cbcd03e 100644
+--- a/linux/pcmcia-cs/modules/pci_fixup.c
++++ b/linux/pcmcia-cs/modules/pci_fixup.c
+@@ -51,7 +51,6 @@ u32 pci_irq_mask = 0;
+ #ifndef MACH
+ /* Already defined in drivers/pci/pci.c.  */
+ struct pci_dev *pci_devices = NULL;
+-#endif
+ struct pci_bus pci_root = {
+     parent:	NULL,
+     children:	NULL,
+@@ -61,6 +60,7 @@ struct pci_bus pci_root = {
+     number:	0
+ };
+ #endif
++#endif
+ 
+ #if (LINUX_VERSION_CODE < VERSION(2,1,93))
+ 
+diff --git a/linux/src/drivers/scsi/in2000.h b/linux/src/drivers/scsi/in2000.h
+index 52a86e06..732bab86 100644
+--- a/linux/src/drivers/scsi/in2000.h
++++ b/linux/src/drivers/scsi/in2000.h
+@@ -406,7 +406,7 @@ int in2000_queuecommand(Scsi_Cmnd *, void (*done)(Scsi_Cmnd *));
+ int in2000_abort(Scsi_Cmnd *);
+ void in2000_setup(char *, int *) in2000__INIT;
+ int in2000_proc_info(char *, char **, off_t, int, int, int);
+-struct proc_dir_entry proc_scsi_in2000;
++extern struct proc_dir_entry proc_scsi_in2000;
+ int in2000_biosparam(struct scsi_disk *, kdev_t, int *);
+ int in2000_reset(Scsi_Cmnd *, unsigned int);
+ 
