@@ -62,6 +62,7 @@ common_configure := \
 		--build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE) \
 		--prefix=/usr \
 		--exec-prefix=/ \
+		--includedir=/usr/include/$(DEB_HOST_MULTIARCH) \
 		--disable-net-group \
 		--disable-pcmcia-group \
 		--disable-wireless-group

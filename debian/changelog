@@ -2,6 +2,7 @@ gnumach (2:1.8+git20200309-2) UNRELEASED; urgency=medium
 
   * patches/no-common: Fix build with -fno-common (which will be the default
     with gcc-10).
+  * rules: Set includedir to /usr/include/$(DEB_HOST_MULTIARCH).
 
  -- Samuel Thibault <sthibault@debian.org>  Tue, 31 Mar 2020 23:42:55 +0200
 
