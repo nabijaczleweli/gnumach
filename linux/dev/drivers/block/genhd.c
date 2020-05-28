@@ -29,6 +29,9 @@
 #endif
 #include <linux/hdreg.h>
 #include <alloca.h>
+#ifdef CONFIG_GPT_DISKLABEL
+#include <stddef.h>
+#endif
 
 #include <asm/system.h>
 
@@ -276,6 +279,132 @@ static void bsd_disklabel_partition(struct gendisk *hd, kdev_t dev)
 }
 #endif
 
+#ifdef CONFIG_GPT_DISKLABEL
+/*
+ * Compute a CRC32 but treat some range as if it were zeros.
+ *
+ * Straight copy of ether_crc_le() from linux/pcmcia-cs/include/linux/crc32.h, except for the first if/else
+ */
+static inline unsigned ether_crc_le_hole(int length, unsigned char *data, unsigned int skip_offset, unsigned int skip_length)
+{
+    static unsigned const ethernet_polynomial_le = 0xedb88320U;
+    unsigned int crc = 0xffffffff;      /* Initial value. */
+    while(--length >= 0) {
+        unsigned char current_octet = *data++;
+		if(skip_offset == 0 && skip_length-- != 0)
+			current_octet = 0;
+		else
+			--skip_offset;
+        int bit;
+        for (bit = 8; --bit >= 0; current_octet >>= 1) {
+            if ((crc ^ current_octet) & 1) {
+                crc >>= 1;
+                crc ^= ethernet_polynomial_le;
+            } else
+                crc >>= 1;
+        }
+    }
+    return crc;
+}
+
+static void print_guid(struct gpt_guid *guid) {
+	printk("%08X-%04X-%04X-%02X%02X-", guid->g_time_low, guid->g_time_mid, guid->g_time_high_version, guid->g_clock_sec_high, guid->g_clock_sec_low);
+	for(int i = 0; i < sizeof(guid->g_node_id); ++i)
+		printk("%02X", guid->g_node_id[i]);
+}
+static int gpt_partition(struct gendisk *hd, kdev_t dev, struct buffer_head *mbr_bh)
+{
+	//printk("IN GPT BAYBEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+	struct buffer_head *bh;
+	struct gpt_disklabel_header *h = (struct gpt_disklabel_header *) (mbr_bh->b_data+512);
+	print_guid(&h->h_guid);
+
+	printk("h_signature: \"%c%c%c%c%c%c%c%c\";  ", h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3], h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
+	printk("h_revision: %x;  ", h->h_revision);
+	printk("h_header_size: %u;  ", h->h_header_size);
+	printk("h_header_crc: %x;  ", h->h_header_crc);
+	printk("h_reserved: %u;  ", h->h_reserved);
+	printk("h_lba_current: %llu;  ", h->h_lba_current);
+	printk("h_lba_backup: %llu;  ", h->h_lba_backup);
+	printk("h_lba_usable_first: %llu;  ", h->h_lba_usable_first);
+	printk("h_lba_usable_last: %llu;  ", h->h_lba_usable_last);
+	printk("h_guid: "); print_guid(&h->h_guid); printk(";  ");
+	printk("h_part_table_lba: %llu;  ", h->h_part_table_lba);
+	printk("h_part_table_len: %u;  ", h->h_part_table_len);
+	printk("h_part_table_entry_size: %u;  ", h->h_part_table_entry_size);
+	printk("h_part_table_crc: %x;  ", h->h_part_table_crc);
+
+	int header_bad = 0;
+	/* Sequence from section 5.3.2 of spec 2.8A:
+     * signature, CRC, lba_current matches, partition table CRC, primary: check backup for validity */
+	if(memcmp(h->h_signature, GPT_SIGNATURE, strlen(GPT_SIGNATURE)) != 0 || 1) {
+		printk("bad GPT signature \"%c%c%c%c%c%c%c%c\"; ",
+			h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3],
+			h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
+		header_bad = 2;
+	}
+
+	__u32 comp_crc = ether_crc_le_hole(h->h_header_size, (void *)h,
+		offsetof(struct gpt_disklabel_header, h_header_crc), sizeof(h->h_header_crc));
+	if(comp_crc != h->h_header_crc || 1) {
+		printk("bad header CRC: %x != %x; ", comp_crc, h->h_header_crc);
+		header_bad = 2;
+	}
+
+	if(h->h_lba_current != 1 || 1) {
+		printk("current LBA mismatch: %lld != %lld; ", h->h_lba_current, 2ULL);
+		header_bad = 2;
+	}
+
+	printk("PAGE_SIZE: %d;  reading: %d; ", PAGE_SIZE, h->h_part_table_len * h->h_part_table_entry_size);
+	if (!(bh = bread(dev, h->h_part_table_lba, h->h_part_table_len * h->h_part_table_entry_size))) {
+		printk("unable to read partition table array");
+		return -1;
+	}
+
+	for(int i = h->h_header_size; i < 512; ++i) {
+		header_bad |= ((char*)h)[i] != 0;
+	}
+	if(header_bad & 1 || 1) {
+		printk("rest of GPT block dirty; ");
+	}
+
+	return 1;
+#if 0
+	int mask = (1 << hd->minor_shift) - 1;
+
+	if (!(bh = bread(dev,0,1024)))
+		return;
+	bh->b_state = 0;
+	l = (struct bsd_disklabel *) (bh->b_data+512);
+	if (l->d_magic != BSD_DISKMAGIC) {
+		brelse(bh);
+		return;
+	}
+
+	p = &l->d_partitions[0];
+	while (p - &l->d_partitions[0] <= BSD_MAXPARTITIONS) {
+		if ((current_minor & mask) >= (4 + hd->max_p))
+			break;
+
+		if (p->p_fstype != BSD_FS_UNUSED) {
+#ifdef MACH
+#error
+		  add_bsd_partition (hd, current_minor,
+				     p - &l->d_partitions[0] + 'a',
+				     p->p_offset, p->p_size);
+#else
+			add_partition(hd, current_minor, p->p_offset, p->p_size);
+#endif
+			current_minor++;
+		}
+		p++;
+	}
+	brelse(bh);
+#endif
+}
+#endif
+
 static int msdos_partition(struct gendisk *hd, kdev_t dev, unsigned long first_sector)
 {
 	int i, minor = current_minor;
@@ -381,6 +510,15 @@ check_table:
 	for (i=1 ; i<=4 ; minor++,i++,p++) {
 		if (!NR_SECTS(p))
 			continue;
+#ifdef CONFIG_GPT_DISKLABEL
+		if (SYS_IND(p) == GPT_PARTITION) {
+			printk(" GPT(");
+			int gpt_res = gpt_partition(hd, dev, bh);
+			printk(")\n");
+			brelse(bh);
+			return gpt_res;
+		} else
+#endif
 		add_partition(hd, minor, first_sector+START_SECT(p), NR_SECTS(p));
 		if (is_extended_partition(p)) {
 			printk(" <");

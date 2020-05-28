@@ -128,6 +128,57 @@ struct bsd_disklabel {
 
 #endif	/* CONFIG_BSD_DISKLABEL */
 
+#ifdef CONFIG_GPT_DISKLABEL
+/*
+ * GPT disklabel support by наб <nabijaczleweli@gmail.com>
+ *
+ * Based on EFI specification 1.10-001 (current as of May 2020):
+ * https://www.intel.com/content/www/us/en/architecture-and-technology/unified-extensible-firmware-interface/efi-specifications-general-technology.html
+ * https://www.intel.com/content/dam/www/public/us/en/zip/efi-110.zip
+ * https://www.intel.com/content/dam/www/public/us/en/zip/efi-110-update.zip
+ *
+ * CRC32 behaviour (final ^ ~0) courtesy of util-linux documentation:
+ * https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git/tree/libblkid/src/partitions/gpt.c?id=042f62dfc514da177c148c257e4dcb32e5f8379d#n104
+ */
+
+#define GPT_PARTITION		0xee	/* Partition ID in MBR */
+
+#define GPT_GUID_SIZE	16
+struct gpt_guid {
+	__u32	g_time_low;		/* Low field of timestamp */
+	__u16	g_time_mid;		/* Medium field of timestamp */
+	__u16	g_time_high_version;		/* High field of timestamp and version */
+	__u8	g_clock_sec_high;		/* High field of clock sequence and variant */
+	__u8	g_clock_sec_low;		/* Low field of clock sequence */
+	__u8	g_node_id[6];		/* Spatially unique node identifier (MAC address or urandom) */
+} __attribute((packed));
+typedef char __gpt_guid_right_size[(sizeof(struct gpt_guid) == GPT_GUID_SIZE) ? 1 : -1];
+
+#define GPT_SIGNATURE	"EFI PART"		/* The header signauture */
+#define GPT_REVISION	(0x00010000UL)	/* Little-endian on disk */
+#define GPT_HEADER_SIZE	92
+#define GPT_MAXPARTITIONS	128
+struct gpt_disklabel_header {
+	char	h_signature[8];		/* Must match GPT_SIGNATURE */
+	__u32	h_revision;			/* Disklabel revision, must match GPT_REVISION */
+	__u32	h_header_size;		/* Must match GPT_HEADER_SIZE */
+	__u32	h_header_crc;		/* CRC32 of header, zero for calculation */
+	__u32	h_reserved;		/* Must be zero */
+	__u64	h_lba_current;		/* LBA of this copy of the header */
+	__u64	h_lba_backup;		/* LBA of the second (backup) copy of the header */
+	__u64	h_lba_usable_first;		/* First usable LBA for partitions (last LBA of primary table + 1) */
+	__u64	h_lba_usable_last;		/* Last usable LBA for partitions (first LBA of secondary table - 1) */
+	struct gpt_guid	h_guid;		/* ID of the disk */
+	__u64	h_part_table_lba;		/* First LBA of the partition table (usually 2 in primary header) */
+	__u32	h_part_table_len;		/* Amount of entries in the partition table */
+	__u32	h_part_table_entry_size;		/* Size of each partition entry (usually 128) */
+	__u32	h_part_table_crc;		/* CRC32 of entire partition table, starts at h_part_table_lba, is h_part_table_len*h_part_table_entry_size long */
+						/* Rest of block must be zero */
+} __attribute((packed));
+typedef char __gpt_header_right_size[(sizeof(struct gpt_disklabel_header) == GPT_HEADER_SIZE) ? 1 : -1];
+
+#endif	/* CONFIG_GPT_DISKLABEL */
+
 extern struct gendisk *gendisk_head;	/* linked list of disks */
 
 /*
