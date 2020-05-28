@@ -154,6 +154,8 @@ struct gpt_guid {
 } __attribute((packed));
 typedef char __gpt_guid_right_size[(sizeof(struct gpt_guid) == GPT_GUID_SIZE) ? 1 : -1];
 
+static const struct gpt_guid GPT_GUID_TYPE_UNUSED = {0,0,0,0,0,{0,0,0,0,0,0}};
+
 #define GPT_SIGNATURE	"EFI PART"		/* The header signauture */
 #define GPT_REVISION	(0x00010000UL)	/* Little-endian on disk */
 #define GPT_HEADER_SIZE	92
@@ -177,6 +179,21 @@ struct gpt_disklabel_header {
 } __attribute((packed));
 typedef char __gpt_header_right_size[(sizeof(struct gpt_disklabel_header) == GPT_HEADER_SIZE) ? 1 : -1];
 
+/* 3-47: reserved; 48-63: defined for individual partition types. */
+#define GPT_PARTITION_ATTR_PLATFORM_REQUIRED	(1ULL << 0)		/* Required by the platform to function */
+#define GPT_PARTITION_ATTR_EFI_IGNORE	(1ULL << 1)		/* To be ignored by the EFI firmware */
+#define GPT_PARTITION_ATTR_BIOS_BOOTABLE	(1ULL << 2)		/* Equivalent to MBR active flag */
+
+#define GPT_PARTITION_ENTRY_SIZE	128		/* Minimum size, implementations must respect bigger vendor-specific entries */
+struct gpt_disklabel_part {
+	struct gpt_guid	p_type;		/* Partition type GUID */
+	struct gpt_guid	p_guid;		/* ID of the partition */
+	__u64	p_lba_first;		/* First LBA of the partition */
+	__u64	p_lba_last;		/* Last LBA of the partition */
+	__u64	p_attrs;		/* Partition attribute bitfield, see above */
+	__u16	p_name[36];		/* Display name of partition, UTF-16 */
+} __attribute((packed));
+typedef char __gpt_part_entry_right_size[(sizeof(struct gpt_disklabel_part) == GPT_PARTITION_ENTRY_SIZE) ? 1 : -1];
 #endif	/* CONFIG_GPT_DISKLABEL */
 
 extern struct gendisk *gendisk_head;	/* linked list of disks */
