@@ -328,7 +328,6 @@ static int gpt_read_part_table(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize
 
 	while (bytes_left) {
 		unsigned bytes_to_read = MIN(bytes_left, PAGE_SIZE);
-		//printk("bread(%u:%u, %llu, %u)", MAJOR(dev), MINOR(dev), lba, bytes_to_read);
 		if(!(bh = bread(dev, lba, bytes_to_read))) {
 			printk(" unable to read partition table array");
 			return -3;
@@ -456,8 +455,6 @@ static int gpt_partition(struct gendisk *hd, kdev_t dev, __u64 first_sector, int
 	if (hardsect_size[MAJOR(dev)] && hardsect_size[MAJOR(dev)][MINOR(dev)])
 		bsize = hardsect_size[MAJOR(dev)][MINOR(dev)];
 	set_blocksize(dev,bsize);	/* Must override read block size since GPT has pointers, stolen from amiga_partition(). */
-	//printk("maj: %p;  min: %u;  bsize: %d;  first_sector: %llu;  ",
-	//	 hardsect_size[MAJOR(dev)], hardsect_size[MAJOR(dev)][MINOR(dev)], bsize, first_sector);
 	if (!(bh = bread(dev, first_sector + 1, bsize))) {
 		printk("unable to read GPT");
 		res = -1;
