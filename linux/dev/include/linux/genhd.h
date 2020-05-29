@@ -132,10 +132,9 @@ struct bsd_disklabel {
 /*
  * GPT disklabel support by наб <nabijaczleweli@gmail.com>
  *
- * Based on EFI specification 1.10-001 (current as of May 2020):
- * https://www.intel.com/content/www/us/en/architecture-and-technology/unified-extensible-firmware-interface/efi-specifications-general-technology.html
- * https://www.intel.com/content/dam/www/public/us/en/zip/efi-110.zip
- * https://www.intel.com/content/dam/www/public/us/en/zip/efi-110-update.zip
+ * Based on UEFI specification 2.8A (current as of May 2020):
+ * https://uefi.org/specifications
+ * https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_A_Feb14.pdf
  *
  * CRC32 behaviour (final ^ ~0) courtesy of util-linux documentation:
  * https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git/tree/libblkid/src/partitions/gpt.c?id=042f62dfc514da177c148c257e4dcb32e5f8379d#n104

@@ -292,7 +292,7 @@ static inline unsigned ether_crc_le_hole(int length, unsigned char *data, unsign
 	static unsigned const ethernet_polynomial_le = 0xedb88320U;
 	unsigned int crc = 0xffffffff;      /* Initial value. */
 	while(--length >= 0) {
-        unsigned char current_octet = *data++;
+		unsigned char current_octet = *data++;
 		if(skip_offset == 0 && skip_length-- != 0)
 			current_octet = 0;
 		else
@@ -309,23 +309,28 @@ static inline unsigned ether_crc_le_hole(int length, unsigned char *data, unsign
 	return crc;
 }
 
-static int gpt_read_part_table(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, __u64 first_sector, struct gpt_disklabel_header *h) {
-	__u64 lba;
+/*
+ * Read in a full GPT array into a contiguous chunk, allocates *PP_S bytes into *PP.
+ *
+ * An attempt to do as few round-trips as possible is made by reading a PAGE_SIZE at a time,
+ * since that's the bread() maximum.
+ */
+static int gpt_read_part_table(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, __u64 first_sector, struct gpt_disklabel_header *h)
+{
+	__u64 lba = first_sector + h->h_part_table_lba;
 	__u32 bytes_left;
 	struct buffer_head *bh;
-	void *cur = *pp = (void *)kalloc(*pp_s = h->h_part_table_len * h->h_part_table_entry_size);
+	void *cur = *pp = (void *)kalloc(bytes_left = *pp_s = h->h_part_table_len * h->h_part_table_entry_size);
 	if (!cur) {
-		printk("unable to allocate GPT partition table buffer");
+		printk(" unable to allocate GPT partition table buffer");
 		return -2;
 	}
 
-	lba = h->h_part_table_lba;
-	bytes_left = h->h_part_table_len * h->h_part_table_entry_size;
 	while (bytes_left) {
 		unsigned bytes_to_read = MIN(bytes_left, PAGE_SIZE);
-		//printk("bread(%u:%u, %llu, %u)", MAJOR(dev), MINOR(dev), first_sector + lba, bytes_to_read);
-		if(!(bh = bread(dev, first_sector + lba, bytes_to_read))) {
-			printk("unable to read partition table array");
+		//printk("bread(%u:%u, %llu, %u)", MAJOR(dev), MINOR(dev), lba, bytes_to_read);
+		if(!(bh = bread(dev, lba, bytes_to_read))) {
+			printk(" unable to read partition table array");
 			return -3;
 		}
 
@@ -344,25 +349,27 @@ static int gpt_read_part_table(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize
  * Sequence from section 5.3.2 of spec 2.8A:
  * signature, CRC, lba_current matches, partition table CRC, primary: check backup for validity
  */
-static int gpt_verify_header(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, __u64 first_sector, __u64 lba, struct gpt_disklabel_header *h) {
-	int table_res;
+static int gpt_verify_header(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, __u64 first_sector, __u64 lba, struct gpt_disklabel_header *h)
+{
+	int res;
+	__u32 crc;
 
 	if (memcmp(h->h_signature, GPT_SIGNATURE, strlen(GPT_SIGNATURE)) != 0) {
-		printk("bad GPT signature \"%c%c%c%c%c%c%c%c\"; ",
+		printk(" bad GPT signature \"%c%c%c%c%c%c%c%c\";",
 			h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3],
 			h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
 		return 1;
 	}
 
-	__u32 comp_crc = ether_crc_le_hole(h->h_header_size, (void *)h,
+	crc = ether_crc_le_hole(h->h_header_size, (void *)h,
 		offsetof(struct gpt_disklabel_header, h_header_crc), sizeof(h->h_header_crc)) ^ ~0;
-	if (comp_crc != h->h_header_crc) {
-		printk("bad header CRC: %x != %x; ", comp_crc, h->h_header_crc);
+	if (crc != h->h_header_crc) {
+		printk(" bad header CRC: %x != %x;", crc, h->h_header_crc);
 		return 2;
 	}
 
 	if (h->h_lba_current != lba) {
-		printk("current LBA mismatch: %lld != %lld; ", h->h_lba_current, lba);
+		printk(" current LBA mismatch: %lld != %lld;", h->h_lba_current, lba);
 		return 3;
 	}
 
@@ -370,36 +377,44 @@ static int gpt_verify_header(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, 
 		kfree((vm_offset_t)*pp, *pp_s);
 		*pp = NULL;
 	}
-	if ((table_res = gpt_read_part_table(pp, pp_s, dev, bsize, first_sector, h)))
-		return table_res;
+	if ((res = gpt_read_part_table(pp, pp_s, dev, bsize, first_sector, h)))
+		return res;
 
-	__u32 part_crc = ether_crc_le_hole(*pp_s, *pp, 0, 0) ^ ~0;
-	if (part_crc != h->h_part_table_crc) {
-		printk("bad partition table CRC: %x != %x; ", part_crc, h->h_part_table_crc);
+	crc = ether_crc_le_hole(*pp_s, *pp, 0, 0) ^ ~0;
+	if (crc != h->h_part_table_crc) {
+		printk(" bad partition table CRC: %x != %x;", crc, h->h_part_table_crc);
 		return 4;
 	}
 
-	{
-		char trailer = 0;
-		for(int i = h->h_header_size; i < bsize; ++i) {
-			trailer |= ((char*)h)[i];
-		}
-		if(trailer) {
-			printk("rest of GPT block dirty; ");
-			return 5;
-		}
+	for (int i = h->h_header_size; i < bsize; ++i)
+		res |= ((char*)h)[i];
+	if (res) {
+		printk(" rest of GPT block dirty;");
+		return 5;
 	}
 
 	return 0;
 }
 
-static void print_guid(struct gpt_guid *guid) {
+static void gpt_print_part_name(struct gpt_disklabel_part *p)
+{
+	for(int n = 0; n < sizeof(p->p_name) / sizeof(*p->p_name) && p->p_name[n]; ++n)
+		if(p->p_name[n] & ~0xFF)
+			printk("?");	/* Can't support all of Unicode, but don't print garbage at least... */
+		else
+			printk("%c", p->p_name[n]);
+}
+
+#ifdef DEBUG
+static void gpt_print_guid(struct gpt_guid *guid)
+{
 	printk("%08X-%04X-%04X-%02X%02X-", guid->g_time_low, guid->g_time_mid, guid->g_time_high_version, guid->g_clock_sec_high, guid->g_clock_sec_low);
-	for(int i = 0; i < sizeof(guid->g_node_id); ++i)
+	for (int i = 0; i < sizeof(guid->g_node_id); ++i)
 		printk("%02X", guid->g_node_id[i]);
 }
-static void gpt_dump_header(struct gpt_disklabel_header *h) {
-#if 0
+
+static void gpt_dump_header(struct gpt_disklabel_header *h)
+{
 	printk("h_signature: \"%c%c%c%c%c%c%c%c\";  ", h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3], h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
 	printk("h_revision: %x;  ", h->h_revision);
 	printk("h_header_size: %u;  ", h->h_header_size);
@@ -409,44 +424,40 @@ static void gpt_dump_header(struct gpt_disklabel_header *h) {
 	printk("h_lba_backup: %llu;  ", h->h_lba_backup);
 	printk("h_lba_usable_first: %llu;  ", h->h_lba_usable_first);
 	printk("h_lba_usable_last: %llu;  ", h->h_lba_usable_last);
-	printk("h_guid: "); print_guid(&h->h_guid); printk(";  ");
+	printk("h_guid: "); gpt_print_guid(&h->h_guid); printk(";  ");
 	printk("h_part_table_lba: %llu;  ", h->h_part_table_lba);
 	printk("h_part_table_len: %u;  ", h->h_part_table_len);
 	printk("h_part_table_crc: %x;  ", h->h_part_table_crc);
-#endif
 }
-static void gpt_print_part_name(struct gpt_disklabel_part *p) {
-	for(int n = 0; n < sizeof(p->p_name) / sizeof(*p->p_name) && p->p_name[n]; ++n)
-		if(p->p_name[n] & ~0xFF)
-			printk("?");	/* Can't support all of Unicode, but don't print garbage at least... */
-		else
-			printk("%c", p->p_name[n]);
-}
-static void gpt_dump_part(struct gpt_disklabel_part *p, int i) {
-#if 0
+
+static void gpt_dump_part(struct gpt_disklabel_part *p, int i)
+{
 	printk("part#%d: ", i);
-	printk("p_type: "); print_guid(&p->p_type);
-	printk("; p_guid:"); print_guid(&p->p_guid);
+	printk("p_type: "); gpt_print_guid(&p->p_type);
+	printk("; p_guid:"); gpt_print_guid(&p->p_guid);
 	printk("; p_lba_first: %llu", p->p_lba_first);
 	printk("; p_lba_last: %llu", p->p_lba_last);
 	printk("; p_attrs: %llx", p->p_attrs);
 	printk("; p_name: \""); gpt_print_part_name(p); printk("\";  ");
-#endif
 }
+#else
+static void gpt_dump_header(struct gpt_disklabel_header *h) {}
+static void gpt_dump_part(struct gpt_disklabel_part *p, int i) {}
+#endif
+
 static int gpt_partition(struct gendisk *hd, kdev_t dev, __u64 first_sector, int minor)
 {
-	//printk("IN GPT BAYBEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 	struct buffer_head *bh;
 	struct gpt_disklabel_header *h;
 	void *pp = NULL; vm_size_t pp_s = 0;
-	int res = 0, ver_res = 0, bsize = 512;
-	//printk("maj: %p;  min: %u;  ", hardsect_size[MAJOR(dev)], hardsect_size[MAJOR(dev)][MINOR(dev)]);
-	/* Note: this must be set by the driver; AFAICT, SCSI is the only one that does --
-	 *       if broken on 4k-block drive, verify that it actually *does* set it */
+	int res, bsize = 512;
+	/* Note: this must be set by the driver; SCSI does --
+	 *       only, in practice, it always sets this to 512, see sd_init() in sd.c */
 	if (hardsect_size[MAJOR(dev)] && hardsect_size[MAJOR(dev)][MINOR(dev)])
 		bsize = hardsect_size[MAJOR(dev)][MINOR(dev)];
 	set_blocksize(dev,bsize);	/* Must override read block size since GPT has pointers, stolen from amiga_partition(). */
-	//printk("bsize: %d;  first_sector: %llu;  ", bsize, first_sector);
+	//printk("maj: %p;  min: %u;  bsize: %d;  first_sector: %llu;  ",
+	//	 hardsect_size[MAJOR(dev)], hardsect_size[MAJOR(dev)][MINOR(dev)], bsize, first_sector);
 	if (!(bh = bread(dev, first_sector + 1, bsize))) {
 		printk("unable to read GPT");
 		res = -1;
@@ -456,17 +467,14 @@ static int gpt_partition(struct gendisk *hd, kdev_t dev, __u64 first_sector, int
 	h = (struct gpt_disklabel_header *)bh->b_data;
 	gpt_dump_header(h);
 
-	ver_res = gpt_verify_header(&pp, &pp_s, dev, bsize, first_sector, 1, h);
-	if (ver_res < 0) {
-		res = ver_res;
+	res = gpt_verify_header(&pp, &pp_s, dev, bsize, first_sector, 1, h);
+	if (res < 0)
 		goto done;
-	} else if (ver_res > 0) {
-		printk("main GPT %dirty, trying backup at %llu; ", ver_res, h->h_lba_backup);
+	else if (res > 0) {
+		printk(" main GPT dirty, trying backup at %llu;", h->h_lba_backup);
 		__u64 lba = h->h_lba_backup;
 		brelse(bh);
 
-		/* NB: This read fails with bad access: block=312581807, count=1, nr_sects=268435455 on my 312581808-block HDD; bum driver?
-         *     I've verified that this code path works insofar as failing with bad data by patching out the check, but, well. */
 		if (!(bh = bread(dev, first_sector + lba, bsize))) {
 			printk("unable to read backup GPT");
 			res = -4;
@@ -476,30 +484,29 @@ static int gpt_partition(struct gendisk *hd, kdev_t dev, __u64 first_sector, int
 		h = (struct gpt_disklabel_header *)bh->b_data;
 		gpt_dump_header(h);
 
-		ver_res = gpt_verify_header(&pp, &pp_s, dev, bsize, first_sector, lba, h);
-		if (ver_res < 0) {
-			res = ver_res;
+		res = gpt_verify_header(&pp, &pp_s, dev, bsize, first_sector, lba, h);
+		if (res < 0)
 			goto done;
-		} else if (ver_res > 0) {
-			printk("backup GPT %dirty as well; cowardly refusing to continue", ver_res);
+		else if (res > 0) {
+			printk(" backup GPT dirty as well; cowardly refusing to continue");
 			res = -5;
 			goto done;
 		}
 	}
 
-	/* At least one good GPT and partition table. */
+	/* At least one good GPT+array */
 
-	for(int i = 0; i < h->h_part_table_len; ++i) {
+	for(int i = 0; i < h->h_part_table_len; ++i, ++minor) {
 		struct gpt_disklabel_part *p =
 			(struct gpt_disklabel_part *) (pp + i * h->h_part_table_entry_size);
 		if(memcmp(&p->p_type, &GPT_GUID_TYPE_UNUSED, sizeof(struct gpt_guid)) == 0)
 			continue;
 		gpt_dump_part(p, i);
-		//printk("max_p: %d; ", hd->max_p);
-		if (minor > hd->max_p) {
-			printk("WARN: ignoring GPT partition %d \"", i); gpt_print_part_name(p); printk("\": too many partitions (max %d)", hd->max_p);
+
+		if (minor > hd->max_nr * hd->max_p) {
+			printk(" [ignoring GPT partition %d \"", i); gpt_print_part_name(p); printk("\": too many partitions (max %d)]", hd->max_p);
 		} else {
-			add_partition(hd, minor++, first_sector + p->p_lba_first, p->p_lba_last - p->p_lba_first + 1);
+			add_partition(hd, minor, first_sector + p->p_lba_first, p->p_lba_last - p->p_lba_first + 1);
 			if(p->p_name[0]) {
 				printk(" ("); gpt_print_part_name(p); printk(")");
 			}
@@ -510,7 +517,8 @@ done:
 	brelse(bh);
 	set_blocksize(dev,BLOCK_SIZE);
 	kfree((vm_offset_t)pp, pp_s);
-	return res;
+	printk("\n");
+	return !res;
 }
 #endif
 
