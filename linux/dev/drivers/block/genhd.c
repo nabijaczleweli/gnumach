@@ -318,9 +318,9 @@ static inline unsigned ether_crc_le_hole(int length, unsigned char *data, unsign
 static int gpt_read_part_table(void **pp, vm_size_t *pp_s, kdev_t dev, int bsize, __u64 first_sector, struct gpt_disklabel_header *h)
 {
 	__u64 lba = first_sector + h->h_part_table_lba;
-	__u32 bytes_left;
+	__u32 bytes_left = *pp_s = h->h_part_table_len * h->h_part_table_entry_size;
 	struct buffer_head *bh;
-	void *cur = *pp = (void *)kalloc(bytes_left = *pp_s = h->h_part_table_len * h->h_part_table_entry_size);
+	void *cur = *pp = (void *)kalloc(*pp_s);
 	if (!cur) {
 		printk(" unable to allocate GPT partition table buffer");
 		return -2;
