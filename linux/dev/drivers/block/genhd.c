@@ -414,30 +414,32 @@ static void gpt_print_guid(struct gpt_guid *guid)
 
 static void gpt_dump_header(struct gpt_disklabel_header *h)
 {
-	printk("h_signature: \"%c%c%c%c%c%c%c%c\";  ", h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3], h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
-	printk("h_revision: %x;  ", h->h_revision);
-	printk("h_header_size: %u;  ", h->h_header_size);
-	printk("h_header_crc: %x;  ", h->h_header_crc);
-	printk("h_reserved: %u;  ", h->h_reserved);
-	printk("h_lba_current: %llu;  ", h->h_lba_current);
-	printk("h_lba_backup: %llu;  ", h->h_lba_backup);
-	printk("h_lba_usable_first: %llu;  ", h->h_lba_usable_first);
-	printk("h_lba_usable_last: %llu;  ", h->h_lba_usable_last);
-	printk("h_guid: "); gpt_print_guid(&h->h_guid); printk(";  ");
-	printk("h_part_table_lba: %llu;  ", h->h_part_table_lba);
-	printk("h_part_table_len: %u;  ", h->h_part_table_len);
-	printk("h_part_table_crc: %x;  ", h->h_part_table_crc);
+	printk(" [h_signature: \"%c%c%c%c%c%c%c%c\"; ",
+		h->h_signature[0], h->h_signature[1], h->h_signature[2], h->h_signature[3],
+		h->h_signature[4], h->h_signature[5], h->h_signature[6], h->h_signature[7]);
+	printk("h_revision: %x; ", h->h_revision);
+	printk("h_header_size: %u; ", h->h_header_size);
+	printk("h_header_crc: %x; ", h->h_header_crc);
+	printk("h_reserved: %u; ", h->h_reserved);
+	printk("h_lba_current: %llu; ", h->h_lba_current);
+	printk("h_lba_backup: %llu; ", h->h_lba_backup);
+	printk("h_lba_usable_first: %llu; ", h->h_lba_usable_first);
+	printk("h_lba_usable_last: %llu; ", h->h_lba_usable_last);
+	printk("h_guid: "); gpt_print_guid(&h->h_guid); printk("; ");
+	printk("h_part_table_lba: %llu; ", h->h_part_table_lba);
+	printk("h_part_table_len: %u; ", h->h_part_table_len);
+	printk("h_part_table_crc: %x]", h->h_part_table_crc);
 }
 
 static void gpt_dump_part(struct gpt_disklabel_part *p, int i)
 {
-	printk("part#%d: ", i);
+	printk(" part#%d:[", i);
 	printk("p_type: "); gpt_print_guid(&p->p_type);
 	printk("; p_guid:"); gpt_print_guid(&p->p_guid);
 	printk("; p_lba_first: %llu", p->p_lba_first);
 	printk("; p_lba_last: %llu", p->p_lba_last);
 	printk("; p_attrs: %llx", p->p_attrs);
-	printk("; p_name: \""); gpt_print_part_name(p); printk("\";  ");
+	printk("; p_name: \""); gpt_print_part_name(p); printk("\"]");
 }
 #else
 static void gpt_dump_header(struct gpt_disklabel_header *h) {}
