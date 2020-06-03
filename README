@@ -4,9 +4,12 @@ src:gnumach GPT implementation
 As of the 27th of May 2020 GNU Mach had not supported GPT disklabels.
 As of the 30th of May 2020 it may if you build it with the patch contained herein,
   based on debian version 2:1.8+git20200309-2, or the commits in the gpt branch.
+As of the  1st of Jun 2020, 2:1.8+git20200601-1 has landed in unstable,
+  with patch v2 in upstream commit http://git.savannah.gnu.org/cgit/hurd/gnumach.git/commit/?id=204a382c7b6ccc6443a81688066319d73ef65cab.
 
 See screenshots at https://lfs.nabijaczleweli.xyz/0003-mach-GPT.
 
 Confer coresponding tweetset at https://twitter.com/nabijaczleweli/status/1261837841824432129.
 
-Submitted to the debian-hurd@ mailing list at https://lists.debian.org/debian-hurd/2020/05/msg00014.html.
+Submitted to the debian-hurd@ mailing list at https://lists.debian.org/debian-hurd/2020/05/msg00014.html,
+and was accepted in https://lists.debian.org/debian-hurd/2020/06/msg00006.html; thanks, Samuel!
